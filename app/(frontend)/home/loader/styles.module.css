@@ -1,0 +1,153 @@
+.loaderContainer {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100%;
+  font-family: "PP Editorial Old";
+  background-color: #ffffff;
+  color: #fff;
+  overflow: hidden;
+}
+
+.loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100%;
+  background-color: #76C043;
+  color: #fff;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  padding: 0 8vw;
+}
+
+.countWrapper {
+  position: relative;
+  width: 90px;
+  height: 180px;
+  clipPath: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+  willChange: transform;
+  transform: translateX(40px);
+}
+
+.count {
+  position: relative;
+  width: max-content;
+  height: 180px;
+  display: flex;
+  margin-left: -3vw;
+  justify-content: flex-start;
+  transform: translateX(0);
+  willChange: transform;
+}
+
+.digit {
+  position: relative;
+  width: 90px;
+  height: 180px;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.digit h1 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: max-content;
+  font-size: 180px;
+  font-weight: lighter;
+  line-height: 1;
+  margin: 0;
+}
+
+.revealer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  padding: 0 8vw;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.container.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.siteInfo {
+  position: absolute;
+  top: 2em;
+  left: 2em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125em;
+}
+
+.line {
+  clipPath: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+  height: 18px;
+}
+
+.line p {
+  position: relative;
+  font-family: "PP Neue Montreal";
+  font-size: 7px;
+  font-weight: 500;
+  letterSpacing: -0.125px;
+  opacity: 0.5;
+  WebkitFontSmoothing: antialiased;
+  MozOsxFontSmoothing: grayscale;
+  transform: translateY(18px);
+  willChange: transform;
+  margin: 0;
+}
+
+.toggleBtn {
+  position: absolute;
+  top: 2em;
+  right: 2em;
+  width: 30px;
+  height: 25px;
+  background: #fff;
+  borderRadius: 100%;
+  transform: scale(0);
+}
+
+.toggleBtn img {
+  transform: scale(0.5);
+}
+
+.header {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  padding: 1em;
+  transformStyle: preserve-3d;
+  perspective: 2000px;
+}
+
+.header h1 {
+  position: relative;
+  font-size: 12.5vw;
+  font-weight: lighter;
+  letterSpacing: -0.02em;
+  line-height: 0.85;
+  transform: rotateY(60deg);
+  transformOrigin: bottom left;
+  willChange: transform;
+  opacity: 0;
+  margin: 0;
+} 
