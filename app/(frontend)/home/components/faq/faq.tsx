@@ -116,7 +116,8 @@ export default function Faq({ className = '' }: FaqProps) {
               </div>
             </div>
 
-            {/* View More Button */}
+            {/*- View More Button -*/}
+
             <div className="inline-flex justify-start items-end">
               <Link
                 href="/faqs"
