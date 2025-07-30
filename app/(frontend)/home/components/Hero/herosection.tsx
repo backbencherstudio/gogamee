@@ -3,13 +3,32 @@ import { useState, useEffect, useRef } from "react"
 import { IoChevronDown } from "react-icons/io5"
 import { gsap } from "gsap"
 
-// Data for dropdowns
-const packTypes = [
-  { id: 1, name: "Standard", price: "€299" },
-  { id: 2, name: "Premium", price: "€499" },
-  { id: 3, name: "VIP", price: "€799" },
-]
+// Dynamic pack types based on sport selection
+const getPackTypes = (sport: "Football" | "Basketball" | "Both") => {
+  const packTypes = [
+    {
+      id: 1,
+      name: "Standard",
+      price: sport === "Football" 
+        ? "from 299€" 
+        : sport === "Basketball" 
+          ? "from 279€" 
+          : "from 279€" // Both - use lowest price
+    },
+    {
+      id: 2,
+      name: "Premium",
+      price: sport === "Football" 
+        ? "from 1399€" 
+        : sport === "Basketball" 
+          ? "from 1279€" 
+          : "from 1279€" // Both - use lowest price
+    }
+  ]
+  return packTypes
+}
 
+// Data for dropdowns - can be made dynamic based on sport if needed
 const departureCities = [
   { id: 1, name: "Madrid" },
   { id: 2, name: "Barcelona" },
@@ -31,6 +50,9 @@ export default function HeroSection() {
   // Sport selection state
   const [selectedSport, setSelectedSport] = useState<"Football" | "Basketball" | "Both">("Football")
 
+  // Get dynamic pack types based on selected sport
+  const packTypes = getPackTypes(selectedSport)
+
   // Dropdown states
   const [selectedPack, setSelectedPack] = useState(packTypes[0])
   const [selectedCity, setSelectedCity] = useState(departureCities[0])
@@ -38,6 +60,19 @@ export default function HeroSection() {
 
   // Dropdown visibility states
   const [openDropdown, setOpenDropdown] = useState<"pack" | "city" | "people" | null>(null)
+
+  // Update selected pack when sport changes to maintain consistency
+  useEffect(() => {
+    const newPackTypes = getPackTypes(selectedSport)
+    // Find the same pack type (Standard/Premium) in the new list
+    const matchingPack = newPackTypes.find(pack => pack.name === selectedPack.name)
+    if (matchingPack) {
+      setSelectedPack(matchingPack)
+    } else {
+      // Fallback to first option if not found
+      setSelectedPack(newPackTypes[0])
+    }
+  }, [selectedSport])
 
   // Handle dropdown toggle
   const toggleDropdown = (dropdown: "pack" | "city" | "people") => {
