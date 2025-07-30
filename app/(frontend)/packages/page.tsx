@@ -1,0 +1,12 @@
+import React from 'react'
+import PackageHero from './components/hero/packagehero'
+import PackageTable from './components/package-table/packagetable'
+
+export default function PackagesPage() {
+  return (
+    <div>
+        <PackageHero />
+        <PackageTable />
+    </div>
+  )
+}
