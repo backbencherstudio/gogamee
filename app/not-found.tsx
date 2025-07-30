@@ -1,25 +1,28 @@
 "use client"
-// app/not-found.tsx
+import Error from '@/public/homepage/svg/error';
 import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-      <h1 className="text-4xl font-bold text-red-500">404 - Page Not Found</h1>
-      <p className="mt-4 text-lg">The page you are looking for does not exist.</p>
-
-      {/* Back Button */}
-      <button
-        className="mt-8 px-4 py-2 text-white bg-blue-500 rounded hover:bg-blue-600"
-        onClick={() => window.history.back()}
-      >
-        Go Back
-      </button>
-
-      {/* Optional: Link to Home Page */}
-      <Link href="/" className="mt-4 text-blue-500 underline">
-        Go to Home Page
-      </Link>
+    <div className="w-full h-screen flex items-center justify-center bg-neutral-50">
+      <div className="w-[1440px] h-[743px] px-28 py-24 bg-neutral-50 inline-flex flex-col justify-center items-center gap-12">
+        <div className="w-96 flex flex-col justify-center items-center gap-6">
+          <div className="self-stretch h-80 relative flex items-center justify-center">
+            <div className="w-96 h-80 left-0 top-0 absolute flex items-center justify-center">
+              <Error/>
+            </div>
+          </div>
+          <div className="self-stretch flex flex-col justify-start items-center gap-6">
+            <div className="self-stretch flex flex-col justify-start items-center gap-3">
+              <div className="self-stretch justify-start text-neutral-800 text-3xl font-medium font-['Poppins'] leading-10">Something went wrong!</div>
+              <div className="self-stretch text-center justify-start text-neutral-600 text-lg font-normal font-['Poppins'] leading-snug">Sorry, We can’t find this page</div>
+            </div>
+            <Link href="/" className="px-4 py-2.5 bg-lime-500 rounded-[999px] inline-flex justify-center items-center gap-2.5">
+              <div className="text-center justify-start text-white text-lg font-normal font-['Inter'] leading-7">Go back to Home page</div>
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

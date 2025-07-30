@@ -117,7 +117,7 @@ export default function Faq({ className = '' }: FaqProps) {
 
             {/* View More Button */}
             <div className="inline-flex justify-start items-end">
-              <button className="px-4 py-2 md:py-2.5 bg-lime-500 rounded-[999px] flex justify-center items-center gap-2.5 w-36 md:w-44">
+              <button className="px-4 py-2 md:py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 w-36 md:w-44">
                 <span className="text-center text-white text-base md:text-lg font-normal font-['Inter'] leading-normal md:leading-7">
                   View more
                 </span>

@@ -91,13 +91,13 @@ export default function Reviews() {
         {/* Custom Navigation Buttons */}
         <button 
           ref={prevRef}
-          className="absolute left-[-30px] md:left-[-60px] top-1/2 -translate-y-1/2 z-10 p-3 bg-[#D5EBC5] rounded-full rotate-180 hover:bg-lime-500 transition-colors hidden lg:flex"
+          className="absolute left-[-30px] md:left-[-60px] top-1/2 -translate-y-1/2 z-10 p-3 bg-[#D5EBC5] rounded-full rotate-180 hover:bg-[#76C043] transition-colors hidden lg:flex"
         >
           <IoChevronBack className="w-6 h-6 text-white rotate-180" />
         </button>
         <button 
           ref={nextRef}
-          className="absolute right-[-30px] md:right-[-60px] top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-[#D5EBC5] hover:bg-lime-500 transition-colors hidden lg:flex"
+          className="absolute right-[-30px] md:right-[-60px] top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-[#D5EBC5] hover:bg-[#76C043] transition-colors hidden lg:flex"
         >
           <IoChevronForward className="w-6 h-6 text-white" />
         </button>
@@ -178,7 +178,7 @@ export default function Reviews() {
 
       {/* Book Now Button */}
       <div className="flex justify-center mt-8">
-        <button className="w-full md:w-44 px-4 py-2.5 bg-lime-500 rounded-full text-white text-lg font-['Inter'] hover:bg-lime-600 transition-colors">
+        <button className="w-full md:w-44 px-4 py-2.5 bg-[#76C043] rounded-full text-white text-lg font-['Inter'] hover:bg-lime-600 transition-colors">
           Book Now
         </button>
       </div>

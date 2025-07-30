@@ -102,7 +102,7 @@ export default function Menu() {
           </div>
           <Link 
             href="/contact"
-            className="px-4 py-2.5 bg-lime-500 rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
+            className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
           >
             <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">Contact us</span>
           </Link>
@@ -158,7 +158,7 @@ export default function Menu() {
 
               <Link 
                 href="/contact"
-                className="px-4 py-2.5 bg-lime-500 rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors w-full"
+                className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors w-full"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">Contact us</span>

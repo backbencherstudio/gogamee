@@ -86,7 +86,7 @@ export default function Leagues({ className }: LeaguesProps) {
           <div className={`justify-start text-sm sm:text-base lg:text-lg font-normal font-['Poppins'] leading-loose ${!isSwitched ? 'text-neutral-800 font-medium' : 'text-zinc-500'}`}>Football</div>
           <div 
             onClick={() => setIsSwitched(!isSwitched)}
-            className={`w-11 h-6 p-0.5 bg-lime-500 rounded-xl flex ${isSwitched ? 'justify-end' : 'justify-start'} items-center overflow-hidden cursor-pointer`}
+            className={`w-11 h-6 p-0.5 bg-[#76C043] rounded-xl flex ${isSwitched ? 'justify-end' : 'justify-start'} items-center overflow-hidden cursor-pointer`}
           >
             <div className="w-5 h-5 bg-white rounded-full shadow-[0px_1px_2px_0px_rgba(16,24,40,0.06)] shadow-[0px_1px_3px_0px_rgba(16,24,40,0.10)]" />
           </div>
@@ -124,7 +124,7 @@ export default function Leagues({ className }: LeaguesProps) {
         </div>
       )}
 
-      <div className="px-4 py-2.5 bg-lime-500 rounded-[999px] inline-flex justify-center items-center gap-2.5">
+      <div className="px-4 py-2.5 bg-[#76C043] rounded-[999px] inline-flex justify-center items-center gap-2.5">
         <div className="text-center justify-start text-white text-sm sm:text-base lg:text-lg font-normal font-['Inter'] leading-7">View packages</div>
       </div>
     </div>

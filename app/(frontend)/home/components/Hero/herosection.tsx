@@ -114,7 +114,7 @@ export default function HeroSection() {
                     setSelectedSport(sport)
                   }}
                   className={`w-full sm:w-36 h-11 px-3.5 py-1.5 flex justify-center items-center gap-2.5 ${
-                    selectedSport === sport ? "bg-lime-500 text-white" : "text-neutral-600"
+                    selectedSport === sport ? "bg-[#76C043] text-white" : "text-neutral-600"
                   } ${
                     // Mobile: rounded corners for first and last
                     index === 0
@@ -254,7 +254,7 @@ export default function HeroSection() {
                     people: selectedPeople,
                   })
                 }}
-                className="w-full lg:w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
+                className="w-full lg:w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
               >
                 <span className="text-center text-white text-base font-normal font-['Inter']">Start the game</span>
               </button>
