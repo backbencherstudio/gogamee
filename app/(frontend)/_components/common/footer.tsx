@@ -34,11 +34,11 @@ export default function Footer() {
               <Link href="/" className="block text-zinc-400 text-lg font-normal font-['Inter']">
                 Home
               </Link>
-              <Link href="/faq" className="block text-zinc-400 text-lg font-normal font-['Inter']">
-                FAQs
+              <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter']">
+                Packages
               </Link>
-              <Link href="/testimonials" className="block text-zinc-400 text-lg font-normal font-['Inter']">
-                Testimonials
+              <Link href="/faqs" className="block text-zinc-400 text-lg font-normal font-['Inter']">
+                FAQs
               </Link>
             </div>
           </div>
@@ -47,10 +47,10 @@ export default function Footer() {
           <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
             <h3 className="text-white text-xl font-medium font-['Inter']">Packs</h3>
             <div className="space-y-4">
-              <Link href="/packs/standard" className="block text-zinc-400 text-lg font-normal font-['Inter']">
+              <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter']">
                 Standard pack
               </Link>
-              <Link href="/packs/premium" className="block text-zinc-400 text-lg font-normal font-['Inter']">
+              <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter']">
                 Premium pack
               </Link>
             </div>

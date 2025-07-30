@@ -81,57 +81,7 @@ const footballData = [
   },
 ];
 
-const packData = {
-    // Features listed as rows
-    features: [
-      { label: "Match Ticket", key: "ticket" },
-      { label: "Flights", key: "flights" },
-      { label: "Hotel", key: "hotel" },
-      { label: "Transfers", key: "transfers" },
-      { label: "Welcome Pack", key: "welcomePack" },
-      { label: "Surprise Reveal", key: "reveal" },
-      { label: "Starting Price", key: "price" },
-    ],
-  
-    // Column data for each pack
-    packs: [
-      {
-        id: "standard",
-        typeLabel: "Standard pack",
-        title: "Standard GoGame Slam",
-        bgColor: "bg-[#F1F9EC]",
-        borderColor: "outline-[#76C043]",
-        textColor: "text-[#76C043]",
-        details: {
-          ticket: "Standard seat (upper and lateral seats)",
-          flights: "Round-trip from a major city",
-          hotel: "3-star hotel or apartment",
-          transfers: "Public transport or shuttle",
-          welcomePack: "Travel guide + surprise gift",
-          reveal: "Destination revealed 48h before. A secret clue before revealing the destination.",
-          price: "From 279€",
-        },
-      },
-      {
-        id: "premium",
-        typeLabel: "Premium pack",
-        title: "Premium GoGame MVP",
-        bgColor: "bg-[#F1F9EC]",
-        borderColor: "outline-[#76C043]",
-        textColor: "text-[#76C043]",
-        details: {
-          ticket: "VIP seat",
-          flights: "Round-trip from a major city",
-          hotel: "4—5 star hotel in premium location",
-          transfers: "Private transfers (airport & stadium)",
-          welcomePack: "Official team jersey + premium goodies",
-          reveal: "Destination revealed 48h before. A secret clue before revealing the destination.",
-          price: "From 1279€",
-        },
-      },
-    ],
-  };
-  
+
 
 export default function PackageTable() {
   const [selectedSport, setSelectedSport] = useState<'football' | 'basketball'>('football');
@@ -149,7 +99,7 @@ export default function PackageTable() {
   };
 
   return (
-    <div className="w-full  py-24 bg-neutral-50 inline-flex flex-col justify-start items-center gap-12">
+    <div className="w-full  py-24 bg-[#FCFEFB] inline-flex flex-col justify-start items-center gap-12">
       <div className="flex flex-col justify-start items-center gap-6">
         <div className="flex flex-col justify-start items-center gap-12">
           <div className="flex flex-col justify-start items-center gap-4">

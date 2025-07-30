@@ -9,15 +9,11 @@ const menuItems = [
   { label: 'Home', href: '/' },
   { label: 'Packages', href: '/packages' },
   { label: 'FAQs', href: '/faqs' },
-  { label: 'Testimonials', href: '/testimonials' },
 ]
 
 const languages = [
-  { code: 'En', label: 'English' },
-  { code: 'Bn', label: 'Bengali' },
-  { code: 'Hi', label: 'Hindi' },
-  { code: 'Ur', label: 'Urdu' },
-  { code: 'Ar', label: 'Arabic' },
+  { code: 'Eng', label: 'English' },
+  { code: 'Esp', label: 'Español' },
 ]
 
 export default function Menu() {
