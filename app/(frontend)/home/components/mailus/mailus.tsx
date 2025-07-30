@@ -55,7 +55,7 @@ export default function Mailus() {
                   className="w-full h-36 px-3.5 py-1.5 bg-white rounded border border-neutral-300 text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed resize-none outline-none"
                 />
               </div>
-              <button className="w-full h-14 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors">
+              <button className="w-full h-14 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer">
                 <span className="text-white text-base font-normal font-['Inter']">
                   Send
                 </span>

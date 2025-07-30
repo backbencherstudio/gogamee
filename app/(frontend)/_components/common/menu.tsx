@@ -40,7 +40,7 @@ export default function Menu() {
 
         {/* Mobile Menu Button */}
         <button 
-          className="lg:hidden p-2 text-slate-700 hover:text-lime-500"
+          className="lg:hidden p-2 text-slate-700 hover:text-lime-500 cursor-pointer"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? <HiX size={24} /> : <HiMenu size={24} />}
@@ -52,7 +52,7 @@ export default function Menu() {
             <Link 
               key={index} 
               href={item.href}
-              className="text-black text-lg font-normal font-['Poppins'] leading-loose hover:text-lime-500 transition-colors"
+              className="text-black text-lg font-normal font-['Poppins'] leading-loose hover:text-lime-500 transition-colors cursor-pointer"
             >
               {item.label}
             </Link>
@@ -64,7 +64,7 @@ export default function Menu() {
           <div className="relative">
             <button 
               onClick={toggleLangDropdown}
-              className="flex justify-start items-center gap-2 hover:text-lime-500 transition-colors"
+              className="flex justify-start items-center gap-2 hover:text-lime-500 transition-colors cursor-pointer"
             >
               <div className="p-1 rounded-[99px] outline-[0.50px] outline-offset-[-0.50px] outline-gray-200 flex justify-start items-start">
                 <HiGlobeAlt className="w-6 h-6 text-slate-700" />
@@ -86,7 +86,7 @@ export default function Menu() {
                   <button
                     key={lang.code}
                     onClick={() => selectLanguage(lang)}
-                    className={`w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors ${
+                    className={`w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors cursor-pointer ${
                       selectedLang.code === lang.code ? 'text-lime-500' : 'text-slate-700'
                     }`}
                   >
@@ -98,7 +98,7 @@ export default function Menu() {
           </div>
           <Link 
             href="/contact"
-            className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
+            className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
           >
             <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">Contact us</span>
           </Link>
@@ -112,7 +112,7 @@ export default function Menu() {
                 <Link 
                   key={index} 
                   href={item.href}
-                  className="text-black text-lg font-normal font-['Poppins'] hover:text-lime-500 transition-colors"
+                  className="text-black text-lg font-normal font-['Poppins'] hover:text-lime-500 transition-colors cursor-pointer"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
@@ -123,7 +123,7 @@ export default function Menu() {
               <div className="relative">
                 <button 
                   onClick={toggleLangDropdown}
-                  className="flex items-center gap-2 py-2 w-full hover:text-lime-500 transition-colors"
+                  className="flex items-center gap-2 py-2 w-full hover:text-lime-500 transition-colors cursor-pointer"
                 >
                   <HiGlobeAlt className="w-5 h-5 text-slate-700" />
                   <span className="text-slate-700 font-['Poppins']">{selectedLang.code}</span>
@@ -141,7 +141,7 @@ export default function Menu() {
                       <button
                         key={lang.code}
                         onClick={() => selectLanguage(lang)}
-                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors ${
+                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors cursor-pointer ${
                           selectedLang.code === lang.code ? 'text-lime-500' : 'text-slate-700'
                         }`}
                       >
@@ -154,7 +154,7 @@ export default function Menu() {
 
               <Link 
                 href="/contact"
-                className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors w-full"
+                className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors w-full cursor-pointer"
                 onClick={() => setIsMenuOpen(false)}
               >
                 <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">Contact us</span>

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
+import Link from 'next/link';
 
 interface FaqProps {
   className?: string;
@@ -91,7 +92,7 @@ export default function Faq({ className = '' }: FaqProps) {
                           </div>
                           <button 
                             onClick={() => toggleItem(index)}
-                            className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center flex-shrink-0"
+                            className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center flex-shrink-0 cursor-pointer"
                           >
                             {expandedItems.includes(index) ? (
                               <IoIosArrowUp className="w-full h-full text-lime-900" />
@@ -117,11 +118,14 @@ export default function Faq({ className = '' }: FaqProps) {
 
             {/* View More Button */}
             <div className="inline-flex justify-start items-end">
-              <button className="px-4 py-2 md:py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 w-36 md:w-44">
+              <Link
+                href="/faqs"
+                className="px-4 py-2 md:py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 w-36 md:w-44 cursor-pointer"
+              >
                 <span className="text-center text-white text-base md:text-lg font-normal font-['Inter'] leading-normal md:leading-7">
                   View more
                 </span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>

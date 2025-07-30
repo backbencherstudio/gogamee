@@ -111,7 +111,7 @@ export default function PackageTable() {
         <div className="inline-flex justify-start items-center gap-5">
           <button
             type="button"
-            className={`justify-start text-lg font-['Poppins'] leading-loose focus:outline-none transition-colors duration-150 ${selectedSport === 'football' ? 'text-neutral-800 font-medium' : 'text-zinc-500 font-normal'}`}
+            className={`justify-start text-lg font-['Poppins'] leading-loose focus:outline-none transition-colors duration-150 cursor-pointer ${selectedSport === 'football' ? 'text-neutral-800 font-medium' : 'text-zinc-500 font-normal'}`}
             onClick={() => setSelectedSport('football')}
             aria-pressed={selectedSport === 'football'}
           >
@@ -130,7 +130,7 @@ export default function PackageTable() {
           </button>
           <button
             type="button"
-            className={`justify-start text-lg font-['Poppins'] leading-loose focus:outline-none transition-colors duration-150 ${selectedSport === 'basketball' ? 'text-neutral-800 font-medium' : 'text-zinc-500 font-normal'}`}
+            className={`justify-start text-lg font-['Poppins'] leading-loose focus:outline-none transition-colors duration-150 cursor-pointer ${selectedSport === 'basketball' ? 'text-neutral-800 font-medium' : 'text-zinc-500 font-normal'}`}
             onClick={() => setSelectedSport('basketball')}
             aria-pressed={selectedSport === 'basketball'}
           >
@@ -200,7 +200,7 @@ export default function PackageTable() {
           {/* --- Table ends here, do not edit above this line --- */}
         </div>
       </div>
-      <div className="w-44 px-4 py-2.5 bg-[#76C043] rounded-[999px] inline-flex justify-center items-center gap-2.5">
+      <div className="w-44 px-4 py-2.5 bg-[#76C043] rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
         <div className="text-center justify-start text-white text-lg font-normal font-['Inter'] leading-7">Book Now</div>
       </div>
     </div>

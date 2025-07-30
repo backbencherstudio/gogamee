@@ -58,7 +58,7 @@ export default function Leagues({ className }: LeaguesProps) {
   const currentLeagues = isSwitched ? basketballLeagues : footballLeagues;
 
   const LeagueCard = ({ league, index }: { league: LeagueData; index: number }) => (
-    <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden">
+    <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
       <Image 
         src={league.image} 
         alt={league.name} 
@@ -124,7 +124,7 @@ export default function Leagues({ className }: LeaguesProps) {
         </div>
       )}
 
-      <div className="px-4 py-2.5 bg-[#76C043] rounded-[999px] inline-flex justify-center items-center gap-2.5">
+      <div className="px-4 py-2.5 bg-[#76C043] rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
         <div className="text-center justify-start text-white text-sm sm:text-base lg:text-lg font-normal font-['Inter'] leading-7">View packages</div>
       </div>
     </div>

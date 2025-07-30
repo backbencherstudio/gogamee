@@ -111,7 +111,7 @@ export default function Questions() {
                       </div>
                       <button 
                         onClick={() => toggleItem(index)}
-                        className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center flex-shrink-0"
+                        className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center flex-shrink-0 cursor-pointer"
                       >
                         {expandedItems.includes(index) ? (
                           <IoIosArrowUp className="w-full h-full text-lime-900" />

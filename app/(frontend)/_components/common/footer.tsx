@@ -31,13 +31,13 @@ export default function Footer() {
           <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
             <h3 className="text-white text-xl font-medium font-['Inter']">Quick link</h3>
             <div className="space-y-4">
-              <Link href="/" className="block text-zinc-400 text-lg font-normal font-['Inter']">
+              <Link href="/" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
                 Home
               </Link>
-              <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter']">
+              <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
                 Packages
               </Link>
-              <Link href="/faqs" className="block text-zinc-400 text-lg font-normal font-['Inter']">
+              <Link href="/faqs" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
                 FAQs
               </Link>
             </div>
@@ -47,10 +47,10 @@ export default function Footer() {
           <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
             <h3 className="text-white text-xl font-medium font-['Inter']">Packs</h3>
             <div className="space-y-4">
-              <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter']">
+              <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
                 Standard pack
               </Link>
-              <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter']">
+              <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
                 Premium pack
               </Link>
             </div>
@@ -60,19 +60,19 @@ export default function Footer() {
           <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
             <h3 className="text-white text-xl font-medium font-['Inter']">Social Media</h3>
             <div className="space-y-4 flex flex-col items-center sm:items-start">
-              <Link href="#" className="flex items-center gap-2">
+              <Link href="#" className="flex items-center gap-2 cursor-pointer">
                 <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
                   <Heart className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-white text-lg font-normal font-['Inter']">TikTok</span>
               </Link>
-              <Link href="#" className="flex items-center gap-2">
+              <Link href="#" className="flex items-center gap-2 cursor-pointer">
                 <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
                   <Instagram className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-white text-lg font-normal font-['Inter']">Instagram</span>
               </Link>
-              <Link href="#" className="flex items-center gap-2">
+              <Link href="#" className="flex items-center gap-2 cursor-pointer">
                 <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
@@ -91,13 +91,13 @@ export default function Footer() {
             Copyright 2025 by GoGame. All rights reserved
           </p>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 items-center sm:items-start">
-            <Link href="/privacy" className="text-neutral-300 text-base font-normal font-['Inter']">
+            <Link href="/privacy" className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer">
               Privacy Policy
             </Link>
-            <Link href="/cookies" className="text-neutral-300 text-base font-normal font-['Inter']">
+            <Link href="/cookies" className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer">
               Cookie Policy
             </Link>
-            <Link href="/terms" className="text-neutral-300 text-base font-normal font-['Inter']">
+            <Link href="/terms" className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer">
               Terms & Conditions
             </Link>
           </div>

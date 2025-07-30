@@ -193,7 +193,7 @@ export default function HeroSection() {
                     e.stopPropagation()
                     setSelectedSport(sport)
                   }}
-                  className={`w-full sm:w-36 h-11 px-3.5 py-1.5 flex justify-center items-center gap-2.5 ${
+                  className={`w-full sm:w-36 h-11 px-3.5 py-1.5 flex justify-center items-center gap-2.5 cursor-pointer ${
                     selectedSport === sport ? "bg-[#76C043] text-white" : "text-neutral-600"
                   } ${
                     // Mobile: rounded corners for first and last
@@ -319,7 +319,7 @@ export default function HeroSection() {
                               updatePeopleCount('adults', false)
                             }}
                             disabled={peopleCount.adults <= 1}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             −
                           </button>
@@ -330,7 +330,7 @@ export default function HeroSection() {
                               updatePeopleCount('adults', true)
                             }}
                             disabled={totalPeople >= 10}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             +
                           </button>
@@ -350,7 +350,7 @@ export default function HeroSection() {
                               updatePeopleCount('children', false)
                             }}
                             disabled={peopleCount.children <= 0}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             −
                           </button>
@@ -361,7 +361,7 @@ export default function HeroSection() {
                               updatePeopleCount('children', true)
                             }}
                             disabled={totalPeople >= 10}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             +
                           </button>
@@ -381,7 +381,7 @@ export default function HeroSection() {
                               updatePeopleCount('babies', false)
                             }}
                             disabled={peopleCount.babies <= 0}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             −
                           </button>
@@ -392,7 +392,7 @@ export default function HeroSection() {
                               updatePeopleCount('babies', true)
                             }}
                             disabled={totalPeople >= 10}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             +
                           </button>
@@ -422,7 +422,7 @@ export default function HeroSection() {
                     people: peopleCount,
                   })
                 }}
-                className="w-full lg:w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
+                className="w-full lg:w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
               >
                 <span className="text-center text-white text-base font-normal font-['Inter']">Start the game</span>
               </button>
