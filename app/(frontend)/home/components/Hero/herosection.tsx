@@ -28,20 +28,22 @@ const getPackTypes = (sport: "Football" | "Basketball" | "Both") => {
   return packTypes
 }
 
-// Data for dropdowns - can be made dynamic based on sport if needed
+// Extended departure cities list
 const departureCities = [
   { id: 1, name: "Madrid" },
   { id: 2, name: "Barcelona" },
-  { id: 3, name: "Valencia" },
-  { id: 4, name: "Seville" },
+  { id: 3, name: "Málaga" },
+  { id: 4, name: "Valencia" },
+  { id: 5, name: "Alicante" },
+  { id: 6, name: "Bilbao" },
 ]
 
-const peopleOptions = [
-  { id: 1, name: "Adults 1" },
-  { id: 2, name: "Adults 2" },
-  { id: 3, name: "Adults 3" },
-  { id: 4, name: "Adults 4" },
-]
+// People categories for the counter interface
+interface PeopleCount {
+  adults: number
+  children: number
+  babies: number
+}
 
 export default function HeroSection() {
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -56,10 +58,19 @@ export default function HeroSection() {
   // Dropdown states
   const [selectedPack, setSelectedPack] = useState(packTypes[0])
   const [selectedCity, setSelectedCity] = useState(departureCities[0])
-  const [selectedPeople, setSelectedPeople] = useState(peopleOptions[1])
+  
+  // People counter state
+  const [peopleCount, setPeopleCount] = useState<PeopleCount>({
+    adults: 2,
+    children: 0,
+    babies: 0
+  })
 
   // Dropdown visibility states
   const [openDropdown, setOpenDropdown] = useState<"pack" | "city" | "people" | null>(null)
+
+  // Calculate total people
+  const totalPeople = peopleCount.adults + peopleCount.children + peopleCount.babies
 
   // Update selected pack when sport changes to maintain consistency
   useEffect(() => {
@@ -77,6 +88,40 @@ export default function HeroSection() {
   // Handle dropdown toggle
   const toggleDropdown = (dropdown: "pack" | "city" | "people") => {
     setOpenDropdown(openDropdown === dropdown ? null : dropdown)
+  }
+
+  // Handle people count changes
+  const updatePeopleCount = (category: keyof PeopleCount, increment: boolean) => {
+    setPeopleCount(prev => {
+      const newCount = { ...prev }
+      const currentValue = newCount[category]
+      
+      if (increment) {
+        // Check if we can add more (max 10 total)
+        if (totalPeople < 10) {
+          newCount[category] = currentValue + 1
+        }
+      } else {
+        // Check if we can subtract (minimum 1 adult required)
+        if (category === 'adults' && currentValue > 1) {
+          newCount[category] = currentValue - 1
+        } else if (category !== 'adults' && currentValue > 0) {
+          newCount[category] = currentValue - 1
+        }
+      }
+      
+      return newCount
+    })
+  }
+
+  // Format people count for display
+  const formatPeopleDisplay = () => {
+    const parts = []
+    if (peopleCount.adults > 0) parts.push(`${peopleCount.adults} adulto${peopleCount.adults > 1 ? 's' : ''}`)
+    if (peopleCount.children > 0) parts.push(`${peopleCount.children} niño${peopleCount.children > 1 ? 's' : ''}`)
+    if (peopleCount.babies > 0) parts.push(`${peopleCount.babies} bebé${peopleCount.babies > 1 ? 's' : ''}`)
+    
+    return parts.length > 0 ? parts.join(', ') : '2 adultos'
   }
 
   // Close all dropdowns when clicking outside
@@ -242,7 +287,7 @@ export default function HeroSection() {
               {/* People Count Dropdown */}
               <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-2 relative">
                 <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-                  How many are you?:
+                  ¿Cuántos sois?:
                 </label>
                 <div
                   onClick={(e) => {
@@ -252,27 +297,115 @@ export default function HeroSection() {
                   className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
                 >
                   <span className="text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed">
-                    {selectedPeople.name}
+                    {formatPeopleDisplay()}
                   </span>
                   <IoChevronDown
                     className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${openDropdown === "people" ? "rotate-180" : ""}`}
                   />
                 </div>
                 {openDropdown === "people" && (
-                  <div className="absolute top-[100%] left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-[100] py-1 border border-gray-200">
-                    {peopleOptions.map((option) => (
-                      <div
-                        key={option.id}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSelectedPeople(option)
-                          setOpenDropdown(null)
-                        }}
-                        className="px-3.5 py-2 hover:bg-gray-50 cursor-pointer"
-                      >
-                        <span className="text-sm font-normal font-['Poppins'] text-black">{option.name}</span>
+                  <div className="absolute top-[100%] left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-[100] p-4 border border-gray-200 min-w-[300px]">
+                    <div className="space-y-4">
+                      {/* Adults */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium font-['Poppins'] text-black">Adultos</span>
+                          <span className="text-xs text-gray-500 font-['Poppins']">12 años o más</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              updatePeopleCount('adults', false)
+                            }}
+                            disabled={peopleCount.adults <= 1}
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            −
+                          </button>
+                          <span className="text-sm font-medium font-['Poppins'] text-black w-6 text-center">{peopleCount.adults}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              updatePeopleCount('adults', true)
+                            }}
+                            disabled={totalPeople >= 10}
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
-                    ))}
+
+                      {/* Children */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium font-['Poppins'] text-black">Niños/as</span>
+                          <span className="text-xs text-gray-500 font-['Poppins']">2 a 11 años</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              updatePeopleCount('children', false)
+                            }}
+                            disabled={peopleCount.children <= 0}
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            −
+                          </button>
+                          <span className="text-sm font-medium font-['Poppins'] text-black w-6 text-center">{peopleCount.children}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              updatePeopleCount('children', true)
+                            }}
+                            disabled={totalPeople >= 10}
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Babies */}
+                      <div className="flex justify-between items-center">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium font-['Poppins'] text-black">Bebés</span>
+                          <span className="text-xs text-gray-500 font-['Poppins']">0 a 2 años</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              updatePeopleCount('babies', false)
+                            }}
+                            disabled={peopleCount.babies <= 0}
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            −
+                          </button>
+                          <span className="text-sm font-medium font-['Poppins'] text-black w-6 text-center">{peopleCount.babies}</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              updatePeopleCount('babies', true)
+                            }}
+                            disabled={totalPeople >= 10}
+                            className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Total count display */}
+                      <div className="pt-2 border-t border-gray-200">
+                        <div className="text-xs text-gray-500 font-['Poppins'] text-center">
+                          Total: {totalPeople}/10 personas
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -286,7 +419,7 @@ export default function HeroSection() {
                     sport: selectedSport,
                     packType: selectedPack,
                     city: selectedCity,
-                    people: selectedPeople,
+                    people: peopleCount,
                   })
                 }}
                 className="w-full lg:w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
