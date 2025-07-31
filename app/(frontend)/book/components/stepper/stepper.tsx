@@ -51,7 +51,7 @@ export default function Stepper({ steps, currentStep }: StepperProps) {
   }
 
   return (
-    <div className="w-72 p-4 bg-gray-50 rounded-xl">
+    <div className="w-72 p-4 bg-gray-50 rounded-xl mb-5">
       <div className="relative">        
         <div className="space-y-0 relative z-10">
           {steps.map((step, index) => {
