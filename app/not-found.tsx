@@ -12,6 +12,7 @@ export default function NotFound() {
               <Error/>
             </div>
           </div>
+          {/* 404 page design */}
           <div className="self-stretch flex flex-col justify-start items-center gap-6">
             <div className="self-stretch flex flex-col justify-start items-center gap-3">
               <div className="self-stretch justify-start text-neutral-800 text-3xl font-medium font-['Poppins'] leading-10">Something went wrong!</div>
