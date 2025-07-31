@@ -5,7 +5,7 @@ export default function Footer() {
   return (
     <div className="w-full bg-[#060606]">
         <div className="max-w-[1200px] mx-auto">
-        <footer className="w-full px-4 sm:px-6 md:px-8 pt-20 pb-6">
+        <footer className="w-full px-4 sm:px-6 md:px-8 lg:px-0 pt-20 pb-6">
       <div className="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-0">
         {/* Logo and Contact Section */}
         <div className="w-full max-w-md lg:w-80 lg:max-w-none mx-auto lg:mx-0 space-y-6 text-center lg:text-left">

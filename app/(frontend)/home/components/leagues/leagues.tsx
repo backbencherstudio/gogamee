@@ -6,6 +6,7 @@ import { Navigation, Pagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
+import Link from 'next/link'
 
 interface LeaguesProps {
   className?: string;
@@ -124,9 +125,13 @@ export default function Leagues({ className }: LeaguesProps) {
         </div>
       )}
 
-      <div className="px-4 py-2.5 bg-[#76C043] rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
+
+<Link href="/book">
+      <div className="px-4 py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
         <div className="text-center justify-start text-white text-sm sm:text-base lg:text-lg font-normal font-['Inter'] leading-7">View packages</div>
       </div>
+      </Link>
+      
     </div>
   )
 }

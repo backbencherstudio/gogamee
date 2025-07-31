@@ -32,7 +32,7 @@ export default function Menu() {
 
   return (
     <div className="w-full bg-white py-5">
-      <div className="max-w-[1200px] mx-auto px-4 flex justify-between items-center relative">
+      <div className="max-w-[1200px] mx-auto px-4 lg:px-0 flex justify-between items-center relative">
         {/* Logo */}
         <div className="font-bold font-['Poppins'] text-3xl md:text-4xl text-black">
           LOGO

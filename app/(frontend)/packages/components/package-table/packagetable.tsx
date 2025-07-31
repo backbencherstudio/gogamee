@@ -1,5 +1,6 @@
 'use client'
 import React, { useState } from "react";
+import Link from "next/link";
 
 const basketballData = [
   {
@@ -200,9 +201,11 @@ export default function PackageTable() {
           {/* --- Table ends here, do not edit above this line --- */}
         </div>
       </div>
-      <div className="w-44 px-4 py-2.5 bg-[#76C043] rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
-        <div className="text-center justify-start text-white text-lg font-normal font-['Inter'] leading-7">Book Now</div>
-      </div>
+      <Link href="/book">
+        <div className="w-44 px-4 py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer transition-all">
+          <div className="text-center justify-start text-white text-lg font-normal font-['Inter'] leading-7">Book Now</div>
+        </div>
+      </Link>
     </div>
   );
 }
