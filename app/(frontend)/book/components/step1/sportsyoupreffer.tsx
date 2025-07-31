@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { IoChevronDown } from 'react-icons/io5'
+import { useBooking } from '../../context/BookingContext'
 
 const sportsOptions = [
   { value: 'football', label: 'Football' },
@@ -13,17 +14,25 @@ const sportsOptions = [
 ]
 
 export default function SportsYouPreffer() {
-  const [selectedSport, setSelectedSport] = useState<string>('football')
+  const { formData, updateFormData, nextStep } = useBooking()
+  const [selectedSport, setSelectedSport] = useState<string>(formData.selectedSport)
   const [isOpen, setIsOpen] = useState(false)
+
+  // Update local state when context data changes
+  useEffect(() => {
+    setSelectedSport(formData.selectedSport)
+  }, [formData.selectedSport])
 
   const handleSportSelect = (value: string) => {
     setSelectedSport(value)
     setIsOpen(false)
+    // Save to context and localStorage immediately on change
+    updateFormData({ selectedSport: value })
   }
 
   const handleNext = () => {
     console.log('Selected sport:', selectedSport)
-    // Handle navigation to next step
+    nextStep()
   }
 
   const selectedLabel = sportsOptions.find(sport => sport.value === selectedSport)?.label || 'Select a sport'

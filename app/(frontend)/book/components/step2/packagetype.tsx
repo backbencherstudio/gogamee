@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { IoChevronDown } from 'react-icons/io5'
+import { useBooking } from '../../context/BookingContext'
 
 const packageOptions = [
   { value: 'standard', label: 'Standard' },
@@ -12,17 +13,25 @@ const packageOptions = [
 ]
 
 export default function PackageType() {
-  const [selectedPackage, setSelectedPackage] = useState<string>('standard')
+  const { formData, updateFormData, nextStep } = useBooking()
+  const [selectedPackage, setSelectedPackage] = useState<string>(formData.selectedPackage)
   const [isOpen, setIsOpen] = useState(false)
+
+  // Update local state when context data changes
+  useEffect(() => {
+    setSelectedPackage(formData.selectedPackage)
+  }, [formData.selectedPackage])
 
   const handlePackageSelect = (value: string) => {
     setSelectedPackage(value)
     setIsOpen(false)
+    // Save to context and localStorage immediately on change
+    updateFormData({ selectedPackage: value })
   }
 
   const handleNext = () => {
     console.log('Selected package:', selectedPackage)
-    // Handle navigation to next step
+    nextStep()
   }
 
   const selectedLabel = packageOptions.find(pkg => pkg.value === selectedPackage)?.label || 'Select a package'

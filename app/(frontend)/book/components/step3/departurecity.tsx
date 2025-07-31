@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useBooking } from '../../context/BookingContext'
 
 const cityOptions = [
   { 
@@ -42,16 +43,24 @@ const cityOptions = [
 ]
 
 export default function DepartureCity() {
-  const [selectedCity, setSelectedCity] = useState<string>('')
+  const { formData, updateFormData, nextStep } = useBooking()
+  const [selectedCity, setSelectedCity] = useState<string>(formData.selectedCity)
+
+  // Update local state when context data changes
+  useEffect(() => {
+    setSelectedCity(formData.selectedCity)
+  }, [formData.selectedCity])
 
   const handleCitySelect = (value: string) => {
     setSelectedCity(value)
+    // Save to context and localStorage immediately on change
+    updateFormData({ selectedCity: value })
   }
 
   const handleNext = () => {
     if (selectedCity) {
       console.log('Selected city:', selectedCity)
-      // Handle navigation to next step
+      nextStep()
     }
   }
 
