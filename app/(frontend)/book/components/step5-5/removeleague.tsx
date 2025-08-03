@@ -1,7 +1,9 @@
 'use client'
-import React, { useState } from 'react'
+
+import React, { useState, useCallback } from 'react'
 import Image from 'next/image'
 
+// Types
 interface League {
   id: string
   name: string
@@ -10,35 +12,32 @@ interface League {
   removed: boolean
 }
 
-export default function RemoveLeague() {
-  const [leagues, setLeagues] = useState<League[]>([
-    { id: '1', name: 'La Liga', country: 'Spain', image: '/stepper/img1.png', removed: false },
-    { id: '2', name: 'Premier League', country: 'England', image: '/stepper/img2.png', removed: false },
-    { id: '3', name: 'Bundesliga', country: 'Germany', image: '/stepper/img3.png', removed: false },
-    { id: '4', name: 'Serie A', country: 'Italy', image: '/stepper/img4.png', removed: false },
-    { id: '5', name: 'Eredivisie', country: 'Netherlands', image: '/stepper/img5.png', removed: false },
-    { id: '6', name: 'Ligue 1', country: 'France', image: '/stepper/img6.png', removed: false },
-  ])
+// League card data
+const INITIAL_LEAGUES: League[] = [
+  { id: '1', name: 'La Liga', country: 'Spain', image: '/stepper/img1.png', removed: false },
+  { id: '2', name: 'Premier League', country: 'England', image: '/stepper/img2.png', removed: false },
+  { id: '3', name: 'Bundesliga', country: 'Germany', image: '/stepper/img3.png', removed: false },
+  { id: '4', name: 'Serie A', country: 'Italy', image: '/stepper/img4.png', removed: false },
+  { id: '5', name: 'Eredivisie', country: 'Netherlands', image: '/stepper/img5.png', removed: false },
+  { id: '6', name: 'Ligue 1', country: 'France', image: '/stepper/img6.png', removed: false },
+]
 
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
+// Constants
+const REMOVAL_COST = 20
 
-  const handleRemoveLeague = (leagueId: string) => {
-    setLeagues(prev => prev.map(league => 
-      league.id === leagueId 
-        ? { ...league, removed: !league.removed }
-        : league
-    ))
-  }
+// League Card Component
+interface LeagueCardProps {
+  league: League
+  onRemove: (leagueId: string) => void
+}
 
-  const removedCount = leagues.filter(league => league.removed).length
-  const freeRemovalUsed = removedCount > 0
+const LeagueCard = React.memo(({ league, onRemove }: LeagueCardProps) => {
+  const handleRemoveClick = useCallback(() => {
+    onRemove(league.id)
+  }, [league.id, onRemove])
 
-  // Unified card component
-  const LeagueCard = ({ league }: { league: League }) => (
-    <div
-      key={league.id}
-      className="group w-48 h-72 rounded-lg relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105"
-    >
+  return (
+    <div className="group w-48 h-72 rounded-lg relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105">
       <Image
         src={league.image}
         alt={league.name}
@@ -70,11 +69,11 @@ export default function RemoveLeague() {
         </div>
       </div>
 
-      {/* Remove button - pure CSS animation */}
+      {/* Remove button */}
       {!league.removed && (
         <div 
           className="absolute bottom-0 left-0 right-0 px-4 pb-5 transition-all duration-300 ease-out opacity-0 translate-y-4 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto"
-          onClick={() => handleRemoveLeague(league.id)}
+          onClick={handleRemoveClick}
         >
           <div className="self-stretch px-4 py-2 w-full bg-lime-500 hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 transition-colors cursor-pointer">
             <div className="text-center justify-start text-white text-sm font-semibold font-['Inter'] leading-snug">
@@ -92,6 +91,23 @@ export default function RemoveLeague() {
       )}
     </div>
   )
+})
+
+LeagueCard.displayName = 'LeagueCard'
+
+// Main Component
+export default function RemoveLeague() {
+  const [leagues, setLeagues] = useState<League[]>(INITIAL_LEAGUES)
+
+  const handleRemoveLeague = useCallback((leagueId: string) => {
+    setLeagues(prev => prev.map(league => 
+      league.id === leagueId 
+        ? { ...league, removed: !league.removed }
+        : league
+    ))
+  }, [])
+
+  const removedCount = leagues.filter(league => league.removed).length
 
   return (
     <div className="w-[894px] p-6 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-center items-center gap-6">
@@ -105,7 +121,7 @@ export default function RemoveLeague() {
               Remove one for free, the rest 
             </span>
             <span className="text-lime-500 text-base font-medium font-['Poppins'] leading-7">
-              +20€
+              +{REMOVAL_COST}€
             </span>
             <span className="text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
               {' '}(per destination & person).
@@ -114,10 +130,14 @@ export default function RemoveLeague() {
         </div>
       </div>
 
-      {/* Unified responsive flex layout */}
+      {/* League cards grid */}
       <div className="self-stretch flex flex-wrap justify-start items-center gap-6">
         {leagues.map((league) => (
-          <LeagueCard key={league.id} league={league} />
+          <LeagueCard 
+            key={league.id} 
+            league={league} 
+            onRemove={handleRemoveLeague}
+          />
         ))}
       </div>
 

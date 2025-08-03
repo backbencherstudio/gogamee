@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import { HiMinus, HiPlus } from 'react-icons/hi2';
 
-interface CounterData {
+// Types
+interface CounterFormData {
   adults: number;
   kids: number;
   babies: number;
@@ -17,19 +19,50 @@ interface CounterItemProps {
   onDecrement: () => void;
   minValue?: number;
   canIncrement?: boolean;
+  isMinimumReached: boolean;
 }
 
+// Constants
+const DEFAULT_VALUES: CounterFormData = {
+  adults: 1,
+  kids: 2,
+  babies: 0,
+};
+
+const MAX_TOTAL_PEOPLE = 11;
+const MIN_ADULTS = 1;
+
+const COUNTER_CONFIG = [
+  {
+    key: 'adults' as keyof CounterFormData,
+    title: 'Adults',
+    description: '12 years or more',
+    minValue: MIN_ADULTS,
+  },
+  {
+    key: 'kids' as keyof CounterFormData,
+    title: 'Kids',
+    description: '2-11 years old',
+    minValue: 0,
+  },
+  {
+    key: 'babies' as keyof CounterFormData,
+    title: 'Baby',
+    description: '0 to 2 years old',
+    minValue: 0,
+  },
+] as const;
+
+// Counter Item Component
 const CounterItem: React.FC<CounterItemProps> = ({
   title,
   description,
   count,
   onIncrement,
   onDecrement,
-  minValue = 0,
-  canIncrement = true
+  canIncrement = true,
+  isMinimumReached,
 }) => {
-  const canDecrement = count > minValue;
-
   return (
     <div className="self-stretch py-3 border-b border-neutral-200 last:border-b-0 inline-flex justify-between items-center">
       <div className="w-28 inline-flex flex-col justify-start items-start">
@@ -44,12 +77,13 @@ const CounterItem: React.FC<CounterItemProps> = ({
       <div className="flex justify-start items-center gap-4">
         {/* Decrement Button */}
         <button
+          type="button"
           onClick={onDecrement}
-          disabled={!canDecrement}
+          disabled={isMinimumReached}
           className="w-6 h-6 p-0.5 rounded-xl outline outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <HiMinus 
-            className={`w-3.5 h-3.5 ${canDecrement ? 'text-zinc-950' : 'text-neutral-300'}`} 
+            className={`w-3.5 h-3.5 ${!isMinimumReached ? 'text-zinc-950' : 'text-neutral-300'}`} 
           />
         </button>
         
@@ -60,6 +94,7 @@ const CounterItem: React.FC<CounterItemProps> = ({
         
         {/* Increment Button */}
         <button
+          type="button"
           onClick={onIncrement}
           disabled={!canIncrement}
           className="w-6 h-6 p-0.5 rounded-xl outline outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -71,104 +106,85 @@ const CounterItem: React.FC<CounterItemProps> = ({
   );
 };
 
+// Main Component
 export default function HowManyTotal() {
-  const [counts, setCounts] = useState<CounterData>({
-    adults: 1,
-    kids: 2,
-    babies: 0
+  const { control, watch, setValue, handleSubmit } = useForm<CounterFormData>({
+    defaultValues: DEFAULT_VALUES,
+    mode: 'onChange',
   });
 
-  const totalCount = counts.adults + counts.kids + counts.babies;
-  const maxTotal = 11;
-  const canAddMore = totalCount < maxTotal;
+  const watchedValues = watch();
+  const totalCount = watchedValues.adults + watchedValues.kids + watchedValues.babies;
+  const canAddMore = totalCount < MAX_TOTAL_PEOPLE;
 
   const updateCount = (
-    type: keyof CounterData,
+    field: keyof CounterFormData,
     operation: 'increment' | 'decrement',
-    minValue: number = 0
+    minValue: number
   ) => {
-    setCounts(prev => {
-      const currentValue = prev[type];
-      
-      if (operation === 'increment' && totalCount >= maxTotal) {
-        return prev; // Don't allow increment if at max total
-      }
-      
-      const newValue = operation === 'increment' 
-        ? currentValue + 1 
-        : Math.max(minValue, currentValue - 1);
-      
-      return {
-        ...prev,
-        [type]: newValue
-      };
-    });
+    const currentValue = watchedValues[field];
+    
+    if (operation === 'increment') {
+      if (totalCount >= MAX_TOTAL_PEOPLE) return;
+      setValue(field, currentValue + 1, { shouldValidate: true });
+    } else {
+      const newValue = Math.max(minValue, currentValue - 1);
+      setValue(field, newValue, { shouldValidate: true });
+    }
   };
 
-  const handleNext = () => {
+  const onSubmit = (data: CounterFormData) => {
+    console.log('Current counts:', data, 'Total:', totalCount);
     // Handle next step logic here
-    console.log('Current counts:', counts, 'Total:', totalCount);
   };
 
   return (
-    <div className="w-[894px] h-[638px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6">
-      <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-3">
-        {/* Header */}
-        <div className="self-stretch h-12 flex flex-col justify-start items-start gap-3">
-          <h2 className="justify-center text-neutral-800 text-3xl font-semibold font-['Poppins'] leading-10">
-            How many are you?
-          </h2>
-          {/* {totalCount >= maxTotal && (
-            <p className="text-sm text-orange-600 font-medium">
-              Maximum {maxTotal} people allowed
-            </p>
-          )} */}
-        </div>
-        
-        {/* Content */}
-        <div className="self-stretch flex-1 flex flex-col justify-between items-start">
-          {/* Counter Section */}
-          <div className="w-[473px] p-3 bg-white rounded-xl flex flex-col justify-start items-start whitespace-nowrap">
-            <CounterItem
-              title="Adults"
-              description="12 years or more"
-              count={counts.adults}
-              onIncrement={() => updateCount('adults', 'increment')}
-              onDecrement={() => updateCount('adults', 'decrement', 1)}
-              minValue={1}
-              canIncrement={canAddMore}
-            />
-            
-            <CounterItem
-              title="Kids"
-              description="2-11 years old"
-              count={counts.kids}
-              onIncrement={() => updateCount('kids', 'increment')}
-              onDecrement={() => updateCount('kids', 'decrement')}
-              canIncrement={canAddMore}
-            />
-            
-            <CounterItem
-              title="Baby"
-              description="0 to 2 years old"
-              count={counts.babies}
-              onIncrement={() => updateCount('babies', 'increment')}
-              onDecrement={() => updateCount('babies', 'decrement')}
-              canIncrement={canAddMore}
-            />
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <div className="w-[894px] h-[638px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6">
+        <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-3">
+          {/* Header */}
+          <div className="self-stretch h-12 flex flex-col justify-start items-start gap-3">
+            <h2 className="justify-center text-neutral-800 text-3xl font-semibold font-['Poppins'] leading-10">
+              How many are you?
+            </h2>
           </div>
           
-          {/* Next Button */}
-          <button
-            onClick={handleNext}
-            className="w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
-          >
-            <span className="text-center justify-start text-white text-base font-normal font-['Inter']">
-              Next
-            </span>
-          </button>
+          {/* Content */}
+          <div className="self-stretch flex-1 flex flex-col justify-between items-start">
+            {/* Counter Section */}
+            <div className="w-[473px] p-3 bg-white rounded-xl flex flex-col justify-start items-start whitespace-nowrap">
+              {COUNTER_CONFIG.map(({ key, title, description, minValue }) => (
+                <Controller
+                  key={key}
+                  name={key}
+                  control={control}
+                  render={({ field }) => (
+                    <CounterItem
+                      title={title}
+                      description={description}
+                      count={field.value}
+                      onIncrement={() => updateCount(key, 'increment', minValue)}
+                      onDecrement={() => updateCount(key, 'decrement', minValue)}
+                      canIncrement={canAddMore}
+                      isMinimumReached={field.value <= minValue}
+                    />
+                  )}
+                />
+              ))}
+            </div>
+            
+            {/* Next Button */}
+            <button
+              type="submit"
+              className="w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
+            >
+              <span className="text-center justify-start text-white text-base font-normal font-['Inter']">
+                Next
+              </span>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </form>
   );
 }

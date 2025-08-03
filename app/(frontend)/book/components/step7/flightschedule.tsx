@@ -1,9 +1,10 @@
 'use client'
-import React, { useState } from 'react'
+
+import React, { useState, useCallback, useMemo } from 'react'
 import { MdFlightTakeoff, MdFlightLand } from 'react-icons/md'
 import { Range } from 'react-range'
 
-// Types
+// ========================= TYPES =========================
 interface TimeRange {
   start: number // minutes from 00:00
   end: number   // minutes from 00:00
@@ -17,19 +18,61 @@ interface FlightInfo {
   timeRange: TimeRange
 }
 
-// Constants
-const MINUTES_IN_DAY = 24 * 60
+interface FlightSelectionData {
+  type: string
+  startTime: string
+  endTime: string
+  duration: string
+}
+
+// ========================= CONSTANTS =========================
+const MINUTES_IN_DAY = 1440 // 24 * 60
+const EXTENDED_DAY_MINUTES = 2160 // 36 * 60 (1.5 days)
+const TIME_STEP = 15 // 15-minute intervals
+const HOURS_PER_DAY = 24
+
 const TIME_MARKS = [
   { value: 0, label: '00:00' },
-  { value: 6 * 60, label: '06:00' },
-  { value: 12 * 60, label: '12:00' },
-  { value: 18 * 60, label: '18:00' },
-  { value: 24 * 60, label: '00:00(+1)' }
-]
+  { value: 360, label: '06:00' }, // 6 * 60
+  { value: 720, label: '12:00' }, // 12 * 60
+  { value: 1080, label: '18:00' }, // 18 * 60
+  { value: 1440, label: '00:00(+1)' } // 24 * 60
+] as const
 
-// Helper functions
+const INITIAL_FLIGHT_DATA: FlightInfo[] = [
+  {
+    label: 'Departure from',
+    city: 'Barcelona',
+    price: '20€',
+    icon: 'takeoff',
+    timeRange: { start: 360, end: 720 } // 06:00 to 12:00
+  },
+  {
+    label: 'Arrival',
+    city: 'Barcelona',
+    price: '20€',
+    icon: 'landing',
+    timeRange: { start: 1080, end: 1800 } // 18:00 to 06:00(+1)
+  }
+] as const
+
+// ========================= STYLES =========================
+const SLIDER_STYLES = {
+  track: {
+    height: '8px',
+    background: 'rgba(168, 162, 158, 0.3)',
+    outline: '4px solid rgba(168, 162, 158, 0.3)',
+    outlineOffset: '-4px'
+  },
+  selectedRange: {
+    outline: '4px solid rgb(132, 204, 22)',
+    outlineOffset: '-4px'
+  }
+} as const
+
+// ========================= UTILITY FUNCTIONS =========================
 const minutesToTime = (minutes: number): string => {
-  const hours = Math.floor(minutes / 60) % 24
+  const hours = Math.floor(minutes / 60) % HOURS_PER_DAY
   const mins = minutes % 60
   const nextDay = minutes >= MINUTES_IN_DAY ? '(+1)' : ''
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}${nextDay}`
@@ -43,114 +86,17 @@ const timeToMinutes = (timeStr: string): number => {
 }
 
 const getTimeMarkPosition = (minutes: number): number => {
-  return (minutes / (MINUTES_IN_DAY * 1.5)) * 100 // Extended to 36 hours for next day
+  return (minutes / EXTENDED_DAY_MINUTES) * 100
 }
 
-// Initial flight data
-const INITIAL_FLIGHT_DATA: FlightInfo[] = [
-  {
-    label: 'Departure from',
-    city: 'Barcelona',
-    price: '20€',
-    icon: 'takeoff',
-    timeRange: { start: 6 * 60, end: 12 * 60 } // 06:00 to 12:00
-  },
-  {
-    label: 'Arrival',
-    city: 'Barcelona',
-    price: '20€',
-    icon: 'landing',
-    timeRange: { start: 18 * 60, end: 24 * 60 + 6 * 60 } // 18:00 to 06:00(+1)
-  }
-]
-
-// Custom Time Range Slider Component
-const TimeRangeSlider = ({ 
-  timeRange, 
-  onChange, 
-  isDeparture 
-}: { 
-  timeRange: TimeRange
-  onChange: (range: TimeRange) => void
-  isDeparture: boolean
-}) => {
-  const maxTime = MINUTES_IN_DAY * 1.5 // 36 hours to allow next day selection
-  
-  const handleRangeChange = (values: number[]) => {
-    onChange({
-      start: values[0],
-      end: values[1]
-    })
-  }
-
-  return (
-    <div className="w-80 flex flex-col justify-center items-center gap-1.5">
-      {/* Custom Range Slider */}
-      <div className="w-full h-5 relative">
-        <Range
-          step={15} // 15-minute intervals
-          min={0}
-          max={maxTime}
-          values={[timeRange.start, timeRange.end]}
-          onChange={handleRangeChange}
-          renderTrack={({ props, children }) => (
-            <div
-              {...props}
-              className="w-full h-2 bg-stone-300/30 rounded-full relative"
-              style={{
-                ...props.style,
-                height: '8px',
-                background: 'rgba(168, 162, 158, 0.3)',
-                outline: '4px solid rgba(168, 162, 158, 0.3)',
-                outlineOffset: '-4px'
-              }}
-            >
-              {/* Selected range highlight */}
-              <div
-                className="absolute h-2 bg-lime-500 rounded-full"
-                style={{
-                  left: `${getTimeMarkPosition(timeRange.start)}%`,
-                  width: `${getTimeMarkPosition(timeRange.end) - getTimeMarkPosition(timeRange.start)}%`,
-                  outline: '4px solid rgb(132, 204, 22)',
-                  outlineOffset: '-4px'
-                }}
-              />
-              {children}
-            </div>
-          )}
-          renderThumb={({ props, index }) => (
-            <div
-              {...props}
-              className="w-5 h-5 bg-white border-2 border-lime-500 rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
-              style={{
-                ...props.style
-              }}
-            />
-          )}
-        />
-      </div>
-      
-      {/* Time labels */}
-      <div className="w-full flex justify-between items-center px-2">
-        {TIME_MARKS.map((mark, index) => (
-          <div key={index} className="text-zinc-400 text-xs font-normal font-['Inter'] leading-tight">
-            {index === TIME_MARKS.length - 1 ? (
-              <div className="flex gap-1">
-                <span>00:00</span>
-                <span>(+1)</span>
-              </div>
-            ) : (
-              mark.label
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+const calculateDuration = (start: number, end: number): string => {
+  const durationMinutes = end - start
+  const hours = Math.round((durationMinutes / 60) * 10) / 10
+  return `${hours} hours`
 }
 
-// Flight icon component
-const FlightIcon = ({ type }: { type: 'takeoff' | 'landing' }) => (
+// ========================= MEMOIZED COMPONENTS =========================
+const FlightIcon = React.memo(({ type }: { type: 'takeoff' | 'landing' }) => (
   <div className="w-14 h-14 p-3.5 bg-[#F1F9EC] rounded flex justify-start items-center gap-2.5">
     {type === 'takeoff' ? (
       <MdFlightTakeoff className="w-6 h-6 text-lime-500" />
@@ -158,10 +104,11 @@ const FlightIcon = ({ type }: { type: 'takeoff' | 'landing' }) => (
       <MdFlightLand className="w-6 h-6 text-lime-500" />
     )}
   </div>
-)
+))
 
-// Flight info header component
-const FlightInfoHeader = ({ 
+FlightIcon.displayName = 'FlightIcon'
+
+const FlightInfoHeader = React.memo(({ 
   label, 
   city, 
   price, 
@@ -176,23 +123,38 @@ const FlightInfoHeader = ({
     <div className="flex justify-start items-center gap-4">
       <FlightIcon type={icon} />
       <div className="w-32 inline-flex flex-col justify-start items-start gap-1">
-        <div className="self-stretch justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">{label}</div>
-        <div className="justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">{city}</div>
+        <div className="self-stretch justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
+          {label}
+        </div>
+        <div className="justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
+          {city}
+        </div>
       </div>
     </div>
     <div className="flex-1 flex justify-end items-center gap-4">
       <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-        <div className="self-stretch text-right justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">{price}</div>
-        <div className="self-stretch text-right justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">Per person</div>
+        <div className="self-stretch text-right justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
+          {price}
+        </div>
+        <div className="self-stretch text-right justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
+          Per person
+        </div>
       </div>
     </div>
   </div>
-)
+))
 
-// Time display component
-const TimeDisplay = ({ timeRange, isDeparture }: { timeRange: TimeRange; isDeparture: boolean }) => {
-  const startTime = minutesToTime(timeRange.start)
-  const endTime = minutesToTime(timeRange.end)
+FlightInfoHeader.displayName = 'FlightInfoHeader'
+
+const TimeDisplay = React.memo(({ 
+  timeRange, 
+  isDeparture 
+}: { 
+  timeRange: TimeRange
+  isDeparture: boolean 
+}) => {
+  const startTime = useMemo(() => minutesToTime(timeRange.start), [timeRange.start])
+  const endTime = useMemo(() => minutesToTime(timeRange.end), [timeRange.end])
   
   return (
     <div className="self-stretch px-4 py-2.5 bg-neutral-50 rounded outline outline-1 outline-offset-[-1px] outline-gray-200 inline-flex justify-center items-center gap-2.5">
@@ -201,10 +163,88 @@ const TimeDisplay = ({ timeRange, isDeparture }: { timeRange: TimeRange; isDepar
       </div>
     </div>
   )
-}
+})
 
-// Flight card component
-const FlightCard = ({ 
+TimeDisplay.displayName = 'TimeDisplay'
+
+const TimeRangeSlider = React.memo(({ 
+  timeRange, 
+  onChange, 
+  isDeparture 
+}: { 
+  timeRange: TimeRange
+  onChange: (range: TimeRange) => void
+  isDeparture: boolean
+}) => {
+  const handleRangeChange = useCallback((values: number[]) => {
+    onChange({
+      start: values[0],
+      end: values[1]
+    })
+  }, [onChange])
+
+  const selectedRangeStyle = useMemo(() => ({
+    left: `${getTimeMarkPosition(timeRange.start)}%`,
+    width: `${getTimeMarkPosition(timeRange.end) - getTimeMarkPosition(timeRange.start)}%`,
+    ...SLIDER_STYLES.selectedRange
+  }), [timeRange.start, timeRange.end])
+
+  return (
+    <div className="w-80 flex flex-col justify-center items-center gap-1.5">
+      <div className="w-full h-5 relative">
+        <Range
+          step={TIME_STEP}
+          min={0}
+          max={EXTENDED_DAY_MINUTES}
+          values={[timeRange.start, timeRange.end]}
+          onChange={handleRangeChange}
+          renderTrack={({ props, children }) => (
+            <div
+              {...props}
+              className="w-full h-2 bg-stone-300/30 rounded-full relative"
+              style={{
+                ...props.style,
+                ...SLIDER_STYLES.track
+              }}
+            >
+              <div
+                className="absolute h-2 bg-lime-500 rounded-full"
+                style={selectedRangeStyle}
+              />
+              {children}
+            </div>
+          )}
+          renderThumb={({ props }) => (
+            <div
+              {...props}
+              className="w-5 h-5 bg-white border-2 border-lime-500 rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
+              style={props.style}
+            />
+          )}
+        />
+      </div>
+      
+      <div className="w-full flex justify-between items-center px-2">
+        {TIME_MARKS.map((mark, index) => (
+          <div key={mark.value} className="text-zinc-400 text-xs font-normal font-['Inter'] leading-tight">
+            {index === TIME_MARKS.length - 1 ? (
+              <div className="flex gap-1">
+                <span>00:00</span>
+                <span>(+1)</span>
+              </div>
+            ) : (
+              mark.label
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+})
+
+TimeRangeSlider.displayName = 'TimeRangeSlider'
+
+const FlightCard = React.memo(({ 
   flightInfo, 
   isDeparture, 
   onTimeRangeChange 
@@ -229,31 +269,36 @@ const FlightCard = ({
     </div>
     <TimeDisplay timeRange={flightInfo.timeRange} isDeparture={isDeparture} />
   </div>
-)
+))
 
-// Main component
+FlightCard.displayName = 'FlightCard'
+
+// ========================= MAIN COMPONENT =========================
 export default function FlightSchedule() {
   const [flightData, setFlightData] = useState<FlightInfo[]>(INITIAL_FLIGHT_DATA)
   
-  const handleTimeRangeChange = (flightIndex: number, newRange: TimeRange) => {
+  const handleTimeRangeChange = useCallback((flightIndex: number, newRange: TimeRange) => {
     setFlightData(prev => prev.map((flight, index) => 
       index === flightIndex 
         ? { ...flight, timeRange: newRange }
         : flight
     ))
-  }
+  }, [])
   
-  const handleConfirm = () => {
-    const selectedTimes = flightData.map(flight => ({
+  const selectedTimes = useMemo((): FlightSelectionData[] => {
+    return flightData.map(flight => ({
       type: flight.label,
       startTime: minutesToTime(flight.timeRange.start),
       endTime: minutesToTime(flight.timeRange.end),
-      duration: `${Math.round((flight.timeRange.end - flight.timeRange.start) / 60 * 10) / 10} hours`
+      duration: calculateDuration(flight.timeRange.start, flight.timeRange.end)
     }))
-    
+  }, [flightData])
+  
+  const handleConfirm = useCallback(() => {
     console.log('Selected flight times:', selectedTimes)
-    // Add your confirm logic here - integrate with booking context
-  }
+    // TODO: Integrate with React Hook Form and booking context
+    // This will be the integration point for form submission
+  }, [selectedTimes])
   
   return (
     <div className="w-[894px] h-[644px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6">
@@ -268,7 +313,7 @@ export default function FlightSchedule() {
           <div className="self-stretch flex justify-start items-stretch gap-5">
             {flightData.map((flight, index) => (
               <FlightCard 
-                key={index}
+                key={`flight-${index}-${flight.label}`}
                 flightInfo={flight} 
                 isDeparture={index === 0} 
                 onTimeRangeChange={(range) => handleTimeRangeChange(index, range)}
@@ -279,6 +324,7 @@ export default function FlightSchedule() {
           <button 
             onClick={handleConfirm}
             className="w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
+            type="button"
           >
             <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
               Confirm
