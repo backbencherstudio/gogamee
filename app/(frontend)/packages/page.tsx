@@ -9,6 +9,7 @@ import FlightSchedule from '../book/components/step7/flightschedule'
 import Extras from '../book/components/step8/extras'
 import Personalinfo from '../book/components/step9/personalinfo'
 import Payment from '../book/components/step10/payment'
+import RemoveLeague from '../book/components/step5-5/removeleague'
 
 export default function PackagesPage() {
   return (
@@ -17,6 +18,7 @@ export default function PackagesPage() {
         <PackageTable />
         <HowManyTotal />
         <LeagueStep />
+        <RemoveLeague />
         <DateSection />
         <FlightSchedule />
         <Extras />
