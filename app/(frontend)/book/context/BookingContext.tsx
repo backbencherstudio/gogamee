@@ -14,6 +14,19 @@ export interface ExtraService {
   isIncluded?: boolean
 }
 
+interface HeroData {
+  selectedSport: string
+  selectedPackage: string
+  selectedCity: string
+  peopleCount: {
+    adults: number
+    kids: number
+    babies: number
+  }
+  fromHero: boolean
+  startFromStep: number
+}
+
 // Create context for sharing state between components
 export interface BookingContextType {
   currentStep: number
@@ -57,6 +70,7 @@ export interface BookingContextType {
       cvv: string
       cardholderName: string
     }
+    fromHero?: boolean
   }
   updateFormData: (stepData: Partial<BookingContextType['formData']>) => void
   updateExtras: (extras: ExtraService[]) => void
@@ -100,7 +114,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       expiryDate: '',
       cvv: '',
       cardholderName: ''
-    }
+    },
+    fromHero: false
   })
 
   const [currentStep, setCurrentStep] = useState(0)
@@ -113,12 +128,65 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     // Only access localStorage on client side
     if (typeof window !== 'undefined') {
-      // Load formData from localStorage
+      // 🎯 PRIORITY 1: Check for hero data first
+      const heroData = localStorage.getItem('gogame_hero_data')
+      if (heroData) {
+        try {
+          const parsedHeroData = JSON.parse(heroData)
+          console.log('🎯 Found hero data, pre-populating stepper:', parsedHeroData)
+          
+          // Map hero data to stepper format
+          const mapHeroDataToStepper = (heroData: HeroData) => {
+            // Handle sport mapping
+            let mappedSport = heroData.selectedSport
+            if (heroData.selectedSport === 'both') {
+              mappedSport = 'football' // Default to football if "Both" was selected
+            }
+            
+            // Handle city mapping (remove accents if needed)
+            let mappedCity = heroData.selectedCity
+            if (mappedCity === 'málaga') {
+              mappedCity = 'malaga'
+            }
+            
+            return {
+              selectedSport: mappedSport,
+              selectedPackage: heroData.selectedPackage,
+              selectedCity: mappedCity,
+              peopleCount: heroData.peopleCount
+            }
+          }
+          
+          const mappedHeroData = mapHeroDataToStepper(parsedHeroData)
+          
+          // Pre-populate form data with mapped hero data
+          const heroFormData = {
+            ...getDefaultFormData(),
+            ...mappedHeroData,
+            fromHero: true
+          }
+          
+          setFormData(heroFormData)
+          setCurrentStep(parsedHeroData.startFromStep) // Start from step 5 (0-indexed = 4)
+          
+          // Clear hero data so it doesn't interfere with normal flow
+          localStorage.removeItem('gogame_hero_data')
+          console.log('✅ Hero data applied and cleared. Starting from step', parsedHeroData.startFromStep + 1)
+          
+          return // Exit early - don't load normal localStorage data
+        } catch (error) {
+          console.error('Error parsing hero data:', error)
+          localStorage.removeItem('gogame_hero_data') // Clean up invalid data
+        }
+      }
+      
+      // 📦 PRIORITY 2: Load normal booking data from localStorage (only if no hero data)
       const savedData = localStorage.getItem('gogame_booking_data')
       if (savedData) {
         try {
           const parsedData = JSON.parse(savedData)
           setFormData(parsedData)
+          console.log('📦 Loaded existing booking data from localStorage')
         } catch (error) {
           console.error('Error parsing localStorage data:', error)
         }
@@ -130,6 +198,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         try {
           const step = parseFloat(savedStep)
           setCurrentStep(step)
+          console.log('📍 Loaded current step from localStorage:', step + 1)
         } catch (error) {
           console.error('Error parsing localStorage step:', error)
         }
@@ -202,7 +271,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         expiryDate: '',
         cvv: '',
         cardholderName: ''
-      }
+      },
+      fromHero: false
     })
     setCurrentStep(0) // Reset to step 1
     localStorage.removeItem('gogame_booking_data')

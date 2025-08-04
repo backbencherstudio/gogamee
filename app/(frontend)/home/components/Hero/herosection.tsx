@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react"
 import { IoChevronDown } from "react-icons/io5"
 import { gsap } from "gsap"
+import { useRouter } from "next/navigation"
 
 // Dynamic pack types based on sport selection
 const getPackTypes = (sport: "Football" | "Basketball" | "Both") => {
@@ -48,6 +49,7 @@ interface PeopleCount {
 export default function HeroSection() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const heroTextRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
   // Sport selection state
   const [selectedSport, setSelectedSport] = useState<"Football" | "Basketball" | "Both">("Football")
@@ -414,13 +416,45 @@ export default function HeroSection() {
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  // Handle form submission here
-                  console.log({
-                    sport: selectedSport,
-                    packType: selectedPack,
-                    city: selectedCity,
-                    people: peopleCount,
+                  
+                  // Check if all required fields are filled
+                  const isAllFieldsFilled = selectedSport && selectedPack && selectedCity && totalPeople > 0
+                  
+                  console.log('🎯 Hero section data validation:', {
+                    selectedSport,
+                    selectedPack: selectedPack.name,
+                    selectedCity: selectedCity.name,
+                    totalPeople,
+                    peopleCount,
+                    isAllFieldsFilled
                   })
+                  
+                  if (isAllFieldsFilled) {
+                    // Create hero data object for BookingContext
+                    const heroData = {
+                      selectedSport: selectedSport.toLowerCase(),
+                      selectedPackage: selectedPack.name.toLowerCase(),
+                      selectedCity: selectedCity.name.toLowerCase(),
+                      peopleCount: {
+                        adults: peopleCount.adults,
+                        kids: peopleCount.children,
+                        babies: peopleCount.babies
+                      },
+                      fromHero: true,
+                      startFromStep: 4 // Start from step 5 (0-indexed)
+                    }
+                    
+                    // Save hero data to localStorage for BookingContext to pick up
+                    localStorage.setItem('gogame_hero_data', JSON.stringify(heroData))
+                    console.log('🎯 Hero data saved for stepper:', heroData)
+                  } else {
+                    // Clear any existing hero data if not all fields are filled
+                    localStorage.removeItem('gogame_hero_data')
+                    console.log('📝 Starting fresh booking - not all hero fields filled')
+                  }
+                  
+                  // Navigate to booking page
+                  router.push('/book')
                 }}
                 className="w-full lg:w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
               >

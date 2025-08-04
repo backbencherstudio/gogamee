@@ -17,7 +17,7 @@ import { BookingProvider, useBooking } from './context/BookingContext'
 
 // Component that uses the context (needs to be inside provider)
 function BookingContent() {
-  const { currentStep, goToStep, isHydrated } = useBooking()
+  const { currentStep, goToStep, isHydrated, formData } = useBooking()
 
   const steps = [
     { id: 1, title: 'Sports Preference' },
@@ -89,6 +89,16 @@ function BookingContent() {
           currentStep={getDisplayStep()} 
           onStepClick={handleStepClick}
         />
+        {formData.fromHero && (
+          <div className="mt-3 p-3 bg-lime-50 border border-lime-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <span className="text-lime-600 text-sm">🎯</span>
+              <span className="text-lime-700 text-xs font-medium">
+                Steps 1-4 pre-filled from home page
+              </span>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Main Content */}
