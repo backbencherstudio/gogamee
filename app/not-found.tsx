@@ -17,7 +17,7 @@ export default function NotFound() {
               <div className="self-stretch justify-start text-neutral-800 text-3xl font-medium font-['Poppins'] leading-10">Something went wrong!</div>
               <div className="self-stretch text-center justify-start text-neutral-600 text-lg font-normal font-['Poppins'] leading-snug">Sorry, We can&apos;t find this page</div>
             </div>
-            <Link href="/" className="px-4 py-2.5 bg-lime-500 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
+            <Link href="/" className="px-4 py-2.5 bg-[#76C043] rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
               <div className="text-center justify-start text-white text-lg font-normal font-['Inter'] leading-7">Go back to Home page</div>
             </Link>
           </div>
