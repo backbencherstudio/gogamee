@@ -448,7 +448,7 @@ Booking completed with ALL collected data:
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="w-[894px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6">
+      <div className="w-[894px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6">
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
           <div className="self-stretch h-12 flex flex-col justify-start items-start gap-3">
             <div className="justify-center text-neutral-800 text-3xl font-semibold font-['Poppins'] leading-10">
