@@ -2,18 +2,25 @@ import React from "react";
 
 export default function PackageHero() {
   return (
-    <div className="w-full max-w-[1200px] mx-auto">
-
-      <div className=" w-[1200px] h-[399px] p-6 rounded-[24px] inline-flex flex-col justify-end items-start overflow-hidden" style={{ backgroundImage: "url(/homepage/packbg.png)", backgroundSize: "cover", objectFit: "cover", backgroundPosition: "center"}}>
-
-        <div className="flex flex-col justify-start items-start gap-2.5">
-          <div className="w-[1021px] justify-start text-white text-7xl font-semibold font-['Poppins'] leading-[86.40px]">
+    <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Responsive Hero Section */}
+      <div 
+        className="w-full h-[280px] sm:h-[320px] md:h-[360px] lg:h-[399px] p-4 sm:p-6 rounded-[16px] sm:rounded-[20px] lg:rounded-[24px] 
+                   inline-flex flex-col justify-end items-start overflow-hidden relative"
+        style={{
+          backgroundImage: "url(/homepage/packbg.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        {/* Content */}
+        <div className="flex flex-col justify-start items-start gap-2 sm:gap-3 w-full">
+          <h1 className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold font-['Poppins'] leading-tight sm:leading-[1.1] md:leading-[1.15] lg:leading-[86.40px] px-4">
             Our packages
-          </div>
+          </h1>
         </div>
-  
       </div>
-
     </div>
   );
 }

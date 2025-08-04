@@ -6,7 +6,7 @@ import { useLanguage } from "./LanguageContext"
 export default function Footer() {
   const { t } = useLanguage()
   return (
-    <div className="w-full bg-[#060606]">
+    <div className="w-full bg-[#060606] mt-5">
         <div className="max-w-[1200px] mx-auto">
         <footer className="w-full px-4 sm:px-6 md:px-8 lg:px-0 pt-20 pb-6">
       <div className="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-0">
