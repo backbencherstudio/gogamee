@@ -135,20 +135,11 @@ export default function HowItWorks() {
         </div>
       </div>
 
-<<<<<<< HEAD
-<Link href="/book">
-      <button className="w-1/2 mx-20 md:w-auto px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer">
-        <span className="text-center text-white text-base md:text-lg font-normal font-inter leading-7">Start the game</span>
-      </button>
-</Link>
-
-=======
       <Link href="/book">
       <button className="w-1/2 mx-20 md:w-auto px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer">
         <span className="text-center text-white text-base md:text-lg font-normal font-inter leading-7">Start the game</span>
       </button>
       </Link>
->>>>>>> b3546bee667b960b434e20fa63f5d22c841ad397
     </div>
   )
 }
