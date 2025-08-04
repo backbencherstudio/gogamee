@@ -10,20 +10,23 @@ import Extras from '../book/components/step8/extras'
 import Personalinfo from '../book/components/step9/personalinfo'
 import Payment from '../book/components/step10/payment'
 import RemoveLeague from '../book/components/step5-5/removeleague'
+import { BookingProvider } from '../book/context/BookingContext'
 
 export default function PackagesPage() {
   return (
     <div>
         <PackageHero />
         <PackageTable />
-        <HowManyTotal />
-        <LeagueStep />
-        <RemoveLeague />
-        <DateSection />
-        <FlightSchedule />
-        <Extras />
-        <Personalinfo />
-        <Payment />
+        <BookingProvider>
+          <HowManyTotal />
+          <LeagueStep />
+          <RemoveLeague />
+          <DateSection />
+          <FlightSchedule />
+          <Extras />
+          <Personalinfo />
+          <Payment />
+        </BookingProvider>
         <Reviews />
     </div>
   )

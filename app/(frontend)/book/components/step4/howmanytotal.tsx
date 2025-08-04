@@ -3,6 +3,7 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { HiMinus, HiPlus } from 'react-icons/hi2';
+import { useBooking } from '../../context/BookingContext';
 
 // Types
 interface CounterFormData {
@@ -108,8 +109,22 @@ const CounterItem: React.FC<CounterItemProps> = ({
 
 // Main Component
 export default function HowManyTotal() {
+  const { formData, updateFormData, nextStep } = useBooking();
+  
+  // Calculate default values from existing data or defaults
+  const getDefaultValues = (): CounterFormData => {
+    if (formData.peopleCount.adults || formData.peopleCount.kids || formData.peopleCount.babies) {
+      return {
+        adults: formData.peopleCount.adults,
+        kids: formData.peopleCount.kids,
+        babies: formData.peopleCount.babies
+      }
+    }
+    return DEFAULT_VALUES;
+  }
+  
   const { control, watch, setValue, handleSubmit } = useForm<CounterFormData>({
-    defaultValues: DEFAULT_VALUES,
+    defaultValues: getDefaultValues(),
     mode: 'onChange',
   });
 
@@ -134,8 +149,20 @@ export default function HowManyTotal() {
   };
 
   const onSubmit = (data: CounterFormData) => {
-    console.log('Current counts:', data, 'Total:', totalCount);
-    // Handle next step logic here
+    const totalPeople = data.adults + data.kids + data.babies;
+    console.log('Current counts:', data, 'Total:', totalPeople);
+    
+    // Update the booking context with detailed people count
+    updateFormData({ 
+      peopleCount: {
+        adults: data.adults,
+        kids: data.kids,
+        babies: data.babies
+      }
+    });
+    
+    // Move to next step
+    nextStep();
   };
 
   return (

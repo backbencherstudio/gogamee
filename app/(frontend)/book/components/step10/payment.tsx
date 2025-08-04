@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
+import { useBooking } from '../../context/BookingContext'
 
 type PaymentMethod = 'credit' | 'google' | 'apple'
 
@@ -24,6 +25,7 @@ const PAYMENT_METHODS = {
 } as const
 
 export default function Payment() {
+  const { updateFormData, formData } = useBooking()
   const [isProcessing, setIsProcessing] = useState(false)
   
   const {
@@ -117,8 +119,229 @@ export default function Payment() {
     setIsProcessing(true)
     
     try {
+      // Update booking context with payment info
+      if (data.paymentMethod === PAYMENT_METHODS.CREDIT) {
+        updateFormData({
+          paymentInfo: {
+            cardNumber: data.creditCard.cardNumber,
+            expiryDate: data.creditCard.expiryDate,
+            cvv: data.creditCard.cvv,
+            cardholderName: data.creditCard.nameOnCard
+          }
+        })
+      }
+
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Helper function to convert minutes to time format
+      const minutesToTime = (minutes: number): string => {
+        const hours = Math.floor(minutes / 60) % 24
+        const mins = minutes % 60
+        const nextDay = minutes >= 1440 ? '(+1)' : ''
+        return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}${nextDay}`
+      }
+      
+      // Log complete booking data in detailed format
+      const completeBookingData = {
+        // Step 1: Sports Preference
+        selectedSport: formData.selectedSport,
+        
+        // Step 2: Package Type
+        selectedPackage: formData.selectedPackage,
+        
+        // Step 3: Departure City
+        selectedCity: formData.selectedCity,
+        
+        // Step 4: People Count
+        peopleCount: {
+          adults: formData.peopleCount.adults,
+          kids: formData.peopleCount.kids,
+          babies: formData.peopleCount.babies,
+          total: formData.peopleCount.adults + formData.peopleCount.kids + formData.peopleCount.babies
+        },
+        
+        // Step 5: League Selection
+        selectedLeague: formData.selectedLeague,
+        
+        // Step 5.5: Removed Leagues (if European Competition was selected)
+        removedLeagues: {
+          count: formData.removedLeagues?.length || 0,
+          leagues: formData.removedLeagues || [],
+          hasRemovedLeagues: (formData.removedLeagues?.length || 0) > 0
+        },
+        
+        // Step 6: Date Selection
+        travelDates: {
+          departureDate: formData.departureDate ? new Date(formData.departureDate).toLocaleDateString() : 'Not selected',
+          returnDate: formData.returnDate ? new Date(formData.returnDate).toLocaleDateString() : 'Not selected',
+          departureDateRaw: formData.departureDate,
+          returnDateRaw: formData.returnDate
+        },
+        
+        // Step 7: Flight Schedule
+        flightSchedule: formData.flightSchedule ? {
+          departure: {
+            startTime: minutesToTime(formData.flightSchedule.departure.start),
+            endTime: minutesToTime(formData.flightSchedule.departure.end),
+            startMinutes: formData.flightSchedule.departure.start,
+            endMinutes: formData.flightSchedule.departure.end
+          },
+          arrival: {
+            startTime: minutesToTime(formData.flightSchedule.arrival.start),
+            endTime: minutesToTime(formData.flightSchedule.arrival.end),
+            startMinutes: formData.flightSchedule.arrival.start,
+            endMinutes: formData.flightSchedule.arrival.end
+          }
+        } : 'Not selected',
+        
+        // Step 8: Extras
+        extras: {
+          allExtras: formData.extras,
+          selectedExtras: formData.extras.filter(extra => extra.isSelected),
+          selectedExtrasCount: formData.extras.filter(extra => extra.isSelected).length,
+          totalExtrasCost: formData.extras
+            .filter(extra => extra.isSelected && !extra.isIncluded)
+            .reduce((total, extra) => total + (extra.price * extra.quantity), 0)
+        },
+        
+        // Step 9: Personal Information
+        personalInfo: {
+          firstName: formData.personalInfo.firstName,
+          lastName: formData.personalInfo.lastName,
+          email: formData.personalInfo.email,
+          phone: formData.personalInfo.phone
+        },
+        
+        // Step 10: Payment Information
+        paymentMethod: data.paymentMethod,
+        paymentInfo: data.paymentMethod === PAYMENT_METHODS.CREDIT ? {
+          cardNumber: data.creditCard.cardNumber,
+          expiryDate: data.creditCard.expiryDate,
+          cvv: data.creditCard.cvv,
+          cardholderName: data.creditCard.nameOnCard
+        } : 'Alternative payment method selected',
+        
+        // Summary Information
+        summary: {
+          totalPeople: formData.peopleCount.adults + formData.peopleCount.kids + formData.peopleCount.babies,
+          totalExtrasSelected: formData.extras.filter(extra => extra.isSelected).length,
+          totalExtrasCost: formData.extras
+            .filter(extra => extra.isSelected && !extra.isIncluded)
+            .reduce((total, extra) => total + (extra.price * extra.quantity), 0),
+          bookingComplete: true,
+          timestamp: new Date().toISOString()
+        }
+      }
+
+      
+      console.log('=== FINAL BOOKING SUBMISSION ===')
+      console.log('🎯 COMPLETE BOOKING DATA (ALL STEPS):')
+      console.log(completeBookingData)
+      console.log('')
+      console.log('📋 STEP-BY-STEP BREAKDOWN:')
+      console.log('📍 Step 1 - Selected Sport:', completeBookingData.selectedSport)
+      console.log('📦 Step 2 - Package Type:', completeBookingData.selectedPackage)
+      console.log('🏙️ Step 3 - Departure City:', completeBookingData.selectedCity)
+      console.log('👥 Step 4 - People Count:', completeBookingData.peopleCount)
+      console.log('🏆 Step 5 - Selected League:', completeBookingData.selectedLeague)
+      if (completeBookingData.removedLeagues.hasRemovedLeagues) {
+        console.log('🚫 Step 5.5 - Removed Leagues:', completeBookingData.removedLeagues)
+      }
+      console.log('📅 Step 6 - Travel Dates:', completeBookingData.travelDates)
+      console.log('✈️ Step 7 - Flight Schedule:', completeBookingData.flightSchedule)
+      console.log('🛍️ Step 8 - Extras:', completeBookingData.extras)
+      console.log('👤 Step 9 - Personal Info:', completeBookingData.personalInfo)
+      console.log('💳 Step 10 - Payment Method:', completeBookingData.paymentMethod)
+      if (data.paymentMethod === PAYMENT_METHODS.CREDIT) {
+        console.log('💳 Payment Details:', completeBookingData.paymentInfo)
+      }
+      console.log('')
+      console.log('📊 BOOKING SUMMARY:', completeBookingData.summary)
+      console.log('================================')
+      
+      // ========================================
+      // SINGLE COMPREHENSIVE OBJECT FOR DATABASE
+      // ========================================
+      const singleFormDataObject = {
+        // Basic Information
+        selectedSport: formData.selectedSport,
+        selectedPackage: formData.selectedPackage,
+        selectedCity: formData.selectedCity,
+        selectedLeague: formData.selectedLeague,
+        
+        // People Count
+        adults: formData.peopleCount.adults,
+        kids: formData.peopleCount.kids,
+        babies: formData.peopleCount.babies,
+        totalPeople: formData.peopleCount.adults + formData.peopleCount.kids + formData.peopleCount.babies,
+        
+        // Dates (both formatted and raw)
+        departureDate: formData.departureDate,
+        returnDate: formData.returnDate,
+        departureDateFormatted: formData.departureDate ? new Date(formData.departureDate).toLocaleDateString() : null,
+        returnDateFormatted: formData.returnDate ? new Date(formData.returnDate).toLocaleDateString() : null,
+        
+        // Flight Schedule
+        departureTimeStart: formData.flightSchedule?.departure.start || null,
+        departureTimeEnd: formData.flightSchedule?.departure.end || null,
+        arrivalTimeStart: formData.flightSchedule?.arrival.start || null,
+        arrivalTimeEnd: formData.flightSchedule?.arrival.end || null,
+        departureTimeRange: formData.flightSchedule ? `${minutesToTime(formData.flightSchedule.departure.start)} - ${minutesToTime(formData.flightSchedule.departure.end)}` : null,
+        arrivalTimeRange: formData.flightSchedule ? `${minutesToTime(formData.flightSchedule.arrival.start)} - ${minutesToTime(formData.flightSchedule.arrival.end)}` : null,
+        
+        // Removed Leagues
+        removedLeagues: formData.removedLeagues || [],
+        removedLeaguesCount: formData.removedLeagues?.length || 0,
+        hasRemovedLeagues: (formData.removedLeagues?.length || 0) > 0,
+        
+        // Extras
+        allExtras: formData.extras,
+        selectedExtras: formData.extras.filter(extra => extra.isSelected),
+        selectedExtrasNames: formData.extras.filter(extra => extra.isSelected).map(extra => extra.name),
+        totalExtrasCost: formData.extras
+          .filter(extra => extra.isSelected && !extra.isIncluded)
+          .reduce((total, extra) => total + (extra.price * extra.quantity), 0),
+        extrasCount: formData.extras.filter(extra => extra.isSelected).length,
+        
+        // Personal Information
+        firstName: formData.personalInfo.firstName,
+        lastName: formData.personalInfo.lastName,
+        fullName: `${formData.personalInfo.firstName} ${formData.personalInfo.lastName}`.trim(),
+        email: formData.personalInfo.email,
+        phone: formData.personalInfo.phone,
+        
+        // Payment Information
+        paymentMethod: data.paymentMethod,
+        cardNumber: data.paymentMethod === PAYMENT_METHODS.CREDIT ? data.creditCard.cardNumber : null,
+        expiryDate: data.paymentMethod === PAYMENT_METHODS.CREDIT ? data.creditCard.expiryDate : null,
+        cvv: data.paymentMethod === PAYMENT_METHODS.CREDIT ? data.creditCard.cvv : null,
+        cardholderName: data.paymentMethod === PAYMENT_METHODS.CREDIT ? data.creditCard.nameOnCard : null,
+        
+        // Metadata
+        bookingTimestamp: new Date().toISOString(),
+        bookingDate: new Date().toLocaleDateString(),
+        bookingTime: new Date().toLocaleTimeString(),
+        isBookingComplete: true,
+        
+        // Calculated Fields
+        travelDuration: formData.departureDate && formData.returnDate ? 
+          Math.ceil((new Date(formData.returnDate).getTime() - new Date(formData.departureDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 : null,
+        hasFlightPreferences: formData.flightSchedule !== null,
+        requiresEuropeanLeagueHandling: formData.selectedLeague === 'european'
+      }
+      
+      console.log('')
+      console.log('🎯 ===== SINGLE COMPREHENSIVE DATA OBJECT =====')
+      console.log('📦 Ready for Database/API - All form data in one object:')
+      console.log(singleFormDataObject)
+      console.log('===============================================')
+      console.log('')
+      
+      // Also create a JSON string version for easy copy-paste
+      console.log('📋 JSON STRING VERSION (for API calls):')
+      console.log(JSON.stringify(singleFormDataObject, null, 2))
+      console.log('===============================================')
       
       if (data.paymentMethod === PAYMENT_METHODS.CREDIT) {
         console.log('Processing credit card payment...', data.creditCard)
@@ -126,14 +349,33 @@ export default function Payment() {
         console.log(`Processing ${data.paymentMethod} payment...`)
       }
       
-      alert('Payment processed successfully!')
+      alert(`🎉 Payment processed successfully! 
+      
+Booking completed with ALL collected data:
+✅ ${completeBookingData.selectedSport} sport
+✅ ${completeBookingData.selectedPackage} package  
+✅ ${completeBookingData.selectedCity} departure
+✅ ${completeBookingData.peopleCount.total} people total
+✅ ${completeBookingData.selectedLeague} league${completeBookingData.removedLeagues.hasRemovedLeagues ? `\n🚫 ${completeBookingData.removedLeagues.count} leagues removed` : ''}
+✅ Flight times and extras selected
+✅ Complete personal & payment info
+
+📊 Check console for COMPLETE booking details!`)
+      
+      // Clear localStorage after successful booking
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('gogame_booking_data')
+        localStorage.removeItem('gogame_booking_step')
+        console.log('Booking data cleared from localStorage')
+      }
+      
     } catch (error) {
       console.error('Payment processing failed:', error)
       alert('Payment failed. Please try again.')
     } finally {
       setIsProcessing(false)
     }
-  }, [isFormValid])
+  }, [isFormValid, updateFormData, formData])
 
   // Payment method option component
   const PaymentMethodOption = useCallback(({ 

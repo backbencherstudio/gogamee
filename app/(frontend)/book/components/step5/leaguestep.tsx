@@ -3,6 +3,7 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { FaCheck } from 'react-icons/fa';
+import { useBooking } from '../../context/BookingContext';
 
 interface LeagueOption {
   id: string;
@@ -52,9 +53,11 @@ const getButtonStyles = (isDisabled: boolean): string => {
 };
 
 export default function LeagueStep() {
+  const { formData, updateFormData, nextStep } = useBooking();
+  
   const { control, watch, handleSubmit } = useForm<LeagueFormData>({
     defaultValues: {
-      selectedLeague: ''
+      selectedLeague: formData.selectedLeague || ''
     }
   });
 
@@ -63,7 +66,12 @@ export default function LeagueStep() {
   const onSubmit = (data: LeagueFormData) => {
     if (data.selectedLeague) {
       console.log('Selected league:', data.selectedLeague);
-      // Handle navigation to next step
+      
+      // Update the booking context with selected league
+      updateFormData({ selectedLeague: data.selectedLeague });
+      
+      // Pass the selected league data immediately to nextStep for conditional navigation
+      nextStep({ selectedLeague: data.selectedLeague });
     }
   };
 

@@ -3,6 +3,7 @@
 import React, { useMemo, useCallback } from 'react'
 import Image from 'next/image'
 import { useForm, Controller } from 'react-hook-form'
+import { useBooking } from '../../context/BookingContext'
 
 // Types
 interface ExtraService {
@@ -127,7 +128,7 @@ const createInitialExtras = (
       description: t.travelInsurance.description,
       price: 20,
       icon: '/stepper/icon/icon2.svg',
-      isSelected: true,
+      isSelected: false,
       quantity: 1,
       maxQuantity: DEFAULT_MAX_QUANTITY,
       currency
@@ -160,7 +161,7 @@ const createInitialExtras = (
       description: t.seatsTogether.description,
       price: 20,
       icon: '/stepper/icon/icon5.svg',
-      isSelected: true,
+      isSelected: false,
       quantity: 2,
       maxQuantity: DEFAULT_MAX_QUANTITY,
       currency
@@ -169,11 +170,24 @@ const createInitialExtras = (
 }
 
 export default function Extras() {
+  const { formData, updateExtras, nextStep } = useBooking()
+  
+  // Get initial extras from BookingContext or create defaults
+  const getInitialExtras = (): ExtraService[] => {
+    if (formData.extras && formData.extras.length > 0) {
+      console.log('Loading existing extras from BookingContext:', formData.extras)
+      return formData.extras
+    } else {
+      console.log('Creating default extras')
+      return createInitialExtras('en', 'EUR')
+    }
+  }
+  
   const { control, watch, setValue, handleSubmit } = useForm<FormData>({
     defaultValues: {
       language: 'en',
       currency: 'EUR',
-      extras: createInitialExtras('en', 'EUR')
+      extras: getInitialExtras()
     }
   })
 
@@ -260,13 +274,12 @@ export default function Extras() {
     
     console.log('Total extra cost:', totalCost)
     
-    // Here you would typically:
-    // 1. Update booking context
-    // 2. Navigate to next step
-    // 3. Send data to API
+    // Update booking context with selected extras
+    updateExtras(data.extras)
     
-    alert(`${t.confirm}: ${CURRENCY_SYMBOLS[currency]}${totalCost}`)
-  }, [convertPrice, currency, t.confirm])
+    // Navigate to next step
+    nextStep()
+  }, [convertPrice, updateExtras, nextStep])
 
   // Render functions
   const renderLanguageButtons = () => (

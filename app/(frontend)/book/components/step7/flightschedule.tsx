@@ -1,8 +1,9 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { MdFlightTakeoff, MdFlightLand } from 'react-icons/md'
 import { Range } from 'react-range'
+import { useBooking } from '../../context/BookingContext'
 
 // ========================= TYPES =========================
 interface TimeRange {
@@ -214,11 +215,14 @@ const TimeRangeSlider = React.memo(({
               {children}
             </div>
           )}
-          renderThumb={({ props }) => (
+          renderThumb={({ props, isDragged }) => (
             <div
               {...props}
-              className="w-5 h-5 bg-white border-2 border-lime-500 rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
-              style={props.style}
+              style={{
+                ...props.style,
+                backgroundColor: isDragged ? '#65a30d' : 'white',
+              }}
+              className="w-5 h-5 border-2 border-lime-500 rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
             />
           )}
         />
@@ -275,7 +279,70 @@ FlightCard.displayName = 'FlightCard'
 
 // ========================= MAIN COMPONENT =========================
 export default function FlightSchedule() {
+  const { formData, updateFormData, nextStep } = useBooking()
+  const [isHydrated, setIsHydrated] = useState(false)
+  
+  // Always start with default data for consistent server/client rendering
   const [flightData, setFlightData] = useState<FlightInfo[]>(INITIAL_FLIGHT_DATA)
+  
+  // Set hydration flag and load existing data after hydration
+  useEffect(() => {
+    setIsHydrated(true)
+    
+    // Load existing flight data from BookingContext after hydration
+    if (formData.flightSchedule) {
+      setFlightData([
+        {
+          label: 'Departure from',
+          city: 'Barcelona',
+          price: '20€',
+          icon: 'takeoff',
+          timeRange: {
+            start: formData.flightSchedule.departure.start,
+            end: formData.flightSchedule.departure.end
+          }
+        },
+        {
+          label: 'Arrival',
+          city: 'Barcelona',
+          price: '20€',
+          icon: 'landing',
+          timeRange: {
+            start: formData.flightSchedule.arrival.start,
+            end: formData.flightSchedule.arrival.end
+          }
+        }
+      ])
+    }
+  }, [])
+
+  // Update flight data when BookingContext data changes (only after hydration)
+  useEffect(() => {
+    if (isHydrated && formData.flightSchedule) {
+      setFlightData([
+        {
+          label: 'Departure from',
+          city: 'Barcelona',
+          price: '20€',
+          icon: 'takeoff',
+          timeRange: {
+            start: formData.flightSchedule.departure.start,
+            end: formData.flightSchedule.departure.end
+          }
+        },
+        {
+          label: 'Arrival',
+          city: 'Barcelona',
+          price: '20€',
+          icon: 'landing',
+          timeRange: {
+            start: formData.flightSchedule.arrival.start,
+            end: formData.flightSchedule.arrival.end
+          }
+        }
+      ])
+    }
+  }, [formData.flightSchedule, isHydrated])
   
   const handleTimeRangeChange = useCallback((flightIndex: number, newRange: TimeRange) => {
     setFlightData(prev => prev.map((flight, index) => 
@@ -296,9 +363,24 @@ export default function FlightSchedule() {
   
   const handleConfirm = useCallback(() => {
     console.log('Selected flight times:', selectedTimes)
-    // TODO: Integrate with React Hook Form and booking context
-    // This will be the integration point for form submission
-  }, [selectedTimes])
+    
+    // Save flight schedule data in structured format to booking context
+    const flightScheduleData = {
+      departure: {
+        start: flightData[0].timeRange.start,
+        end: flightData[0].timeRange.end
+      },
+      arrival: {
+        start: flightData[1].timeRange.start,
+        end: flightData[1].timeRange.end
+      }
+    }
+    
+    updateFormData({ flightSchedule: flightScheduleData })
+    
+    // Move to next step
+    nextStep()
+  }, [flightData, updateFormData, nextStep])
   
   return (
     <div className="w-[894px] h-[644px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6">

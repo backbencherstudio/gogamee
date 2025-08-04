@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import { useFormContext } from 'react-hook-form'
+import { useBooking } from '../../context/BookingContext'
 
 // Types
 interface DurationOption {
@@ -51,30 +52,71 @@ const isDateInPast = (date: Date): boolean => {
 }
 
 export default function DateSection() {
+  const { formData, updateFormData, nextStep } = useBooking()
+  
   // Optional React Hook Form integration
   const formContext = useFormContext?.() || null
   const setValue = formContext?.setValue
   
-  // State
-  const [selectedDuration, setSelectedDuration] = useState(1)
-  const [selectedStartDate, setSelectedStartDate] = useState<number | null>(null)
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(null)
-  const [selectedYear, setSelectedYear] = useState<number | null>(null)
-  const [currentDate, setCurrentDate] = useState(() => {
-    const today = new Date()
-    return new Date(today.getFullYear(), today.getMonth(), 1)
+  // Consistent default values
+  const getDefaultValues = () => ({
+    selectedDuration: 1,
+    selectedStartDate: null as number | null,
+    selectedMonth: null as number | null,
+    selectedYear: null as number | null,
+    currentDate: new Date(2024, 0, 1) // Use a fixed date initially
   })
+  
+  const defaultValues = getDefaultValues()
+  
+  // State
+  const [selectedDuration, setSelectedDuration] = useState(defaultValues.selectedDuration)
+  const [selectedStartDate, setSelectedStartDate] = useState<number | null>(defaultValues.selectedStartDate)
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(defaultValues.selectedMonth)
+  const [selectedYear, setSelectedYear] = useState<number | null>(defaultValues.selectedYear)
+  const [currentDate, setCurrentDate] = useState(defaultValues.currentDate)
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  // Set proper current date after hydration
+  useEffect(() => {
+    setIsHydrated(true)
+    const today = new Date()
+    setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1))
+  }, [])
+
+  // Load existing data when component mounts or when BookingContext data changes
+  useEffect(() => {
+    if (isHydrated && formData.departureDate && formData.returnDate) {
+      const startDate = new Date(formData.departureDate)
+      const endDate = new Date(formData.returnDate)
+      
+      // Calculate duration from date difference
+      const diffTime = endDate.getTime() - startDate.getTime()
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+      
+      // Find matching duration option
+      const durationIndex = DURATION_OPTIONS.findIndex(option => option.days === diffDays)
+      
+      setSelectedDuration(durationIndex >= 0 ? durationIndex : 1)
+      setSelectedStartDate(startDate.getDate())
+      setSelectedMonth(startDate.getMonth())
+      setSelectedYear(startDate.getFullYear())
+      setCurrentDate(new Date(startDate.getFullYear(), startDate.getMonth(), 1))
+    }
+  }, [formData.departureDate, formData.returnDate, isHydrated])
 
   // Ensure current month or later on mount
   useEffect(() => {
-    const today = new Date()
-    const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-    const displayedMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-    
-    if (displayedMonth < currentMonth) {
-      setCurrentDate(currentMonth)
+    if (isHydrated) {
+      const today = new Date()
+      const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+      const displayedMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+      
+      if (displayedMonth < currentMonth) {
+        setCurrentDate(currentMonth)
+      }
     }
-  }, [])
+  }, [currentDate, isHydrated])
 
   // Update form data when selection changes (only if form context is available)
   useEffect(() => {
@@ -379,9 +421,31 @@ export default function DateSection() {
         </div>
 
         {/* Next Button */}
-        <div className="w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5">
+        <button 
+          onClick={() => {
+            if (selectedStartDate && selectedMonth !== null && selectedYear !== null) {
+              const startDate = new Date(selectedYear, selectedMonth, selectedStartDate)
+              const duration = DURATION_OPTIONS[selectedDuration]
+              const endDate = new Date(startDate)
+              endDate.setDate(startDate.getDate() + duration.days - 1)
+              
+              updateFormData({ 
+                departureDate: startDate.toISOString(),
+                returnDate: endDate.toISOString()
+              })
+              
+              nextStep()
+            }
+          }}
+          disabled={!selectedStartDate || selectedMonth === null || selectedYear === null}
+          className={`w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-colors ${
+            selectedStartDate && selectedMonth !== null && selectedYear !== null
+              ? 'bg-[#76C043] hover:bg-lime-600 cursor-pointer'
+              : 'bg-gray-400 cursor-not-allowed'
+          }`}
+        >
           <div className="text-center justify-start text-white text-base font-normal font-['Inter']">Next</div>
-        </div>
+        </button>
       </div>
     </div>
   )

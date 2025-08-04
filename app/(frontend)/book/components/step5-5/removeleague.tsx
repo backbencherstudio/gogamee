@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import Image from 'next/image'
+import { useBooking } from '../../context/BookingContext'
 
 // Types
 interface League {
@@ -97,7 +98,18 @@ LeagueCard.displayName = 'LeagueCard'
 
 // Main Component
 export default function RemoveLeague() {
+  const { formData, updateFormData, nextStep } = useBooking()
   const [leagues, setLeagues] = useState<League[]>(INITIAL_LEAGUES)
+
+  // Load existing removed leagues data when component mounts
+  useEffect(() => {
+    if (formData.removedLeagues && formData.removedLeagues.length > 0) {
+      setLeagues(prev => prev.map(league => {
+        const wasRemoved = formData.removedLeagues.some(removed => removed.id === league.id)
+        return { ...league, removed: wasRemoved }
+      }))
+    }
+  }, [formData.removedLeagues])
 
   const handleRemoveLeague = useCallback((leagueId: string) => {
     setLeagues(prev => prev.map(league => 
@@ -106,6 +118,23 @@ export default function RemoveLeague() {
         : league
     ))
   }, [])
+
+  const handleNext = useCallback(() => {
+    const removedLeagues = leagues.filter(league => league.removed)
+    console.log('Removed leagues:', removedLeagues)
+    
+    // Save removed leagues data to BookingContext
+    const removedLeaguesData = removedLeagues.map(league => ({
+      id: league.id,
+      name: league.name,
+      country: league.country
+    }))
+    
+    updateFormData({ removedLeagues: removedLeaguesData })
+    
+    // Move to next step (date selection)
+    nextStep()
+  }, [leagues, updateFormData, nextStep])
 
   const removedCount = leagues.filter(league => league.removed).length
 
@@ -141,9 +170,12 @@ export default function RemoveLeague() {
         ))}
       </div>
 
-      <div className="w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer">
+      <button 
+        onClick={handleNext}
+        className="w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
+      >
         <div className="text-center justify-start text-white text-base font-normal font-['Inter']">Next</div>
-      </div>
+      </button>
     </div>
   )
 }
