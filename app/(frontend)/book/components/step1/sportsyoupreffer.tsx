@@ -67,7 +67,7 @@ export default function SportsYouPreffer() {
   }, [nextStep])
 
   return (
-    <div className="w-full max-w-[894px] h-[638px] p-6 bg-[#F1F9EC] rounded-xl border border-lime-500/20 mb-10">
+    <div className="w-full max-w-[894px] h-[638px] p-6 bg-[#F1F9EC] rounded-xl border border-[#76C043]/20 mb-10">
       {/* Header Section */}
       <div className="mb-8">
         <h1 className="text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-10 mb-3">

@@ -427,13 +427,13 @@ Booking completed with ALL collected data:
     return (
       <div 
         className={`self-stretch p-4 rounded outline outline-1 outline-offset-[-1px] ${
-          isSelected ? 'outline-lime-500 bg-lime-50' : 'outline-gray-200'
+          isSelected ? 'outline-[#76C043] bg-lime-50' : 'outline-gray-200'
         } inline-flex justify-between items-center cursor-pointer transition-all duration-200`}
         onClick={() => handlePaymentMethodChange(method)}
       >
         <div className="flex justify-start items-center gap-2.5">
           <div className={`w-6 h-6 rounded-full border-2 ${
-            isSelected ? 'border-lime-500 bg-lime-500' : 'border-gray-300'
+            isSelected ? 'border-[#76C043] bg-[#76C043]' : 'border-gray-300'
           } flex items-center justify-center`}>
             {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
           </div>
