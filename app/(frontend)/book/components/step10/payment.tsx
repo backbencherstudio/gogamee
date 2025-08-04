@@ -25,7 +25,7 @@ const PAYMENT_METHODS = {
 } as const
 
 export default function Payment() {
-  const { updateFormData, formData } = useBooking()
+  const { formData, updateFormData, clearBookingData } = useBooking()
   const [isProcessing, setIsProcessing] = useState(false)
   
   const {
@@ -360,14 +360,49 @@ Booking completed with ALL collected data:
 ✅ Flight times and extras selected
 ✅ Complete personal & payment info
 
-📊 Check console for COMPLETE booking details!`)
+📊 Check console for COMPLETE booking details!
+
+🧹 All booking data will be cleared from storage automatically.`)
       
-      // Clear localStorage after successful booking
+      // ========================================
+      // COMPLETE DATA CLEANUP AFTER SUCCESSFUL BOOKING
+      // ========================================
+      
+      console.log('🧹 Starting complete data cleanup...')
+      
+      // 1. Clear localStorage completely
       if (typeof window !== 'undefined') {
+        // Remove specific booking keys
         localStorage.removeItem('gogame_booking_data')
         localStorage.removeItem('gogame_booking_step')
-        console.log('Booking data cleared from localStorage')
+        
+        // Remove any other potential booking-related keys (if any exist)
+        const bookingKeys = Object.keys(localStorage).filter(key => 
+          key.toLowerCase().includes('booking') || 
+          key.toLowerCase().includes('gogame') ||
+          key.toLowerCase().includes('form')
+        )
+        
+        bookingKeys.forEach(key => {
+          localStorage.removeItem(key)
+        })
+        
+        console.log('✅ localStorage cleared:', ['gogame_booking_data', 'gogame_booking_step', ...bookingKeys])
       }
+      
+      // 2. Clear BookingContext state
+      clearBookingData()
+      console.log('✅ BookingContext state cleared')
+      
+      // 3. Reset to step 1 for next booking
+      console.log('✅ Stepper reset to Step 1')
+      
+      console.log('🎉 Complete cleanup finished! Ready for next booking.')
+      
+      // Small delay to ensure all cleanup is processed
+      setTimeout(() => {
+        console.log('🔄 System ready for new booking!')
+      }, 1000)
       
     } catch (error) {
       console.error('Payment processing failed:', error)
@@ -375,7 +410,7 @@ Booking completed with ALL collected data:
     } finally {
       setIsProcessing(false)
     }
-  }, [isFormValid, updateFormData, formData])
+  }, [isFormValid, updateFormData, formData, clearBookingData])
 
   // Payment method option component
   const PaymentMethodOption = useCallback(({ 
