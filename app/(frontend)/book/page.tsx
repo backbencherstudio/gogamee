@@ -1,15 +1,23 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React from 'react'
 import SportsYouPreffer from './components/step1/sportsyoupreffer'
 import PackageType from './components/step2/packagetype'
 import DepartureCity from './components/step3/departurecity'
+import HowManyTotal from './components/step4/howmanytotal'
+import LeagueStep from './components/step5/leaguestep'
+import RemoveLeague from './components/step5-5/removeleague'
+import DateSection from './components/step6/datesection'
+import FlightSchedule from './components/step7/flightschedule'
+import Extras from './components/step8/extras'
+import PersonalInfo from './components/step9/personalinfo'
+import Payment from './components/step10/payment'
 import Stepper from './components/stepper/stepper'
-import { BookingContext, useBooking, BookingContextType } from './context/BookingContext'
+import { BookingProvider, useBooking } from './context/BookingContext'
 
 // Component that uses the context (needs to be inside provider)
 function BookingContent() {
-  const { currentStep } = useBooking()
+  const { currentStep, goToStep, isHydrated, formData } = useBooking()
 
   const steps = [
     { id: 1, title: 'Sports Preference' },
@@ -25,6 +33,11 @@ function BookingContent() {
   ]
 
   const renderCurrentStep = () => {
+    // Don't render complex components until hydrated to prevent mismatches
+    if (!isHydrated) {
+      return <div className="flex items-center justify-center h-64">Loading...</div>
+    }
+
     switch (currentStep) {
       case 0:
         return <SportsYouPreffer />
@@ -32,8 +45,38 @@ function BookingContent() {
         return <PackageType />
       case 2:
         return <DepartureCity />
+      case 3:
+        return <HowManyTotal />
+      case 4:
+        return <LeagueStep />
+      case 4.5:
+        return <RemoveLeague />
+      case 5:
+        return <DateSection />
+      case 6:
+        return <FlightSchedule />
+      case 7:
+        return <Extras />
+      case 8:
+        return <PersonalInfo />
+      case 9:
+        return <Payment />
       default:
         return <SportsYouPreffer />
+    }
+  }
+
+  // Get display step for stepper (convert decimal steps to appropriate display)
+  const getDisplayStep = () => {
+    if (currentStep === 4.5) return 4 // Show step 5 for remove league
+    return currentStep
+  }
+
+  // Handle stepper navigation
+  const handleStepClick = (stepIndex: number) => {
+    // Only allow navigation to completed or current steps
+    if (stepIndex <= getDisplayStep()) {
+      goToStep(stepIndex);
     }
   }
 
@@ -41,7 +84,21 @@ function BookingContent() {
     <div className='flex'>
       {/* Fixed Sidebar */}
       <div className='sticky top-5 h-full w-[282px] mr-6'>
-        <Stepper steps={steps} currentStep={currentStep} />
+        <Stepper 
+          steps={steps} 
+          currentStep={getDisplayStep()} 
+          onStepClick={handleStepClick}
+        />
+        {formData.fromHero && (
+          <div className="mt-3 p-3 bg-lime-50 border border-lime-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <span className="text-lime-600 text-sm">🎯</span>
+              <span className="text-lime-700 text-xs font-medium">
+                Steps 1-4 pre-filled from home page
+              </span>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Main Content */}
@@ -53,76 +110,9 @@ function BookingContent() {
 }
 
 export default function BookPage() {
-  const [currentStep, setCurrentStep] = useState(0)
-  const [formData, setFormData] = useState({
-    selectedSport: 'football',
-    selectedPackage: 'standard',
-    selectedCity: ''
-  })
-
-  // Load data from localStorage on mount
-  useEffect(() => {
-    const savedData = localStorage.getItem('bookingFormData')
-    const savedStep = localStorage.getItem('bookingCurrentStep')
-    
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData)
-        setFormData(parsedData)
-      } catch (error) {
-        console.error('Error parsing saved form data:', error)
-      }
-    }
-    
-    if (savedStep) {
-      try {
-        const step = parseInt(savedStep, 10)
-        if (step >= 0 && step <= 2) { // Only allow valid steps
-          setCurrentStep(step)
-        }
-      } catch (error) {
-        console.error('Error parsing saved step:', error)
-      }
-    }
-  }, [])
-
-  // Save data to localStorage whenever formData changes
-  useEffect(() => {
-    localStorage.setItem('bookingFormData', JSON.stringify(formData))
-  }, [formData])
-
-  // Save current step to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('bookingCurrentStep', currentStep.toString())
-  }, [currentStep])
-
-  const updateFormData = (stepData: Partial<typeof formData>) => {
-    setFormData(prev => ({ ...prev, ...stepData }))
-  }
-
-  const nextStep = () => {
-    if (currentStep < 2) { // Only allow up to step 2 (index 2 = step 3)
-      setCurrentStep(prev => prev + 1)
-    }
-  }
-
-  const previousStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1)
-    }
-  }
-
-  const contextValue: BookingContextType = {
-    currentStep,
-    formData,
-    updateFormData,
-    nextStep,
-    previousStep
-  }
-
   return (
-    <BookingContext.Provider value={contextValue}>
+    <BookingProvider>
       <BookingContent />
-    </BookingContext.Provider>
+    </BookingProvider>
   )
 }

@@ -9,9 +9,10 @@ interface Step {
 interface StepperProps {
   steps: Step[]
   currentStep: number
+  onStepClick?: (stepIndex: number) => void
 }
 
-export default function Stepper({ steps, currentStep }: StepperProps) {
+export default function Stepper({ steps, currentStep, onStepClick }: StepperProps) {
   const getStepStatus = (stepIndex: number) => {
     if (stepIndex < currentStep) return 'completed'
     if (stepIndex === currentStep) return 'active'
@@ -50,6 +51,17 @@ export default function Stepper({ steps, currentStep }: StepperProps) {
     return currentStatus === 'completed' || currentStatus === 'active' ? 'bg-[#76C043]' : 'bg-neutral-300'
   }
 
+  const isStepClickable = (stepIndex: number) => {
+    const status = getStepStatus(stepIndex)
+    return status === 'completed' || status === 'active'
+  }
+
+  const handleStepClick = (stepIndex: number) => {
+    if (isStepClickable(stepIndex) && onStepClick) {
+      onStepClick(stepIndex)
+    }
+  }
+
   return (
     <div className="w-72 p-4 bg-gray-50 rounded-xl mb-5">
       <div className="relative">        
@@ -57,6 +69,7 @@ export default function Stepper({ steps, currentStep }: StepperProps) {
           {steps.map((step, index) => {
             const status = getStepStatus(index)
             const styles = getStepStyles(status)
+            const clickable = isStepClickable(index)
 
             return (
               <div key={step.id} className="relative mb-1">
@@ -65,7 +78,10 @@ export default function Stepper({ steps, currentStep }: StepperProps) {
                   <div className={`absolute w-px h-12 ${getLineColor(index)} left-[22.5px] top-[-22px] z-[-1]`} />
                 )}
                 
-                <div className={`${status === 'active' ? 'w-full' : 'self-stretch'} p-3 rounded-lg ${status === 'active' ? 'outline-1 outline-offset-[-1px] outline-[#76C043] bg-[#F1F9EC] opacity-100' : 'border'} ${styles.container} inline-flex justify-start items-center gap-2 relative z-10`}>
+                <div 
+                  className={`${status === 'active' ? 'w-full' : 'self-stretch'} p-3 rounded-lg ${status === 'active' ? 'outline-1 outline-offset-[-1px] outline-[#76C043] bg-[#F1F9EC] opacity-100' : 'border'} ${styles.container} inline-flex justify-start items-center gap-2 relative z-10 ${clickable ? 'cursor-pointer hover:opacity-80 transition-opacity' : 'cursor-default'}`}
+                  onClick={() => handleStepClick(index)}
+                >
                   <div className={`w-5 h-5 rounded-full border-[1.25px] relative flex items-center justify-center ${styles.circle}`}>
                     <div className={`w-1.5 h-1.5 rounded-full ${status !== 'pending' ? 'border-[0.62px]' : ''} ${styles.dot}`} />
                   </div>

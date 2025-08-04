@@ -2,27 +2,29 @@
 import { useState, useEffect, useRef } from "react"
 import { IoChevronDown } from "react-icons/io5"
 import { gsap } from "gsap"
+import { useRouter } from "next/navigation"
+import { useLanguage, formatPeopleCount } from "../../../_components/common/LanguageContext"
 
 // Dynamic pack types based on sport selection
-const getPackTypes = (sport: "Football" | "Basketball" | "Both") => {
+const getPackTypes = (sport: "Football" | "Basketball" | "Both", fromText: string) => {
   const packTypes = [
     {
       id: 1,
       name: "Standard",
       price: sport === "Football" 
-        ? "from 299€" 
+        ? `${fromText} 299€` 
         : sport === "Basketball" 
-          ? "from 279€" 
-          : "from 279€" // Both - use lowest price
+          ? `${fromText} 279€` 
+          : `${fromText} 279€` // Both - use lowest price
     },
     {
       id: 2,
       name: "Premium",
       price: sport === "Football" 
-        ? "from 1399€" 
+        ? `${fromText} 1399€` 
         : sport === "Basketball" 
-          ? "from 1279€" 
-          : "from 1279€" // Both - use lowest price
+          ? `${fromText} 1279€` 
+          : `${fromText} 1279€` // Both - use lowest price
     }
   ]
   return packTypes
@@ -48,12 +50,14 @@ interface PeopleCount {
 export default function HeroSection() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const heroTextRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+  const { language, t } = useLanguage()
 
   // Sport selection state
   const [selectedSport, setSelectedSport] = useState<"Football" | "Basketball" | "Both">("Football")
 
   // Get dynamic pack types based on selected sport
-  const packTypes = getPackTypes(selectedSport)
+  const packTypes = getPackTypes(selectedSport, t.common.from)
 
   // Dropdown states
   const [selectedPack, setSelectedPack] = useState(packTypes[0])
@@ -74,7 +78,7 @@ export default function HeroSection() {
 
   // Update selected pack when sport changes to maintain consistency
   useEffect(() => {
-    const newPackTypes = getPackTypes(selectedSport)
+    const newPackTypes = getPackTypes(selectedSport, t.common.from)
     // Find the same pack type (Standard/Premium) in the new list
     const matchingPack = newPackTypes.find(pack => pack.name === selectedPack.name)
     if (matchingPack) {
@@ -83,7 +87,7 @@ export default function HeroSection() {
       // Fallback to first option if not found
       setSelectedPack(newPackTypes[0])
     }
-  }, [selectedSport])
+  }, [selectedSport, t.common.from])
 
   // Handle dropdown toggle
   const toggleDropdown = (dropdown: "pack" | "city" | "people") => {
@@ -116,12 +120,7 @@ export default function HeroSection() {
 
   // Format people count for display
   const formatPeopleDisplay = () => {
-    const parts = []
-    if (peopleCount.adults > 0) parts.push(`${peopleCount.adults} adulto${peopleCount.adults > 1 ? 's' : ''}`)
-    if (peopleCount.children > 0) parts.push(`${peopleCount.children} niño${peopleCount.children > 1 ? 's' : ''}`)
-    if (peopleCount.babies > 0) parts.push(`${peopleCount.babies} bebé${peopleCount.babies > 1 ? 's' : ''}`)
-    
-    return parts.length > 0 ? parts.join(', ') : '2 adultos'
+    return formatPeopleCount(peopleCount.adults, peopleCount.children, peopleCount.babies, language)
   }
 
   // Close all dropdowns when clicking outside
@@ -173,10 +172,10 @@ export default function HeroSection() {
             className="w-full max-w-[1041px] flex flex-col justify-start items-start gap-4 md:gap-6"
           >
             <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold font-['Inter'] leading-tight md:leading-[86.40px]">
-              Are you ready to experience sports like never before?
+              {t.hero.title}
             </h1>
             <p className="text-white text-sm sm:text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose">
-              Let your passion for soccer or basketball take you to an unexpected place. The destination is a surprise.
+              {t.hero.subtitle}
             </p>
           </div>
 
@@ -186,34 +185,37 @@ export default function HeroSection() {
           >
             {/* Sport Selection - Mobile: Stack vertically, Desktop: Horizontal */}
             <div className="bg-gray-50 rounded-lg flex flex-col sm:flex-row w-full sm:inline-flex justify-start items-center">
-              {(["Football", "Basketball", "Both"] as const).map((sport, index, array) => (
-                <button
-                  key={sport}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setSelectedSport(sport)
-                  }}
-                  className={`w-full sm:w-36 h-11 px-3.5 py-1.5 flex justify-center items-center gap-2.5 cursor-pointer ${
-                    selectedSport === sport ? "bg-[#76C043] text-white" : "text-neutral-600"
-                  } ${
-                    // Mobile: rounded corners for first and last
-                    index === 0
-                      ? "rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none"
-                      : index === array.length - 1
-                        ? "rounded-b-lg sm:rounded-r-lg sm:rounded-bl-none"
-                        : "sm:rounded-none"
-                  } backdrop-blur-[5px]`}
-                >
-                  <span className="text-center text-base font-normal font-['Inter']">{sport}</span>
-                </button>
-              ))}
+              {(["Football", "Basketball", "Both"] as const).map((sport, index, array) => {
+                const sportLabel = sport === "Football" ? t.hero.football : sport === "Basketball" ? t.hero.basketball : t.hero.both
+                return (
+                  <button
+                    key={sport}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedSport(sport)
+                    }}
+                    className={`w-full sm:w-36 h-11 px-3.5 py-1.5 flex justify-center items-center gap-2.5 cursor-pointer ${
+                      selectedSport === sport ? "bg-[#76C043] text-white" : "text-neutral-600"
+                    } ${
+                      // Mobile: rounded corners for first and last
+                      index === 0
+                        ? "rounded-t-lg sm:rounded-l-lg sm:rounded-tr-none"
+                        : index === array.length - 1
+                          ? "rounded-b-lg sm:rounded-r-lg sm:rounded-bl-none"
+                          : "sm:rounded-none"
+                    } backdrop-blur-[5px]`}
+                  >
+                    <span className="text-center text-base font-normal font-['Inter']">{sportLabel}</span>
+                  </button>
+                )
+              })}
             </div>
 
             {/* Form Section - Mobile: Stack vertically, Desktop: Horizontal */}
             <div className="w-full p-3 bg-gray-50 rounded-xl flex flex-col lg:flex-row justify-start items-start lg:items-end gap-3">
               {/* Pack Type Dropdown */}
               <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-2 relative">
-                <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">Pack type:</label>
+                <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">{t.hero.packType}</label>
                 <div
                   onClick={(e) => {
                     e.stopPropagation()
@@ -222,7 +224,7 @@ export default function HeroSection() {
                   className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
                 >
                   <span className="text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed">
-                    {selectedPack.name} - {selectedPack.price}
+                    {selectedPack.name === "Standard" ? t.hero.standard : t.hero.premium} - {selectedPack.price}
                   </span>
                   <IoChevronDown
                     className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${openDropdown === "pack" ? "rotate-180" : ""}`}
@@ -240,7 +242,7 @@ export default function HeroSection() {
                         }}
                         className="px-3.5 py-2 hover:bg-gray-50 cursor-pointer flex justify-between items-center"
                       >
-                        <span className="text-sm font-normal font-['Poppins'] text-black">{pack.name}</span>
+                        <span className="text-sm font-normal font-['Poppins'] text-black">{pack.name === "Standard" ? t.hero.standard : t.hero.premium}</span>
                         <span className="text-sm font-medium text-black">{pack.price}</span>
                       </div>
                     ))}
@@ -250,7 +252,7 @@ export default function HeroSection() {
 
               {/* Departure City Dropdown */}
               <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-2 relative">
-                <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">Departure:</label>
+                <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">{t.hero.departure}</label>
                 <div
                   onClick={(e) => {
                     e.stopPropagation()
@@ -287,14 +289,14 @@ export default function HeroSection() {
               {/* People Count Dropdown */}
               <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-2 relative">
                 <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-                  ¿Cuántos sois?:
+                  {t.hero.howManyAreYou}
                 </label>
                 <div
                   onClick={(e) => {
                     e.stopPropagation()
                     toggleDropdown("people")
                   }}
-                  className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
+                  className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
                 >
                   <span className="text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed">
                     {formatPeopleDisplay()}
@@ -309,8 +311,8 @@ export default function HeroSection() {
                       {/* Adults */}
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium font-['Poppins'] text-black">Adultos</span>
-                          <span className="text-xs text-gray-500 font-['Poppins']">12 años o más</span>
+                          <span className="text-sm font-medium font-['Poppins'] text-black">{t.hero.adults}</span>
+                          <span className="text-xs text-gray-500 font-['Poppins']">{t.hero.adultsAge}</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <button
@@ -340,8 +342,8 @@ export default function HeroSection() {
                       {/* Children */}
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium font-['Poppins'] text-black">Niños/as</span>
-                          <span className="text-xs text-gray-500 font-['Poppins']">2 a 11 años</span>
+                          <span className="text-sm font-medium font-['Poppins'] text-black">{t.hero.children}</span>
+                          <span className="text-xs text-gray-500 font-['Poppins']">{t.hero.childrenAge}</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <button
@@ -371,8 +373,8 @@ export default function HeroSection() {
                       {/* Babies */}
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium font-['Poppins'] text-black">Bebés</span>
-                          <span className="text-xs text-gray-500 font-['Poppins']">0 a 2 años</span>
+                          <span className="text-sm font-medium font-['Poppins'] text-black">{t.hero.babies}</span>
+                          <span className="text-xs text-gray-500 font-['Poppins']">{t.hero.babiesAge}</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <button
@@ -402,7 +404,7 @@ export default function HeroSection() {
                       {/* Total count display */}
                       <div className="pt-2 border-t border-gray-200">
                         <div className="text-xs text-gray-500 font-['Poppins'] text-center">
-                          Total: {totalPeople}/10 personas
+                          {t.hero.total}: {totalPeople}/10 {t.hero.people}
                         </div>
                       </div>
                     </div>
@@ -414,17 +416,49 @@ export default function HeroSection() {
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  // Handle form submission here
-                  console.log({
-                    sport: selectedSport,
-                    packType: selectedPack,
-                    city: selectedCity,
-                    people: peopleCount,
+                  
+                  // Check if all required fields are filled
+                  const isAllFieldsFilled = selectedSport && selectedPack && selectedCity && totalPeople > 0
+                  
+                  console.log('🎯 Hero section data validation:', {
+                    selectedSport,
+                    selectedPack: selectedPack.name,
+                    selectedCity: selectedCity.name,
+                    totalPeople,
+                    peopleCount,
+                    isAllFieldsFilled
                   })
+                  
+                  if (isAllFieldsFilled) {
+                    // Create hero data object for BookingContext
+                    const heroData = {
+                      selectedSport: selectedSport.toLowerCase(),
+                      selectedPackage: selectedPack.name.toLowerCase(),
+                      selectedCity: selectedCity.name.toLowerCase(),
+                      peopleCount: {
+                        adults: peopleCount.adults,
+                        kids: peopleCount.children,
+                        babies: peopleCount.babies
+                      },
+                      fromHero: true,
+                      startFromStep: 4 // Start from step 5 (0-indexed)
+                    }
+                    
+                    // Save hero data to localStorage for BookingContext to pick up
+                    localStorage.setItem('gogame_hero_data', JSON.stringify(heroData))
+                    console.log('🎯 Hero data saved for stepper:', heroData)
+                  } else {
+                    // Clear any existing hero data if not all fields are filled
+                    localStorage.removeItem('gogame_hero_data')
+                    console.log('📝 Starting fresh booking - not all hero fields filled')
+                  }
+                  
+                  // Navigate to booking page
+                  router.push('/book')
                 }}
                 className="w-full lg:w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
               >
-                <span className="text-center text-white text-base font-normal font-['Inter']">Start the game</span>
+                <span className="text-center text-white text-base font-normal font-['Inter']">{t.hero.startTheGame}</span>
               </button>
             </div>
           </div>
