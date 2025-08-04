@@ -6,6 +6,7 @@ import type { Swiper as SwiperType } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import Image from 'next/image';
+import Link from 'next/link';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -178,9 +179,11 @@ export default function Reviews() {
 
       {/* Book Now Button */}
       <div className="flex justify-center mt-8">
+        <Link href="/book">
         <button className="w-full md:w-44 px-4 py-2.5 bg-[#76C043] rounded-full text-white text-lg font-['Inter'] hover:bg-lime-600 transition-colors cursor-pointer">
           Book Now
         </button>
+        </Link>
       </div>
     </section>
   );

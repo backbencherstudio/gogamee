@@ -3,30 +3,34 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { HiGlobeAlt } from 'react-icons/hi'
 import { HiMenu, HiX } from 'react-icons/hi'
-
-// Menu items data
-const menuItems = [
-  { label: 'Home', href: '/' },
-  { label: 'Packages', href: '/packages' },
-  { label: 'FAQs', href: '/faqs' },
-]
+import { useLanguage, Language } from './LanguageContext'
 
 const languages = [
-  { code: 'Eng', label: 'English' },
-  { code: 'Esp', label: 'Español' },
+  { code: 'Eng', label: 'English', value: 'en' as Language },
+  { code: 'Esp', label: 'Español', value: 'es' as Language },
 ]
 
 export default function Menu() {
+  const { language, setLanguage, t } = useLanguage()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false)
-  const [selectedLang, setSelectedLang] = useState(languages[0])
+  
+  // Get current language object for display
+  const selectedLang = languages.find(lang => lang.value === language) || languages[0]
+  
+  // Dynamic menu items based on current language
+  const menuItems = [
+    { label: t.menu.home, href: '/' },
+    { label: t.menu.packages, href: '/packages' },
+    { label: t.menu.faqs, href: '/faqs' },
+  ]
 
   const toggleLangDropdown = () => {
     setIsLangDropdownOpen(!isLangDropdownOpen)
   }
 
   const selectLanguage = (lang: typeof languages[0]) => {
-    setSelectedLang(lang)
+    setLanguage(lang.value)
     setIsLangDropdownOpen(false)
   }
 
@@ -100,7 +104,7 @@ export default function Menu() {
             href="/contact"
             className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
           >
-            <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">Contact us</span>
+            <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">{t.menu.contactUs}</span>
           </Link>
         </div>
 
@@ -157,7 +161,7 @@ export default function Menu() {
                 className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors w-full cursor-pointer"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">Contact us</span>
+                <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">{t.menu.contactUs}</span>
               </Link>
             </nav>
           </div>
