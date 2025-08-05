@@ -466,7 +466,7 @@ Booking completed with ALL collected data:
               {/* Credit Card Option */}
               <div 
                 className={`self-stretch p-3 outline outline-1 outline-offset-[-1px] ${
-                  selectedPayment === PAYMENT_METHODS.CREDIT ? 'outline-lime-500 bg-lime-50' : 'outline-gray-200'
+                  selectedPayment === PAYMENT_METHODS.CREDIT ? 'outline-[#76C043] bg-lime-50' : 'outline-gray-200'
                 } flex flex-col justify-start items-start gap-5 cursor-pointer transition-all duration-200`}
                 onClick={() => handlePaymentMethodChange(PAYMENT_METHODS.CREDIT)}
               >

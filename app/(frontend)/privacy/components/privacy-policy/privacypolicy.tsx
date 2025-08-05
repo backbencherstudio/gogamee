@@ -158,28 +158,28 @@ const contactInfo: ContactInfo[] = [
 
 export default function PrivacyPolicy() {
   return (
-    <div className='w-full max-w-[1200px] mx-auto'>
-      <div className="w-full flex flex-col justify-start items-center gap-12 py-[100px]">
-        <div className="self-stretch flex flex-col justify-start items-start gap-12">
+    <div className='w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8'>
+      <div className="w-full flex flex-col justify-start items-center gap-8 lg:gap-12 py-12 sm:py-16 lg:py-[100px]">
+        <div className="self-stretch flex flex-col justify-start items-start gap-8 lg:gap-12">
           {/* Header */}
           <div className="self-stretch flex flex-col justify-start items-start gap-3">
-            <div className="self-stretch justify-start text-zinc-950 text-2xl font-medium font-['Poppins'] leading-9">
+            <div className="self-stretch justify-start text-zinc-950 text-xl sm:text-2xl font-medium font-['Poppins'] leading-7 sm:leading-9">
               Privacy Policy for GoGame
             </div>
-            <div className="self-stretch justify-start text-neutral-600 text-lg font-normal font-['Poppins'] leading-loose">
+            <div className="self-stretch justify-start text-neutral-600 text-base sm:text-lg font-normal font-['Poppins'] leading-relaxed sm:leading-loose">
               GoGame (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;) is committed to protecting and respecting your privacy. This Privacy Policy explains how we collect, use, process, and disclose your personal information when you access or use our website, mobile applications, or services (collectively, the &quot;Services&quot;). By using our Services, you acknowledge that you have read and understood this Privacy Policy.
             </div>
           </div>
 
           {/* Privacy Sections */}
-          <div className="self-stretch flex flex-col justify-start items-start gap-12">
+          <div className="self-stretch flex flex-col justify-start items-start gap-8 lg:gap-12">
             {privacyData.map((section) => (
-              <div key={section.id} className="self-stretch flex flex-col justify-start items-start gap-6">
-                <div className="justify-center text-zinc-950 text-3xl font-medium font-['Poppins'] leading-10">
+              <div key={section.id} className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
+                <div className="justify-center text-zinc-950 text-2xl sm:text-3xl font-medium font-['Poppins'] leading-8 sm:leading-10">
                   {section.title}
                 </div>
                 
-                <div className="self-stretch justify-start text-neutral-600 text-lg font-normal font-['Poppins'] leading-loose">
+                <div className="self-stretch justify-start text-neutral-600 text-base sm:text-lg font-normal font-['Poppins'] leading-relaxed sm:leading-loose">
                   {section.content}
                 </div>
 
@@ -188,10 +188,10 @@ export default function PrivacyPolicy() {
                   <div className="self-stretch flex flex-col justify-start items-start gap-3">
                     {section.subsections.map((subsection, index) => (
                       <div key={index} className="self-stretch justify-start">
-                        <span className="text-neutral-600 text-lg font-semibold font-['Poppins'] leading-loose">
+                        <span className="text-neutral-600 text-base sm:text-lg font-semibold font-['Poppins'] leading-relaxed sm:leading-loose">
                           {subsection.label}
                         </span>
-                        <span className="text-neutral-600 text-lg font-normal font-['Poppins'] leading-loose">
+                        <span className="text-neutral-600 text-base sm:text-lg font-normal font-['Poppins'] leading-relaxed sm:leading-loose">
                           {' '}{subsection.text}
                         </span>
                       </div>
@@ -203,7 +203,7 @@ export default function PrivacyPolicy() {
                 {section.listItems && (
                   <div className="self-stretch flex flex-col justify-start items-start gap-3">
                     {section.listItems.map((item, index) => (
-                      <div key={index} className="self-stretch justify-start text-neutral-600 text-lg font-normal font-['Poppins'] leading-loose">
+                      <div key={index} className="self-stretch justify-start text-neutral-600 text-base sm:text-lg font-normal font-['Poppins'] leading-relaxed sm:leading-loose">
                         • {item}
                       </div>
                     ))}
@@ -213,20 +213,20 @@ export default function PrivacyPolicy() {
             ))}
 
             {/* Contact Information Section */}
-            <div className="self-stretch flex flex-col justify-start items-start gap-6">
-              <div className="self-stretch justify-center text-zinc-950 text-3xl font-medium font-['Poppins'] leading-10">
+            <div className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
+              <div className="self-stretch justify-center text-zinc-950 text-2xl sm:text-3xl font-medium font-['Poppins'] leading-8 sm:leading-10">
                 13. Contact Information
               </div>
               <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                <div className="w-[1180px] justify-start text-neutral-600 text-lg font-normal font-['Poppins'] leading-loose">
+                <div className="w-full justify-start text-neutral-600 text-base sm:text-lg font-normal font-['Poppins'] leading-relaxed sm:leading-loose">
                   If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us using the information below:
                 </div>
                 {contactInfo.map((contact, index) => (
                   <div key={index} className="flex flex-col justify-start items-start gap-3">
-                    <div className="w-[1180px] justify-start text-neutral-600 text-lg font-normal font-['Inter'] leading-7">
+                    <div className="w-full justify-start text-neutral-600 text-base sm:text-lg font-normal font-['Inter'] leading-6 sm:leading-7">
                       {contact.label}
                     </div>
-                    <div className="w-[1180px] justify-start text-zinc-950 text-xl font-medium font-['Inter'] leading-loose">
+                    <div className="w-full justify-start text-zinc-950 text-lg sm:text-xl font-medium font-['Inter'] leading-relaxed sm:leading-loose">
                       {contact.value}
                     </div>
                   </div>

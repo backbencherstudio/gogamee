@@ -103,28 +103,28 @@ const cookieData: CookieSection[] = [
 
 export default function CookiePolicy() {
   return (
-    <div className='w-full max-w-[1200px] mx-auto'>
-      <div className="w-full flex flex-col justify-start items-center gap-12 py-[100px]">
-        <div className="self-stretch flex flex-col justify-start items-start gap-12">
+    <div className='w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8'>
+      <div className="w-full flex flex-col justify-start items-center gap-8 lg:gap-12 py-12 sm:py-16 lg:py-[100px]">
+        <div className="self-stretch flex flex-col justify-start items-start gap-8 lg:gap-12">
           {/* Header */}
           <div className="self-stretch flex flex-col justify-start items-start gap-3">
-            <div className="self-stretch justify-start text-zinc-950 text-2xl font-medium font-['Poppins'] leading-9">
+            <div className="self-stretch justify-start text-zinc-950 text-xl sm:text-2xl font-medium font-['Poppins'] leading-7 sm:leading-9">
               Cookie Policy for GoGame
             </div>
-            <div className="self-stretch justify-start text-neutral-600 text-lg font-normal font-['Poppins'] leading-loose">
+            <div className="self-stretch justify-start text-neutral-600 text-base sm:text-lg font-normal font-['Poppins'] leading-relaxed sm:leading-loose">
               At GoGame, we use cookies to enhance your experience on our website and to analyze how users interact with our site. This Cookie Policy explains what cookies are, how we use them, and your options for managing cookies.
             </div>
           </div>
 
           {/* Cookie Policy Sections */}
-          <div className="self-stretch flex flex-col justify-start items-start gap-12">
+          <div className="self-stretch flex flex-col justify-start items-start gap-8 lg:gap-12">
             {cookieData.map((section) => (
-              <div key={section.id} className="self-stretch flex flex-col justify-start items-start gap-6">
-                <div className="justify-center text-zinc-950 text-3xl font-medium font-['Poppins'] leading-10">
+              <div key={section.id} className="self-stretch flex flex-col justify-start items-start gap-4 sm:gap-6">
+                <div className="justify-center text-zinc-950 text-2xl sm:text-3xl font-medium font-['Poppins'] leading-8 sm:leading-10">
                   {section.title}
                 </div>
                 
-                <div className="self-stretch justify-start text-neutral-600 text-lg font-normal font-['Poppins'] leading-loose">
+                <div className="self-stretch justify-start text-neutral-600 text-base sm:text-lg font-normal font-['Poppins'] leading-relaxed sm:leading-loose">
                   {section.content}
                 </div>
 
@@ -133,10 +133,10 @@ export default function CookiePolicy() {
                   <div className="self-stretch flex flex-col justify-start items-start gap-3">
                     {section.subsections.map((subsection, index) => (
                       <div key={index} className="self-stretch justify-start">
-                        <span className="text-neutral-600 text-lg font-semibold font-['Poppins'] leading-loose">
+                        <span className="text-neutral-600 text-base sm:text-lg font-semibold font-['Poppins'] leading-relaxed sm:leading-loose">
                           {subsection.label}
                         </span>
-                        <span className="text-neutral-600 text-lg font-normal font-['Poppins'] leading-loose">
+                        <span className="text-neutral-600 text-base sm:text-lg font-normal font-['Poppins'] leading-relaxed sm:leading-loose">
                           {' '}{subsection.text}
                         </span>
                       </div>
@@ -148,7 +148,7 @@ export default function CookiePolicy() {
                 {section.listItems && (
                   <div className="self-stretch flex flex-col justify-start items-start gap-3">
                     {section.listItems.map((item, index) => (
-                      <div key={index} className="self-stretch justify-start text-neutral-600 text-lg font-normal font-['Poppins'] leading-loose">
+                      <div key={index} className="self-stretch justify-start text-neutral-600 text-base sm:text-lg font-normal font-['Poppins'] leading-relaxed sm:leading-loose">
                         • {item}
                       </div>
                     ))}
