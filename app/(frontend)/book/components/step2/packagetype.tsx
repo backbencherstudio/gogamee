@@ -99,16 +99,16 @@ const PackageType: React.FC = () => {
   }, [selectedPackage, handlePackageSelect])
   
   return (
-    <div className="w-full max-w-[894px] h-[638px] p-6 bg-[#F1F9EC] rounded-xl border border-lime-500/20 mb-10">
+    <div className="w-full xl:max-w-[894px] xl:h-[638px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl border border-lime-500/20 mb-10 min-h-[500px] xl:min-h-0 relative">
       {/* Header Section */}
-      <header className="mb-8">
-        <h1 className="text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-10">
+      <header className="mb-6 xl:mb-8">
+        <h1 className="text-2xl xl:text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-8 xl:leading-10">
           How do you want to experience it?
         </h1>
       </header>
 
       {/* Content Section */}
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col justify-between h-[calc(100%-80px)]">
+      <form id="package-form" onSubmit={handleSubmit(onSubmit)} className="flex flex-col h-auto gap-8 xl:gap-0">
         {/* Dropdown Section */}
         <div className="relative">
           <Controller
@@ -118,9 +118,10 @@ const PackageType: React.FC = () => {
               <div
                 {...field}
                 onClick={handleDropdownToggle}
-                className="w-full max-w-96 h-11 px-5 py-3 bg-white rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-all"
+                className="w-full xl:max-w-96 h-11 px-5 py-3 bg-white rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-all"
                 role="combobox"
                 aria-expanded={isDropdownOpen}
+                aria-controls="package-dropdown"
                 aria-haspopup="listbox"
                 aria-label="Package selection"
                 tabIndex={0}
@@ -147,7 +148,8 @@ const PackageType: React.FC = () => {
           {/* Dropdown Options */}
           {isDropdownOpen && (
             <div 
-              className="absolute top-12 left-0 w-full max-w-96 bg-white rounded-lg border border-gray-200 shadow-lg z-10"
+              id="package-dropdown"
+              className="absolute top-12 left-0 w-full xl:max-w-96 bg-white rounded-lg border border-gray-200 shadow-lg z-10"
               role="listbox"
               aria-label="Package options"
             >
@@ -156,15 +158,18 @@ const PackageType: React.FC = () => {
           )}
         </div>
 
-        {/* Next Button */}
-        <button
-          type="submit"
-          className="w-44 h-11 px-3.5 py-1.5 bg-[#76C043] hover:bg-lime-600 rounded backdrop-blur-[5px] flex justify-center items-center transition-all focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2"
-          aria-label="Proceed to next step"
-        >
-          <span className="text-base text-white font-['Inter']">Next</span>
-        </button>
       </form>
+      
+      {/* Next Button - Positioned at left bottom corner */}
+      <button
+        type="submit"
+        form="package-form"
+        className="absolute bottom-4 left-4 w-44 h-11 px-3.5 py-1.5 bg-[#76C043] hover:bg-lime-600 rounded backdrop-blur-[5px] flex justify-center items-center transition-all focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-offset-2"
+        aria-label="Proceed to next step"
+        onClick={handleSubmit(onSubmit)}
+      >
+        <span className="text-base text-white font-['Inter']">Next</span>
+      </button>
 
       {/* Click outside to close dropdown */}
       {isDropdownOpen && (

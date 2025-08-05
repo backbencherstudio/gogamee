@@ -81,9 +81,9 @@ function BookingContent() {
   }
 
   return (
-    <div className='flex'>
-      {/* Fixed Sidebar */}
-      <div className='sticky top-5 h-full w-[282px] mr-6'>
+    <div className='flex flex-col xl:flex-row'>
+      {/* Mobile: Top Horizontal Stepper, Desktop: Fixed Sidebar */}
+      <div className='xl:sticky xl:top-5 xl:h-full xl:w-[282px] xl:mr-6 mb-4 xl:mb-0'>
         <Stepper 
           steps={steps} 
           currentStep={getDisplayStep()} 

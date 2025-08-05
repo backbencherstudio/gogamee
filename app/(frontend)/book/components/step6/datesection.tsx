@@ -269,7 +269,7 @@ export default function DateSection() {
 
       return (
         <div className={isInRange ? outline : ''}>
-          <div className={`w-12 h-12 ${bgColor} inline-flex flex-col justify-start items-center cursor-pointer pt-2`} 
+          <div className={`w-12 h-12 ${bgColor} rounded inline-flex flex-col justify-start items-center cursor-pointer pt-2`} 
                onClick={handleClick}>
             <div className={`text-center justify-center ${textColorSelected} text-sm font-medium font-['Poppins'] leading-tight`}>
               {day}
@@ -283,7 +283,7 @@ export default function DateSection() {
     }
 
     return (
-      <div className={`w-12 h-12 inline-flex flex-col justify-start items-center ${cursorClass} pt-2`} 
+      <div className={`w-12 h-12 rounded inline-flex flex-col justify-start items-center ${cursorClass} pt-2`} 
            onClick={handleClick}>
         <div className={`text-center justify-center ${textColor} text-sm font-medium font-['Poppins'] leading-tight`}>
           {day}
@@ -359,43 +359,45 @@ export default function DateSection() {
   const nextMonthDays = useMemo(() => generateCalendarDays(nextMonth), [generateCalendarDays, nextMonth])
 
   return (
-    <div className="w-[894px] min-h-[754px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-start items-start gap-6">
+    <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-start items-start gap-6 min-h-[600px]">
       <div className="self-stretch flex flex-col justify-center items-start gap-3">
-        <div className="self-stretch h-12 flex flex-col justify-start items-start gap-3">
-          <div className="justify-center text-neutral-800 text-3xl font-semibold font-['Poppins'] leading-10">Date Section</div>
+        <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
+          <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">Date Section</div>
         </div>
         
         <div className="self-stretch flex flex-col justify-start items-start gap-3">
           {/* Duration Selection */}
-          <div className="p-1 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-gray-200 inline-flex justify-start items-center">
-            {DURATION_OPTIONS.map((option, index) => (
-              <div
-                key={index}
-                className={`w-36 px-6 py-3 rounded-lg inline-flex flex-col justify-start items-center cursor-pointer ${
-                  selectedDuration === index ? 'bg-[#76C043]' : 'bg-white'
-                }`}
-                onClick={() => handleDurationChange(index)}
-              >
-                <div className={`justify-center text-lg font-medium font-['Poppins'] leading-loose ${
-                  selectedDuration === index ? 'text-white' : 'text-black'
-                }`}>
-                  {option.days} day
+          <div className="p-1 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-gray-200 w-full overflow-x-auto">
+            <div className="flex xl:inline-flex justify-start items-center gap-1 xl:gap-0 min-w-max xl:min-w-0">
+              {DURATION_OPTIONS.map((option, index) => (
+                <div
+                  key={index}
+                  className={`w-32 xl:w-36 px-4 xl:px-6 py-3 rounded-lg flex flex-col justify-start items-center cursor-pointer flex-shrink-0 ${
+                    selectedDuration === index ? 'bg-[#76C043]' : 'bg-white'
+                  }`}
+                  onClick={() => handleDurationChange(index)}
+                >
+                  <div className={`justify-center text-base xl:text-lg font-medium font-['Poppins'] leading-loose ${
+                    selectedDuration === index ? 'text-white' : 'text-black'
+                  }`}>
+                    {option.days} day
+                  </div>
+                  <div className={`justify-center text-xs xl:text-sm font-normal font-['Poppins'] leading-relaxed ${
+                    selectedDuration === index ? 'text-white' : 'text-black'
+                  }`}>
+                    {option.nights}{option.nights === 1 ? ' Night' : 'Night'}
+                  </div>
                 </div>
-                <div className={`justify-center text-sm font-normal font-['Poppins'] leading-relaxed ${
-                  selectedDuration === index ? 'text-white' : 'text-black'
-                }`}>
-                  {option.nights}{option.nights === 1 ? ' Night' : 'Night'}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
           {/* Calendar Section */}
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
-            <div className="p-6 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 inline-flex justify-center items-start gap-8">
-              <div className="flex justify-start items-start gap-8">
+            <div className="w-full p-4 xl:p-6 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex justify-center items-start overflow-x-auto">
+              <div className="flex flex-col xl:flex-row justify-start items-start gap-6 xl:gap-8 min-w-full xl:min-w-0">
                 {/* Current Month Calendar */}
-                <div className="w-96 inline-flex flex-col justify-start items-center gap-6">
+                <div className="w-full xl:w-96 flex flex-col justify-start items-center gap-4 xl:gap-6">
                   {renderCalendarHeader(currentDate, true, false)}
                   <div className="self-stretch flex flex-col justify-start items-start gap-3">
                     {renderWeekDaysHeader()}
@@ -406,7 +408,7 @@ export default function DateSection() {
                 </div>
                 
                 {/* Next Month Calendar */}
-                <div className="w-96 inline-flex flex-col justify-start items-center gap-6">
+                <div className="w-full xl:w-96 flex flex-col justify-start items-center gap-4 xl:gap-6">
                   {renderCalendarHeader(nextMonth, false, true)}
                   <div className="self-stretch flex flex-col justify-start items-start gap-3">
                     {renderWeekDaysHeader()}

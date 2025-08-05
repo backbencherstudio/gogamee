@@ -340,13 +340,13 @@ export default function Extras() {
     <button
       type="button"
       onClick={() => handleToggleExtra(extra.id)}
-      className={`w-32 h-10 px-6 py-2.5 rounded outline outline-1 outline-offset-[-1px] flex justify-center items-center gap-2.5 transition-all ${
+      className={`w-28 sm:w-32 h-10 px-4 sm:px-6 py-2.5 rounded outline-1 outline-offset-[-1px] flex justify-center items-center gap-2.5 transition-all ${
         extra.isSelected
           ? 'bg-red-500 outline-red-500 hover:bg-red-600'
           : 'bg-lime-500 outline-lime-500 hover:bg-lime-600'
       }`}
     >
-      <div className="text-center justify-start text-white text-lg font-normal font-['Inter'] leading-7">
+      <div className="text-center justify-start text-white text-sm sm:text-lg font-normal font-['Inter'] leading-5 sm:leading-7">
         {extra.isSelected ? t.remove : t.add}
       </div>
     </button>
@@ -355,45 +355,96 @@ export default function Extras() {
   const renderExtraService = (extra: ExtraService) => (
     <div 
       key={extra.id} 
-      className={`self-stretch p-4 bg-white rounded-lg inline-flex justify-between items-start transition-all ${
+      className={`self-stretch p-4 bg-white rounded-lg transition-all ${
         extra.isSelected ? 'ring-2 ring-lime-500 shadow-lg' : 'hover:shadow-md'
       }`}
     >
-      <div className="flex justify-start items-start gap-3 flex-1">
-        <div className="w-16 h-16 p-3 bg-[#F1F9EC] rounded-[5.14px] inline-flex flex-col justify-center items-center gap-3 overflow-hidden">
-          <Image src={extra.icon} alt={`${extra.name} icon`} width={40} height={40} />
-        </div>
-        <div className="inline-flex flex-col justify-start items-start gap-1 flex-1">
-          <div className="self-stretch justify-start text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
-            {extra.name}
-          </div>
-          <div className="self-stretch justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
-            {extra.description}
-          </div>
-        </div>
-      </div>
-      <div className="inline-flex flex-col justify-center items-end gap-4">
-        <div className="flex flex-col justify-start items-end gap-1">
-          <div className="self-stretch text-right justify-start text-lime-500 text-lg font-semibold font-['Poppins'] leading-loose">
-            {extra.isIncluded ? t.included : `+${CURRENCY_SYMBOLS[currency]}${convertPrice(extra.price)}`}
-          </div>
-          {!extra.isIncluded && (
-            <div className="self-stretch text-right justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
-              {t.perPerson}
+      {/* Mobile Layout */}
+      <div className="flex flex-col gap-4 md:hidden">
+        {/* Header with icon, name and price */}
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex items-start gap-3 flex-1">
+            <div className="w-12 h-12 p-2 bg-[#F1F9EC] rounded-[5.14px] flex justify-center items-center shrink-0">
+              <Image src={extra.icon} alt={`${extra.name} icon`} width={32} height={32} />
             </div>
-          )}
+            <div className="flex flex-col gap-1 flex-1 min-w-0">
+              <div className="text-neutral-800 text-base font-medium font-['Poppins'] leading-tight">
+                {extra.name}
+              </div>
+              <div className="text-lime-500 text-base font-semibold font-['Poppins']">
+                {extra.isIncluded ? t.included : `+${CURRENCY_SYMBOLS[currency]}${convertPrice(extra.price)}`}
+              </div>
+              {!extra.isIncluded && (
+                <div className="text-neutral-600 text-sm font-normal font-['Poppins']">
+                  {t.perPerson}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="inline-flex justify-start items-center gap-4">
+
+        {/* Description */}
+        <div className="text-neutral-600 text-sm font-normal font-['Poppins'] leading-5">
+          {extra.description}
+        </div>
+
+        {/* Controls */}
+        <div className="flex justify-between items-center">
           {!extra.isIncluded ? (
             <>
-              {renderQuantityControls(extra)}
+              <div className="flex items-center gap-3">
+                {renderQuantityControls(extra)}
+              </div>
               {renderToggleButton(extra)}
             </>
           ) : (
-            <div className="justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-              x{extra.quantity}
+            <div className="flex justify-between items-center w-full">
+              <div className="text-neutral-800 text-base font-normal font-['Poppins']">
+                x{extra.quantity}
+              </div>
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Desktop Layout - unchanged */}
+      <div className="hidden md:flex justify-between items-start">
+        <div className="flex justify-start items-start gap-3 flex-1">
+          <div className="w-16 h-16 p-3 bg-[#F1F9EC] rounded-[5.14px] inline-flex flex-col justify-center items-center gap-3 overflow-hidden">
+            <Image src={extra.icon} alt={`${extra.name} icon`} width={40} height={40} />
+          </div>
+          <div className="inline-flex flex-col justify-start items-start gap-1 flex-1">
+            <div className="self-stretch justify-start text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
+              {extra.name}
+            </div>
+            <div className="self-stretch justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
+              {extra.description}
+            </div>
+          </div>
+        </div>
+        <div className="inline-flex flex-col justify-center items-end gap-4">
+          <div className="flex flex-col justify-start items-end gap-1">
+            <div className="self-stretch text-right justify-start text-lime-500 text-lg font-semibold font-['Poppins'] leading-loose">
+              {extra.isIncluded ? t.included : `+${CURRENCY_SYMBOLS[currency]}${convertPrice(extra.price)}`}
+            </div>
+            {!extra.isIncluded && (
+              <div className="self-stretch text-right justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
+                {t.perPerson}
+              </div>
+            )}
+          </div>
+          <div className="inline-flex justify-start items-center gap-4">
+            {!extra.isIncluded ? (
+              <>
+                {renderQuantityControls(extra)}
+                {renderToggleButton(extra)}
+              </>
+            ) : (
+              <div className="justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                x{extra.quantity}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -401,18 +452,18 @@ export default function Extras() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="w-[894px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6">
+      <div className="w-full xl:w-[894px] px-3 sm:px-4 xl:px-6 py-4 sm:py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-4 sm:gap-6 min-h-[400px] sm:min-h-[500px] xl:min-h-0">
         {/* Language and Currency Controls */}
-        <div className="self-stretch flex justify-between items-center mb-4">
-          <div className="flex gap-4">
+        <div className="self-stretch flex flex-col sm:flex-row xl:flex-row justify-between items-start sm:items-center xl:items-center mb-2 sm:mb-4 gap-3 sm:gap-4 xl:gap-0">
+          <div className="flex flex-col sm:flex-row xl:flex-row gap-3 xl:gap-4 w-full sm:w-auto">
             {renderLanguageButtons()}
             {renderCurrencyButtons()}
           </div>
         </div>
 
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
-          <div className="self-stretch h-12 flex flex-col justify-start items-start gap-3">
-            <div className="justify-center text-neutral-800 text-3xl font-semibold font-['Poppins'] leading-10">
+          <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
+            <div className="justify-center text-neutral-800 text-xl sm:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 sm:leading-8 xl:leading-10">
               {t.title}
             </div>
           </div>
@@ -431,12 +482,12 @@ export default function Extras() {
 
             {/* Total Cost Display */}
             {totalExtrasCost > 0 && (
-              <div className="self-stretch p-4 bg-lime-50 rounded-lg border border-lime-200">
-                <div className="flex justify-between items-center">
-                  <div className="text-neutral-800 text-lg font-medium font-['Poppins']">
+              <div className="self-stretch p-3 sm:p-4 bg-lime-50 rounded-lg border border-lime-200">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 sm:gap-0">
+                  <div className="text-neutral-800 text-base sm:text-lg font-medium font-['Poppins']">
                     {t.totalCost}
                   </div>
-                  <div className="text-lime-600 text-xl font-semibold font-['Poppins']">
+                  <div className="text-lime-600 text-lg sm:text-xl font-semibold font-['Poppins']">
                     +{CURRENCY_SYMBOLS[currency]}{totalExtrasCost}
                   </div>
                 </div>
@@ -445,7 +496,7 @@ export default function Extras() {
 
             <button
               type="submit"
-              className="w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
+              className="w-full sm:w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
             >
               <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
                 {t.confirm}

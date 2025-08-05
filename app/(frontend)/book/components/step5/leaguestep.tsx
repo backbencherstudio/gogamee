@@ -31,9 +31,9 @@ const LEAGUE_OPTIONS: LeagueOption[] = [
   }
 ];
 
-const CONTAINER_STYLES = "w-[894px] h-[638px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6";
+const CONTAINER_STYLES = "w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0";
 
-const CARD_BASE_STYLES = "flex-1 h-48 py-6 rounded inline-flex flex-col justify-center items-center gap-2.5 cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-lg group";
+const CARD_BASE_STYLES = "flex-1 h-40 xl:h-48 py-4 xl:py-6 rounded inline-flex flex-col justify-center items-center gap-2.5 cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-lg group";
 
 const getCardStyles = (isSelected: boolean): string => {
   const overlayStyles = isSelected
@@ -97,7 +97,7 @@ export default function LeagueStep() {
         <div className="absolute inset-0 bg-lime-500/0 rounded transition-all duration-300 group-hover:bg-lime-500/20" />
         
         {/* League Title */}
-        <div className="relative z-10 self-stretch text-center justify-start text-white text-lg font-bold font-['Poppins'] leading-loose drop-shadow-lg">
+        <div className="relative z-10 self-stretch text-center justify-start text-white text-base xl:text-lg font-bold font-['Poppins'] leading-loose drop-shadow-lg">
           {option.title} {option.price}
         </div>
 
@@ -115,16 +115,16 @@ export default function LeagueStep() {
     <div className={CONTAINER_STYLES}>
       <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-3">
         {/* Header Section */}
-        <div className="self-stretch h-12 flex flex-col justify-start items-start gap-3">
-          <div className="justify-center text-neutral-800 text-3xl font-semibold font-['Poppins'] leading-10">
+        <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
+          <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
             Which type of competition do you want to attend?
           </div>
         </div>
 
         {/* Content Section */}
-        <div className="self-stretch flex-1 flex flex-col justify-between items-start">
+        <div className="self-stretch flex-1 flex flex-col justify-between items-start gap-8 xl:gap-0">
           {/* League Options */}
-          <div className="self-stretch inline-flex justify-center items-center gap-6 flex-wrap content-center">
+          <div className="self-stretch flex flex-col xl:flex-row gap-4 xl:gap-6">
             <Controller
               name="selectedLeague"
               control={control}

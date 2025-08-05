@@ -33,12 +33,30 @@ interface LeagueCardProps {
 }
 
 const LeagueCard = React.memo(({ league, onRemove }: LeagueCardProps) => {
-  const handleRemoveClick = useCallback(() => {
+  const [isClicked, setIsClicked] = useState(false)
+  
+  const handleRemoveClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click
     onRemove(league.id)
   }, [league.id, onRemove])
 
+  const handleCardClick = useCallback(() => {
+    // Only for small screens - toggle the clicked state
+    setIsClicked(prev => !prev)
+  }, [])
+
+  // Reset clicked state when league is removed
+  useEffect(() => {
+    if (league.removed) {
+      setIsClicked(false)
+    }
+  }, [league.removed])
+
   return (
-    <div className="group w-48 h-72 rounded-lg relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105">
+    <div 
+      className="group w-40 xl:w-48 h-60 xl:h-72 rounded-lg relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105"
+      onClick={handleCardClick}
+    >
       <Image
         src={league.image}
         alt={league.name}
@@ -48,7 +66,7 @@ const LeagueCard = React.memo(({ league, onRemove }: LeagueCardProps) => {
       <div className="absolute inset-0 bg-black/30" />
       
       {/* Content */}
-      <div className={`absolute bottom-0 left-0 right-0 px-4 py-5 flex flex-col justify-end items-start gap-2.5 transition-all duration-300 ease-out ${!league.removed ? 'group-hover:pb-16' : ''}`}>
+      <div className={`absolute bottom-0 left-0 right-0 px-4 py-5 flex flex-col justify-end items-start gap-2.5 transition-all duration-300 ease-out ${!league.removed ? `${isClicked ? 'pb-16 md:pb-5' : ''} md:group-hover:pb-16` : ''}`}>
         <div className="self-stretch flex flex-col justify-start items-start gap-2">
           <div className="self-stretch justify-start text-white text-sm font-bold font-['Poppins'] leading-none">
             {league.name}
@@ -73,10 +91,13 @@ const LeagueCard = React.memo(({ league, onRemove }: LeagueCardProps) => {
       {/* Remove button */}
       {!league.removed && (
         <div 
-          className="absolute bottom-0 left-0 right-0 px-4 pb-5 transition-all duration-300 ease-out opacity-0 translate-y-4 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto"
+          className={`absolute bottom-0 left-0 right-0 px-4 pb-5 transition-all duration-300 ease-out 
+                     ${isClicked ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'}
+                     md:opacity-0 md:translate-y-4 md:pointer-events-none 
+                     md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-none`}
           onClick={handleRemoveClick}
         >
-          <div className="self-stretch px-4 py-2 w-full bg-lime-500 hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 transition-colors cursor-pointer">
+          <div className="self-stretch px-4 py-2 w-full bg-lime-500 hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 transition-colors cursor-pointer md:cursor-default">
             <div className="text-center justify-start text-white text-sm font-semibold font-['Inter'] leading-snug">
               Remove
             </div>
@@ -136,12 +157,10 @@ export default function RemoveLeague() {
     nextStep()
   }, [leagues, updateFormData, nextStep])
 
-  const removedCount = leagues.filter(league => league.removed).length
-
   return (
-    <div className="w-[894px] p-6 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-center items-center gap-6">
+    <div className="w-full xl:w-[894px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-center items-center gap-6 min-h-[600px] xl:min-h-0">
       <div className="self-stretch flex flex-col justify-start items-start gap-4">
-        <div className="justify-start text-neutral-800 text-lg font-bold font-['Poppins'] leading-loose">
+        <div className="justify-start text-neutral-800 text-xl xl:text-2xl font-bold font-['Poppins'] leading-loose">
           Which leagues don&apos;t you like?
         </div>
         <div className="self-stretch px-3.5 py-3 bg-green-100 rounded outline-1 outline-offset-[-1px] outline-lime-500 inline-flex justify-center items-center gap-2.5">
@@ -160,7 +179,7 @@ export default function RemoveLeague() {
       </div>
 
       {/* League cards grid */}
-      <div className="self-stretch flex flex-wrap justify-start items-center gap-6">
+      <div className="self-stretch flex flex-wrap justify-center xl:justify-start items-center gap-4 xl:gap-6">
         {leagues.map((league) => (
           <LeagueCard 
             key={league.id} 

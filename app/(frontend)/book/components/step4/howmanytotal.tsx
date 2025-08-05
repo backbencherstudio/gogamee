@@ -65,31 +65,31 @@ const CounterItem: React.FC<CounterItemProps> = ({
   isMinimumReached,
 }) => {
   return (
-    <div className="self-stretch py-3 border-b border-neutral-200 last:border-b-0 inline-flex justify-between items-center">
-      <div className="w-28 inline-flex flex-col justify-start items-start">
-        <div className="self-stretch justify-start text-zinc-950 text-lg font-normal font-['Poppins'] leading-loose">
+    <div className="self-stretch py-3 border-b border-neutral-200 last:border-b-0 flex justify-between items-center">
+      <div className="flex-1 xl:w-28 flex flex-col justify-start items-start">
+        <div className="self-stretch justify-start text-zinc-950 text-base xl:text-lg font-normal font-['Poppins'] leading-loose">
           {title}
         </div>
-        <div className="self-stretch text-center justify-start text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
+        <div className="self-stretch text-left justify-start text-zinc-500 text-xs xl:text-sm font-normal font-['Poppins'] leading-relaxed">
           {description}
         </div>
       </div>
       
-      <div className="flex justify-start items-center gap-4">
+      <div className="flex justify-start items-center gap-3 xl:gap-4">
         {/* Decrement Button */}
         <button
           type="button"
           onClick={onDecrement}
           disabled={isMinimumReached}
-          className="w-6 h-6 p-0.5 rounded-xl outline outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <HiMinus 
-            className={`w-3.5 h-3.5 ${!isMinimumReached ? 'text-zinc-950' : 'text-neutral-300'}`} 
+            className={`w-4 h-4 xl:w-3.5 xl:h-3.5 ${!isMinimumReached ? 'text-zinc-950' : 'text-neutral-300'}`} 
           />
         </button>
         
         {/* Count Display */}
-        <div className="text-center justify-start text-zinc-950 text-lg font-medium font-['Poppins'] leading-loose min-w-[1ch]">
+        <div className="text-center justify-start text-zinc-950 text-lg font-medium font-['Poppins'] leading-loose min-w-[2ch] xl:min-w-[1ch]">
           {count}
         </div>
         
@@ -98,9 +98,9 @@ const CounterItem: React.FC<CounterItemProps> = ({
           type="button"
           onClick={onIncrement}
           disabled={!canIncrement}
-          className="w-6 h-6 p-0.5 rounded-xl outline outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <HiPlus className={`w-3.5 h-3.5 ${canIncrement ? 'text-zinc-950' : 'text-neutral-300'}`} />
+          <HiPlus className={`w-4 h-4 xl:w-3.5 xl:h-3.5 ${canIncrement ? 'text-zinc-950' : 'text-neutral-300'}`} />
         </button>
       </div>
     </div>
@@ -167,19 +167,19 @@ export default function HowManyTotal() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="w-[894px] h-[638px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6">
+      <div className="w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0">
         <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-3">
           {/* Header */}
-          <div className="self-stretch h-12 flex flex-col justify-start items-start gap-3">
-            <h2 className="justify-center text-neutral-800 text-3xl font-semibold font-['Poppins'] leading-10">
+          <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
+            <h2 className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
               How many are you?
             </h2>
           </div>
           
           {/* Content */}
-          <div className="self-stretch flex-1 flex flex-col justify-between items-start">
+          <div className="self-stretch flex-1 flex flex-col justify-between items-start gap-8 xl:gap-0">
             {/* Counter Section */}
-            <div className="w-[473px] p-3 bg-white rounded-xl flex flex-col justify-start items-start whitespace-nowrap">
+            <div className="w-full xl:w-[473px] p-3 bg-white rounded-xl flex flex-col justify-start items-start whitespace-nowrap">
               {COUNTER_CONFIG.map(({ key, title, description, minValue }) => (
                 <Controller
                   key={key}

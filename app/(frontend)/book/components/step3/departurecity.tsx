@@ -97,7 +97,7 @@ const CityCard: React.FC<CityCardProps> = React.memo(({ city, isSelected, onSele
   }, [city.value, onSelect])
 
   const cardClassName = useMemo(() => `
-    relative h-[140px] rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-105
+    relative h-[120px] xl:h-[140px] rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-105
     bg-gradient-to-br ${city.gradient} ${city.accent}
     ${isSelected 
       ? 'ring-4 ring-lime-400 ring-opacity-60 shadow-lg shadow-lime-200' 
@@ -122,7 +122,7 @@ const CityCard: React.FC<CityCardProps> = React.memo(({ city, isSelected, onSele
     >
       {/* City Name Overlay */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <h3 className="text-white text-lg font-semibold font-['Poppins'] text-center drop-shadow-lg">
+        <h3 className="text-white text-base xl:text-lg font-semibold font-['Poppins'] text-center drop-shadow-lg">
           {city.label}
         </h3>
       </div>
@@ -178,18 +178,18 @@ const DepartureCity: React.FC = () => {
   )
 
   return (
-    <div className="w-full max-w-[894px] h-[638px] p-6 bg-[#F1F9EC] rounded-xl border border-lime-500/20 mb-10">
+    <div className="w-full xl:max-w-[894px] xl:h-[638px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl border border-lime-500/20 mb-10 min-h-[600px] xl:min-h-0">
       {/* Header Section */}
-      <header className="mb-8">
-        <h1 className="text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-10">
+      <header className="mb-6 xl:mb-8">
+        <h1 className="text-2xl xl:text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-8 xl:leading-10">
           Departure city
         </h1>
       </header>
 
       {/* Content Section */}
-      <div className="flex flex-col justify-between h-[calc(100%-80px)]">
+      <div className="flex flex-col justify-between xl:h-[calc(100%-80px)] h-auto gap-8 xl:gap-0">
         {/* Cities Grid */}
-        <div className="grid grid-cols-3 gap-4 mb-8" role="group" aria-label="City selection">
+        <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 xl:gap-4 mb-6 xl:mb-8" role="group" aria-label="City selection">
           <Controller
             name="selectedCity"
             control={control}

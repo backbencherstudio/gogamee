@@ -191,7 +191,7 @@ const TimeRangeSlider = React.memo(({
   }), [timeRange.start, timeRange.end])
 
   return (
-    <div className="w-80 flex flex-col justify-center items-center gap-1.5">
+    <div className="w-full xl:w-80 flex flex-col justify-center items-center gap-1.5">
       <div className="w-full h-5 relative">
         <Range
           step={TIME_STEP}
@@ -257,8 +257,8 @@ const FlightCard = React.memo(({
   isDeparture: boolean
   onTimeRangeChange: (range: TimeRange) => void
 }) => (
-  <div className="flex-1 min-h-0 p-5 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex flex-col justify-start items-center gap-8">
-    <div className="self-stretch flex flex-col justify-center items-center gap-8">
+  <div className="flex-1 min-h-0 p-4 xl:p-5 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex flex-col justify-start items-center gap-6 xl:gap-8">
+    <div className="self-stretch flex flex-col justify-center items-center gap-6 xl:gap-8">
       <FlightInfoHeader 
         label={flightInfo.label}
         city={flightInfo.city}
@@ -383,16 +383,16 @@ export default function FlightSchedule() {
   }, [flightData, updateFormData, nextStep])
   
   return (
-    <div className="w-[894px] h-[644px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6">
-      <div className="self-stretch h-[587px] flex flex-col justify-center items-start gap-3">
-        <div className="self-stretch h-12 flex flex-col justify-start items-start gap-3">
-          <div className="justify-center text-neutral-800 text-3xl font-semibold font-['Poppins'] leading-10">
+    <div className="w-full xl:w-[894px] xl:h-[644px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6 min-h-[600px] xl:min-h-0">
+      <div className="self-stretch xl:h-[587px] flex flex-col justify-center items-start gap-3">
+        <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
+          <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
             Flight Schedule
           </div>
         </div>
         
-        <div className="self-stretch flex-1 flex flex-col justify-between items-start">
-          <div className="self-stretch flex justify-start items-stretch gap-5">
+        <div className="self-stretch flex-1 flex flex-col justify-between items-start gap-8 xl:gap-0">
+          <div className="self-stretch flex flex-col xl:flex-row justify-start items-stretch gap-4 xl:gap-5">
             {flightData.map((flight, index) => (
               <FlightCard 
                 key={`flight-${index}-${flight.label}`}

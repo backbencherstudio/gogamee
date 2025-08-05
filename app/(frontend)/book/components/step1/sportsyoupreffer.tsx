@@ -67,19 +67,19 @@ export default function SportsYouPreffer() {
   }, [nextStep])
 
   return (
-    <div className="w-full max-w-[894px] h-[638px] p-6 bg-[#F1F9EC] rounded-xl border border-[#76C043]/20 mb-10">
+    <div className="w-full xl:max-w-[894px] xl:h-[638px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl border border-[#76C043]/20 mb-10 min-h-[500px] xl:min-h-0 relative">
       {/* Header Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-10 mb-3">
+      <div className="mb-6 xl:mb-8">
+        <h1 className="text-2xl xl:text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-8 xl:leading-10 mb-3">
           What sport do you prefer?
         </h1>
-        <p className="text-base text-neutral-600 font-['Poppins'] leading-7">
+        <p className="text-sm xl:text-base text-neutral-600 font-['Poppins'] leading-6 xl:leading-7">
           We always try to maximize the time at the destination
         </p>
       </div>
 
       {/* Content Section */}
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col justify-between h-[calc(100%-120px)]">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col justify-between xl:h-[calc(100%-120px)] h-auto gap-8 xl:gap-0">
         {/* Dropdown Section */}
         <div className="relative">
           <Controller
@@ -90,7 +90,7 @@ export default function SportsYouPreffer() {
               <>
                 <div
                   onClick={toggleDropdown}
-                  className="w-full max-w-96 h-11 px-5 py-3 bg-white rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-all"
+                  className="w-full xl:max-w-96 h-11 px-5 py-3 bg-white rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-all"
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
@@ -112,7 +112,7 @@ export default function SportsYouPreffer() {
 
                 {/* Dropdown Options */}
                 {isOpen && (
-                  <div className="absolute top-12 left-0 w-full max-w-96 bg-white rounded-lg border border-gray-200 shadow-lg z-10">
+                  <div className="absolute top-12 left-0 w-full xl:max-w-96 bg-white rounded-lg border border-gray-200 shadow-lg z-10">
                     {SPORTS_OPTIONS.map((sport, index) => (
                       <div
                         key={sport.value}
@@ -144,10 +144,10 @@ export default function SportsYouPreffer() {
           />
         </div>
 
-        {/* Next Button */}
+        {/* Next Button - Positioned at bottom left */}
         <button
           type="submit"
-          className="w-44 h-11 px-3.5 py-1.5 bg-[#76C043] hover:bg-lime-600 rounded backdrop-blur-[5px] flex justify-center items-center transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-44 h-11 px-3.5 py-1.5 bg-[#76C043] hover:bg-lime-600 rounded backdrop-blur-[5px] flex justify-center items-center transition-all disabled:opacity-50 disabled:cursor-not-allowed absolute bottom-4 left-4 xl:bottom-6 xl:left-6"
           disabled={!selectedSport}
         >
           <span className="text-base text-white font-['Inter']">Next</span>
