@@ -2,10 +2,7 @@
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Navigation, Pagination } from 'swiper/modules'
 import 'swiper/css'
-import 'swiper/css/navigation'
-import 'swiper/css/pagination'
 import Link from 'next/link'
 
 interface LeaguesProps {
@@ -95,18 +92,37 @@ export default function Leagues({ className }: LeaguesProps) {
         </div>
       </div>
       
-      {isMobile ? (
-        <div className="w-full">
+      <div className="w-full flex justify-center">
+        <div className="max-w-fit">
           <Swiper
-            modules={[Navigation, Pagination]}
-            spaceBetween={16}
-            slidesPerView="auto"
+            spaceBetween={isMobile ? 16 : 32}
+            slidesPerView={isMobile ? 1.5 : "auto"}
             centeredSlides={true}
-            pagination={{ clickable: true }}
-            className="w-full !pb-8"
+            loop={true}
+            loopAdditionalSlides={2}
+            className="w-auto"
+            grabCursor={true}
+            initialSlide={Math.floor(currentLeagues.length / 2)}
             breakpoints={{
               640: {
+                slidesPerView: 2.5,
                 spaceBetween: 20,
+                centeredSlides: true,
+              },
+              768: {
+                slidesPerView: 3.5,
+                spaceBetween: 24,
+                centeredSlides: true,
+              },
+              1024: {
+                slidesPerView: 5,
+                spaceBetween: 32,
+                centeredSlides: false,
+              },
+              1280: {
+                slidesPerView: 7,
+                spaceBetween: 40,
+                centeredSlides: false,
               }
             }}
           >
@@ -117,13 +133,7 @@ export default function Leagues({ className }: LeaguesProps) {
             ))}
           </Swiper>
         </div>
-      ) : (
-        <div className="w-full max-w-[1200px] grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-4 sm:gap-5 lg:gap-6 justify-center">
-          {currentLeagues.map((league, index) => (
-            <LeagueCard key={index} league={league} index={index} />
-          ))}
-        </div>
-      )}
+      </div>
 
 
 <Link href="/packages">
