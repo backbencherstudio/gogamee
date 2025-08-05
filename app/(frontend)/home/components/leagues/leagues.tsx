@@ -9,10 +9,7 @@ interface LeaguesProps {
   className?: string;
 }
 
-interface LeagueData {
-  name: string;
-  image: string;
-}
+
 
 export default function Leagues({ className }: LeaguesProps) {
   const [isSwitched, setIsSwitched] = useState(false);
@@ -33,42 +30,26 @@ export default function Leagues({ className }: LeaguesProps) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const basketballLeagues: LeagueData[] = [
-    { name: "Liga Endesa", image: "/homepage/image/bs1.png" },
-    { name: "Basketbol Süper Ligi", image: "/homepage/image/bs2.png" },
-    { name: "LNB Pro A", image: "/homepage/image/bs3.png" },
-    { name: "Lega Basket Serie A", image: "/homepage/image/bs4.png" },
-    { name: "Basketball Bundesliga", image: "/homepage/image/bs5.png" },
-    { name: "Lietuvos krepšinio lyga", image: "/homepage/image/bs6.png" },
-    { name: "European competition", image: "/homepage/image/bs7.png" },
-  ];
+  const handleSliderMove = (swiper: { translate: number; maxTranslate: () => number; width: number; setTranslate: (value: number) => void }) => {
+    if (!isMobile) {
+      const translate = swiper.translate;
+      const maxTranslate = swiper.maxTranslate();
+      
+      // 250px constraint from edges
+      const leftLimit = -250;
+      const rightLimit = -(swiper.width - 250);
+      
+      if (translate > leftLimit) {
+        swiper.setTranslate(leftLimit);
+      } else if (translate < rightLimit && rightLimit < maxTranslate) {
+        swiper.setTranslate(rightLimit);
+      }
+    }
+  };
 
-  const footballLeagues: LeagueData[] = [
-    { name: "Premier League", image: "/homepage/image/fb1.png" },
-    { name: "La Liga", image: "/homepage/image/fb3.png" },
-    { name: "Bundesliga", image: "/homepage/image/fb4.png" },
-    { name: "Serie A", image: "/homepage/image/fb5.png" },
-    { name: "Ligue 1", image: "/homepage/image/fb6.png" },
-    { name: "Champions League", image: "/homepage/image/fb7.png" },
-    { name: "Europa League", image: "/homepage/image/fb8.png" },
-  ];
 
-  const currentLeagues = isSwitched ? basketballLeagues : footballLeagues;
 
-  const LeagueCard = ({ league, index }: { league: LeagueData; index: number }) => (
-    <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
-      <Image 
-        src={league.image} 
-        alt={league.name} 
-        fill 
-        className="object-cover"
-        sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px"
-      />
-      <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">
-        {league.name}
-      </div>
-    </div>
-  );
+
 
   return (
     <div className={`${className} px-3 sm:px-4 lg:px-28 py-12 sm:py-16 lg:py-24 inline-flex flex-col justify-start items-center gap-6 sm:gap-8 lg:gap-12 w-full`}>
@@ -98,11 +79,13 @@ export default function Leagues({ className }: LeaguesProps) {
             spaceBetween={isMobile ? 16 : 32}
             slidesPerView={isMobile ? 1.5 : "auto"}
             centeredSlides={true}
-            loop={true}
-            loopAdditionalSlides={2}
+            loop={false}
             className="w-auto"
             grabCursor={true}
-            initialSlide={Math.floor(currentLeagues.length / 2)}
+            initialSlide={isMobile ? Math.floor(7 / 2) : Math.floor(7 / 2)}
+            resistance={true}
+            resistanceRatio={0.2}
+            onSliderMove={handleSliderMove}
             breakpoints={{
               640: {
                 slidesPerView: 2.5,
@@ -115,22 +98,114 @@ export default function Leagues({ className }: LeaguesProps) {
                 centeredSlides: true,
               },
               1024: {
-                slidesPerView: 5,
+                slidesPerView: "auto",
                 spaceBetween: 32,
-                centeredSlides: false,
+                centeredSlides: true,
+                resistance: true,
+                resistanceRatio: 0.15,
               },
               1280: {
-                slidesPerView: 7,
+                slidesPerView: "auto",
                 spaceBetween: 40,
-                centeredSlides: false,
+                centeredSlides: true,
+                resistance: true,
+                resistanceRatio: 0.1,
               }
             }}
           >
-            {currentLeagues.map((league, index) => (
-              <SwiperSlide key={index} className="!w-auto">
-                <LeagueCard league={league} index={index} />
+            {!isSwitched ? (
+              // Football Leagues
+              <>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/fb1.png" alt="Premier League" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Premier League</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/fb3.png" alt="La Liga" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">La Liga</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/fb4.png" alt="Bundesliga" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Bundesliga</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/fb5.png" alt="Serie A" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Serie A</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/fb6.png" alt="Ligue 1" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Ligue 1</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/fb7.png" alt="Champions League" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Champions League</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/fb8.png" alt="Europa League" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Europa League</div>
+                  </div>
+                </SwiperSlide>
+              </>
+            ) : (
+              // Basketball Leagues
+              <>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/bs1.png" alt="Liga Endesa" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Liga Endesa</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/bs2.png" alt="Basketbol Süper Ligi" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Basketbol Süper Ligi</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/bs3.png" alt="LNB Pro A" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">LNB Pro A</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/bs4.png" alt="Lega Basket Serie A" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Lega Basket Serie A</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/bs5.png" alt="Basketball Bundesliga" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Basketball Bundesliga</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/bs6.png" alt="Lietuvos krepšinio lyga" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">Lietuvos krepšinio lyga</div>
+                  </div>
+                </SwiperSlide>
+                <SwiperSlide className="!w-auto">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                    <Image src="/homepage/image/bs7.png" alt="European competition" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
+                    <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">European competition</div>
+                  </div>
               </SwiperSlide>
-            ))}
+              </>
+            )}
           </Swiper>
         </div>
       </div>
