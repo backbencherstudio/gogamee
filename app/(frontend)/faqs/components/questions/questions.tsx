@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
+import { IoIosArrowDown } from 'react-icons/io';
 
 interface FAQItem {
   question: string;
@@ -94,7 +94,10 @@ export default function Questions() {
               {faqData.map((item, index) => (
                 <div key={index} className="flex flex-col gap-4 md:gap-5 w-full">
                   <div className="w-full">
-                    <div className="flex justify-between items-start gap-4 md:gap-6 w-full">
+                    <div 
+                      onClick={() => toggleItem(index)}
+                      className="flex justify-between items-start gap-4 md:gap-6 w-full cursor-pointer"
+                    >
                       <div className="flex items-center gap-2 md:gap-3 flex-1">
                         <div className="w-5 h-5 md:w-6 md:h-6 relative overflow-hidden flex-shrink-0">
                           <Image 
@@ -109,16 +112,13 @@ export default function Questions() {
                           {item.question}
                         </div>
                       </div>
-                      <button 
-                        onClick={() => toggleItem(index)}
-                        className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center flex-shrink-0 cursor-pointer"
-                      >
-                        {expandedItems.includes(index) ? (
-                          <IoIosArrowUp className="w-full h-full text-lime-900" />
-                        ) : (
-                          <IoIosArrowDown className="w-full h-full text-lime-900" />
-                        )}
-                      </button>
+                      <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center flex-shrink-0">
+                        <IoIosArrowDown 
+                          className={`w-full h-full text-lime-900 transition-transform duration-200 ${
+                            expandedItems.includes(index) ? 'rotate-180' : ''
+                          }`} 
+                        />
+                      </div>
                     </div>
                   </div>
                   
