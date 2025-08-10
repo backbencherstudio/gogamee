@@ -163,12 +163,12 @@ export default function RemoveLeague() {
         <div className="justify-start text-neutral-800 text-xl xl:text-2xl font-bold font-['Poppins'] leading-loose">
           Which leagues don&apos;t you like?
         </div>
-        <div className="self-stretch px-3.5 py-3 bg-green-100 rounded outline-1 outline-offset-[-1px] outline-lime-500 inline-flex justify-center items-center gap-2.5">
+        <div className="self-stretch px-3.5 py-3 bg-green-100 rounded outline-1 outline-offset-[-1px] outline-[#76C043] inline-flex justify-center items-center gap-2.5">
           <div className="justify-start">
             <span className="text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
               Remove one for free, the rest 
             </span>
-            <span className="text-lime-500 text-base font-medium font-['Poppins'] leading-7">
+            <span className="text-[#76C043] text-base font-medium font-['Poppins'] leading-7">
               +{REMOVAL_COST}€
             </span>
             <span className="text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
@@ -191,7 +191,7 @@ export default function RemoveLeague() {
 
       <button 
         onClick={handleNext}
-        className="w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
+        className="w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
       >
         <div className="text-center justify-start text-white text-base font-normal font-['Inter']">Next</div>
       </button>
