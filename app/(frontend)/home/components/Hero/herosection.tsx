@@ -87,7 +87,7 @@ export default function HeroSection() {
       // Fallback to first option if not found
       setSelectedPack(newPackTypes[0])
     }
-  }, [selectedSport, t.common.from])
+  }, [selectedSport, t.common.from, selectedPack.name])
 
   // Handle dropdown toggle
   const toggleDropdown = (dropdown: "pack" | "city" | "people") => {

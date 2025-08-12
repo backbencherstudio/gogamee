@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
-import Menu from "./(frontend)/_components/common/menu";
-import Footer from "./(frontend)/_components/common/footer";
+
 import { LanguageProvider } from "./(frontend)/_components/common/LanguageContext";
 
 const inter = Inter({

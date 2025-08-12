@@ -10,12 +10,7 @@ interface DurationOption {
   nights: number
 }
 
-interface CalendarDay {
-  day: number | null
-  isCurrentMonth: boolean
-  monthIndex: number
-  year: number
-}
+
 
 // Constants
 const DURATION_OPTIONS: DurationOption[] = [
@@ -41,9 +36,7 @@ const resetTimeToMidnight = (date: Date): Date => {
   return newDate
 }
 
-const isSameDate = (date1: Date, date2: Date): boolean => {
-  return date1.getTime() === date2.getTime()
-}
+
 
 const isDateInPast = (date: Date): boolean => {
   const today = resetTimeToMidnight(new Date())

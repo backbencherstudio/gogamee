@@ -43,8 +43,7 @@ const defaultInitialPackages: PackageData[] = [
 export default function PackageManagement({ 
   initialPackages = defaultInitialPackages,
   onPackageAdd,
-  onPackageDelete,
-  onPackageUpdate
+  onPackageDelete
 }: PackageManagementProps) {
   const [packages, setPackages] = useState<PackageData[]>(initialPackages);
   const [selectedSport, setSelectedSport] = useState<'football' | 'basketball' | 'all'>('all');

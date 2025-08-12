@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import React, { useState } from 'react'
+import React from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
@@ -109,7 +109,7 @@ const DocumentTypeRadio: React.FC<{
 export default function Personalinfo() {
   const { updateFormData, nextStep } = useBooking()
   
-  const { control, handleSubmit, watch, setValue, getValues } = useForm<PersonalInfoFormData>({
+  const { control, handleSubmit } = useForm<PersonalInfoFormData>({
     defaultValues: {
       primaryTraveler: defaultTravelerInfo,
       extraTraveler: defaultTravelerInfo,
@@ -117,7 +117,7 @@ export default function Personalinfo() {
     }
   })
 
-  const watchedPaymentMethod = watch('paymentMethod')
+
 
   const onSubmit = (data: PersonalInfoFormData) => {
     console.log('Form Data:', data)
@@ -136,14 +136,7 @@ export default function Personalinfo() {
     nextStep()
   }
 
-  const updateTravelerField = (
-    travelerType: 'primaryTraveler' | 'extraTraveler',
-    field: keyof TravelerInfo,
-    value: string | 'ID' | 'Passport'
-  ) => {
-    const currentData = getValues(travelerType)
-    setValue(travelerType, { ...currentData, [field]: value })
-  }
+
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -507,10 +500,10 @@ export default function Personalinfo() {
                       >
                         <div className="flex justify-start items-center gap-3">
                           <div className="w-16 p-2 rounded-[2.92px] outline outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
-                            <img src="/stepper/icon/visa.png" alt="Visa" className="h-auto w-full" />
+                            <Image src="/stepper/icon/visa.png" alt="Visa" width={64} height={32} className="h-auto w-full" />
                           </div>
                           <div className="w-16 h-8 p-2 rounded-[2.91px] outline outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
-                            <img src="/stepper/icon/mastercard.png" alt="Mastercard" className="h-6 w-auto" />
+                            <Image src="/stepper/icon/mastercard.png" alt="Mastercard" width={24} height={24} className="h-6 w-auto" />
                           </div>
                         </div>
                       </PaymentMethodCard>

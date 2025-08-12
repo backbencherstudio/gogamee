@@ -79,12 +79,7 @@ const minutesToTime = (minutes: number): string => {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}${nextDay}`
 }
 
-const timeToMinutes = (timeStr: string): number => {
-  const isNextDay = timeStr.includes('(+1)')
-  const cleanTime = timeStr.replace('(+1)', '')
-  const [hours, minutes] = cleanTime.split(':').map(Number)
-  return (hours * 60 + minutes) + (isNextDay ? MINUTES_IN_DAY : 0)
-}
+
 
 const getTimeMarkPosition = (minutes: number): number => {
   return (minutes / EXTENDED_DAY_MINUTES) * 100
@@ -170,12 +165,10 @@ TimeDisplay.displayName = 'TimeDisplay'
 
 const TimeRangeSlider = React.memo(({ 
   timeRange, 
-  onChange, 
-  isDeparture 
+  onChange 
 }: { 
   timeRange: TimeRange
   onChange: (range: TimeRange) => void
-  isDeparture: boolean
 }) => {
   const handleRangeChange = useCallback((values: number[]) => {
     onChange({
@@ -268,7 +261,6 @@ const FlightCard = React.memo(({
       <TimeRangeSlider 
         timeRange={flightInfo.timeRange}
         onChange={onTimeRangeChange}
-        isDeparture={isDeparture}
       />
     </div>
     <TimeDisplay timeRange={flightInfo.timeRange} isDeparture={isDeparture} />
@@ -314,7 +306,7 @@ export default function FlightSchedule() {
         }
       ])
     }
-  }, [])
+  }, [formData.flightSchedule])
 
   // Update flight data when BookingContext data changes (only after hydration)
   useEffect(() => {
@@ -380,7 +372,7 @@ export default function FlightSchedule() {
     
     // Move to next step
     nextStep()
-  }, [flightData, updateFormData, nextStep])
+  }, [flightData, updateFormData, nextStep, selectedTimes])
   
   return (
     <div className="w-[894px] h-[644px] px-6 py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6">

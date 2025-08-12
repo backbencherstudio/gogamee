@@ -136,7 +136,7 @@ export default function RemoveLeague() {
     nextStep()
   }, [leagues, updateFormData, nextStep])
 
-  const removedCount = leagues.filter(league => league.removed).length
+
 
   return (
     <div className="w-[894px] p-6 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-center items-center gap-6">

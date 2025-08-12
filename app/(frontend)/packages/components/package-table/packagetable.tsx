@@ -172,7 +172,7 @@ export default function PackageTable() {
                   </tr>
                 </thead>
                 <tbody>
-                  {features.map((feature, rowIdx) => (
+                  {features.map((feature) => (
                     <tr key={feature}>
                       <th className="w-96 p-6 border-b border-slate-200 text-lg font-medium font-['Poppins'] text-neutral-800 text-left bg-white align-middle border-r ">
                         {feature}

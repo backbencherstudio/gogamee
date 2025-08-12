@@ -124,6 +124,7 @@ export default function SportsYouPreffer() {
                           ${index === SPORTS_OPTIONS.length - 1 ? 'rounded-b-lg' : ''}
                         `}
                         role="option"
+                        aria-selected={value === sport.value}
                         tabIndex={0}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' || e.key === ' ') {

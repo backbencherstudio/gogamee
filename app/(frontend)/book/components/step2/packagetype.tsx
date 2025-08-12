@@ -121,6 +121,7 @@ const PackageType: React.FC = () => {
                 className="w-full max-w-96 h-11 px-5 py-3 bg-white rounded-lg border border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-all"
                 role="combobox"
                 aria-expanded={isDropdownOpen}
+                aria-controls="package-listbox"
                 aria-haspopup="listbox"
                 aria-label="Package selection"
                 tabIndex={0}
@@ -147,6 +148,7 @@ const PackageType: React.FC = () => {
           {/* Dropdown Options */}
           {isDropdownOpen && (
             <div 
+              id="package-listbox"
               className="absolute top-12 left-0 w-full max-w-96 bg-white rounded-lg border border-gray-200 shadow-lg z-10"
               role="listbox"
               aria-label="Package options"

@@ -33,7 +33,7 @@ export default function Payment() {
     handleSubmit,
     watch,
     setValue,
-    formState: { isValid, errors },
+    formState: { },
     clearErrors,
   } = useForm<PaymentFormData>({
     defaultValues: {
