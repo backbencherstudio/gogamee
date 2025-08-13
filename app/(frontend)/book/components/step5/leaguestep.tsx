@@ -31,13 +31,13 @@ const LEAGUE_OPTIONS: LeagueOption[] = [
   }
 ];
 
-const CONTAINER_STYLES = "w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0";
+const CONTAINER_STYLES = "w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0";
 
 const CARD_BASE_STYLES = "flex-1 h-40 xl:h-48 py-4 xl:py-6 rounded inline-flex flex-col justify-center items-center gap-2.5 cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-lg group";
 
 const getCardStyles = (isSelected: boolean): string => {
   const overlayStyles = isSelected
-    ? "outline outline-2 outline-offset-2 outline-lime-500"
+    ? "outline outline-2 outline-offset-2 outline-[#6AAD3C]"
     : "hover:outline hover:outline-1 hover:outline-lime-300";
   
   return `${CARD_BASE_STYLES} ${overlayStyles}`;
@@ -47,7 +47,7 @@ const getButtonStyles = (isDisabled: boolean): string => {
   const baseStyles = "w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all";
   const conditionalStyles = isDisabled
     ? "bg-gray-400 cursor-not-allowed"
-    : "bg-lime-500 hover:bg-lime-600 cursor-pointer";
+    : "bg-[#6AAD3C] hover:bg-lime-600 cursor-pointer";
   
   return `${baseStyles} ${conditionalStyles}`;
 };
@@ -94,7 +94,7 @@ export default function LeagueStep() {
         <div className="absolute inset-0 bg-black/40 rounded transition-colors duration-300 group-hover:bg-lime-900/40" />
         
         {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-lime-500/0 rounded transition-all duration-300 group-hover:bg-lime-500/20" />
+        <div className="absolute inset-0 bg-[#6AAD3C]/0 rounded transition-all duration-300 group-hover:bg-[#6AAD3C]/20" />
         
         {/* League Title */}
         <div className="relative z-10 self-stretch text-center justify-start text-white text-base xl:text-lg font-bold font-['Poppins'] leading-loose drop-shadow-lg">
@@ -103,7 +103,7 @@ export default function LeagueStep() {
 
         {/* Selection Indicator */}
         {isSelected && (
-          <div className="absolute bottom-3 right-3 z-20 w-8 h-8 bg-lime-500 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-300 animate-pulse">
+          <div className="absolute bottom-3 right-3 z-20 w-8 h-8 bg-[#6AAD3C] rounded-full flex items-center justify-center shadow-lg transform transition-all duration-300 animate-pulse">
             <FaCheck className="text-white text-sm" />
           </div>
         )}

@@ -97,7 +97,7 @@ const LeagueCard = React.memo(({ league, onRemove }: LeagueCardProps) => {
                      md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-none`}
           onClick={handleRemoveClick}
         >
-          <div className="self-stretch px-4 py-2 w-full bg-lime-500 hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 transition-colors cursor-pointer md:cursor-default">
+          <div className="self-stretch px-4 py-2 w-full bg-[#6AAD3C] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 transition-colors cursor-pointer md:cursor-default">
             <div className="text-center justify-start text-white text-sm font-semibold font-['Inter'] leading-snug">
               Remove
             </div>
@@ -157,8 +157,10 @@ export default function RemoveLeague() {
     nextStep()
   }, [leagues, updateFormData, nextStep])
 
+
+
   return (
-    <div className="w-full xl:w-[894px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-center items-center gap-6 min-h-[600px] xl:min-h-0">
+    <div className="w-full xl:w-[894px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-center items-center gap-6 min-h-[600px] xl:min-h-0">
       <div className="self-stretch flex flex-col justify-start items-start gap-4">
         <div className="justify-start text-neutral-800 text-xl xl:text-2xl font-bold font-['Poppins'] leading-loose">
           Which leagues don&apos;t you like?

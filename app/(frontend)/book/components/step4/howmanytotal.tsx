@@ -167,7 +167,7 @@ export default function HowManyTotal() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0">
+      <div className="w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0">
         <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-3">
           {/* Header */}
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
@@ -203,7 +203,7 @@ export default function HowManyTotal() {
             {/* Next Button */}
             <button
               type="submit"
-              className="w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
+              className="w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
             >
               <span className="text-center justify-start text-white text-base font-normal font-['Inter']">
                 Next

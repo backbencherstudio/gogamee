@@ -289,7 +289,7 @@ export default function Extras() {
           key={lang}
           type="button"
           onClick={() => handleLanguageChange(lang)}
-          className={`px-3 py-1 rounded ${language === lang ? 'bg-lime-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+          className={`px-3 py-1 rounded ${language === lang ? 'bg-[#6AAD3C] text-white' : 'bg-gray-200 text-gray-700'}`}
         >
           {lang.toUpperCase()}
         </button>
@@ -304,7 +304,7 @@ export default function Extras() {
           key={curr}
           type="button"
           onClick={() => handleCurrencyChange(curr)}
-          className={`px-3 py-1 rounded ${currency === curr ? 'bg-lime-500 text-white' : 'bg-gray-200 text-gray-700'}`}
+          className={`px-3 py-1 rounded ${currency === curr ? 'bg-[#6AAD3C] text-white' : 'bg-gray-200 text-gray-700'}`}
         >
           {curr}
         </button>
@@ -343,7 +343,7 @@ export default function Extras() {
       className={`w-28 sm:w-32 h-10 px-4 sm:px-6 py-2.5 rounded outline-1 outline-offset-[-1px] flex justify-center items-center gap-2.5 transition-all ${
         extra.isSelected
           ? 'bg-red-500 outline-red-500 hover:bg-red-600'
-          : 'bg-lime-500 outline-lime-500 hover:bg-lime-600'
+          : 'bg-[#6AAD3C] outline-[#6AAD3C] hover:bg-lime-600'
       }`}
     >
       <div className="text-center justify-start text-white text-sm sm:text-lg font-normal font-['Inter'] leading-5 sm:leading-7">
@@ -356,7 +356,7 @@ export default function Extras() {
     <div 
       key={extra.id} 
       className={`self-stretch p-4 bg-white rounded-lg transition-all ${
-        extra.isSelected ? 'ring-2 ring-lime-500 shadow-lg' : 'hover:shadow-md'
+        extra.isSelected ? 'ring-2 ring-[#6AAD3C] shadow-lg' : 'hover:shadow-md'
       }`}
     >
       {/* Mobile Layout */}
@@ -371,7 +371,7 @@ export default function Extras() {
               <div className="text-neutral-800 text-base font-medium font-['Poppins'] leading-tight">
                 {extra.name}
               </div>
-              <div className="text-lime-500 text-base font-semibold font-['Poppins']">
+              <div className="text-[#6AAD3C] text-base font-semibold font-['Poppins']">
                 {extra.isIncluded ? t.included : `+${CURRENCY_SYMBOLS[currency]}${convertPrice(extra.price)}`}
               </div>
               {!extra.isIncluded && (
@@ -424,7 +424,7 @@ export default function Extras() {
         </div>
         <div className="inline-flex flex-col justify-center items-end gap-4">
           <div className="flex flex-col justify-start items-end gap-1">
-            <div className="self-stretch text-right justify-start text-lime-500 text-lg font-semibold font-['Poppins'] leading-loose">
+            <div className="self-stretch text-right justify-start text-[#6AAD3C] text-lg font-semibold font-['Poppins'] leading-loose">
               {extra.isIncluded ? t.included : `+${CURRENCY_SYMBOLS[currency]}${convertPrice(extra.price)}`}
             </div>
             {!extra.isIncluded && (
@@ -452,7 +452,7 @@ export default function Extras() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="w-full xl:w-[894px] px-3 sm:px-4 xl:px-6 py-4 sm:py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-4 sm:gap-6 min-h-[400px] sm:min-h-[500px] xl:min-h-0">
+      <div className="w-full xl:w-[894px] px-3 sm:px-4 xl:px-6 py-4 sm:py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 sm:gap-6 min-h-[400px] sm:min-h-[500px] xl:min-h-0">
         {/* Language and Currency Controls */}
         <div className="self-stretch flex flex-col sm:flex-row xl:flex-row justify-between items-start sm:items-center xl:items-center mb-2 sm:mb-4 gap-3 sm:gap-4 xl:gap-0">
           <div className="flex flex-col sm:flex-row xl:flex-row gap-3 xl:gap-4 w-full sm:w-auto">
@@ -496,7 +496,7 @@ export default function Extras() {
 
             <button
               type="submit"
-              className="w-full sm:w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
+              className="w-full sm:w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
             >
               <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
                 {t.confirm}

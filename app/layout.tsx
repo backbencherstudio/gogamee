@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
-import Menu from "./(frontend)/_components/common/menu";
-import Footer from "./(frontend)/_components/common/footer";
+
 import { LanguageProvider } from "./(frontend)/_components/common/LanguageContext";
 
 const inter = Inter({
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 const poppins = Poppins({
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
-  subsets: ['latin'],
-  variable: '--font-poppins',
-  display: 'swap',
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+  variable: "--font-poppins",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -30,15 +29,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const fontClasses = `${inter.variable} ${poppins.variable}`;
-  
+
   return (
     <html lang="en">
       <body className={`antialiased ${fontClasses}`} suppressHydrationWarning>
-        <LanguageProvider>
-          <Menu />
-          {children}
-          <Footer />
-        </LanguageProvider>
+        <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
   );

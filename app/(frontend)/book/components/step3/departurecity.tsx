@@ -178,7 +178,7 @@ const DepartureCity: React.FC = () => {
   )
 
   return (
-    <div className="w-full xl:max-w-[894px] xl:h-[638px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl border border-lime-500/20 mb-10 min-h-[600px] xl:min-h-0">
+    <div className="w-full xl:max-w-[894px] xl:h-[638px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl border border-[#6AAD3C]/20 mb-10 min-h-[600px] xl:min-h-0">
       {/* Header Section */}
       <header className="mb-6 xl:mb-8">
         <h1 className="text-2xl xl:text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-8 xl:leading-10">

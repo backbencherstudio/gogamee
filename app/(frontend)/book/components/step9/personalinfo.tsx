@@ -1,7 +1,11 @@
 'use client'
 
 import Image from 'next/image'
+<<<<<<< HEAD
 import React, { useEffect } from 'react'
+=======
+import React from 'react'
+>>>>>>> 92f4f54aba96a37fa9edb304085fdd9a86e2e011
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
@@ -42,13 +46,13 @@ const PaymentMethodCard: React.FC<{
   return (
     <div 
       className={`self-stretch p-3 md:p-4 rounded outline-1 outline-offset-[-1px] ${
-        isSelected ? 'outline-lime-500 bg-lime-50' : 'outline-gray-200'
+        isSelected ? 'outline-[#6AAD3C] bg-lime-50' : 'outline-gray-200'
       } flex flex-col md:inline-flex md:flex-row justify-between items-start md:items-center gap-3 md:gap-0 cursor-pointer`}
       onClick={() => onChange(value)}
     >
       <div className="flex justify-start items-center gap-2.5">
         <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 ${
-          isSelected ? 'border-lime-500 bg-lime-500' : 'border-gray-300'
+          isSelected ? 'border-[#6AAD3C] bg-[#6AAD3C]' : 'border-gray-300'
         } flex items-center justify-center`}>
           {isSelected && <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full" />}
         </div>
@@ -80,7 +84,7 @@ const FormInput: React.FC<{
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="self-stretch h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-lime-500 w-full"
+      className="self-stretch h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C] w-full"
     />
   </div>
 )
@@ -132,10 +136,15 @@ const loadFromStorage = (): PersonalInfoFormData | null => {
 export default function Personalinfo() {
   const { updateFormData, nextStep } = useBooking()
   
+<<<<<<< HEAD
   // Load initial data from localStorage or use defaults
   const getInitialValues = (): PersonalInfoFormData => {
     const savedData = loadFromStorage()
     return savedData || {
+=======
+  const { control, handleSubmit } = useForm<PersonalInfoFormData>({
+    defaultValues: {
+>>>>>>> 92f4f54aba96a37fa9edb304085fdd9a86e2e011
       primaryTraveler: defaultTravelerInfo,
       extraTraveler: defaultTravelerInfo,
       paymentMethod: 'credit'
@@ -146,6 +155,7 @@ export default function Personalinfo() {
     defaultValues: getInitialValues()
   })
 
+<<<<<<< HEAD
   // Watch all form values for auto-save
   const watchedValues = watch()
 
@@ -155,6 +165,8 @@ export default function Personalinfo() {
     saveToStorage(currentValues)
   }, [watchedValues, getValues])
 
+=======
+>>>>>>> 92f4f54aba96a37fa9edb304085fdd9a86e2e011
 
 
   const onSubmit = (data: PersonalInfoFormData) => {
@@ -181,6 +193,7 @@ export default function Personalinfo() {
     nextStep()
   }
 
+<<<<<<< HEAD
   // Function to clear form and localStorage
   const clearForm = () => {
     try {
@@ -194,12 +207,15 @@ export default function Personalinfo() {
       console.error('Error clearing form:', error)
     }
   }
+=======
+
+>>>>>>> 92f4f54aba96a37fa9edb304085fdd9a86e2e011
 
 
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="w-full max-w-[894px] px-3 md:px-4 xl:px-6 py-4 md:py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-4 md:gap-6 min-h-[600px] xl:min-h-0">
+      <div className="w-full max-w-[894px] px-3 md:px-4 xl:px-6 py-4 md:py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 md:gap-6 min-h-[600px] xl:min-h-0">
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
             <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
@@ -320,7 +336,7 @@ export default function Personalinfo() {
                                 value={field.value}
                                 onChange={field.onChange}
                                 placeholder="Enter your documents number"
-                                className="self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-lime-500"
+                                className="self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
                               />
                             )}
                           />
@@ -413,7 +429,7 @@ export default function Personalinfo() {
                               value={field.value}
                               onChange={field.onChange}
                               placeholder="Enter your documents number"
-                              className="self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-lime-500"
+                              className="self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
                             />
                           )}
                         />
@@ -446,7 +462,7 @@ export default function Personalinfo() {
                         <div className="self-stretch inline-flex justify-start items-center gap-4 md:gap-20">
                           <div className="flex justify-start items-center gap-3 md:gap-4">
                             <div className="w-12 h-12 md:w-16 md:h-16 p-3 md:p-4 bg-[#F1F9EC] rounded-[5.14px] flex justify-start items-center gap-3">
-                              <FaPlane className="w-6 h-6 md:w-8 md:h-8 text-lime-500" />
+                              <FaPlane className="w-6 h-6 md:w-8 md:h-8 text-[#6AAD3C]" />
                             </div>
                             <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
                               <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none">
@@ -463,7 +479,7 @@ export default function Personalinfo() {
                         <div className="self-stretch inline-flex justify-start items-center gap-4 md:gap-20">
                           <div className="flex justify-start items-center gap-3 md:gap-4">
                             <div className="w-12 h-12 md:w-16 md:h-16 p-3 md:p-4 bg-[#F1F9EC] rounded-[5.14px] flex justify-start items-center gap-3">
-                              <FaPlane className="w-6 h-6 md:w-8 md:h-8 text-lime-500 transform rotate-180" />
+                              <FaPlane className="w-6 h-6 md:w-8 md:h-8 text-[#6AAD3C] transform rotate-180" />
                             </div>
                             <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
                               <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none">
@@ -579,11 +595,19 @@ export default function Personalinfo() {
                         label="Credit Card/Debit Card"
                       >
                         <div className="flex justify-start items-center gap-3">
+<<<<<<< HEAD
                           <div className="w-16 p-2 rounded-[2.92px] outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
                             <Image src="/stepper/icon/visa.png" alt="Visa" className="h-auto w-full" width={64} height={32} />
                           </div>
                           <div className="w-16 h-8 p-2 rounded-[2.91px] outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
                             <Image src="/stepper/icon/mastercard.png" alt="Mastercard" className="h-6 w-auto" width={64} height={32} />
+=======
+                          <div className="w-16 p-2 rounded-[2.92px] outline outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
+                            <Image src="/stepper/icon/visa.png" alt="Visa" width={64} height={32} className="h-auto w-full" />
+                          </div>
+                          <div className="w-16 h-8 p-2 rounded-[2.91px] outline outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
+                            <Image src="/stepper/icon/mastercard.png" alt="Mastercard" width={24} height={24} className="h-6 w-auto" />
+>>>>>>> 92f4f54aba96a37fa9edb304085fdd9a86e2e011
                           </div>
                         </div>
                       </PaymentMethodCard>
@@ -637,7 +661,7 @@ export default function Personalinfo() {
             <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-full md:w-auto">
               <button 
                 type="submit"
-                className="w-full md:w-44 h-12 md:h-11 px-4 md:px-3.5 py-2 md:py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
+                className="w-full md:w-44 h-12 md:h-11 px-4 md:px-3.5 py-2 md:py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
               >
                 <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
                   Confirm

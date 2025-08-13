@@ -33,6 +33,7 @@ export default function Payment() {
     handleSubmit,
     watch,
     setValue,
+    formState: { },
     clearErrors,
   } = useForm<PaymentFormData>({
     defaultValues: {
@@ -449,7 +450,7 @@ Booking completed with ALL collected data:
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="w-full xl:w-[894px] px-4 md:px-5 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-4 md:gap-6 min-h-[600px] xl:min-h-0">
+      <div className="w-full xl:w-[894px] px-4 md:px-5 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 md:gap-6 min-h-[600px] xl:min-h-0">
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
             <div className="justify-center text-neutral-800 text-xl md:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 md:leading-8 xl:leading-10">
@@ -474,7 +475,7 @@ Booking completed with ALL collected data:
                 <div className="self-stretch py-3 md:py-4 rounded flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-0">
                   <div className="flex justify-start items-center gap-2.5">
                     <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full border-2 ${
-                      selectedPayment === PAYMENT_METHODS.CREDIT ? 'border-lime-500 bg-lime-500' : 'border-gray-300'
+                      selectedPayment === PAYMENT_METHODS.CREDIT ? 'border-[#6AAD3C] bg-[#6AAD3C]' : 'border-gray-300'
                     } flex items-center justify-center`}>
                       {selectedPayment === PAYMENT_METHODS.CREDIT && <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full" />}
                     </div>
@@ -509,7 +510,7 @@ Booking completed with ALL collected data:
                             })}
                             type="text"
                             placeholder="Enter your name"
-                            className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-lime-500"
+                            className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
                           />
                         </div>
                         <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
@@ -538,7 +539,7 @@ Booking completed with ALL collected data:
                             onChange={handleCardNumberChange}
                             placeholder="1234 5678 9012 3456"
                             maxLength={19}
-                            className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-lime-500"
+                            className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
                           />
                         </div>
                         <div className="w-full md:w-32 inline-flex flex-col justify-start items-start gap-2">
@@ -551,7 +552,7 @@ Booking completed with ALL collected data:
                             onChange={handleCvvChange}
                             placeholder="123"
                             maxLength={4}
-                            className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-lime-500"
+                            className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
                           />
                         </div>
                       </div>
@@ -597,7 +598,7 @@ Booking completed with ALL collected data:
               className={`w-full md:w-44 h-12 md:h-11 px-4 md:px-3.5 py-3 md:py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all duration-200 ${
                 isProcessing || !isFormValid 
                   ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-lime-500 hover:bg-lime-600 cursor-pointer'
+                  : 'bg-[#6AAD3C] hover:bg-lime-600 cursor-pointer'
               }`}
             >
               <div className="text-center justify-start text-white text-sm md:text-base font-medium md:font-normal font-['Inter']">

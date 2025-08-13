@@ -79,12 +79,7 @@ const minutesToTime = (minutes: number): string => {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}${nextDay}`
 }
 
-const timeToMinutes = (timeStr: string): number => {
-  const isNextDay = timeStr.includes('(+1)')
-  const cleanTime = timeStr.replace('(+1)', '')
-  const [hours, minutes] = cleanTime.split(':').map(Number)
-  return (hours * 60 + minutes) + (isNextDay ? MINUTES_IN_DAY : 0)
-}
+
 
 const getTimeMarkPosition = (minutes: number): number => {
   return (minutes / EXTENDED_DAY_MINUTES) * 100
@@ -100,9 +95,9 @@ const calculateDuration = (start: number, end: number): string => {
 const FlightIcon = React.memo(({ type }: { type: 'takeoff' | 'landing' }) => (
   <div className="w-14 h-14 p-3.5 bg-[#F1F9EC] rounded flex justify-start items-center gap-2.5">
     {type === 'takeoff' ? (
-      <MdFlightTakeoff className="w-6 h-6 text-lime-500" />
+      <MdFlightTakeoff className="w-6 h-6 text-[#6AAD3C]" />
     ) : (
-      <MdFlightLand className="w-6 h-6 text-lime-500" />
+      <MdFlightLand className="w-6 h-6 text-[#6AAD3C]" />
     )}
   </div>
 ))
@@ -170,12 +165,10 @@ TimeDisplay.displayName = 'TimeDisplay'
 
 const TimeRangeSlider = React.memo(({ 
   timeRange, 
-  onChange, 
-  isDeparture 
+  onChange 
 }: { 
   timeRange: TimeRange
   onChange: (range: TimeRange) => void
-  isDeparture: boolean
 }) => {
   const handleRangeChange = useCallback((values: number[]) => {
     onChange({
@@ -209,7 +202,7 @@ const TimeRangeSlider = React.memo(({
               }}
             >
               <div
-                className="absolute h-2 bg-lime-500 rounded-full"
+                className="absolute h-2 bg-[#6AAD3C] rounded-full"
                 style={selectedRangeStyle}
               />
               {children}
@@ -222,7 +215,7 @@ const TimeRangeSlider = React.memo(({
                 ...props.style,
                 backgroundColor: isDragged ? '#65a30d' : 'white',
               }}
-              className="w-5 h-5 border-2 border-lime-500 rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
+              className="w-5 h-5 border-2 border-[#6AAD3C] rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
             />
           )}
         />
@@ -268,7 +261,6 @@ const FlightCard = React.memo(({
       <TimeRangeSlider 
         timeRange={flightInfo.timeRange}
         onChange={onTimeRangeChange}
-        isDeparture={isDeparture}
       />
     </div>
     <TimeDisplay timeRange={flightInfo.timeRange} isDeparture={isDeparture} />
@@ -314,7 +306,7 @@ export default function FlightSchedule() {
         }
       ])
     }
-  }, [])
+  }, [formData.flightSchedule])
 
   // Update flight data when BookingContext data changes (only after hydration)
   useEffect(() => {
@@ -380,10 +372,10 @@ export default function FlightSchedule() {
     
     // Move to next step
     nextStep()
-  }, [flightData, updateFormData, nextStep])
+  }, [flightData, updateFormData, nextStep, selectedTimes])
   
   return (
-    <div className="w-full xl:w-[894px] xl:h-[644px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-lime-500/20 inline-flex flex-col justify-start items-start gap-6 min-h-[600px] xl:min-h-0">
+    <div className="w-full xl:w-[894px] xl:h-[644px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-6 min-h-[600px] xl:min-h-0">
       <div className="self-stretch xl:h-[587px] flex flex-col justify-center items-start gap-3">
         <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
           <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
@@ -405,7 +397,7 @@ export default function FlightSchedule() {
           
           <button 
             onClick={handleConfirm}
-            className="w-44 h-11 px-3.5 py-1.5 bg-lime-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
+            className="w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
             type="button"
           >
             <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
