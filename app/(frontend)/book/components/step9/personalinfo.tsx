@@ -1,11 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-<<<<<<< HEAD
 import React, { useEffect } from 'react'
-=======
-import React from 'react'
->>>>>>> 92f4f54aba96a37fa9edb304085fdd9a86e2e011
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
@@ -136,15 +132,10 @@ const loadFromStorage = (): PersonalInfoFormData | null => {
 export default function Personalinfo() {
   const { updateFormData, nextStep } = useBooking()
   
-<<<<<<< HEAD
   // Load initial data from localStorage or use defaults
   const getInitialValues = (): PersonalInfoFormData => {
     const savedData = loadFromStorage()
     return savedData || {
-=======
-  const { control, handleSubmit } = useForm<PersonalInfoFormData>({
-    defaultValues: {
->>>>>>> 92f4f54aba96a37fa9edb304085fdd9a86e2e011
       primaryTraveler: defaultTravelerInfo,
       extraTraveler: defaultTravelerInfo,
       paymentMethod: 'credit'
@@ -155,7 +146,6 @@ export default function Personalinfo() {
     defaultValues: getInitialValues()
   })
 
-<<<<<<< HEAD
   // Watch all form values for auto-save
   const watchedValues = watch()
 
@@ -164,9 +154,6 @@ export default function Personalinfo() {
     const currentValues = getValues()
     saveToStorage(currentValues)
   }, [watchedValues, getValues])
-
-=======
->>>>>>> 92f4f54aba96a37fa9edb304085fdd9a86e2e011
 
 
   const onSubmit = (data: PersonalInfoFormData) => {
@@ -193,7 +180,6 @@ export default function Personalinfo() {
     nextStep()
   }
 
-<<<<<<< HEAD
   // Function to clear form and localStorage
   const clearForm = () => {
     try {
@@ -207,9 +193,6 @@ export default function Personalinfo() {
       console.error('Error clearing form:', error)
     }
   }
-=======
-
->>>>>>> 92f4f54aba96a37fa9edb304085fdd9a86e2e011
 
 
 
@@ -595,19 +578,11 @@ export default function Personalinfo() {
                         label="Credit Card/Debit Card"
                       >
                         <div className="flex justify-start items-center gap-3">
-<<<<<<< HEAD
                           <div className="w-16 p-2 rounded-[2.92px] outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
-                            <Image src="/stepper/icon/visa.png" alt="Visa" className="h-auto w-full" width={64} height={32} />
-                          </div>
-                          <div className="w-16 h-8 p-2 rounded-[2.91px] outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
-                            <Image src="/stepper/icon/mastercard.png" alt="Mastercard" className="h-6 w-auto" width={64} height={32} />
-=======
-                          <div className="w-16 p-2 rounded-[2.92px] outline outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
                             <Image src="/stepper/icon/visa.png" alt="Visa" width={64} height={32} className="h-auto w-full" />
                           </div>
-                          <div className="w-16 h-8 p-2 rounded-[2.91px] outline outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
-                            <Image src="/stepper/icon/mastercard.png" alt="Mastercard" width={24} height={24} className="h-6 w-auto" />
->>>>>>> 92f4f54aba96a37fa9edb304085fdd9a86e2e011
+                          <div className="w-16 h-8 p-2 rounded-[2.91px] outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
+                            <Image src="/stepper/icon/mastercard.png" alt="Mastercard" width={64} height={32} className="h-6 w-auto" />
                           </div>
                         </div>
                       </PaymentMethodCard>
