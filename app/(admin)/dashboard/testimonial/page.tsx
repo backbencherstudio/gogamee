@@ -1,9 +1,8 @@
 import React from 'react'
+import TestimonialPage from './components/testimonial'
 
 export default function Testimonial() {
   return (
-    <div className="pt-4 pl-10 min-h-screen mb-4">
-    <h1 className='text-2xl font-bold'>Testimonial</h1>
-  </div>
+<TestimonialPage />
   )
 }

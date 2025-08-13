@@ -1,4 +1,7 @@
+"use client"
 import type * as React from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   LayoutGrid,
   HelpCircle,
@@ -15,7 +18,6 @@ interface SidebarMenuItem {
   icon: React.ElementType
   url: string
   badge?: string
-  isActive?: boolean
   isLogout?: boolean
 }
 
@@ -28,8 +30,8 @@ const sidebarData: SidebarSection[] = [
   {
     title: "MENU",
     items: [
-      { title: "Dashboard", icon: LayoutGrid, url: "/dashboard", isActive: true },
-      { title: "All request", icon: FileText, url: "/dashboard/allrequest", },
+      { title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },
+      { title: "All request", icon: FileText, url: "/dashboard/allrequest" },
       { title: "FAQ", icon: HelpCircle, url: "/dashboard/faq" },
       { title: "Package", icon: Package, url: "/dashboard/package" },
       { title: "Testimonial", icon: Star, url: "/dashboard/testimonial" },
@@ -38,6 +40,8 @@ const sidebarData: SidebarSection[] = [
 ]
 
 export function Sidebar() {
+  const pathname = usePathname()
+
   return (
     <div className="fixed w-64 bg-white p-4 rounded-xl shadow-lg flex flex-col h-[calc(100vh-2rem)] my-4 ml-4 z-10">
       {/* Logo */}
@@ -55,13 +59,14 @@ export function Sidebar() {
             <ul>
               {section.items.map((item) => {
                 const Icon = item.icon
+                const isActive = pathname === item.url
                 return (
                   <li key={item.title} className="mb-1">
-                    <a
+                    <Link
                       href={item.url}
                       className={cn(
                         "flex items-center gap-3 p-2 rounded-lg transition-colors duration-200",
-                        item.isActive 
+                        isActive 
                           ? "bg-[#76C043] text-white" 
                           : "text-gray-700 hover:bg-[#76C043]/20"
                       )}
@@ -69,14 +74,14 @@ export function Sidebar() {
                       <Icon
                         className={cn(
                           "w-5 h-5", 
-                          item.isActive && "text-white",
-                          !item.isActive && "text-gray-600"
+                          isActive && "text-white",
+                          !isActive && "text-gray-600"
                         )}
                       />
                       <span className="font-medium">
                         {item.title}
                       </span>
-                    </a>
+                    </Link>
                   </li>
                 )
               })}
@@ -87,13 +92,16 @@ export function Sidebar() {
 
       {/* Logout Button at Bottom */}
       <div className="mt-auto pt-4 border-t border-gray-200">
-        <a
-          href="#"
-          className="flex items-center gap-3 p-2 rounded-lg transition-colors duration-200 text-[#76C043] hover:bg-[#76C043]/20"
+        <button
+          onClick={() => {
+            // Add logout logic here
+            console.log('Logout clicked')
+          }}
+          className="flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer duration-200 text-[#76C043] hover:bg-[#76C043]/20 w-full text-left"
         >
           <LogOut className="w-5 h-5 text-[#76C043]" />
           <span className="font-medium text-[#76C043]">Log out</span>
-        </a>
+        </button>
       </div>
     </div>
   )

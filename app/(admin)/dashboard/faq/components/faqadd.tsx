@@ -93,6 +93,7 @@ export default function FaqAdd() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [editForm, setEditForm] = useState({ question: "", answer: "" });
   const [newFaqForm, setNewFaqForm] = useState({ question: "", answer: "" });
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
 
   const toggleItem = (index: number) => {
     setExpandedItems((prev) => {
@@ -127,9 +128,12 @@ export default function FaqAdd() {
   };
 
   const handleDelete = (id: number) => {
-    if (confirm("Are you sure you want to delete this FAQ item?")) {
-      setFaqData((prev) => prev.filter((item) => item.id !== id));
-    }
+    setDeleteConfirm(id);
+  };
+
+  const handleConfirmDelete = (id: number) => {
+    setFaqData((prev) => prev.filter((item) => item.id !== id));
+    setDeleteConfirm(null);
   };
 
   const handleAddNew = () => {
@@ -353,6 +357,43 @@ export default function FaqAdd() {
           </p>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div 
+          className="fixed inset-0 bg-black/30 bg-opacity-20 flex items-center justify-center z-50 p-4"
+          onClick={() => setDeleteConfirm(null)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">Delete FAQ</h3>
+                <p className="text-gray-600 font-['Poppins']">Are you sure you want to delete this FAQ item?</p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium font-['Poppins'] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleConfirmDelete(deleteConfirm)}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium font-['Poppins'] transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
