@@ -79,7 +79,8 @@ export default function FaqAdd() {
       });
       
       if (newFaq) {
-        setFaqData(AppData.faqs.getAll());
+        // Add the new FAQ to the beginning of the local state for immediate display
+        setFaqData([newFaq, ...faqData]);
         setNewFaqForm({ question: "", answer: "" });
         setShowAddForm(false);
       }

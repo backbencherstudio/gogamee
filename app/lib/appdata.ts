@@ -358,7 +358,7 @@ export const AppData = {
     add: function(faq: { question: string; answer: string }) {
       const newId = Math.max(...this.list.map(item => item.id)) + 1;
       const newFaq = { ...faq, id: newId };
-      this.list.push(newFaq);
+      this.list.unshift(newFaq); // Add to beginning instead of end
       return newFaq;
     },
     
