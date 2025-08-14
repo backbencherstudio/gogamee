@@ -4,8 +4,6 @@
 export interface BookingData {
   id: number;
   status: "pending" | "completed" | "cancelled";
-  basePrice: number;
-  totalPrice: number;
   selectedSport: string;
   selectedPackage: string;
   selectedCity: string;
@@ -93,9 +91,12 @@ export const AppData = {
     },
     
     // Add new booking
-    add: function(booking: BookingData) {
-      this.all.push(booking);
+    add: function(booking: Omit<BookingData, 'id'>) {
+      const newId = Math.max(...this.all.map(b => b.id), 0) + 1;
+      const newBooking = { ...booking, id: newId };
+      this.all.unshift(newBooking); // Add to beginning for easy access
       this.updateStatusArrays();
+      return newBooking;
     },
     
     // Update existing booking
@@ -547,8 +548,6 @@ export const AppData = {
       {
         id: 1,
         status: "completed",
-        basePrice: 450,
-        totalPrice: 570,
         selectedSport: "football",
         selectedPackage: "standard",
         selectedCity: "alicante",
@@ -599,8 +598,6 @@ export const AppData = {
       {
         id: 2,
         status: "pending",
-        basePrice: 680,
-        totalPrice: 770,
         selectedSport: "basketball",
         selectedPackage: "premium",
         selectedCity: "madrid",
@@ -633,7 +630,7 @@ export const AppData = {
         totalExtrasCost: 90,
         extrasCount: 4,
         firstName: "John",
-        lastName: "Doe",
+        lastName: "1",
         fullName: "John Doe",
         email: "john.doe@example.com",
         phone: "+34 612 345 678",
@@ -642,7 +639,7 @@ export const AppData = {
         expiryDate: "12/26",
         cvv: "***",
         cardholderName: "John Doe",
-        bookingTimestamp: "2025-08-02T10:15:30.000Z",
+        bookingTimestamp: "2022-08-02T10:15:30.000Z",
         bookingDate: "8/15/2025",
         bookingTime: "12:15:30 PM",
         isBookingComplete: true,
