@@ -48,7 +48,7 @@ export default function Faq({ className = "" }: FaqProps) {
             <div className="self-stretch bg-white flex flex-col justify-start items-start gap-6 w-full">
               <div className="self-stretch p-5 md:p-8 lg:p-10 rounded-lg outline-[6px] outline-offset-[-6px] outline-green-50 w-full">
                 <div className="flex flex-col gap-5 w-full">
-                  {faqs.map((item, index) => (
+                  {faqs.slice(0, 5).map((item, index) => (
                     <div
                       key={item.id}
                       className="flex flex-col gap-4 md:gap-5 w-full"
