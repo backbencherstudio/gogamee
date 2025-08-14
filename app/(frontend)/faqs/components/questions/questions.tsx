@@ -56,7 +56,10 @@ export default function Questions() {
                             className="w-full h-full object-contain"
                           />
                         </div>
-                        <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9">
+                        <div 
+                          onClick={() => toggleItem(index)}
+                          className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9 cursor-pointer flex-1"
+                        >
                           {item.question}
                         </div>
                       </div>
@@ -73,11 +76,15 @@ export default function Questions() {
                     </div>
                   </div>
                   
-                  {expandedItems.includes(index) && (
-                    <div className="text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-7 md:pl-8 lg:pl-9">
-                      {item.answer}
-                    </div>
-                  )}
+                  <div 
+                    className={`text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-7 md:pl-8 lg:pl-9 overflow-hidden transition-all duration-500 ease-in-out ${
+                        expandedItems.includes(index) 
+                          ? 'max-h-96 opacity-100' 
+                          : 'max-h-0 opacity-0'
+                    }`}
+                  >
+                    {item.answer}
+                  </div>
                   
                   {index < faqs.length - 1 && (
                     <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
