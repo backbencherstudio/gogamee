@@ -7,66 +7,17 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import Image from 'next/image';
 import Link from 'next/link';
+import { reviews } from '../../../../lib/appdata';
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 
-const reviews = [
-  {
-    id: 1,
-    name: "Esther Howard",
-    role: "Wellness Coach",
-    image: "/homepage/image/avatar1.png",
-    rating: 5,
-    review: "I've used several travel platforms for my sports trips, but GoGame completely blew me away. The concept of booking a surprise destination and match was amazing!"
-  },
-  {
-    id: 2,
-    name: "Darlene",
-    role: "Wellness Coach",
-    image: "/homepage/image/avatar2.png",
-    rating: 5,
-    review: "GoGame provided an unforgettable experience for me and my friends. We chose football as our sport, and they organized everything perfectly"
-  },
-  {
-    id: 3,
-    name: "Brooklyn",
-    role: "Wellness Coach",
-    image: "/homepage/image/avatar3.png",
-    rating: 5,
-    review: "If you're a sports fan and love surprises, GoGame is for you! I booked a surprise football trip and was amazed by how well everything was organized."
-  },
-  {
-    id: 4,
-    name: "Jenny Wilson",
-    role: "Sports Enthusiast",
-    image: "/homepage/image/avatar1.png",
-    rating: 4,
-    review: "The surprise element made the whole experience so exciting! The match we attended was incredible, though the hotel could have been better."
-  },
-  {
-    id: 5,
-    name: "Robert Fox",
-    role: "Travel Blogger",
-    image: "/homepage/image/avatar2.png",
-    rating: 5,
-    review: "As someone who reviews travel experiences for a living, I can say GoGame offers something truly unique. Their attention to detail is impressive!"
-  },
-  {
-    id: 6,
-    name: "Wade Warren",
-    role: "Football Fan",
-    image: "/homepage/image/avatar3.png",
-    rating: 5,
-    review: "Watched my favorite team play in a stadium I never thought I'd visit! The surprise reveal was perfect, and the matchday experience was unforgettable."
-  }
-];
-
 export default function Reviews() {
   const [swiper, setSwiper] = useState<SwiperType>();
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (swiper && prevRef.current && nextRef.current) {
@@ -74,6 +25,14 @@ export default function Reviews() {
       swiper.navigation.update();
     }
   }, [swiper]);
+
+  const handleImageError = (imagePath: string, e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    // Only set fallback if we haven't already tried for this image
+    if (!failedImages.has(imagePath)) {
+      setFailedImages(prev => new Set(prev).add(imagePath));
+      e.currentTarget.src = "/homepage/image/avatar1.png";
+    }
+  };
 
   return (
     <section className="w-full max-w-[1200px] mx-auto pt-24 pb-10 relative px-4 md:px-6 ">
@@ -141,6 +100,7 @@ export default function Reviews() {
                         alt={review.name}
                         fill
                         className="object-cover"
+                        onError={(e) => handleImageError(review.image, e)}
                       />
                     </div>
                     <div className="min-w-0 flex-1">

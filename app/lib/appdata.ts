@@ -437,6 +437,93 @@ export const AppData = {
     }
   },
 
+  // Reviews/Testimonials data
+  reviews: {
+    list: [
+      {
+        id: 1,
+        name: "Esther Howard",
+        role: "Wellness Coach",
+        image: "/homepage/image/avatar1.png",
+        rating: 5,
+        review: "I've used several travel platforms for my sports trips, but GoGame completely blew me away. The concept of booking a surprise destination and match was amazing!"
+      },
+      {
+        id: 2,
+        name: "Darlene",
+        role: "Wellness Coach",
+        image: "/homepage/image/avatar2.png",
+        rating: 5,
+        review: "GoGame provided an unforgettable experience for me and my friends. We chose football as our sport, and they organized everything perfectly"
+      },
+      {
+        id: 3,
+        name: "Brooklyn",
+        role: "Wellness Coach",
+        image: "/homepage/image/avatar3.png",
+        rating: 5,
+        review: "If you're a sports fan and love surprises, GoGame is for you! I booked a surprise football trip and was amazed by how well everything was organized."
+      },
+      {
+        id: 4,
+        name: "Jenny Wilson",
+        role: "Sports Enthusiast",
+        image: "/homepage/image/avatar1.png",
+        rating: 4,
+        review: "The surprise element made the whole experience so exciting! The match we attended was incredible, though the hotel could have been better."
+      },
+      {
+        id: 5,
+        name: "Robert Fox",
+        role: "Travel Blogger",
+        image: "/homepage/image/avatar2.png",
+        rating: 5,
+        review: "As someone who reviews travel experiences for a living, I can say GoGame offers something truly unique. Their attention to detail is impressive!"
+      },
+      {
+        id: 6,
+        name: "Wade Warren",
+        role: "Football Fan",
+        image: "/homepage/image/avatar3.png",
+        rating: 5,
+        review: "Watched my favorite team play in a stadium I never thought I'd visit! The surprise reveal was perfect, and the matchday experience was unforgettable."
+      }
+    ],
+    
+    getById: function(id: number) {
+      return this.list.find(review => review.id === id);
+    },
+    
+    getAll: function() {
+      return this.list;
+    },
+    
+    add: function(review: { name: string; role: string; image: string; rating: number; review: string }) {
+      const newId = Math.max(...this.list.map(item => item.id)) + 1;
+      const newReview = { ...review, id: newId };
+      this.list.unshift(newReview); // Add to beginning for easy access
+      return newReview;
+    },
+    
+    update: function(id: number, updates: Partial<{ name: string; role: string; image: string; rating: number; review: string }>) {
+      const index = this.list.findIndex(review => review.id === id);
+      if (index !== -1) {
+        this.list[index] = { ...this.list[index], ...updates };
+        return this.list[index];
+      }
+      return null;
+    },
+    
+    delete: function(id: number) {
+      const index = this.list.findIndex(review => review.id === id);
+      if (index !== -1) {
+        this.list.splice(index, 1);
+        return true;
+      }
+      return false;
+    }
+  },
+
   // Time ranges for flights
   timeRanges: {
     departure: [
@@ -609,6 +696,7 @@ export const extras = AppData.extras.list;
 export const paymentMethods = AppData.paymentMethods.list;
 export const faqs = AppData.faqs.list;
 export const travelPackages = AppData.travelPackages.list;
+export const reviews = AppData.reviews.list;
 
 // Export the main object as default
 export default AppData; 
