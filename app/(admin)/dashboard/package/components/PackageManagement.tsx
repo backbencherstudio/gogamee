@@ -1,7 +1,8 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Plus, Package as PackageIcon, Trash2, X } from 'lucide-react'
 import AddPackage from './addpackage'
+import AppData from '../../../../lib/appdata'
 
 // Package interface matching the frontend structure
 interface PackageData {
@@ -19,36 +20,20 @@ interface PackageManagementProps {
   onPackageUpdate?: (packageData: PackageData) => void;
 }
 
-// Default initial package data
-const defaultInitialPackages: PackageData[] = [
-  // Football packages
-  { id: 'f1', sport: 'football', category: 'Match Ticket', standard: 'General or lateral section', premium: 'Premium or central tribune seat' },
-  { id: 'f2', sport: 'football', category: 'Flights', standard: 'Round-trip from a major city', premium: 'Round-trip from a major city' },
-  { id: 'f3', sport: 'football', category: 'Hotel', standard: '3-star hotel or apartment', premium: '4–5 star hotel near stadium or city center' },
-  { id: 'f4', sport: 'football', category: 'Transfers', standard: 'Public transport or shuttle', premium: 'Private transfers (airport & stadium)' },
-  { id: 'f5', sport: 'football', category: 'Welcome Pack', standard: 'Exclusive GoGame merchandise', premium: 'Official team jersey + premium goodies' },
-  { id: 'f6', sport: 'football', category: 'Surprise Reveal', standard: 'Destination revealed 48h before. A secret clue before revealing the destination.', premium: 'Destination revealed 48h before. A secret clue before revealing the destination.' },
-  { id: 'f7', sport: 'football', category: 'Starting Price', standard: 'From 299€', premium: 'From 1399€' },
-  
-  // Basketball packages
-  { id: 'b1', sport: 'basketball', category: 'Match Ticket', standard: 'Standard seat (upper and lateral seats)', premium: 'VIP seat' },
-  { id: 'b2', sport: 'basketball', category: 'Flights', standard: 'Round-trip from a major city', premium: 'Round-trip from a major city' },
-  { id: 'b3', sport: 'basketball', category: 'Hotel', standard: '3-star hotel or apartment', premium: '4–5 star hotel in premium location' },
-  { id: 'b4', sport: 'basketball', category: 'Transfers', standard: 'Public transport or shuttle', premium: 'Private transfers (airport & stadium)' },
-  { id: 'b5', sport: 'basketball', category: 'Welcome Pack', standard: 'Travel guide + surprise gift', premium: 'Official team jersey + premium goodies' },
-  { id: 'b6', sport: 'basketball', category: 'Surprise Reveal', standard: 'Destination revealed 48h before. A secret clue before revealing the destination.', premium: 'Destination revealed 48h before. A secret clue before revealing the destination.' },
-  { id: 'b7', sport: 'basketball', category: 'Starting Price', standard: 'From 279€', premium: 'From 1279€' },
-];
-
 export default function PackageManagement({ 
-  initialPackages = defaultInitialPackages,
+  initialPackages,
   onPackageAdd,
   onPackageDelete
 }: PackageManagementProps) {
-  const [packages, setPackages] = useState<PackageData[]>(initialPackages);
+  const [packages, setPackages] = useState<PackageData[]>([]);
   const [selectedSport, setSelectedSport] = useState<'football' | 'basketball' | 'all'>('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  // Load package data from AppData
+  useEffect(() => {
+    setPackages(AppData.travelPackages.getAll() as PackageData[]);
+  }, []);
 
   // Filter packages by sport
   const filteredPackages = selectedSport === 'all' 
@@ -57,7 +42,10 @@ export default function PackageManagement({
 
   // Delete package function
   const handleDeletePackage = (id: string) => {
-    setPackages(prev => prev.filter(pkg => pkg.id !== id));
+    const success = AppData.travelPackages.delete(id);
+    if (success) {
+      setPackages(AppData.travelPackages.getAll() as PackageData[]);
+    }
     setDeleteConfirm(null);
     if (onPackageDelete) {
       onPackageDelete(id);
@@ -66,12 +54,13 @@ export default function PackageManagement({
 
   // Add new package function
   const handleAddPackage = (newPackage: Omit<PackageData, 'id'>) => {
-    const id = `${newPackage.sport}_${Date.now()}`;
-    const packageWithId = { ...newPackage, id };
-    setPackages(prev => [...prev, packageWithId]);
-    setShowAddForm(false);
-    if (onPackageAdd) {
-      onPackageAdd(packageWithId);
+    const addedPackage = AppData.travelPackages.add(newPackage);
+    if (addedPackage) {
+      setPackages(AppData.travelPackages.getAll() as PackageData[]);
+      setShowAddForm(false);
+      if (onPackageAdd) {
+        onPackageAdd(addedPackage as PackageData);
+      }
     }
   };
 
