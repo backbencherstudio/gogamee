@@ -113,12 +113,7 @@ export default function EventReqTable() {
     }
   }
 
-  // Update booking status
-  const updateBookingStatus = (id: number, status: "pending" | "completed" | "cancelled") => {
-    AppData.bookings.update(id, { status });
-    // Update local state immediately
-    setBookings([...AppData.bookings.all]);
-  };
+
 
   // Delete booking
   const handleDeleteBooking = (id: number) => {
@@ -325,6 +320,8 @@ export default function EventReqTable() {
                   <div className="flex items-center gap-2">
                                          <BookingSummaryModal 
                        bookingData={{
+                         id: booking.id,
+                         status: booking.status,
                          selectedSport: booking.selectedSport,
                          selectedPackage: booking.selectedPackage,
                          selectedCity: booking.selectedCity,
@@ -374,40 +371,12 @@ export default function EventReqTable() {
                          hasFlightPreferences: booking.hasFlightPreferences,
                          requiresEuropeanLeagueHandling: booking.requiresEuropeanLeagueHandling
                        }}
+                       onStatusUpdate={() => {
+                         // Refresh the bookings data to show updated status
+                         setBookings([...AppData.bookings.all])
+                       }}
                      />
-                                         {/* Status Management Buttons */}
-                     {booking.status === "pending" && (
-                       <>
-                         <button
-                           onClick={() => updateBookingStatus(booking.id, "completed")}
-                           className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs transition-colors"
-                         >
-                           ✓
-                         </button>
-                         <button
-                           onClick={() => updateBookingStatus(booking.id, "cancelled")}
-                           className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs transition-colors"
-                         >
-                           ✕
-                         </button>
-                       </>
-                     )}
-                     {booking.status === "completed" && (
-                       <button
-                         onClick={() => updateBookingStatus(booking.id, "pending")}
-                         className="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs transition-colors"
-                       >
-                         ↺
-                       </button>
-                     )}
-                     {booking.status === "cancelled" && (
-                       <button
-                         onClick={() => updateBookingStatus(booking.id, "pending")}
-                         className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs transition-colors"
-                       >
-                         ↺
-                       </button>
-                     )}
+                    
                      
                      {/* Delete Button */}
                      <button 

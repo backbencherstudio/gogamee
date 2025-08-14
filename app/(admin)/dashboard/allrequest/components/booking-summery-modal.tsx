@@ -31,6 +31,8 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 
 interface BookingData {
+  id: number
+  status: "pending" | "completed" | "cancelled"
   selectedSport: string
   selectedPackage: string
   selectedCity: string
@@ -100,10 +102,12 @@ interface BookingData {
 
 interface BookingSummaryModalProps {
   bookingData: BookingData
+  onStatusUpdate?: () => void
 }
 
-export default function BookingSummaryModal({ bookingData }: BookingSummaryModalProps) {
+export default function BookingSummaryModal({ bookingData, onStatusUpdate }: BookingSummaryModalProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -112,23 +116,83 @@ export default function BookingSummaryModal({ bookingData }: BookingSummaryModal
           View Booking Summary
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-xl">
+      <DialogContent className=" min-w-[50vw] max-h-[90vh] overflow-y-auto bg-white rounded-xl shadow-xl">
         <DialogHeader className="border-b border-gray-100 pb-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">Booking Summary</DialogTitle>
+                              <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">Booking Summary #{bookingData.id}</DialogTitle>
               <DialogDescription className="text-gray-600">Review your complete booking details</DialogDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge
-                variant={bookingData.isBookingComplete ? "default" : "secondary"}
-                className={bookingData.isBookingComplete ? "bg-green-100 text-green-800" : ""}
-              >
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                {bookingData.isBookingComplete ? "Confirmed" : "Pending"}
-              </Badge>
-            </div>
+                          <div className="flex items-center gap-2">
+                <Badge
+                  variant="default"
+                  className={
+                    bookingData.status === "completed" 
+                      ? "bg-green-100 text-green-800" 
+                      : bookingData.status === "cancelled"
+                      ? "bg-red-100 text-red-800"
+                      : "bg-yellow-100 text-yellow-800"
+                  }
+                >
+                  {bookingData.status === "completed" ? (
+                    <>
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Confirmed
+                    </>
+                  ) : bookingData.status === "cancelled" ? (
+                    <>
+                      <XCircle className="h-3 w-3 mr-1" />
+                      Rejected
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="h-3 w-3 mr-1" />
+                      Pending
+                    </>
+                  )}
+                </Badge>
+              </div>
           </div>
+          
+                      {/* Status Information Card */}
+            <div className={`mt-4 p-4 rounded-lg border ${
+              bookingData.status === "completed" 
+                ? "bg-green-50 border-green-200" 
+                : bookingData.status === "cancelled"
+                ? "bg-red-50 border-red-200"
+                : "bg-yellow-50 border-yellow-200"
+            }`}>
+              <div className="flex items-center gap-3">
+                <div className={`w-4 h-4 rounded-full ${
+                  bookingData.status === "completed" 
+                    ? "bg-green-500" 
+                    : bookingData.status === "cancelled"
+                    ? "bg-red-500"
+                    : "bg-yellow-500"
+                }`}></div>
+                <div className="text-sm">
+                  <span className="font-medium">Current Status:</span>{" "}
+                  <span className={`font-semibold ${
+                    bookingData.status === "completed" 
+                      ? "text-green-700" 
+                      : bookingData.status === "cancelled"
+                      ? "text-red-700"
+                      : "text-yellow-700"
+                  }`}>
+                    {bookingData.status === "completed" ? "✅ Confirmed" : 
+                     bookingData.status === "cancelled" ? "❌ Rejected" : "⏳ Pending"}
+                  </span>
+                </div>
+              </div>
+              <div className="mt-2 text-xs text-gray-600">
+                {bookingData.status === "pending" 
+                  ? "This booking is waiting for approval"
+                  : bookingData.status === "completed"
+                  ? "This booking has been confirmed and is active"
+                  : "This booking has been rejected and is no longer active"
+                }
+              </div>
+            </div>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -337,101 +401,241 @@ export default function BookingSummaryModal({ bookingData }: BookingSummaryModal
             </CardContent>
           </Card>
 
-          {/* Contact & Payment */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <Mail className="h-4 w-4 text-indigo-600" />
-                  </div>
-                  Contact Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Users className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-gray-500">Full Name</p>
-                      <p className="font-medium text-gray-900 truncate">{bookingData.fullName}</p>
-                    </div>
+          {/* Contact Information */}
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                  <Mail className="h-4 w-4 text-indigo-600" />
+                </div>
+                Contact Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Users className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-500">Full Name</p>
+                    <p className="font-medium text-gray-900 truncate">{bookingData.fullName}</p>
                   </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium text-gray-900 truncate">{bookingData.email}</p>
-                    </div>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="font-medium text-gray-900 truncate">{bookingData.email}</p>
                   </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-gray-500">Phone</p>
-                      <p className="font-medium text-gray-900 truncate">{bookingData.phone}</p>
-                    </div>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Phone className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-500">Phone</p>
+                    <p className="font-medium text-gray-900 truncate">{bookingData.phone}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                  <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                    <CreditCard className="h-4 w-4 text-orange-600" />
-                  </div>
-                  Payment & Booking
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <CreditCard className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-gray-500">Payment Method</p>
-                      <p className="font-medium text-gray-900 capitalize truncate">{bookingData.paymentMethod}</p>
-                    </div>
+          {/* Payment & Booking */}
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <CreditCard className="h-4 w-4 text-orange-600" />
+                </div>
+                Payment & Booking
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <CreditCard className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-500">Payment Method</p>
+                    <p className="font-medium text-gray-900 capitalize truncate">{bookingData.paymentMethod}</p>
                   </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <CalendarIcon className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-gray-500">Booking Date</p>
-                      <p className="font-medium text-gray-900 truncate">{bookingData.bookingDate}</p>
-                    </div>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <CalendarIcon className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-500">Booking Date</p>
+                    <p className="font-medium text-gray-900 truncate">{bookingData.bookingDate}</p>
                   </div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm text-gray-500">Booking Time</p>
-                      <p className="font-medium text-gray-900 truncate">{bookingData.bookingTime}</p>
-                    </div>
+              </div>
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-gray-500">Booking Time</p>
+                    <p className="font-medium text-gray-900 truncate">{bookingData.bookingTime}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Footer */}
-        <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            Booking ID:{" "}
-            <span className="font-mono font-medium text-gray-900">#{bookingData.bookingTimestamp.slice(-8)}</span>
+        <div className="mt-8 pt-6 border-t border-gray-100">
+          <div className="flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                  Booking ID:{" "}
+                  <span className="font-mono font-medium text-gray-900">#{bookingData.id}</span>
+                  {" | "}
+                  Status:{" "}
+                  <span className={`font-medium ${
+                    bookingData.status === "completed" 
+                      ? "text-green-600" 
+                      : bookingData.status === "cancelled"
+                      ? "text-red-600"
+                      : "text-yellow-600"
+                  }`}>
+                    {bookingData.status === "completed" ? "Confirmed" : 
+                     bookingData.status === "cancelled" ? "Rejected" : "Pending"}
+                  </span>
+                </div>
+                          <div className="flex flex-col gap-3">
+                <div className="text-xs text-gray-500 text-center">
+                  {bookingData.status === "pending" 
+                    ? "Click Approve to confirm this booking, or Reject to cancel it"
+                    : bookingData.status === "completed"
+                    ? "✅ This booking has been confirmed and cannot be modified"
+                    : "❌ This booking has been rejected and cannot be modified"
+                  }
+                </div>
+                <div className="flex items-center gap-3">
+                  {/* Only show Approve/Reject buttons for pending bookings */}
+                  {bookingData.status === "pending" && (
+                    <>
+                      <Button 
+                        onClick={async () => {
+                          if (isProcessing) return
+                          
+                          setIsProcessing(true)
+                          try {
+                            // Import AppData dynamically to avoid SSR issues
+                            const { default: AppData } = await import('../../../../lib/appdata')
+                            
+                            // Find the booking by matching the data (more robust matching)
+                            const bookingToUpdate = AppData.bookings.all.find(booking => 
+                              booking.fullName === bookingData.fullName &&
+                              booking.email === bookingData.email &&
+                              booking.phone === bookingData.phone &&
+                              Math.abs(new Date(booking.bookingTimestamp).getTime() - new Date(bookingData.bookingTimestamp).getTime()) < 60000 // Within 1 minute
+                            )
+                            
+                            if (bookingToUpdate) {
+                              // Update booking status to completed
+                              AppData.bookings.update(bookingToUpdate.id, { status: "completed" })
+                              console.log('✅ Booking approved and status updated to completed')
+                              
+                              // Show success message
+                              alert('✅ Booking approved successfully! Status updated to completed.')
+                              
+                              // Refresh parent component to show updated data
+                              if (onStatusUpdate) {
+                                onStatusUpdate()
+                              }
+                            } else {
+                              console.error('❌ Could not find booking to update')
+                              alert('❌ Error: Could not find booking to update')
+                            }
+                          } catch (error) {
+                            console.error('❌ Error approving booking:', error)
+                            alert('❌ Error approving booking. Please try again.')
+                          } finally {
+                            setIsProcessing(false)
+                            setIsOpen(false)
+                          }
+                        }} 
+                        disabled={isProcessing}
+                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isProcessing ? 'Processing...' : '✓ Approve'}
+                      </Button>
+                      <Button 
+                        onClick={async () => {
+                          if (isProcessing) return
+                          
+                          setIsProcessing(true)
+                          try {
+                            // Import AppData dynamically to avoid SSR issues
+                            const { default: AppData } = await import('../../../../lib/appdata')
+                            
+                            // Find the booking by matching the data (more robust matching)
+                            const bookingToUpdate = AppData.bookings.all.find(booking => 
+                              booking.fullName === bookingData.fullName &&
+                              booking.email === bookingData.email &&
+                              booking.phone === bookingData.phone &&
+                              Math.abs(new Date(booking.bookingTimestamp).getTime() - new Date(bookingData.bookingTimestamp).getTime()) < 60000 // Within 1 minute
+                            )
+                            
+                            if (bookingToUpdate) {
+                              // Update booking status to cancelled
+                              AppData.bookings.update(bookingToUpdate.id, { status: "cancelled" })
+                              console.log('✅ Booking rejected and status updated to cancelled')
+                              
+                              // Show success message
+                              alert('✅ Booking rejected successfully! Status updated to cancelled.')
+                              
+                              // Refresh parent component to show updated data
+                              if (onStatusUpdate) {
+                                onStatusUpdate()
+                              }
+                            } else {
+                              console.error('❌ Could not find booking to update')
+                              alert('❌ Error: Could not find booking to update')
+                            }
+                          } catch (error) {
+                            console.error('❌ Error rejecting booking:', error)
+                            alert('❌ Error rejecting booking. Please try again.')
+                          } finally {
+                            setIsProcessing(false)
+                            setIsOpen(false)
+                          }
+                        }} 
+                        disabled={isProcessing}
+                        className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isProcessing ? 'Processing...' : '✕ Reject'}
+                      </Button>
+                    </>
+                  )}
+                  
+                  {/* Show status-specific message for non-pending bookings */}
+                  {bookingData.status !== "pending" && (
+                    <div className={`px-4 py-2 rounded-lg text-sm font-medium ${
+                      bookingData.status === "completed" 
+                        ? "bg-green-100 text-green-800" 
+                        : "bg-red-100 text-red-800"
+                    }`}>
+                      {bookingData.status === "completed" 
+                        ? "✅ This booking has been confirmed" 
+                        : "❌ This booking has been rejected"}
+                    </div>
+                  )}
+                  
+                  <Button 
+                    onClick={() => setIsOpen(false)} 
+                    disabled={isProcessing}
+                    className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Close
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
-          <Button onClick={() => setIsOpen(false)} className="bg-gray-900 hover:bg-gray-800 text-white">
-            Close
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
+        </DialogContent>
+      </Dialog>
+    )
+  }
