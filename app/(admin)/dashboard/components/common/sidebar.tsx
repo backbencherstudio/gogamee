@@ -10,7 +10,6 @@ import {
   FileText,
   Star,
   Package,
-  Calendar,
 } from "lucide-react"
 import { cn } from "@/app/lib/utils"
 
@@ -33,7 +32,6 @@ const sidebarData: SidebarSection[] = [
     items: [
       { title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },
       { title: "All request", icon: FileText, url: "/dashboard/allrequest" },
-      { title: "Bookings", icon: Calendar, url: "/dashboard/booking" },
       { title: "FAQ", icon: HelpCircle, url: "/dashboard/faq" },
       { title: "Package", icon: Package, url: "/dashboard/package" },
       { title: "Testimonial", icon: Star, url: "/dashboard/testimonial" },

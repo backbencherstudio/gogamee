@@ -1,16 +1,19 @@
 "use client"
 import { useState, useMemo } from "react"
-import { FaTrash, FaCalendarAlt, FaUsers, FaDollarSign, FaPlane, FaMapMarkerAlt } from "react-icons/fa"
+import { FaTrash, FaCalendarAlt, FaUsers, FaDollarSign, FaPlane, FaMapMarkerAlt, FaEye } from "react-icons/fa"
 import { MdKeyboardArrowDown, MdSports } from "react-icons/md"
 import { useRouter } from "next/navigation"
 import { subDays, parseISO, isWithinInterval, format, startOfDay, endOfDay } from "date-fns"
-import { dummyBookings as dummyData } from "@/app/lib/appdata"
+import AppData from "@/app/lib/appdata"
+import BookingSummaryModal from "./booking-summery-modal"
 
 export default function EventReqTable() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("all")
   const [timeFilter, setTimeFilter] = useState("30days")
   const [showDateDropdown, setShowDateDropdown] = useState(false)
+  const [bookings, setBookings] = useState(AppData.bookings.all)
+  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
 
   const dateRangeOptions = [
     { value: "7days", label: "Last 7 days" },
@@ -27,7 +30,7 @@ export default function EventReqTable() {
 
   const filteredData = useMemo(() => {
     // First filter by status
-    let filtered = dummyData.filter((item) => {
+    let filtered = bookings.filter((item) => {
       if (activeTab === "all") return true
       if (activeTab === "approved") return item.status === "completed"
       if (activeTab === "pending") return item.status === "pending"
@@ -50,7 +53,7 @@ export default function EventReqTable() {
     })
 
     return filtered
-  }, [activeTab, timeFilter])
+  }, [activeTab, timeFilter, bookings])
 
   const handleDateRangeChange = (value: string) => {
     setTimeFilter(value)
@@ -110,9 +113,22 @@ export default function EventReqTable() {
     }
   }
 
-  const handleViewDetails = (bookingId: number) => {
-    router.push(`/dashboard/booking/${bookingId}`)
-  }
+  // Update booking status
+  const updateBookingStatus = (id: number, status: "pending" | "completed" | "cancelled") => {
+    AppData.bookings.update(id, { status });
+    // Update local state immediately
+    setBookings([...AppData.bookings.all]);
+  };
+
+  // Delete booking
+  const handleDeleteBooking = (id: number) => {
+    AppData.bookings.delete(id);
+    setDeleteConfirm(null);
+    // Update local state immediately
+    setBookings([...AppData.bookings.all]);
+  };
+
+
 
   const formatDate = (dateString: string) => {
     try {
@@ -134,13 +150,13 @@ export default function EventReqTable() {
     const days = Number.parseInt(timeFilter.replace("days", ""))
     const { startDate, endDate } = getFilteredDateRange(days)
     return {
-      totalData: dummyData.length,
+      totalData: bookings.length,
       filteredCount: filteredData.length,
       dateRange: `${format(startDate, "MMM dd, yyyy")} - ${format(endDate, "MMM dd, yyyy")}`,
       activeTab,
       timeFilter,
     }
-  }, [filteredData.length, activeTab, timeFilter])
+  }, [filteredData.length, activeTab, timeFilter, bookings.length])
 
   return (
     <div className="w-full px-4 ml-6">
@@ -194,12 +210,12 @@ export default function EventReqTable() {
       {/* Tab Navigation */}
       <div className="px-6 border-b border-gray-100">
         <div className="flex space-x-8">
-          {[
-            { key: "all", label: "All Bookings", count: dummyData.length },
-            { key: "approved", label: "Confirmed", count: dummyData.filter((d) => d.status === "completed").length },
-            { key: "pending", label: "Pending", count: dummyData.filter((d) => d.status === "pending").length },
-            { key: "rejected", label: "Cancelled", count: dummyData.filter((d) => d.status === "cancelled").length },
-          ].map((tab) => (
+                     {[
+             { key: "all", label: "All Bookings", count: bookings.length },
+             { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "completed").length },
+             { key: "pending", label: "Pending", count: bookings.filter((d) => d.status === "pending").length },
+             { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "cancelled").length },
+           ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
@@ -292,12 +308,9 @@ export default function EventReqTable() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="space-y-1">
                     <div className="flex items-center text-sm text-gray-900 font-medium">
-                      <FaDollarSign className="w-3 h-3 mr-2 text-gray-400" />€{booking.totalPrice}
+                      <FaDollarSign className="w-3 h-3 mr-2 text-gray-400" />€{booking.totalExtrasCost}
                     </div>
-                    <div className="text-xs text-gray-500">Base: €{booking.basePrice}</div>
-                    <div className="text-xs text-gray-500">
-                      Extras: €{booking.totalExtrasCost} ({booking.extrasCount})
-                    </div>
+                    <div className="text-xs text-gray-500">Extras: €{booking.totalExtrasCost} ({booking.extrasCount})</div>
                     <div className="text-xs text-gray-500">{booking.travelDuration} days</div>
                   </div>
                 </td>
@@ -310,15 +323,99 @@ export default function EventReqTable() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleViewDetails(booking.id)}
-                      className="inline-flex items-center px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors shadow-sm"
-                    >
-                      View Details
-                    </button>
-                    <button className="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors">
-                      <FaTrash size={12} />
-                    </button>
+                                         <BookingSummaryModal 
+                       bookingData={{
+                         selectedSport: booking.selectedSport,
+                         selectedPackage: booking.selectedPackage,
+                         selectedCity: booking.selectedCity,
+                         selectedLeague: booking.selectedLeague,
+                         adults: booking.adults,
+                         kids: booking.kids,
+                         babies: booking.babies,
+                         totalPeople: booking.totalPeople,
+                         departureDate: booking.departureDate,
+                         returnDate: booking.returnDate,
+                         departureDateFormatted: booking.departureDateFormatted,
+                         returnDateFormatted: booking.returnDateFormatted,
+                         departureTimeStart: booking.departureTimeStart,
+                         departureTimeEnd: booking.departureTimeEnd,
+                         arrivalTimeStart: booking.arrivalTimeStart,
+                         arrivalTimeEnd: booking.arrivalTimeEnd,
+                         departureTimeRange: booking.departureTimeRange,
+                         arrivalTimeRange: booking.arrivalTimeRange,
+                         removedLeagues: Array.isArray(booking.removedLeagues) ? 
+                           booking.removedLeagues.map(league => ({ 
+                             id: typeof league === 'string' ? league : (league as { id?: string; name?: string }).id || '', 
+                             name: typeof league === 'string' ? league : (league as { id?: string; name?: string }).name || '', 
+                             country: 'Spain' 
+                           })) : [],
+                         removedLeaguesCount: booking.removedLeaguesCount,
+                         hasRemovedLeagues: booking.hasRemovedLeagues,
+                         allExtras: booking.allExtras,
+                         selectedExtras: booking.selectedExtras,
+                         selectedExtrasNames: booking.selectedExtrasNames,
+                         totalExtrasCost: booking.totalExtrasCost,
+                         extrasCount: booking.extrasCount,
+                         firstName: booking.firstName,
+                         lastName: booking.lastName,
+                         fullName: booking.fullName,
+                         email: booking.email,
+                         phone: booking.phone,
+                         paymentMethod: booking.paymentMethod,
+                         cardNumber: booking.cardNumber,
+                         expiryDate: booking.expiryDate,
+                         cvv: booking.cvv,
+                         cardholderName: booking.cardholderName,
+                         bookingTimestamp: booking.bookingTimestamp,
+                         bookingDate: booking.bookingDate,
+                         bookingTime: booking.bookingTime,
+                         isBookingComplete: booking.isBookingComplete,
+                         travelDuration: booking.travelDuration,
+                         hasFlightPreferences: booking.hasFlightPreferences,
+                         requiresEuropeanLeagueHandling: booking.requiresEuropeanLeagueHandling
+                       }}
+                     />
+                                         {/* Status Management Buttons */}
+                     {booking.status === "pending" && (
+                       <>
+                         <button
+                           onClick={() => updateBookingStatus(booking.id, "completed")}
+                           className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs transition-colors"
+                         >
+                           ✓
+                         </button>
+                         <button
+                           onClick={() => updateBookingStatus(booking.id, "cancelled")}
+                           className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-xs transition-colors"
+                         >
+                           ✕
+                         </button>
+                       </>
+                     )}
+                     {booking.status === "completed" && (
+                       <button
+                         onClick={() => updateBookingStatus(booking.id, "pending")}
+                         className="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs transition-colors"
+                       >
+                         ↺
+                       </button>
+                     )}
+                     {booking.status === "cancelled" && (
+                       <button
+                         onClick={() => updateBookingStatus(booking.id, "pending")}
+                         className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs transition-colors"
+                       >
+                         ↺
+                       </button>
+                     )}
+                     
+                     {/* Delete Button */}
+                     <button 
+                       onClick={() => setDeleteConfirm(booking.id)}
+                       className="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
+                     >
+                       <FaTrash size={12} />
+                     </button>
                   </div>
                 </td>
               </tr>
@@ -341,6 +438,32 @@ export default function EventReqTable() {
         </div>
       )}
     </div>
+
+
+
+    {/* Delete Confirmation Modal */}
+    {deleteConfirm && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
+          <h3 className="text-lg font-semibold font-['Poppins'] mb-2">Delete Booking</h3>
+          <p className="text-gray-600 mb-4">Are you sure you want to delete this booking? This action cannot be undone.</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => handleDeleteBooking(deleteConfirm)}
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => setDeleteConfirm(null)}
+              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
 
     </div>
     </div>

@@ -3,7 +3,7 @@
 // ============================================
 // IMPORTS SECTION - সকল প্রয়োজনীয় imports
 // ============================================
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   ArrowUp,
   ArrowDown,
@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
+import AppData from "@/app/lib/appdata";
 
 // ============================================
 // TYPE DEFINITIONS - ডেটা টাইপ সংজ্ঞা
@@ -196,214 +197,29 @@ const RecentRequestsTable: React.FC = () => {
   // পেজিনেশনের জন্য state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20; // প্রতি পেজে ২০টি আইটেম
+  const [allRequests, setAllRequests] = useState<RecentRequest[]>([]);
 
-  // ডামি ডেটা - সাধারণত API থেকে আসবে (useMemo দিয়ে optimize করা হয়েছে)
-  const allRequests: RecentRequest[] = useMemo(() => [
-    // প্রথম ২০টি রিকুয়েস্ট
-    {
-      id: "REQ-001",
-      customer: "John Smith",
-      package: "Premier League",
-      date: "2024-01-15",
-      status: "completed",
-      amount: "$2,499",
-    },
-    {
-      id: "REQ-002",
-      customer: "Emily Johnson",
-      package: "Champions League",
-      date: "2024-01-14",
-      status: "pending",
-      amount: "$3,299",
-    },
-    {
-      id: "REQ-003",
-      customer: "Michael Brown",
-      package: "World Cup",
-      date: "2024-01-13",
-      status: "completed",
-      amount: "$4,999",
-    },
-    {
-      id: "REQ-004",
-      customer: "Sarah Davis",
-      package: "NBA Finals",
-      date: "2024-01-12",
-      status: "rejected",
-      amount: "$1,899",
-    },
-    {
-      id: "REQ-005",
-      customer: "David Wilson",
-      package: "Super Bowl",
-      date: "2024-01-11",
-      status: "pending",
-      amount: "$5,599",
-    },
-    // আরো ডেটা যোগ করা হয়েছে পেজিনেশন টেস্টের জন্য
-    {
-      id: "REQ-006",
-      customer: "Lisa Anderson",
-      package: "Euro Championship",
-      date: "2024-01-10",
-      status: "completed",
-      amount: "$3,799",
-    },
-    {
-      id: "REQ-007",
-      customer: "Mark Thompson",
-      package: "Copa America",
-      date: "2024-01-09",
-      status: "pending",
-      amount: "$2,999",
-    },
-    {
-      id: "REQ-008",
-      customer: "Jennifer Lee",
-      package: "Olympics",
-      date: "2024-01-08",
-      status: "completed",
-      amount: "$6,999",
-    },
-    {
-      id: "REQ-009",
-      customer: "Robert Garcia",
-      package: "Tennis Grand Slam",
-      date: "2024-01-07",
-      status: "rejected",
-      amount: "$4,299",
-    },
-    {
-      id: "REQ-010",
-      customer: "Amanda White",
-      package: "Formula 1",
-      date: "2024-01-06",
-      status: "pending",
-      amount: "$5,199",
-    },
-    // ১১-২০ নাম্বার রিকুয়েস্ট
-    {
-      id: "REQ-011",
-      customer: "Brian Jones",
-      package: "Cricket World Cup",
-      date: "2024-01-05",
-      status: "completed",
-      amount: "$3,499",
-    },
-    {
-      id: "REQ-012",
-      customer: "Nicole Taylor",
-      package: "Golf Masters",
-      date: "2024-01-04",
-      status: "pending",
-      amount: "$2,799",
-    },
-    {
-      id: "REQ-013",
-      customer: "Kevin Martinez",
-      package: "Boxing Championship",
-      date: "2024-01-03",
-      status: "completed",
-      amount: "$4,599",
-    },
-    {
-      id: "REQ-014",
-      customer: "Rachel Clark",
-      package: "Swimming Championship",
-      date: "2024-01-02",
-      status: "rejected",
-      amount: "$1,999",
-    },
-    {
-      id: "REQ-015",
-      customer: "Steven Rodriguez",
-      package: "Basketball Finals",
-      date: "2024-01-01",
-      status: "pending",
-      amount: "$3,899",
-    },
-    {
-      id: "REQ-016",
-      customer: "Michelle Lewis",
-      package: "Baseball World Series",
-      date: "2023-12-31",
-      status: "completed",
-      amount: "$2,599",
-    },
-    {
-      id: "REQ-017",
-      customer: "Daniel Walker",
-      package: "Hockey Finals",
-      date: "2023-12-30",
-      status: "pending",
-      amount: "$3,199",
-    },
-    {
-      id: "REQ-018",
-      customer: "Laura Hall",
-      package: "Rugby Championship",
-      date: "2023-12-29",
-      status: "completed",
-      amount: "$4,199",
-    },
-    {
-      id: "REQ-019",
-      customer: "Christopher Allen",
-      package: "Volleyball Finals",
-      date: "2023-12-28",
-      status: "rejected",
-      amount: "$1,799",
-    },
-    {
-      id: "REQ-020",
-      customer: "Samantha Young",
-      package: "Badminton Championship",
-      date: "2023-12-27",
-      status: "pending",
-      amount: "$2,299",
-    },
-    // ২১-৪০ নাম্বার রিকুয়েস্ট (দ্বিতীয় পেজের জন্য)
-    {
-      id: "REQ-021",
-      customer: "Andrew King",
-      package: "Table Tennis Championship",
-      date: "2023-12-26",
-      status: "completed",
-      amount: "$1,899",
-    },
-    {
-      id: "REQ-022",
-      customer: "Stephanie Wright",
-      package: "Cycling Tour",
-      date: "2023-12-25",
-      status: "pending",
-      amount: "$3,599",
-    },
-    {
-      id: "REQ-023",
-      customer: "Joshua Lopez",
-      package: "Marathon Championship",
-      date: "2023-12-24",
-      status: "completed",
-      amount: "$2,399",
-    },
-    {
-      id: "REQ-024",
-      customer: "Ashley Hill",
-      package: "Skiing Championship",
-      date: "2023-12-23",
-      status: "rejected",
-      amount: "$4,799",
-    },
-    {
-      id: "REQ-025",
-      customer: "Ryan Scott",
-      package: "Surfing Competition",
-      date: "2023-12-22",
-      status: "pending",
-      amount: "$3,299",
-    },
-  ], []); // empty dependency array কারণ এটি static data
+    // Load real-time data from AppData
+  useEffect(() => {
+    const loadData = () => {
+      const bookings = AppData.bookings.all;
+      const requests: RecentRequest[] = bookings.map((booking, index) => ({
+        id: `REQ-${String(booking.id).padStart(3, '0')}`,
+        customer: booking.fullName,
+        package: `${booking.selectedSport} - ${booking.selectedPackage}`,
+        date: booking.bookingDate,
+        status: booking.status === "completed" ? "completed" : 
+                booking.status === "cancelled" ? "rejected" : "pending",
+        amount: `€${booking.totalExtrasCost}`,
+      }));
+      setAllRequests(requests);
+    };
+
+    loadData();
+    // Refresh data every 5 seconds for real-time updates
+    const interval = setInterval(loadData, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // পেজিনেশনের জন্য ডেটা গণনা
   const totalPages = Math.ceil(allRequests.length / itemsPerPage);
@@ -544,41 +360,91 @@ const RecentRequestsTable: React.FC = () => {
 // MAIN SALES OVERVIEW COMPONENT - মূল কম্পোনেন্ট
 // ============================================
 export function SalesOverview() {
-  // মেট্রিক্স ডেটা - ড্যাশবোর্ডের উপরের কার্ডগুলির জন্য
-  const metrics: MetricCardProps[] = [
+  const [metrics, setMetrics] = useState<MetricCardProps[]>([
     {
       title: "Total Request",
-      value: "1,250",
-      change: "3.5%",
+      value: "0",
+      change: "0%",
       changeType: "increase" as const,
-      lastMonth: "1,200",
+      lastMonth: "0",
       icon: Package,
     },
     {
       title: "Completed",
-      value: "980",
-      change: "5.2%",
+      value: "0",
+      change: "0%",
       changeType: "increase" as const,
-      lastMonth: "930",
+      lastMonth: "0",
       icon: CheckCircle,
     },
     {
       title: "Pending",
-      value: "180",
-      change: "2.1%",
+      value: "0",
+      change: "0%",
       changeType: "decrease" as const,
-      lastMonth: "190",
+      lastMonth: "0",
       icon: Clock,
     },
     {
       title: "Rejected",
-      value: "90",
-      change: "1.5%",
+      value: "0",
+      change: "0%",
       changeType: "increase" as const,
-      lastMonth: "85",
+      lastMonth: "0",
       icon: XCircle,
     },
-  ];
+  ]);
+
+  // Load real-time metrics from AppData
+  useEffect(() => {
+    const loadMetrics = () => {
+      const bookings = AppData.bookings.all;
+      const total = bookings.length;
+      const completed = bookings.filter(b => b.status === "completed").length;
+      const pending = bookings.filter(b => b.status === "pending").length;
+      const cancelled = bookings.filter(b => b.status === "cancelled").length;
+
+      setMetrics([
+        {
+          title: "Total Request",
+          value: total.toString(),
+          change: "0%",
+          changeType: "increase" as const,
+          lastMonth: total.toString(),
+          icon: Package,
+        },
+        {
+          title: "Completed",
+          value: completed.toString(),
+          change: "0%",
+          changeType: "increase" as const,
+          lastMonth: completed.toString(),
+          icon: CheckCircle,
+        },
+        {
+          title: "Pending",
+          value: pending.toString(),
+          change: "0%",
+          changeType: "decrease" as const,
+          lastMonth: pending.toString(),
+          icon: Clock,
+        },
+        {
+          title: "Rejected",
+          value: cancelled.toString(),
+          change: "0%",
+          changeType: "increase" as const,
+          lastMonth: cancelled.toString(),
+          icon: XCircle,
+        },
+      ]);
+    };
+
+    loadMetrics();
+    // Refresh metrics every 5 seconds for real-time updates
+    const interval = setInterval(loadMetrics, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div>
