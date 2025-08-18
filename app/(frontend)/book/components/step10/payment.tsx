@@ -365,6 +365,79 @@ Booking completed with ALL collected data:
 🧹 All booking data will be cleared from storage automatically.`)
       
       // ========================================
+      // SAVE BOOKING DATA TO APPDATA BEFORE CLEANUP
+      // ========================================
+      
+      console.log('💾 Saving booking data to AppData...')
+      
+      try {
+        // Import AppData dynamically to avoid SSR issues
+        const { default: AppData } = await import('../../../../lib/appdata')
+        
+        // Create booking object with status using the correct data structure
+        const newBooking = {
+          status: "pending" as const,
+          selectedSport: singleFormDataObject.selectedSport,
+          selectedPackage: singleFormDataObject.selectedPackage,
+          selectedCity: singleFormDataObject.selectedCity,
+          selectedLeague: singleFormDataObject.selectedLeague,
+          adults: singleFormDataObject.adults,
+          kids: singleFormDataObject.kids,
+          babies: singleFormDataObject.babies,
+          totalPeople: singleFormDataObject.totalPeople,
+          departureDate: singleFormDataObject.departureDate || "",
+          returnDate: singleFormDataObject.returnDate || "",
+          departureDateFormatted: singleFormDataObject.departureDateFormatted || "",
+          returnDateFormatted: singleFormDataObject.returnDateFormatted || "",
+          departureTimeStart: singleFormDataObject.departureTimeStart || 0,
+          departureTimeEnd: singleFormDataObject.departureTimeEnd || 0,
+          arrivalTimeStart: singleFormDataObject.arrivalTimeStart || 0,
+          arrivalTimeEnd: singleFormDataObject.arrivalTimeEnd || 0,
+          departureTimeRange: singleFormDataObject.departureTimeRange || "",
+          arrivalTimeRange: singleFormDataObject.arrivalTimeRange || "",
+          removedLeagues: Array.isArray(singleFormDataObject.removedLeagues) ? 
+            singleFormDataObject.removedLeagues.map(league => league.id || league.name || "") : [],
+          removedLeaguesCount: singleFormDataObject.removedLeaguesCount || 0,
+          hasRemovedLeagues: singleFormDataObject.hasRemovedLeagues || false,
+          allExtras: singleFormDataObject.allExtras.map(extra => ({
+            ...extra,
+            currency: "EUR"
+          })),
+          selectedExtras: singleFormDataObject.selectedExtras.map(extra => ({
+            ...extra,
+            currency: "EUR"
+          })),
+          selectedExtrasNames: singleFormDataObject.selectedExtrasNames,
+          totalExtrasCost: singleFormDataObject.totalExtrasCost,
+          extrasCount: singleFormDataObject.extrasCount,
+          firstName: singleFormDataObject.firstName,
+          lastName: singleFormDataObject.lastName,
+          fullName: singleFormDataObject.fullName,
+          email: singleFormDataObject.email,
+          phone: singleFormDataObject.phone,
+          paymentMethod: selectedPayment,
+          cardNumber: singleFormDataObject.cardNumber,
+          expiryDate: singleFormDataObject.expiryDate,
+          cvv: singleFormDataObject.cvv,
+          cardholderName: singleFormDataObject.cardholderName,
+          bookingTimestamp: new Date().toISOString(),
+          bookingDate: new Date().toLocaleDateString('en-US'),
+          bookingTime: new Date().toLocaleTimeString('en-US'),
+          isBookingComplete: true,
+          travelDuration: singleFormDataObject.travelDuration || 0,
+          hasFlightPreferences: singleFormDataObject.hasFlightPreferences || false,
+          requiresEuropeanLeagueHandling: singleFormDataObject.requiresEuropeanLeagueHandling || false
+        }
+        
+        // Add to AppData
+        const savedBooking = AppData.bookings.add(newBooking)
+        console.log('✅ Booking saved to AppData:', savedBooking)
+        
+      } catch (error) {
+        console.error('❌ Error saving booking to AppData:', error)
+      }
+      
+      // ========================================
       // COMPLETE DATA CLEANUP AFTER SUCCESSFUL BOOKING
       // ========================================
       

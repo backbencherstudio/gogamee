@@ -1,7 +1,7 @@
-import RequestPage from './components/request'
+import EventReqTable from './components/request'
 
 export default function AllRequestPage() {
   return (
-<RequestPage />
+    <EventReqTable />
   )
 }

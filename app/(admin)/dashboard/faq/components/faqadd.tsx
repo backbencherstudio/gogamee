@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { Plus, Edit, Trash2, Save, X } from "lucide-react";
+import AppData from "../../../../lib/appdata";
 
 interface FAQItem {
   id: number;
@@ -10,90 +11,19 @@ interface FAQItem {
   answer: string;
 }
 
-// Initial FAQ data matching the frontend
-const initialFaqData: FAQItem[] = [
-  {
-    id: 1,
-    question: "What is GoGame?",
-    answer:
-      "GoGame is a surprise travel platform that creates unforgettable sports experiences. We organize everything for you — match tickets, flights, and hotel — but we only reveal the destination and event 48 hours before departure.",
-  },
-  {
-    id: 2,
-    question: "How far in advance should I book?",
-    answer:
-      "We recommend booking at least 2-3 months in advance to ensure availability and the best prices. For major sporting events or peak seasons, booking 4-6 months ahead is advisable. Last-minute bookings are possible but may have limited options.",
-  },
-  {
-    id: 3,
-    question: "When will I find out my destination?",
-    answer:
-      "Your destination and event details will be revealed exactly 48 hours before your departure. This adds to the excitement and surprise element of your GoGame experience while giving you enough time to prepare for your trip.",
-  },
-  {
-    id: 4,
-    question: "Do I need a passport or ID?",
-    answer:
-      "Yes, you'll need a valid passport for international destinations and government-issued ID for domestic travel. We recommend having at least 6 months validity on your passport beyond your travel dates to avoid any issues.",
-  },
-  {
-    id: 5,
-    question: "What kind of accommodation is included?",
-    answer:
-      "We provide comfortable, quality accommodations in 3-4 star hotels, always located in safe and convenient areas close to the sporting venue or city center. All rooms include standard amenities and are carefully selected to ensure a pleasant stay.",
-  },
-  {
-    id: 6,
-    question: "Can I travel alone?",
-    answer:
-      "Absolutely! GoGame welcomes solo travelers. Many of our customers travel alone and often end up meeting like-minded sports fans during their trip. We ensure safe and comfortable arrangements for individual travelers.",
-  },
-  {
-    id: 7,
-    question: "Can I cancel or modify a booking?",
-    answer:
-      "Cancellation and modification policies vary depending on how close to departure you are and the specific package. We offer flexible options with different cancellation terms. Please check your booking terms or contact our support team for specific details.",
-  },
-  {
-    id: 8,
-    question: "What luggage is included?",
-    answer:
-      "Standard checked baggage (up to 23kg) and carry-on luggage are included in your package. Specific allowances may vary by airline and destination. We'll provide detailed luggage information once your destination is revealed.",
-  },
-  {
-    id: 9,
-    question: "What are the flights like?",
-    answer:
-      "We book economy class flights with reputable airlines, ensuring comfortable and safe travel. For longer routes, we may include upgraded seating or premium economy when available. All flights include standard meal service and entertainment.",
-  },
-  {
-    id: 10,
-    question: "What if my flight is delayed or cancelled?",
-    answer:
-      "We have 24/7 support to handle any flight disruptions. Our team will work with airlines to rebook you on the next available flight and adjust your itinerary accordingly. Trip insurance options are available for additional protection.",
-  },
-  {
-    id: 11,
-    question: "Can minors travel?",
-    answer:
-      "Yes, minors can travel but must be accompanied by a parent or guardian. For unaccompanied minors, special arrangements and additional fees may apply. Please contact us during booking to discuss specific requirements and airline policies.",
-  },
-  {
-    id: 12,
-    question: "Are there limitations for travelers with reduced mobility?",
-    answer:
-      "We strive to accommodate all travelers. Please inform us of any mobility requirements during booking so we can ensure appropriate accommodations, accessible venues, and suitable transportation arrangements are made for your comfort and safety.",
-  },
-];
-
 export default function FaqAdd() {
-  const [faqData, setFaqData] = useState<FAQItem[]>(initialFaqData);
+  const [faqData, setFaqData] = useState<FAQItem[]>([]);
   const [expandedItems, setExpandedItems] = useState<number[]>([]);
   const [editingItem, setEditingItem] = useState<number | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editForm, setEditForm] = useState({ question: "", answer: "" });
   const [newFaqForm, setNewFaqForm] = useState({ question: "", answer: "" });
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+
+  // Load FAQ data from AppData
+  useEffect(() => {
+    setFaqData(AppData.faqs.getAll());
+  }, []);
 
   const toggleItem = (index: number) => {
     setExpandedItems((prev) => {
@@ -111,13 +41,15 @@ export default function FaqAdd() {
   };
 
   const handleSaveEdit = (id: number) => {
-    setFaqData((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, question: editForm.question, answer: editForm.answer }
-          : item
-      )
-    );
+    const updatedFaq = AppData.faqs.update(id, {
+      question: editForm.question,
+      answer: editForm.answer
+    });
+    
+    if (updatedFaq) {
+      setFaqData(AppData.faqs.getAll());
+    }
+    
     setEditingItem(null);
     setEditForm({ question: "", answer: "" });
   };
@@ -132,21 +64,26 @@ export default function FaqAdd() {
   };
 
   const handleConfirmDelete = (id: number) => {
-    setFaqData((prev) => prev.filter((item) => item.id !== id));
+    const success = AppData.faqs.delete(id);
+    if (success) {
+      setFaqData(AppData.faqs.getAll());
+    }
     setDeleteConfirm(null);
   };
 
   const handleAddNew = () => {
     if (newFaqForm.question.trim() && newFaqForm.answer.trim()) {
-      const newId = Math.max(...faqData.map((item) => item.id)) + 1;
-      const newItem: FAQItem = {
-        id: newId,
+      const newFaq = AppData.faqs.add({
         question: newFaqForm.question.trim(),
         answer: newFaqForm.answer.trim(),
-      };
-      setFaqData((prev) => [...prev, newItem]);
-      setNewFaqForm({ question: "", answer: "" });
-      setShowAddForm(false);
+      });
+      
+      if (newFaq) {
+        // Add the new FAQ to the beginning of the local state for immediate display
+        setFaqData([newFaq, ...faqData]);
+        setNewFaqForm({ question: "", answer: "" });
+        setShowAddForm(false);
+      }
     }
   };
 

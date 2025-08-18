@@ -1,101 +1,20 @@
 'use client'
 import React, { useState } from "react";
 import Link from "next/link";
-
-const basketballData = [
-  {
-    category: "Match Ticket",
-    standard: "Standard seat (upper and lateral seats)",
-    premium: "VIP seat",
-  },
-  {
-    category: "Flights",
-    standard: "Round-trip from a major city",
-    premium: "Round-trip from a major city",
-  },
-  {
-    category: "Hotel",
-    standard: "3-star hotel or apartment",
-    premium: "4–5 star hotel in premium location",
-  },
-  {
-    category: "Transfers",
-    standard: "Public transport or shuttle",
-    premium: "Private transfers (airport & stadium)",
-  },
-  {
-    category: "Welcome Pack",
-    standard: "Travel guide + surprise gift",
-    premium: "Official team jersey + premium goodies",
-  },
-  {
-    category: "Surprise Reveal",
-    standard:
-      "Destination revealed 48h before. A secret clue before revealing the destination.",
-    premium:
-      "Destination revealed 48h before. A secret clue before revealing the destination.",
-  },
-  {
-    category: "Starting Price",
-    standard: "From 279€",
-    premium: "From 1279€",
-  },
-];
-
-const footballData = [
-  {
-    category: "Match Ticket",
-    standard: "General or lateral section",
-    premium: "Premium or central tribune seat",
-  },
-  {
-    category: "Flights",
-    standard: "Round-trip from a major city",
-    premium: "Round-trip from a major city",
-  },
-  {
-    category: "Hotel",
-    standard: "3-star hotel or apartment",
-    premium: "4–5 star hotel near stadium or city center",
-  },
-  {
-    category: "Transfers",
-    standard: "Public transport or shuttle",
-    premium: "Private transfers (airport & stadium)",
-  },
-  {
-    category: "Welcome Pack",
-    standard: "Exclusive GoGame merchandise",
-    premium: "Official team jersey + premium goodies",
-  },
-  {
-    category: "Surprise Reveal",
-    standard:
-      "Destination revealed 48h before. A secret clue before revealing the destination.",
-    premium:
-      "Destination revealed 48h before. A secret clue before revealing the destination.",
-  },
-  {
-    category: "Starting Price",
-    standard: "From 299€",
-    premium: "From 1399€",
-  },
-];
-
-
+import { travelPackages } from "../../../../lib/appdata";
 
 export default function PackageTable() {
   const [selectedSport, setSelectedSport] = useState<'football' | 'basketball'>('football');
 
-  // Choose data based on selected sport
-  const data = selectedSport === 'football' ? footballData : basketballData;
+  // Filter packages by selected sport
+  const filteredPackages = travelPackages.filter(pkg => pkg.sport === selectedSport);
 
-  // Extract features (row labels)
-  const features = data.map((item) => item.category);
+  // Extract features (row labels) from the filtered packages
+  const features = filteredPackages.map((item) => item.category);
 
   // Helper to get value for a feature and type
   const getValue = (feature: string, type: 'standard' | 'premium') => {
-    const found = data.find((item) => item.category === feature);
+    const found = filteredPackages.find((item) => item.category === feature);
     return found ? found[type] : '';
   };
 

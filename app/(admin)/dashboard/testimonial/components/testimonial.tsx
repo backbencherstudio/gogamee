@@ -1,8 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Star, Edit, Trash2, Save, X, User } from "lucide-react";
 import { AiFillStar } from "react-icons/ai";
+import AppData from "../../../../lib/appdata";
+import { uploadImage } from "../../../../lib/utils";
 
 interface ReviewItem {
   id: number;
@@ -13,63 +15,12 @@ interface ReviewItem {
   review: string;
 }
 
-// Initial review data from frontend
-const initialReviewData: ReviewItem[] = [
-  {
-    id: 1,
-    name: "Esther Howard",
-    role: "Wellness Coach",
-    image: "/homepage/image/avatar1.png",
-    rating: 5,
-    review: "I've used several travel platforms for my sports trips, but GoGame completely blew me away. The concept of booking a surprise destination and match was amazing!"
-  },
-  {
-    id: 2,
-    name: "Darlene",
-    role: "Wellness Coach",
-    image: "/homepage/image/avatar2.png",
-    rating: 5,
-    review: "GoGame provided an unforgettable experience for me and my friends. We chose football as our sport, and they organized everything perfectly"
-  },
-  {
-    id: 3,
-    name: "Brooklyn",
-    role: "Wellness Coach",
-    image: "/homepage/image/avatar3.png",
-    rating: 5,
-    review: "If you're a sports fan and love surprises, GoGame is for you! I booked a surprise football trip and was amazed by how well everything was organized."
-  },
-  {
-    id: 4,
-    name: "Jenny Wilson",
-    role: "Sports Enthusiast",
-    image: "/homepage/image/avatar1.png",
-    rating: 4,
-    review: "The surprise element made the whole experience so exciting! The match we attended was incredible, though the hotel could have been better."
-  },
-  {
-    id: 5,
-    name: "Robert Fox",
-    role: "Travel Blogger",
-    image: "/homepage/image/avatar2.png",
-    rating: 5,
-    review: "As someone who reviews travel experiences for a living, I can say GoGame offers something truly unique. Their attention to detail is impressive!"
-  },
-  {
-    id: 6,
-    name: "Wade Warren",
-    role: "Football Fan",
-    image: "/homepage/image/avatar3.png",
-    rating: 5,
-    review: "Watched my favorite team play in a stadium I never thought I'd visit! The surprise reveal was perfect, and the matchday experience was unforgettable."
-  }
-];
-
 export default function TestimonialPage() {
-  const [reviews, setReviews] = useState<ReviewItem[]>(initialReviewData);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingReview, setEditingReview] = useState<number | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [newReviewForm, setNewReviewForm] = useState({
     name: "",
     role: "",
@@ -87,57 +38,100 @@ export default function TestimonialPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
 
+  // Load review data from AppData
+  useEffect(() => {
+    setReviews(AppData.reviews.getAll());
+  }, []);
+
+  const handleImageError = (imagePath: string, e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    // Only set fallback if we haven't already tried for this image
+    if (!failedImages.has(imagePath)) {
+      setFailedImages(prev => new Set(prev).add(imagePath));
+      e.currentTarget.src = "/homepage/image/avatar1.png";
+    }
+  };
+
   // Handle image upload for new review
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        setNewReviewForm({...newReviewForm, image: result});
-      };
-      reader.readAsDataURL(file);
+      try {
+        const result = await uploadImage(file, 'reviews');
+
+        if (result.success && result.imagePath) {
+          // Store only the path
+          setNewReviewForm({
+            ...newReviewForm,
+            image: result.imagePath
+          });
+          setImagePreview(result.imagePath);
+        } else {
+          alert(result.error || 'Upload failed');
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Upload failed. Please try again.');
+      }
     }
   };
 
   // Handle image upload for edit form
-  const handleEditImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEditImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setEditImagePreview(result);
-        setEditForm({...editForm, image: result});
-      };
-      reader.readAsDataURL(file);
+      try {
+        const result = await uploadImage(file, 'reviews');
+
+        if (result.success && result.imagePath) {
+          // Store only the path
+          setEditForm({
+            ...editForm,
+            image: result.imagePath
+          });
+          setEditImagePreview(result.imagePath);
+        } else {
+          alert(result.error || 'Upload failed');
+        }
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Upload failed. Please try again.');
+      }
     }
   };
 
   // Add new review
   const handleAddReview = () => {
     if (newReviewForm.name && newReviewForm.role && newReviewForm.review) {
-      const newReview: ReviewItem = {
-        id: Math.max(...reviews.map(r => r.id)) + 1,
-        ...newReviewForm
-      };
-      setReviews([...reviews, newReview]);
-      setNewReviewForm({
-        name: "",
-        role: "",
-        image: "/homepage/image/avatar1.png",
-        rating: 5,
-        review: ""
+      const newReview = AppData.reviews.add({
+        name: newReviewForm.name.trim(),
+        role: newReviewForm.role.trim(),
+        image: newReviewForm.image,
+        rating: newReviewForm.rating,
+        review: newReviewForm.review.trim()
       });
-      setImagePreview(null);
-      setShowAddForm(false);
+      
+      if (newReview) {
+        // Add the new review to the beginning of the local state for immediate display
+        setReviews([newReview, ...reviews]);
+        setNewReviewForm({
+          name: "",
+          role: "",
+          image: "/homepage/image/avatar1.png",
+          rating: 5,
+          review: ""
+        });
+        setImagePreview(null);
+        setShowAddForm(false);
+      }
     }
   };
 
   // Delete review
   const handleDeleteReview = (id: number) => {
-    setReviews(reviews.filter(review => review.id !== id));
+    const success = AppData.reviews.delete(id);
+    if (success) {
+      setReviews(AppData.reviews.getAll());
+    }
     setDeleteConfirm(null);
   };
 
@@ -157,11 +151,10 @@ export default function TestimonialPage() {
   // Save edit
   const saveEdit = () => {
     if (editingReview) {
-      setReviews(reviews.map(review => 
-        review.id === editingReview 
-          ? { ...review, ...editForm }
-          : review
-      ));
+      const updatedReview = AppData.reviews.update(editingReview, editForm);
+      if (updatedReview) {
+        setReviews(AppData.reviews.getAll());
+      }
       setEditingReview(null);
       setEditImagePreview(null);
     }
@@ -464,6 +457,7 @@ export default function TestimonialPage() {
                             alt={review.name}
                             fill
                             className="object-cover"
+                            onError={(e) => handleImageError(review.image, e)}
                           />
                         </div>
                         <div className="min-w-0 flex-1">
