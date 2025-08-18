@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { subDays, parseISO, isWithinInterval, format, startOfDay, endOfDay } from "date-fns"
 import AppData from "@/app/lib/appdata"
 import BookingSummaryModal from "./booking-summery-modal"
+import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal"
 
 export default function EventReqTable() {
   const router = useRouter()
@@ -411,28 +412,13 @@ export default function EventReqTable() {
 
 
     {/* Delete Confirmation Modal */}
-    {deleteConfirm && (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-xl shadow-xl max-w-md w-full mx-4">
-          <h3 className="text-lg font-semibold font-['Poppins'] mb-2">Delete Booking</h3>
-          <p className="text-gray-600 mb-4">Are you sure you want to delete this booking? This action cannot be undone.</p>
-          <div className="flex gap-3">
-            <button
-              onClick={() => handleDeleteBooking(deleteConfirm)}
-              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors"
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => setDeleteConfirm(null)}
-              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
+    <DeleteConfirmationModal
+      isOpen={!!deleteConfirm}
+      onClose={() => setDeleteConfirm(null)}
+      onConfirm={() => deleteConfirm && handleDeleteBooking(deleteConfirm)}
+      title="Delete Booking"
+      message="Are you sure you want to delete this booking? This action cannot be undone."
+    />
 
     </div>
     </div>
