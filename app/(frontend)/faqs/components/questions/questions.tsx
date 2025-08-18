@@ -1,12 +1,8 @@
 'use client'
 import React, { useState } from 'react';
 import Image from 'next/image';
-<<<<<<< HEAD
 import { IoIosArrowDown } from 'react-icons/io';
-=======
-import { IoIosArrowDown, IoIosArrowUp } from 'react-icons/io';
 import { faqs } from '../../../../lib/appdata';
->>>>>>> dac7ec1e3b5d5142d89555ca33dac95625356559
 
 interface FAQItem {
   id: number;

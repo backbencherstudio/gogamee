@@ -57,7 +57,6 @@ body {
   margin: 0 auto; */
 }
 
-<<<<<<< HEAD
 /* Hide scrollbar but keep functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;  /* Internet Explorer 10+ */
@@ -65,7 +64,8 @@ body {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Safari and Chrome */
-=======
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -142,5 +142,4 @@ body {
   body {
     @apply bg-background text-foreground;
   }
->>>>>>> dac7ec1e3b5d5142d89555ca33dac95625356559
 }
