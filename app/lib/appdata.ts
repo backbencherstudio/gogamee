@@ -340,67 +340,67 @@ export const AppData = {
         id: 2,
         question: "How far in advance should I book?",
         answer:
-          "We recommend booking at least 2-3 months in advance to ensure availability and the best prices. For major sporting events or peak seasons, booking 4-6 months ahead is advisable. Last-minute bookings are possible but may have limited options.",
+          "We recommend booking at least 2 to 4 weeks in advance to ensure availability, especially for major matches or during peak travel dates.",
       },
       {
         id: 3,
         question: "When will I find out my destination?",
         answer:
-          "Your destination and event details will be revealed exactly 48 hours before your departure. This adds to the excitement and surprise element of your GoGame experience while giving you enough time to prepare for your trip.",
+          "You’ll receive all the trip details — including destination, flights, and match information — 48 hours before departure.* *For Premier League events, we’ll notify you earlier so you can manage the necessary visa requirements.",
       },
       {
         id: 4,
         question: "Do I need a passport or ID?",
         answer:
-          "Yes, you'll need a valid passport for international destinations and government-issued ID for domestic travel. We recommend having at least 6 months validity on your passport beyond your travel dates to avoid any issues.",
+          "Yes. You’ll need a valid passport or national ID, depending on the destination country and your nationality. Please make sure your document is valid for the selected travel dates.",
       },
       {
         id: 5,
         question: "What kind of accommodation is included?",
         answer:
-          "We provide comfortable, quality accommodations in 3-4 star hotels, always located in safe and convenient areas close to the sporting venue or city center. All rooms include standard amenities and are carefully selected to ensure a pleasant stay.",
+          "All our packages include 3-star hotels (Standard Package) or 4–5-star hotels in premium locations (Premium Package). Breakfast is included with every booking.",
       },
       {
         id: 6,
         question: "Can I travel alone?",
         answer:
-          "Absolutely! GoGame welcomes solo travelers. Many of our customers travel alone and often end up meeting like-minded sports fans during their trip. We ensure safe and comfortable arrangements for individual travelers.",
+          "Absolutely! Solo travelers are welcome. Please note there is a €50 supplement for single bookings.",
       },
       {
         id: 7,
         question: "Can I cancel or modify a booking?",
         answer:
-          "Cancellation and modification policies vary depending on how close to departure you are and the specific package. We offer flexible options with different cancellation terms. Please check your booking terms or contact our support team for specific details.",
+          "You can cancel or modify your booking up to 14 days before departure by paying a fee. After that, changes are subject to airline and hotel policies. For extra peace of mind, we recommend adding our flexible cancellation option when booking.",
       },
       {
         id: 8,
         question: "What luggage is included?",
         answer:
-          "Standard checked baggage (up to 23kg) and carry-on luggage are included in your package. Specific allowances may vary by airline and destination. We'll provide detailed luggage information once your destination is revealed.",
+          "All packages include one cabin bag per passenger. You can add checked luggage during the booking process for an additional fee.",
       },
       {
         id: 9,
         question: "What are the flights like?",
         answer:
-          "We book economy class flights with reputable airlines, ensuring comfortable and safe travel. For longer routes, we may include upgraded seating or premium economy when available. All flights include standard meal service and entertainment.",
+          "Flights are booked with trusted airlines and include economy class seating. You’ll have the option to choose specific flight times or upgrades at an extra cost.",
       },
       {
         id: 10,
         question: "What if my flight is delayed or cancelled?",
         answer:
-          "We have 24/7 support to handle any flight disruptions. Our team will work with airlines to rebook you on the next available flight and adjust your itinerary accordingly. Trip insurance options are available for additional protection.",
+          "GoGame is not responsible for flight delays or cancellations. If your flight is delayed or cancelled, remember your passenger rights: ● If the delay exceeds 4 hours, the airline must provide food and drinks. ● If the flight is moved to the next day, the airline must offer accommodation and transport to the assigned hotel. ● In case of cancellation, the airline must rebook you on another flight or refund your ticket. GoGame will assist and guide you in starting a claim if needed.",
       },
       {
         id: 11,
         question: "Can minors travel?",
         answer:
-          "Yes, minors can travel but must be accompanied by a parent or guardian. For unaccompanied minors, special arrangements and additional fees may apply. Please contact us during booking to discuss specific requirements and airline policies.",
+          "Yes, but minors must be accompanied by an adult. Unaccompanied minors are not allowed to travel.",
       },
       {
         id: 12,
         question: "Are there limitations for travelers with reduced mobility?",
         answer:
-          "We strive to accommodate all travelers. Please inform us of any mobility requirements during booking so we can ensure appropriate accommodations, accessible venues, and suitable transportation arrangements are made for your comfort and safety.",
+          "We welcome travelers with reduced mobility. Please let us know your needs during booking so we can arrange accessible accommodation and transportation.",
       },
     ],
     
