@@ -1126,6 +1126,36 @@ export const AppData = {
     ]
   },
 
+  // League pricing data
+  leaguePricing: {
+    european: {
+      additionalCost: 50,
+      currency: 'EUR',
+      description: 'European Competition surcharge'
+    },
+    national: {
+      additionalCost: 0,
+      currency: 'EUR',
+      description: 'No additional cost for national leagues'
+    },
+    
+    // Helper function to get additional cost for selected league
+    getLeagueAdditionalCost: function(selectedLeague: string): number {
+      if (selectedLeague === 'european') {
+        return this.european.additionalCost;
+      }
+      return this.national.additionalCost;
+    },
+    
+    // Helper function to get league description
+    getLeagueDescription: function(selectedLeague: string): string {
+      if (selectedLeague === 'european') {
+        return this.european.description;
+      }
+      return this.national.description;
+    }
+  },
+
   // Pricing data based on sport, package, and nights
   pricing: {
     football: {
@@ -1366,6 +1396,215 @@ export const AppData = {
     }
   },
 
+  // Payment Data
+  payment: {
+    text: {
+      title: "Payment Informations",
+      paymentMethodTitle: "Payment Method",
+      creditCardTitle: "Credit Card/Debit Card",
+      nameOnCardLabel: "Name on Card",
+      nameOnCardPlaceholder: "Enter your name",
+      cardNumberLabel: "Card number",
+      cardNumberPlaceholder: "1234 5678 9012 3456",
+      expiryLabel: "Expiry",
+      expiryPlaceholder: "MM/YY",
+      cvvLabel: "CVV",
+      cvvPlaceholder: "123",
+      confirmButton: "Confirm Payment",
+      processingButton: "Processing...",
+      successMessage: "Payment processed successfully!",
+      errorMessage: "Payment failed. Please try again."
+    },
+    paymentMethods: [
+      {
+        value: 'credit' as const,
+        label: "Credit Card/Debit Card",
+        icon: "/stepper/icon/visa.png",
+        alt: "Visa",
+        additionalIcon: "/stepper/icon/mastercard.png",
+        additionalAlt: "Mastercard",
+        description: "Secure payment with Visa or Mastercard",
+        isAvailable: true
+      },
+      {
+        value: 'google' as const,
+        label: "Google Pay",
+        icon: "/stepper/icon/gpay.png",
+        alt: "Google Pay",
+        description: "Fast and secure payment with Google Pay",
+        isAvailable: true
+      },
+      {
+        value: 'apple' as const,
+        label: "Apple Pay",
+        icon: "/stepper/icon/apay.png",
+        alt: "Apple Pay",
+        description: "Secure payment with Apple Pay",
+        isAvailable: true
+      }
+    ],
+    creditCard: {
+      supportedCards: [
+        {
+          name: "Visa",
+          icon: "/stepper/icon/visa.png",
+          alt: "Visa",
+          width: 55,
+          height: 17
+        },
+        {
+          name: "Mastercard",
+          icon: "/stepper/icon/mastercard.png",
+          alt: "Mastercard",
+          width: 40,
+          height: 25
+        }
+      ],
+      validation: {
+        cardNumberLength: 16,
+        cvvMinLength: 3,
+        cvvMaxLength: 4,
+        expiryFormat: "MM/YY"
+      },
+      formatting: {
+        cardNumberSpacing: 4,
+        expirySeparator: "/"
+      }
+    },
+    processing: {
+      delay: 2000,
+      retryAttempts: 3,
+      timeout: 30000
+    },
+    storage: {
+      key: "payment_form_data"
+    },
+    
+    // Helper functions for payment processing
+    getPaymentMethodByValue: function(value: 'credit' | 'google' | 'apple') {
+      return this.paymentMethods.find(method => method.value === value);
+    },
+    
+    getAllPaymentMethods: function() {
+      return this.paymentMethods.filter(method => method.isAvailable);
+    },
+    
+    getSupportedCards: function() {
+      return this.creditCard.supportedCards;
+    },
+    
+    getValidationRules: function() {
+      return this.creditCard.validation;
+    },
+    
+    getFormattingRules: function() {
+      return this.creditCard.formatting;
+    },
+    
+    getProcessingConfig: function() {
+      return this.processing;
+    },
+    
+    // Payment processing simulation (replace with actual API calls)
+    processPayment: async function(paymentData: {
+      method: 'credit' | 'google' | 'apple';
+      creditCard?: {
+        nameOnCard: string;
+        cardNumber: string;
+        expiryDate: string;
+        cvv: string;
+      };
+      amount: number;
+      currency: string;
+      bookingId: string;
+    }) {
+      try {
+        // Simulate API call delay
+        await new Promise(resolve => setTimeout(resolve, this.processing.delay));
+        
+        // TODO: Replace with actual payment API call
+        // const response = await fetch('/api/payments/process', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(paymentData)
+        // });
+        // 
+        // if (!response.ok) {
+        //   throw new Error('Payment processing failed');
+        // }
+        // 
+        // return await response.json();
+        
+        // Simulate successful payment
+        return {
+          success: true,
+          transactionId: `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          status: 'completed',
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+          timestamp: new Date().toISOString()
+        };
+      } catch (error) {
+        console.error('Payment processing error:', error);
+        throw new Error('Payment processing failed');
+      }
+    },
+    
+    // Validate credit card data
+    validateCreditCard: function(cardData: {
+      nameOnCard: string;
+      cardNumber: string;
+      expiryDate: string;
+      cvv: string;
+    }) {
+      const validation = this.creditCard.validation;
+      const errors: string[] = [];
+      
+      if (!cardData.nameOnCard.trim()) {
+        errors.push('Cardholder name is required');
+      }
+      
+      const cleanCardNumber = cardData.cardNumber.replace(/\s/g, '');
+      if (cleanCardNumber.length !== validation.cardNumberLength) {
+        errors.push(`Card number must be ${validation.cardNumberLength} digits`);
+      }
+      
+      if (cardData.expiryDate.length !== 5 || !cardData.expiryDate.includes('/')) {
+        errors.push('Expiry date must be in MM/YY format');
+      }
+      
+      if (cardData.cvv.length < validation.cvvMinLength || cardData.cvv.length > validation.cvvMaxLength) {
+        errors.push(`CVV must be ${validation.cvvMinLength}-${validation.cvvMaxLength} digits`);
+      }
+      
+      return {
+        isValid: errors.length === 0,
+        errors
+      };
+    },
+    
+    // Format credit card input
+    formatCardNumber: function(cardNumber: string): string {
+      const cleaned = cardNumber.replace(/\D/g, '');
+      const spacing = this.creditCard.formatting.cardNumberSpacing;
+      const formatted = cleaned.replace(new RegExp(`(.{${spacing}})`, 'g'), '$1 ').trim();
+      return formatted.substring(0, 19); // Limit to 16 digits + 3 spaces
+    },
+    
+    formatExpiryDate: function(expiry: string): string {
+      const cleaned = expiry.replace(/\D/g, '');
+      const separator = this.creditCard.formatting.expirySeparator;
+      if (cleaned.length >= 2) {
+        return `${cleaned.substring(0, 2)}${separator}${cleaned.substring(2, 4)}`;
+      }
+      return cleaned;
+    },
+    
+    formatCvv: function(cvv: string): string {
+      return cvv.replace(/\D/g, '').substring(0, this.creditCard.validation.cvvMaxLength);
+    }
+  },
+
   // Initialize with dummy data
   initialize: function() {
     // Add dummy bookings
@@ -1530,6 +1769,8 @@ export const removeLeagueData = AppData.removeLeague;
 export const flightScheduleData = AppData.flightSchedule;
 export const extrasData = AppData.extrasData;
 export const personalInfoData = AppData.personalInfo;
+export const paymentData = AppData.payment;
+export const leaguePricingData = AppData.leaguePricing;
 
 // Export the main object as default
 export default AppData; 

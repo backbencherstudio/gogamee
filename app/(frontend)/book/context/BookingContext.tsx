@@ -70,15 +70,16 @@ export interface BookingContextType {
       cvv: string
       cardholderName: string
     }
-    calculatedTotals?: {
-      basePrice: number
-      extrasCost: number
-      flightScheduleCost: number
-      totalCost: number
-      totalPeople: number
-      duration: number
-      nights: number
-    }
+      calculatedTotals?: {
+    basePrice: number
+    extrasCost: number
+    flightScheduleCost: number
+    leagueCost: number
+    totalCost: number
+    totalPeople: number
+    duration: number
+    nights: number
+  }
     fromHero?: boolean
   }
   updateFormData: (stepData: Partial<BookingContextType['formData']>) => void

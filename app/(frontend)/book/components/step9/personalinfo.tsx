@@ -5,7 +5,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
-import { personalInfoData, pricing, flightScheduleData, extrasData } from '../../../../lib/appdata'
+import { personalInfoData, pricing, flightScheduleData, leaguePricingData } from '../../../../lib/appdata'
 
 // Utility functions for dynamic data calculation
 const formatDate = (dateString: string): string => {
@@ -71,6 +71,11 @@ const calculateFlightScheduleCost = (flightSchedule: {
   )
   
   return departureCost + arrivalCost
+}
+
+const calculateLeagueCost = (selectedLeague: string): number => {
+  if (!selectedLeague) return 0
+  return leaguePricingData.getLeagueAdditionalCost(selectedLeague)
 }
 
 interface TravelerInfo {
@@ -233,6 +238,7 @@ export default function Personalinfo() {
     
     const extrasCost = calculateExtrasCost(formData.extras || [])
     const flightScheduleCost = calculateFlightScheduleCost(formData.flightSchedule)
+    const leagueCost = calculateLeagueCost(formData.selectedLeague || '')
     
     // Calculate package total (base price × total people)
     const packageTotal = basePrice * totalPeople
@@ -243,8 +249,11 @@ export default function Personalinfo() {
     // Calculate flight schedule total (flight schedule cost × total people)
     const flightScheduleTotal = flightScheduleCost * totalPeople
     
+    // Calculate league total (league cost × total people)
+    const leagueTotal = leagueCost * totalPeople
+    
     // Calculate grand total
-    const grandTotal = packageTotal + extrasTotal + flightScheduleTotal
+    const grandTotal = packageTotal + extrasTotal + flightScheduleTotal + leagueTotal
     
     return {
       departureCity: formData.selectedCity || 'Barcelona',
@@ -255,9 +264,11 @@ export default function Personalinfo() {
       basePrice,
       extrasCost,
       flightScheduleCost,
+      leagueCost,
       packageTotal,
       extrasTotal,
       flightScheduleTotal,
+      leagueTotal,
       grandTotal,
       totalPeople,
       departureTimeRange: formData.flightSchedule ? 
@@ -289,6 +300,7 @@ export default function Personalinfo() {
      console.log(`  Package: ${reservationData.basePrice}€ × ${reservationData.totalPeople} = ${reservationData.packageTotal.toFixed(2)}€`)
      console.log(`  Extras: ${reservationData.extrasCost}€ (fixed for group) = ${reservationData.extrasTotal.toFixed(2)}€`)
      console.log(`  Flight Schedule: ${reservationData.flightScheduleCost}€ × ${reservationData.totalPeople} = ${reservationData.flightScheduleTotal.toFixed(2)}€`)
+     console.log(`  League: ${reservationData.leagueCost}€ × ${reservationData.totalPeople} = ${reservationData.leagueTotal.toFixed(2)}€`)
      console.log(`  Grand Total: ${reservationData.grandTotal.toFixed(2)}€`)
   }, [formData.peopleCount, hasMultipleTravelers, reservationData, formData.extras])
   
@@ -349,6 +361,7 @@ export default function Personalinfo() {
          basePrice: reservationData.basePrice,
          extrasCost: reservationData.extrasCost,
          flightScheduleCost: reservationData.flightScheduleCost,
+         leagueCost: reservationData.leagueCost,
          totalCost: reservationData.grandTotal,
          totalPeople: reservationData.totalPeople,
          duration: reservationData.duration,
@@ -750,6 +763,23 @@ export default function Personalinfo() {
                            </div>
                          )}
                         
+                                                 {/* League Additional Cost Row */}
+                         {reservationData.leagueTotal > 0 && (
+                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                               European Competition
+                             </span>
+                             <div className="text-right">
+                               <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
+                                 {reservationData.leagueCost}€ x{reservationData.totalPeople}
+                               </div>
+                               <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                                 {reservationData.leagueTotal.toFixed(2)}€
+                               </div>
+                             </div>
+                           </div>
+                         )}
+                        
                                                  {/* Subtotal Row */}
                          <div className="flex justify-between items-center py-4 border-t-2 border-lime-400 bg-lime-50 rounded-lg px-3">
                            <span className="text-neutral-800 text-lg font-bold font-['Poppins'] text-gray-800">
@@ -835,6 +865,24 @@ export default function Personalinfo() {
                            </div>
                          )}
                         
+                                                 {/* League Additional Cost Row */}
+                         {reservationData.leagueTotal > 0 && (
+                           <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
+                             <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
+                               European Competition
+                             </div>
+                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {reservationData.leagueCost}€
+                             </div>
+                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               x{reservationData.totalPeople}
+                             </div>
+                             <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+                               {reservationData.leagueTotal.toFixed(2)}€
+                             </div>
+                           </div>
+                         )}
+                        
                                                  {/* Subtotal Row */}
                          <div className="w-full grid grid-cols-4 gap-4 py-3 border-t-2 border-gray-300">
                            <div className="text-left text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
@@ -889,6 +937,17 @@ export default function Personalinfo() {
                                </span>
                                <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                  {reservationData.flightScheduleTotal.toFixed(2)}€
+                               </span>
+                             </div>
+                           )}
+                           
+                           {reservationData.leagueTotal > 0 && (
+                             <div className="flex justify-between items-center py-2 border-b border-lime-200">
+                               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                                 European Competition:
+                               </span>
+                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
+                                 {reservationData.leagueTotal.toFixed(2)}€
                                </span>
                              </div>
                            )}

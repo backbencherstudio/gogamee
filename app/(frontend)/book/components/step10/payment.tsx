@@ -3,6 +3,7 @@ import React, { useState, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
+import { paymentData } from '../../../../lib/appdata'
 
 type PaymentMethod = 'credit' | 'google' | 'apple'
 
@@ -18,15 +19,44 @@ interface PaymentFormData {
   creditCard: CreditCardFormData
 }
 
+// Get payment methods from centralized data
 const PAYMENT_METHODS = {
-  CREDIT: 'credit' as const,
-  GOOGLE: 'google' as const,
-  APPLE: 'apple' as const,
+  CREDIT: paymentData.paymentMethods[0].value,
+  GOOGLE: paymentData.paymentMethods[1].value,
+  APPLE: paymentData.paymentMethods[2].value,
 } as const
 
 export default function Payment() {
   const { formData, updateFormData, clearBookingData } = useBooking()
   const [isProcessing, setIsProcessing] = useState(false)
+  
+  // Storage key for payment form data
+  const STORAGE_KEY = paymentData.storage.key
+  
+  // Helper functions for localStorage
+  const saveToStorage = useCallback((data: PaymentFormData) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+      console.log('💾 Payment data saved to localStorage:', data)
+    } catch (error) {
+      console.error('Error saving payment data to localStorage:', error)
+    }
+  }, [STORAGE_KEY])
+  
+  const loadFromStorage = useCallback((): PaymentFormData | null => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        console.log('📂 Payment data loaded from localStorage:', parsed)
+        return parsed
+      }
+      return null
+    } catch (error) {
+      console.error('Error loading payment data from localStorage:', error)
+      return null
+    }
+  }, [STORAGE_KEY])
   
   const {
     register,
@@ -36,7 +66,7 @@ export default function Payment() {
     formState: { },
     clearErrors,
   } = useForm<PaymentFormData>({
-    defaultValues: {
+    defaultValues: loadFromStorage() || {
       paymentMethod: PAYMENT_METHODS.CREDIT,
       creditCard: {
         nameOnCard: '',
@@ -50,24 +80,27 @@ export default function Payment() {
 
   const selectedPayment = watch('paymentMethod')
   const creditCardData = watch('creditCard')
+  
+  // Auto-save to localStorage whenever form values change
+  React.useEffect(() => {
+    const currentValues = {
+      paymentMethod: selectedPayment,
+      creditCard: creditCardData
+    }
+    saveToStorage(currentValues)
+  }, [selectedPayment, creditCardData, saveToStorage])
 
-  // Input formatting utilities
+  // Input formatting utilities using centralized functions
   const formatCardNumber = useCallback((value: string): string => {
-    const cleaned = value.replace(/\D/g, '')
-    const formatted = cleaned.replace(/(.{4})/g, '$1 ').trim()
-    return formatted.substring(0, 19) // Limit to 16 digits + 3 spaces
+    return paymentData.formatCardNumber(value)
   }, [])
 
   const formatExpiryDate = useCallback((value: string): string => {
-    const cleaned = value.replace(/\D/g, '')
-    if (cleaned.length >= 2) {
-      return `${cleaned.substring(0, 2)}/${cleaned.substring(2, 4)}`
-    }
-    return cleaned
+    return paymentData.formatExpiryDate(value)
   }, [])
 
   const formatCvv = useCallback((value: string): string => {
-    return value.replace(/\D/g, '').substring(0, 4)
+    return paymentData.formatCvv(value)
   }, [])
 
   // Input handlers
@@ -93,16 +126,12 @@ export default function Payment() {
     }
   }, [setValue, clearErrors])
 
-  // Validation logic
+  // Validation logic using centralized validation
   const isCreditCardValid = useMemo(() => {
     if (selectedPayment !== PAYMENT_METHODS.CREDIT) return true
     
-    return (
-      creditCardData.nameOnCard.trim() !== '' &&
-      creditCardData.cardNumber.replace(/\s/g, '').length === 16 &&
-      creditCardData.expiryDate.length === 5 &&
-      creditCardData.cvv.length >= 3
-    )
+    const validation = paymentData.validateCreditCard(creditCardData)
+    return validation.isValid
   }, [selectedPayment, creditCardData])
 
   const isFormValid = useMemo(() => {
@@ -112,7 +141,12 @@ export default function Payment() {
   // Form submission
   const onSubmit = useCallback(async (data: PaymentFormData) => {
     if (!isFormValid) {
-      alert('Please fill in all required fields correctly.')
+      console.log('❌ Form validation failed:', {
+        selectedPayment,
+        creditCardData,
+        isCreditCardValid,
+        formData: data
+      })
       return
     }
 
@@ -131,8 +165,16 @@ export default function Payment() {
         })
       }
 
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Process payment using centralized function
+      const paymentResult = await paymentData.processPayment({
+        method: data.paymentMethod,
+        creditCard: data.paymentMethod === PAYMENT_METHODS.CREDIT ? data.creditCard : undefined,
+        amount: formData.calculatedTotals?.totalCost || 0,
+        currency: 'EUR',
+        bookingId: `BK_${Date.now()}`
+      })
+      
+      console.log('💳 Payment processed successfully:', paymentResult)
       
       // Helper function to convert minutes to time format
       const minutesToTime = (minutes: number): string => {
@@ -349,20 +391,24 @@ export default function Payment() {
         console.log(`Processing ${data.paymentMethod} payment...`)
       }
       
-      alert(`🎉 Payment processed successfully! 
-      
-Booking completed with ALL collected data:
-✅ ${completeBookingData.selectedSport} sport
-✅ ${completeBookingData.selectedPackage} package  
-✅ ${completeBookingData.selectedCity} departure
-✅ ${completeBookingData.peopleCount.total} people total
-✅ ${completeBookingData.selectedLeague} league${completeBookingData.removedLeagues.hasRemovedLeagues ? `\n🚫 ${completeBookingData.removedLeagues.count} leagues removed` : ''}
-✅ Flight times and extras selected
-✅ Complete personal & payment info
-
-📊 Check console for COMPLETE booking details!
-
-🧹 All booking data will be cleared from storage automatically.`)
+      console.log('')
+      console.log('🎉 ===== PAYMENT SUCCESSFUL =====')
+      console.log('✅ Booking completed with ALL collected data:')
+      console.log(`✅ ${completeBookingData.selectedSport} sport`)
+      console.log(`✅ ${completeBookingData.selectedPackage} package`)  
+      console.log(`✅ ${completeBookingData.selectedCity} departure`)
+      console.log(`✅ ${completeBookingData.peopleCount.total} people total`)
+      console.log(`✅ ${completeBookingData.selectedLeague} league`)
+      if (completeBookingData.removedLeagues.hasRemovedLeagues) {
+        console.log(`🚫 ${completeBookingData.removedLeagues.count} leagues removed`)
+      }
+      console.log('✅ Flight times and extras selected')
+      console.log('✅ Complete personal & payment info')
+      console.log('')
+      console.log('📊 Check console above for COMPLETE booking details!')
+      console.log('🧹 All booking data will be cleared from storage automatically.')
+      console.log('===============================================')
+      console.log('')
       
       // ========================================
       // SAVE BOOKING DATA TO APPDATA BEFORE CLEANUP
@@ -448,6 +494,7 @@ Booking completed with ALL collected data:
         // Remove specific booking keys
         localStorage.removeItem('gogame_booking_data')
         localStorage.removeItem('gogame_booking_step')
+        localStorage.removeItem(STORAGE_KEY) // Clear payment data
         
         // Remove any other potential booking-related keys (if any exist)
         const bookingKeys = Object.keys(localStorage).filter(key => 
@@ -460,7 +507,7 @@ Booking completed with ALL collected data:
           localStorage.removeItem(key)
         })
         
-        console.log('✅ localStorage cleared:', ['gogame_booking_data', 'gogame_booking_step', ...bookingKeys])
+        console.log('✅ localStorage cleared:', ['gogame_booking_data', 'gogame_booking_step', STORAGE_KEY, ...bookingKeys])
       }
       
       // 2. Clear BookingContext state
@@ -478,12 +525,18 @@ Booking completed with ALL collected data:
       }, 1000)
       
     } catch (error) {
-      console.error('Payment processing failed:', error)
-      alert('Payment failed. Please try again.')
+      console.error('❌ Payment processing failed:', error)
+      console.log('💥 Payment Error Details:', {
+        error: error,
+        errorMessage: paymentData.text.errorMessage,
+        formData: data,
+        selectedPayment,
+        creditCardData
+      })
     } finally {
       setIsProcessing(false)
     }
-  }, [isFormValid, updateFormData, formData, clearBookingData])
+  }, [isFormValid, updateFormData, formData, clearBookingData, STORAGE_KEY, selectedPayment, creditCardData, isCreditCardValid])
 
   // Payment method option component
   const PaymentMethodOption = useCallback(({ 
@@ -527,14 +580,14 @@ Booking completed with ALL collected data:
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
             <div className="justify-center text-neutral-800 text-xl md:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 md:leading-8 xl:leading-10">
-              Payment Informations
+              {paymentData.text.title}
             </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-4 md:gap-6">
             <div className="self-stretch px-4 md:px-5 py-5 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
               <div className="self-stretch inline-flex justify-start items-center gap-2">
                 <div className="justify-start text-neutral-800 text-base md:text-lg font-semibold font-['Poppins'] leading-loose">
-                  Payment Method
+                  {paymentData.text.paymentMethodTitle}
                 </div>
               </div>
               
@@ -553,7 +606,7 @@ Booking completed with ALL collected data:
                       {selectedPayment === PAYMENT_METHODS.CREDIT && <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full" />}
                     </div>
                     <div className="justify-center text-black text-base md:text-lg font-medium font-['Poppins'] leading-loose">
-                      Credit Card/Debit Card
+                      {paymentData.text.creditCardTitle}
                     </div>
                   </div>
                   <div className="flex justify-start items-center gap-2 md:gap-3 ml-7 md:ml-0">
@@ -574,7 +627,7 @@ Booking completed with ALL collected data:
                       <div className="self-stretch flex flex-col md:flex-row justify-start items-start gap-4 md:gap-6">
                         <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            Name on Card
+                            {paymentData.text.nameOnCardLabel}
                           </div>
                           <input
                             {...register('creditCard.nameOnCard', {
@@ -582,20 +635,20 @@ Booking completed with ALL collected data:
                               minLength: 1
                             })}
                             type="text"
-                            placeholder="Enter your name"
+                            placeholder={paymentData.text.nameOnCardPlaceholder}
                             className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
                           />
                         </div>
                         <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            Expiry
+                            {paymentData.text.expiryLabel}
                           </div>
                           <input
                             type="text"
                             value={creditCardData.expiryDate}
                             onChange={handleExpiryChange}
-                            placeholder="MM/YY"
-                            maxLength={5}
+                            placeholder={paymentData.text.expiryPlaceholder}
+                            maxLength={paymentData.creditCard.validation.expiryFormat.length}
                             className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#76C043]"
                           />
                         </div>
@@ -604,27 +657,27 @@ Booking completed with ALL collected data:
                       <div className="self-stretch flex flex-col md:flex-row justify-start items-start gap-4">
                         <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            Card number
+                            {paymentData.text.cardNumberLabel}
                           </div>
                           <input
                             type="text"
                             value={creditCardData.cardNumber}
                             onChange={handleCardNumberChange}
-                            placeholder="1234 5678 9012 3456"
+                            placeholder={paymentData.text.cardNumberPlaceholder}
                             maxLength={19}
                             className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
                           />
                         </div>
                         <div className="w-full md:w-32 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            CVV
+                            {paymentData.text.cvvLabel}
                           </div>
                           <input
                             type="text"
                             value={creditCardData.cvv}
                             onChange={handleCvvChange}
-                            placeholder="123"
-                            maxLength={4}
+                            placeholder={paymentData.text.cvvPlaceholder}
+                            maxLength={paymentData.creditCard.validation.cvvMaxLength}
                             className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
                           />
                         </div>
@@ -637,7 +690,7 @@ Booking completed with ALL collected data:
               {/* Google Pay Option */}
               <PaymentMethodOption
                 method={PAYMENT_METHODS.GOOGLE}
-                label="Google Pay"
+                label={paymentData.paymentMethods[1].label}
                 icon={
                   <div className="flex justify-start items-center gap-2.5">
                     <div className="p-1.5 md:p-2 rounded inline-flex flex-col justify-start items-start gap-2  mr-2">
@@ -650,7 +703,7 @@ Booking completed with ALL collected data:
               {/* Apple Pay Option */}
               <PaymentMethodOption
                 method={PAYMENT_METHODS.APPLE}
-                label="Apple Pay"
+                label={paymentData.paymentMethods[2].label}
                 icon={
                   <div className="w-16 md:w-20 flex justify-start items-center gap-2.5">
                     <div className="flex-1 p-1.5 md:p-2 rounded inline-flex flex-col justify-center items-center gap-2">
@@ -675,7 +728,7 @@ Booking completed with ALL collected data:
               }`}
             >
               <div className="text-center justify-start text-white text-sm md:text-base font-medium md:font-normal font-['Inter']">
-                {isProcessing ? 'Processing...' : 'Confirm Payment'}
+                {isProcessing ? paymentData.text.processingButton : paymentData.text.confirmButton}
               </div>
             </button>
           </div>
