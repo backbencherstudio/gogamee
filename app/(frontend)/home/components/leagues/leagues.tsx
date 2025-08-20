@@ -175,7 +175,7 @@ export default function Leagues({ className }: LeaguesProps) {
                   </div>
                 </SwiperSlide>
                 <SwiperSlide className="!w-auto">
-                  <div className="w-[150px] h-[201px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
+                  <div className="w-[150px] h-[200px] sm:w-[160px] sm:h-[220px] md:w-[150px] md:h-[200px] lg:w-[160px] lg:h-[220px] px-2 py-4 bg-black/30 rounded flex flex-col justify-center items-center relative overflow-hidden cursor-pointer">
                     <Image src="/homepage/image/bs3.png" alt="LNB Pro A" fill className="object-cover" sizes="(max-width: 640px) 150px, (max-width: 768px) 160px, (max-width: 1024px) 150px, 160px" />
                     <div className="self-stretch text-center text-white text-sm sm:text-base font-bold font-['Poppins'] leading-tight relative z-10 mt-auto">LNB Pro A</div>
                   </div>
