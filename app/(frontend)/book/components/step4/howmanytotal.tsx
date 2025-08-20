@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { HiMinus, HiPlus } from 'react-icons/hi2';
 import { useBooking } from '../../context/BookingContext';
@@ -129,6 +129,22 @@ export default function HowManyTotal() {
   });
 
   const watchedValues = watch();
+
+  // Sync with context when context data changes (especially for hero data)
+  useEffect(() => {
+    const contextPeopleCount = formData.peopleCount;
+    const formPeopleCount = watchedValues;
+    
+    if (contextPeopleCount.adults !== formPeopleCount.adults ||
+        contextPeopleCount.kids !== formPeopleCount.kids ||
+        contextPeopleCount.babies !== formPeopleCount.babies) {
+      
+      setValue('adults', contextPeopleCount.adults);
+      setValue('kids', contextPeopleCount.kids);
+      setValue('babies', contextPeopleCount.babies);
+      console.log('🎯 HowManyTotal - synced with context:', contextPeopleCount);
+    }
+  }, [formData.peopleCount, watchedValues, setValue]);
   const totalCount = watchedValues.adults + watchedValues.kids + watchedValues.babies;
   const canAddMore = totalCount < MAX_TOTAL_PEOPLE;
 

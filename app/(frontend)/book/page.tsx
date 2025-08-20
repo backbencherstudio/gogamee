@@ -18,6 +18,9 @@ import { BookingProvider, useBooking } from './context/BookingContext'
 // Component that uses the context (needs to be inside provider)
 function BookingContent() {
   const { currentStep, goToStep, isHydrated, formData } = useBooking()
+  
+  // Debug logging
+  console.log('🎯 BookingContent - currentStep:', currentStep, 'fromHero:', formData.fromHero, 'isHydrated:', isHydrated)
 
   const steps = [
     { id: 1, title: 'Sports Preference' },
@@ -37,6 +40,8 @@ function BookingContent() {
     if (!isHydrated) {
       return <div className="flex items-center justify-center h-64">Loading...</div>
     }
+
+    console.log('🎯 renderCurrentStep - currentStep:', currentStep, 'rendering step component')
 
     switch (currentStep) {
       case 0:
@@ -74,9 +79,14 @@ function BookingContent() {
 
   // Handle stepper navigation
   const handleStepClick = (stepIndex: number) => {
-    // Only allow navigation to completed or current steps
-    if (stepIndex <= getDisplayStep()) {
+    // If coming from hero, allow navigation to all steps (0-4) since data is pre-filled
+    if (formData.fromHero && stepIndex <= 4) {
       goToStep(stepIndex);
+    } else {
+      // Normal flow: only allow navigation to completed or current steps
+      if (stepIndex <= getDisplayStep()) {
+        goToStep(stepIndex);
+      }
     }
   }
 
@@ -93,9 +103,14 @@ function BookingContent() {
           <div className="mt-3 p-3 bg-lime-50 border border-lime-200 rounded-lg">
             <div className="flex items-center gap-2">
               <span className="text-lime-600 text-sm">🎯</span>
-              <span className="text-lime-700 text-xs font-medium">
-                Steps 1-4 pre-filled from home page
-              </span>
+              <div className="flex flex-col">
+                <span className="text-lime-700 text-xs font-medium">
+                  Steps 1-4 pre-filled from home page
+                </span>
+                <span className="text-lime-600 text-xs">
+                  You can review/modify by clicking on previous steps
+                </span>
+              </div>
             </div>
           </div>
         )}

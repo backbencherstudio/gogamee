@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
 
@@ -145,13 +145,21 @@ CityCard.displayName = 'CityCard'
 const DepartureCity: React.FC = () => {
   const { formData, updateFormData, nextStep } = useBooking()
   
-  const { control, watch, handleSubmit } = useForm<FormData>({
+  const { control, watch, handleSubmit, setValue } = useForm<FormData>({
     defaultValues: {
       selectedCity: formData.selectedCity || ''
     }
   })
 
   const selectedCity = watch('selectedCity')
+
+  // Sync with context when context data changes (especially for hero data)
+  useEffect(() => {
+    if (formData.selectedCity && formData.selectedCity !== selectedCity) {
+      setValue('selectedCity', formData.selectedCity)
+      console.log('🎯 DepartureCity - synced with context:', formData.selectedCity)
+    }
+  }, [formData.selectedCity, selectedCity, setValue])
 
   const handleCitySelect = useCallback((value: string) => {
     updateFormData({ selectedCity: value })

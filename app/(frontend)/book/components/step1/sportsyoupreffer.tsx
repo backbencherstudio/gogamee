@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { IoChevronDown } from 'react-icons/io5'
 import { useBooking } from '../../context/BookingContext'
@@ -19,18 +19,18 @@ interface FormData {
 const SPORTS_OPTIONS: readonly SportOption[] = [
   { value: 'football', label: 'Football' },
   { value: 'basketball', label: 'Basketball' },
-  { value: 'baseball', label: 'Baseball' },
-  { value: 'soccer', label: 'Soccer' },
-  { value: 'tennis', label: 'Tennis' },
-  { value: 'golf', label: 'Golf' },
+  { value: 'both', label: 'Both' },
 ] as const
 
 export default function SportsYouPreffer() {
   const { formData, updateFormData, nextStep } = useBooking()
   const [isOpen, setIsOpen] = useState(false)
+  
+  // Debug logging
+  console.log('🎯 SportsYouPreffer - formData.selectedSport:', formData.selectedSport, 'fromHero:', formData.fromHero)
 
   // Initialize form with react-hook-form
-  const { control, handleSubmit, watch } = useForm<FormData>({
+  const { control, handleSubmit, watch, setValue } = useForm<FormData>({
     defaultValues: {
       selectedSport: formData.selectedSport || ''
     },
@@ -38,6 +38,14 @@ export default function SportsYouPreffer() {
   })
 
   const selectedSport = watch('selectedSport')
+
+  // Sync with context when context data changes (especially for hero data)
+  useEffect(() => {
+    if (formData.selectedSport && formData.selectedSport !== selectedSport) {
+      setValue('selectedSport', formData.selectedSport)
+      console.log('🎯 SportsYouPreffer - synced with context:', formData.selectedSport)
+    }
+  }, [formData.selectedSport, selectedSport, setValue])
 
   // Memoized selected label for better performance
   const selectedLabel = useMemo(() => {

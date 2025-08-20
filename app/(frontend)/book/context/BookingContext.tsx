@@ -121,6 +121,11 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [currentStep, setCurrentStep] = useState(0)
   const [formData, setFormData] = useState<BookingContextType['formData']>(getDefaultFormData)
   const [isHydrated, setIsHydrated] = useState(false)
+  
+  // Debug effect to monitor currentStep changes
+  useEffect(() => {
+    console.log('🎯 currentStep changed to:', currentStep)
+  }, [currentStep])
 
   // Load data from localStorage after hydration
   useEffect(() => {
@@ -137,11 +142,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           
           // Map hero data to stepper format
           const mapHeroDataToStepper = (heroData: HeroData) => {
-            // Handle sport mapping
-            let mappedSport = heroData.selectedSport
-            if (heroData.selectedSport === 'both') {
-              mappedSport = 'football' // Default to football if "Both" was selected
-            }
+            // Handle sport mapping - keep "both" as is
+            const mappedSport = heroData.selectedSport
             
             // Handle city mapping (remove accents if needed)
             let mappedCity = heroData.selectedCity
@@ -168,10 +170,28 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
           
           setFormData(heroFormData)
           setCurrentStep(parsedHeroData.startFromStep) // Start from step 5 (0-indexed = 4)
+          console.log('🎯 Setting current step to:', parsedHeroData.startFromStep, 'for hero data')
           
           // Clear hero data so it doesn't interfere with normal flow
           localStorage.removeItem('gogame_hero_data')
+          // Also clear any existing booking step to ensure hero step takes priority
+          localStorage.removeItem('gogame_booking_step')
           console.log('✅ Hero data applied and cleared. Starting from step', parsedHeroData.startFromStep + 1)
+          
+          // Force a re-render to ensure the step change is applied
+          setTimeout(() => {
+            console.log('🔄 Forcing step update to:', parsedHeroData.startFromStep)
+            setCurrentStep(parsedHeroData.startFromStep)
+          }, 100)
+          
+          // Additional safety check - ensure step is set correctly
+          setTimeout(() => {
+            console.log('🔍 Final step check - current step should be:', parsedHeroData.startFromStep)
+            if (currentStep !== parsedHeroData.startFromStep) {
+              console.log('⚠️ Step mismatch detected, correcting...')
+              setCurrentStep(parsedHeroData.startFromStep)
+            }
+          }, 200)
           
           return // Exit early - don't load normal localStorage data
         } catch (error) {
@@ -192,7 +212,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
       
-      // Load currentStep from localStorage
+      // Load currentStep from localStorage (only if no hero data was processed)
       const savedStep = localStorage.getItem('gogame_booking_step')
       if (savedStep) {
         try {
@@ -216,7 +236,12 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Save currentStep to localStorage whenever it changes (only after hydration)
   useEffect(() => {
     if (isHydrated && typeof window !== 'undefined') {
-      localStorage.setItem('gogame_booking_step', currentStep.toString())
+      // Don't save step immediately if we're processing hero data
+      const heroData = localStorage.getItem('gogame_hero_data')
+      if (!heroData) {
+        localStorage.setItem('gogame_booking_step', currentStep.toString())
+        console.log('💾 Saved current step to localStorage:', currentStep)
+      }
     }
   }, [currentStep, isHydrated])
 

@@ -19,9 +19,6 @@ interface PackageFormData {
 const PACKAGE_OPTIONS: readonly PackageOption[] = [
   { value: 'standard', label: 'Standard' },
   { value: 'premium', label: 'Premium' },
-  { value: 'deluxe', label: 'Deluxe' },
-  { value: 'vip', label: 'VIP Experience' },
-  { value: 'luxury', label: 'Luxury Package' },
 ] as const
 
 const PackageType: React.FC = () => {
@@ -40,10 +37,11 @@ const PackageType: React.FC = () => {
   
   const selectedPackage = watch('selectedPackage')
   
-  // Sync with context when context data changes
+  // Sync with context when context data changes (especially for hero data)
   useEffect(() => {
-    if (formData.selectedPackage !== selectedPackage) {
+    if (formData.selectedPackage && formData.selectedPackage !== selectedPackage) {
       setValue('selectedPackage', formData.selectedPackage)
+      console.log('🎯 PackageType - synced with context:', formData.selectedPackage)
     }
   }, [formData.selectedPackage, selectedPackage, setValue])
   
