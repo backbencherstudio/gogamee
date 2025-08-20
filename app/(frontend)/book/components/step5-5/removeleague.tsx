@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import { useBooking } from '../../context/BookingContext'
+import { removeLeagueData } from '../../../../lib/appdata'
 
 // Types
 interface League {
@@ -12,19 +13,6 @@ interface League {
   image: string
   removed: boolean
 }
-
-// League card data
-const INITIAL_LEAGUES: League[] = [
-  { id: '1', name: 'La Liga', country: 'Spain', image: '/stepper/img1.png', removed: false },
-  { id: '2', name: 'Premier League', country: 'England', image: '/stepper/img2.png', removed: false },
-  { id: '3', name: 'Bundesliga', country: 'Germany', image: '/stepper/img3.png', removed: false },
-  { id: '4', name: 'Serie A', country: 'Italy', image: '/stepper/img4.png', removed: false },
-  { id: '5', name: 'Eredivisie', country: 'Netherlands', image: '/stepper/img5.png', removed: false },
-  { id: '6', name: 'Ligue 1', country: 'France', image: '/stepper/img6.png', removed: false },
-]
-
-// Constants
-const REMOVAL_COST = 20
 
 // League Card Component
 interface LeagueCardProps {
@@ -120,7 +108,14 @@ LeagueCard.displayName = 'LeagueCard'
 // Main Component
 export default function RemoveLeague() {
   const { formData, updateFormData, nextStep } = useBooking()
-  const [leagues, setLeagues] = useState<League[]>(INITIAL_LEAGUES)
+  
+  // Initialize leagues from centralized data
+  const [leagues, setLeagues] = useState<League[]>(() => 
+    removeLeagueData.getAllLeagues().map(league => ({
+      ...league,
+      removed: false
+    }))
+  )
 
   // Load existing removed leagues data when component mounts
   useEffect(() => {
@@ -157,8 +152,6 @@ export default function RemoveLeague() {
     nextStep()
   }, [leagues, updateFormData, nextStep])
 
-
-
   return (
     <div className="w-full xl:w-[894px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-center items-center gap-6 min-h-[600px] xl:min-h-0">
       <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -171,7 +164,7 @@ export default function RemoveLeague() {
               Remove one for free, the rest 
             </span>
             <span className="text-[#76C043] text-base font-medium font-['Poppins'] leading-7">
-              +{REMOVAL_COST}€
+              +{removeLeagueData.getRemovalCost()}€
             </span>
             <span className="text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
               {' '}(per destination & person).

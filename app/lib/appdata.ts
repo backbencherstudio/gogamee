@@ -136,6 +136,19 @@ export interface DepartureCityData {
   }>;
 }
 
+// Remove League Data Structure
+export interface RemoveLeagueData {
+  leagues: Array<{
+    id: string;
+    name: string;
+    country: string;
+    image: string;
+    description?: string;
+  }>;
+  removalCost: number;
+  freeRemovals: number;
+}
+
 // Main application data object
 export const AppData = {
   // Hero Section Data
@@ -390,6 +403,87 @@ export const AppData = {
     getCityDescription: function(value: string) {
       const city = this.getCityByValue(value);
       return city ? city.description : '';
+    }
+  },
+
+  // Remove League Data
+  removeLeague: {
+    leagues: [
+      { 
+        id: '1', 
+        name: 'La Liga', 
+        country: 'Spain', 
+        image: '/stepper/img1.png',
+        description: 'Spanish top-flight football league'
+      },
+      { 
+        id: '2', 
+        name: 'Premier League', 
+        country: 'England', 
+        image: '/stepper/img2.png',
+        description: 'English top-flight football league'
+      },
+      { 
+        id: '3', 
+        name: 'Bundesliga', 
+        country: 'Germany', 
+        image: '/stepper/img3.png',
+        description: 'German top-flight football league'
+      },
+      { 
+        id: '4', 
+        name: 'Serie A', 
+        country: 'Italy', 
+        image: '/stepper/img4.png',
+        description: 'Italian top-flight football league'
+      },
+      { 
+        id: '5', 
+        name: 'Eredivisie', 
+        country: 'Netherlands', 
+        image: '/stepper/img5.png',
+        description: 'Dutch top-flight football league'
+      },
+      { 
+        id: '6', 
+        name: 'Ligue 1', 
+        country: 'France', 
+        image: '/stepper/img6.png',
+        description: 'French top-flight football league'
+      }
+    ],
+    
+    removalCost: 20,
+    freeRemovals: 1,
+    
+    getLeagueById: function(id: string) {
+      return this.leagues.find(league => league.id === id);
+    },
+    
+    getAllLeagues: function() {
+      return this.leagues;
+    },
+    
+    getLeagueByName: function(name: string) {
+      return this.leagues.find(league => league.name === name);
+    },
+    
+    getLeaguesByCountry: function(country: string) {
+      return this.leagues.filter(league => league.country === country);
+    },
+    
+    getRemovalCost: function() {
+      return this.removalCost;
+    },
+    
+    getFreeRemovals: function() {
+      return this.freeRemovals;
+    },
+    
+    calculateTotalCost: function(removedCount: number) {
+      const freeRemovals = this.freeRemovals;
+      const paidRemovals = Math.max(0, removedCount - freeRemovals);
+      return paidRemovals * this.removalCost;
     }
   },
 
@@ -1087,6 +1181,7 @@ export const heroData = AppData.hero;
 export const sportsPreferenceData = AppData.sportsPreference;
 export const packageTypeData = AppData.packageType;
 export const departureCityData = AppData.departureCity;
+export const removeLeagueData = AppData.removeLeague;
 
 // Export the main object as default
 export default AppData; 

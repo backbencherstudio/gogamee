@@ -28,6 +28,12 @@ All data has been centralized in `app/lib/appdata.ts` to make the application mo
 - **Descriptions**: Rich descriptions of each city's character and attractions
 - **Country Information**: All cities are in Spain with consistent data structure
 
+### 5. Remove League Data (`AppData.removeLeague`)
+- **League Options**: La Liga, Premier League, Bundesliga, Serie A, Eredivisie, Ligue 1
+- **Visual Assets**: League images and country information
+- **Pricing Logic**: Removal costs and free removal allowances
+- **Business Rules**: Cost calculation for multiple league removals
+
 ## Data Structure
 
 ### Hero Data Interface
@@ -103,14 +109,29 @@ export interface DepartureCityData {
 }
 ```
 
+### Remove League Data Interface
+```typescript
+export interface RemoveLeagueData {
+  leagues: Array<{
+    id: string;
+    name: string;
+    country: string;
+    image: string;
+    description?: string;
+  }>;
+  removalCost: number;
+  freeRemovals: number;
+}
+```
+
 ## How to Use
 
 ### 1. Import the Data
 ```typescript
-import { heroData, sportsPreferenceData, packageTypeData, departureCityData } from '../../lib/appdata'
+import { heroData, sportsPreferenceData, packageTypeData, departureCityData, removeLeagueData } from '../../lib/appdata'
 // or
 import AppData from '../../lib/appdata'
-const { hero, sportsPreference, packageType, departureCity } = AppData
+const { hero, sportsPreference, packageType, departureCity, removeLeague } = AppData
 ```
 
 ### 2. Access Sports Data
@@ -184,6 +205,25 @@ const accent = departureCityData.getCityAccent('valencia')
 const description = departureCityData.getCityDescription('alicante')
 ```
 
+### 8. Access Remove League Data
+```typescript
+// Get all leagues
+const leagues = removeLeagueData.getAllLeagues()
+
+// Get league by ID
+const laLiga = removeLeagueData.getLeagueById('1')
+
+// Get leagues by country
+const spanishLeagues = removeLeagueData.getLeaguesByCountry('Spain')
+
+// Get pricing information
+const removalCost = removeLeagueData.getRemovalCost()
+const freeRemovals = removeLeagueData.getFreeRemovals()
+
+// Calculate total cost for multiple removals
+const totalCost = removeLeagueData.calculateTotalCost(3) // 3 leagues removed
+```
+
 ## Helper Functions
 
 ### Hero Section Helpers
@@ -209,6 +249,15 @@ const description = departureCityData.getCityDescription('alicante')
 - `getCityGradient(value)`: Returns gradient classes for city styling
 - `getCityAccent(value)`: Returns hover accent classes for city styling
 - `getCityDescription(value)`: Returns description of the city
+
+### Remove League Helpers
+- `getLeagueById(id)`: Returns league by ID
+- `getAllLeagues()`: Returns all available leagues
+- `getLeagueByName(name)`: Returns league by name
+- `getLeaguesByCountry(country)`: Returns leagues filtered by country
+- `getRemovalCost()`: Returns the cost per league removal
+- `getFreeRemovals()`: Returns the number of free removals allowed
+- `calculateTotalCost(removedCount)`: Calculates total cost for multiple removals
 
 ## Benefits of Centralization
 
@@ -238,12 +287,13 @@ export const AppData = {
   // Replace static data with API calls
   async initialize() {
     try {
-      const [sports, cities, packages, packageTypes, departureCities] = await Promise.all([
+      const [sports, cities, packages, packageTypes, departureCities, removeLeagues] = await Promise.all([
         fetch('/api/sports'),
         fetch('/api/cities'),
         fetch('/api/packages'),
         fetch('/api/package-types'),
-        fetch('/api/departure-cities')
+        fetch('/api/departure-cities'),
+        fetch('/api/remove-leagues')
       ]);
       
       this.hero.sports = await sports.json();
@@ -251,6 +301,7 @@ export const AppData = {
       this.hero.packTypes = await packages.json();
       this.packageType.packages = await packageTypes.json();
       this.departureCity.cities = await departureCities.json();
+      this.removeLeague.leagues = await removeLeagues.json();
     } catch (error) {
       console.error('Failed to initialize data:', error);
     }
@@ -279,6 +330,11 @@ export const AppData = {
    - Now uses `departureCityData` from appdata.ts
    - City options with gradients and styling centralized
    - Rich descriptions and visual effects centralized
+
+5. **Remove League** (`app/(frontend)/book/components/step5-5/removeleague.tsx`)
+   - Now uses `removeLeagueData` from appdata.ts
+   - League options with images and countries centralized
+   - Removal costs and business logic centralized
 
 ## Next Steps
 
