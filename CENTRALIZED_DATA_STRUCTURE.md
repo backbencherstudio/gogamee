@@ -34,6 +34,12 @@ All data has been centralized in `app/lib/appdata.ts` to make the application mo
 - **Pricing Logic**: Removal costs and free removal allowances
 - **Business Rules**: Cost calculation for multiple league removals
 
+### 6. Flight Schedule Data (`AppData.flightSchedule`)
+- **Time Slots**: Departure and arrival time options
+- **Default Ranges**: Standard flight time ranges with no extra cost
+- **Pricing Logic**: Cost calculation based on time deviations
+- **Flight Information**: Initial flight data with labels and icons
+
 ## Data Structure
 
 ### Hero Data Interface
@@ -124,14 +130,59 @@ export interface RemoveLeagueData {
 }
 ```
 
+### Flight Schedule Data Interface
+```typescript
+export interface FlightScheduleData {
+  timeSlots: {
+    departure: Array<{
+      value: number;
+      label: string;
+    }>;
+    arrival: Array<{
+      value: number;
+      label: string;
+    }>;
+  };
+  defaultRanges: {
+    departure: {
+      start: number;
+      end: number;
+    };
+    arrival: {
+      start: number;
+      end: number;
+    };
+  };
+  pricing: {
+    pricePerStep: number;
+    currency: string;
+  };
+  constants: {
+    minutesInDay: number;
+    extendedDayMinutes: number;
+    hoursPerDay: number;
+  };
+  initialFlightData: Array<{
+    label: string;
+    city: string;
+    price: string;
+    icon: 'takeoff' | 'landing';
+    timeRange: {
+      start: number;
+      end: number;
+    };
+  }>;
+}
+```
+
 ## How to Use
 
 ### 1. Import the Data
 ```typescript
-import { heroData, sportsPreferenceData, packageTypeData, departureCityData, removeLeagueData } from '../../lib/appdata'
+import { heroData, sportsPreferenceData, packageTypeData, departureCityData, removeLeagueData, flightScheduleData } from '../../lib/appdata'
 // or
 import AppData from '../../lib/appdata'
-const { hero, sportsPreference, packageType, departureCity, removeLeague } = AppData
+const { hero, sportsPreference, packageType, departureCity, removeLeague, flightSchedule } = AppData
 ```
 
 ### 2. Access Sports Data
@@ -224,6 +275,36 @@ const freeRemovals = removeLeagueData.getFreeRemovals()
 const totalCost = removeLeagueData.calculateTotalCost(3) // 3 leagues removed
 ```
 
+### 9. Access Flight Schedule Data
+```typescript
+// Get time slots for departure flights
+const departureSlots = flightScheduleData.getTimeSlots('departure')
+
+// Get time slots for arrival flights
+const arrivalSlots = flightScheduleData.getTimeSlots('arrival')
+
+// Get default time range for departure
+const defaultDepartureRange = flightScheduleData.getDefaultRange('departure')
+
+// Get price per step deviation
+const pricePerStep = flightScheduleData.getPricePerStep()
+
+// Get time constants
+const constants = flightScheduleData.getConstants()
+
+// Get initial flight data
+const initialFlights = flightScheduleData.getInitialFlightData()
+
+// Calculate price for time deviation from default
+const price = flightScheduleData.calculatePriceFromDefault(
+  { start: 480, end: 900 }, // 8:00 AM to 3:00 PM
+  true // isDeparture
+)
+
+// Get available time slots for a specific flight type
+const availableSlots = flightScheduleData.getAvailableTimeSlots('departure')
+```
+
 ## Helper Functions
 
 ### Hero Section Helpers
@@ -259,6 +340,15 @@ const totalCost = removeLeagueData.calculateTotalCost(3) // 3 leagues removed
 - `getFreeRemovals()`: Returns the number of free removals allowed
 - `calculateTotalCost(removedCount)`: Calculates total cost for multiple removals
 
+### Flight Schedule Helpers
+- `getTimeSlots(type)`: Returns time slots for departure or arrival
+- `getDefaultRange(type)`: Returns default time range for departure or arrival
+- `getPricePerStep()`: Returns price per step deviation
+- `getConstants()`: Returns time constants (minutes in day, etc.)
+- `getInitialFlightData()`: Returns initial flight data
+- `calculatePriceFromDefault(timeRange, isDeparture)`: Calculates price based on deviation from default
+- `getAvailableTimeSlots(type)`: Returns available time slots for a flight type
+
 ## Benefits of Centralization
 
 1. **Single Source of Truth**: All data is managed in one place
@@ -268,6 +358,7 @@ const totalCost = removeLeagueData.calculateTotalCost(3) // 3 leagues removed
 5. **Type Safety**: Full TypeScript support with interfaces
 6. **Scalable**: Easy to add new sports, cities, packages, or categories
 7. **Dynamic Pricing**: Smart pricing logic that considers sport and duration
+8. **Flight Management**: Centralized flight scheduling and pricing logic
 
 ## Backend Integration
 
@@ -287,13 +378,14 @@ export const AppData = {
   // Replace static data with API calls
   async initialize() {
     try {
-      const [sports, cities, packages, packageTypes, departureCities, removeLeagues] = await Promise.all([
+      const [sports, cities, packages, packageTypes, departureCities, removeLeagues, flightSchedule] = await Promise.all([
         fetch('/api/sports'),
         fetch('/api/cities'),
         fetch('/api/packages'),
         fetch('/api/package-types'),
         fetch('/api/departure-cities'),
-        fetch('/api/remove-leagues')
+        fetch('/api/remove-leagues'),
+        fetch('/api/flight-schedule')
       ]);
       
       this.hero.sports = await sports.json();
@@ -302,6 +394,7 @@ export const AppData = {
       this.packageType.packages = await packageTypes.json();
       this.departureCity.cities = await departureCities.json();
       this.removeLeague.leagues = await removeLeagues.json();
+      this.flightSchedule = await flightSchedule.json();
     } catch (error) {
       console.error('Failed to initialize data:', error);
     }
@@ -336,6 +429,11 @@ export const AppData = {
    - League options with images and countries centralized
    - Removal costs and business logic centralized
 
+6. **Flight Schedule** (`app/(frontend)/book/components/step7/flightschedule.tsx`)
+   - Now uses `flightScheduleData` from appdata.ts
+   - Time slots and default ranges centralized
+   - Pricing logic and flight information centralized
+
 ## Next Steps
 
 1. **Test the components** to ensure they work with centralized data
@@ -344,4 +442,4 @@ export const AppData = {
 4. **Replace static data** with API calls when ready
 5. **Add error handling** for data loading failures
 
-This centralized approach will make your application much easier to maintain and integrate with your backend database. 
+This centralized approach will make your application much easier to maintain and integrate with your backend database.

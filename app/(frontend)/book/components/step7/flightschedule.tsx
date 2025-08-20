@@ -4,6 +4,7 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { MdFlightTakeoff, MdFlightLand } from 'react-icons/md'
 import { Range } from 'react-range'
 import { useBooking } from '../../context/BookingContext'
+import { flightScheduleData } from '../../../../lib/appdata'
 
 // ========================= TYPES =========================
 interface TimeRange {
@@ -26,50 +27,6 @@ interface FlightSelectionData {
   duration: string
 }
 
-// ========================= CONSTANTS =========================
-const MINUTES_IN_DAY = 1440 // 24 * 60
-const EXTENDED_DAY_MINUTES = 2160 // 36 * 60 (1.5 days)
-const PRICE_PER_STEP = 20 // €20 per step
-const HOURS_PER_DAY = 24
-
-// Predefined time slots for departure (outbound flight)
-const DEPARTURE_TIME_SLOTS = [
-  { value: 360, label: '06:00' },   // 6:00 AM
-  { value: 660, label: '11:00' },   // 11:00 AM
-  { value: 840, label: '14:00' },   // 2:00 PM
-  { value: 1080, label: '18:00' },  // 6:00 PM
-  { value: 1440, label: '00:00(+1)' } // 12:00 AM next day
-] as const
-
-// Predefined time slots for arrival (return flight)
-const ARRIVAL_TIME_SLOTS = [
-  { value: 660, label: '11:00' },   // 11:00 AM
-  { value: 840, label: '14:00' },   // 2:00 PM
-  { value: 1140, label: '19:00' },  // 7:00 PM
-  { value: 1440, label: '00:00(+1)' } // 12:00 AM next day
-] as const
-
-// Default ranges (no extra cost)
-const DEFAULT_DEPARTURE_RANGE = { start: 360, end: 840 }  // 06:00 to 14:00
-const DEFAULT_ARRIVAL_RANGE = { start: 840, end: 1440 }   // 14:00 to 00:00(+1)
-
-const INITIAL_FLIGHT_DATA: FlightInfo[] = [
-  {
-    label: 'Departure from',
-    city: 'Barcelona',
-    price: '0€', // No extra cost for default range
-    icon: 'takeoff',
-    timeRange: DEFAULT_DEPARTURE_RANGE // 06:00 to 14:00
-  },
-  {
-    label: 'Arrival',
-    city: 'Barcelona',
-    price: '0€', // No extra cost for default range
-    icon: 'landing',
-    timeRange: DEFAULT_ARRIVAL_RANGE // 14:00 to 00:00(+1)
-  }
-] as const
-
 // ========================= STYLES =========================
 const SLIDER_STYLES = {
   track: {
@@ -86,16 +43,16 @@ const SLIDER_STYLES = {
 
 // ========================= UTILITY FUNCTIONS =========================
 const minutesToTime = (minutes: number): string => {
-  const hours = Math.floor(minutes / 60) % HOURS_PER_DAY
+  const constants = flightScheduleData.getConstants()
+  const hours = Math.floor(minutes / 60) % constants.hoursPerDay
   const mins = minutes % 60
-  const nextDay = minutes >= MINUTES_IN_DAY ? '(+1)' : ''
+  const nextDay = minutes >= constants.minutesInDay ? '(+1)' : ''
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}${nextDay}`
 }
 
-
-
 const getTimeMarkPosition = (minutes: number): number => {
-  return (minutes / EXTENDED_DAY_MINUTES) * 100
+  const constants = flightScheduleData.getConstants()
+  return (minutes / constants.extendedDayMinutes) * 100
 }
 
 const calculateDuration = (start: number, end: number): string => {
@@ -106,26 +63,13 @@ const calculateDuration = (start: number, end: number): string => {
 
 // Calculate price based on steps from default range
 const calculatePriceFromDefault = (timeRange: TimeRange, isDeparture: boolean): number => {
-  const defaultRange = isDeparture ? DEFAULT_DEPARTURE_RANGE : DEFAULT_ARRIVAL_RANGE
-  const timeSlots = isDeparture ? DEPARTURE_TIME_SLOTS : ARRIVAL_TIME_SLOTS
-  
-  // Find the closest time slots for start and end
-  const startStep = timeSlots.findIndex(slot => Math.abs(slot.value - timeRange.start) < 30)
-  const endStep = timeSlots.findIndex(slot => Math.abs(slot.value - timeRange.end) < 30)
-  
-  // Find the default start and end steps
-  const defaultStartStep = timeSlots.findIndex(slot => Math.abs(slot.value - defaultRange.start) < 30)
-  const defaultEndStep = timeSlots.findIndex(slot => Math.abs(slot.value - defaultRange.end) < 30)
-  
-  // Calculate total steps moved from default
-  const totalStepsMoved = Math.abs(startStep - defaultStartStep) + Math.abs(endStep - defaultEndStep)
-  
-  return totalStepsMoved * PRICE_PER_STEP
+  return flightScheduleData.calculatePriceFromDefault(timeRange, isDeparture)
 }
 
 // Get available time slots for a flight type
 const getAvailableTimeSlots = (isDeparture: boolean) => {
-  return isDeparture ? DEPARTURE_TIME_SLOTS : ARRIVAL_TIME_SLOTS
+  const type = isDeparture ? 'departure' : 'arrival'
+  return flightScheduleData.getAvailableTimeSlots(type)
 }
 
 // ========================= MEMOIZED COMPONENTS =========================
@@ -239,7 +183,7 @@ const TimeRangeSlider = React.memo(({
         <Range
           step={1}
           min={0}
-          max={EXTENDED_DAY_MINUTES}
+          max={flightScheduleData.getConstants().extendedDayMinutes}
           values={[timeRange.start, timeRange.end]}
           onChange={handleRangeChange}
           renderTrack={({ props, children }) => (
@@ -325,7 +269,13 @@ export default function FlightSchedule() {
   const [isHydrated, setIsHydrated] = useState(false)
   
   // Always start with default data for consistent server/client rendering
-  const [flightData, setFlightData] = useState<FlightInfo[]>(INITIAL_FLIGHT_DATA)
+  const [flightData, setFlightData] = useState<FlightInfo[]>(() => {
+    const initialData = flightScheduleData.getInitialFlightData()
+    return initialData.map(flight => ({
+      ...flight,
+      icon: flight.icon as 'takeoff' | 'landing'
+    }))
+  })
   
   // Set hydration flag and load existing data after hydration
   useEffect(() => {
@@ -338,7 +288,7 @@ export default function FlightSchedule() {
           label: 'Departure from',
           city: 'Barcelona',
           price: '0€', // Will be calculated dynamically
-          icon: 'takeoff',
+          icon: 'takeoff' as const,
           timeRange: {
             start: formData.flightSchedule.departure.start,
             end: formData.flightSchedule.departure.end
@@ -348,7 +298,7 @@ export default function FlightSchedule() {
           label: 'Arrival',
           city: 'Barcelona',
           price: '0€', // Will be calculated dynamically
-          icon: 'landing',
+          icon: 'landing' as const,
           timeRange: {
             start: formData.flightSchedule.arrival.start,
             end: formData.flightSchedule.arrival.end
@@ -463,9 +413,9 @@ export default function FlightSchedule() {
                   +{totalAdditionalCost}€
                 </div>
               </div>
-              <div className="text-xs text-yellow-600 mt-1">
-                Based on {Math.floor(totalAdditionalCost / PRICE_PER_STEP)} step(s) from default times
-              </div>
+                              <div className="text-xs text-yellow-600 mt-1">
+                  Based on {Math.floor(totalAdditionalCost / flightScheduleData.getPricePerStep())} step(s) from default times
+                </div>
             </div>
           )}
           

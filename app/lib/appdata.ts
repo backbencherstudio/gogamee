@@ -149,6 +149,49 @@ export interface RemoveLeagueData {
   freeRemovals: number;
 }
 
+// Flight Schedule Data Structure
+export interface FlightScheduleData {
+  timeSlots: {
+    departure: Array<{
+      value: number;
+      label: string;
+    }>;
+    arrival: Array<{
+      value: number;
+      label: string;
+    }>;
+  };
+  defaultRanges: {
+    departure: {
+      start: number;
+      end: number;
+    };
+    arrival: {
+      start: number;
+      end: number;
+    };
+  };
+  pricing: {
+    pricePerStep: number;
+    currency: string;
+  };
+  constants: {
+    minutesInDay: number;
+    extendedDayMinutes: number;
+    hoursPerDay: number;
+  };
+  initialFlightData: Array<{
+    label: string;
+    city: string;
+    price: string;
+    icon: 'takeoff' | 'landing';
+    timeRange: {
+      start: number;
+      end: number;
+    };
+  }>;
+}
+
 // Main application data object
 export const AppData = {
   // Hero Section Data
@@ -484,6 +527,103 @@ export const AppData = {
       const freeRemovals = this.freeRemovals;
       const paidRemovals = Math.max(0, removedCount - freeRemovals);
       return paidRemovals * this.removalCost;
+    }
+  },
+
+  // Flight Schedule Data
+  flightSchedule: {
+    timeSlots: {
+      departure: [
+        { value: 360, label: '06:00' },   // 6:00 AM
+        { value: 660, label: '11:00' },   // 11:00 AM
+        { value: 840, label: '14:00' },   // 2:00 PM
+        { value: 1080, label: '18:00' },  // 6:00 PM
+        { value: 1440, label: '00:00(+1)' } // 12:00 AM next day
+      ],
+      arrival: [
+        { value: 660, label: '11:00' },   // 11:00 AM
+        { value: 840, label: '14:00' },   // 2:00 PM
+        { value: 1140, label: '19:00' },  // 7:00 PM
+        { value: 1440, label: '00:00(+1)' } // 12:00 AM next day
+      ]
+    },
+    
+    defaultRanges: {
+      departure: { start: 360, end: 840 },  // 06:00 to 14:00
+      arrival: { start: 840, end: 1440 }   // 14:00 to 00:00(+1)
+    },
+    
+    pricing: {
+      pricePerStep: 20,
+      currency: 'EUR'
+    },
+    
+    constants: {
+      minutesInDay: 1440, // 24 * 60
+      extendedDayMinutes: 2160, // 36 * 60 (1.5 days)
+      hoursPerDay: 24
+    },
+    
+    initialFlightData: [
+      {
+        label: 'Departure from',
+        city: 'Barcelona',
+        price: '0€', // No extra cost for default range
+        icon: 'takeoff',
+        timeRange: { start: 360, end: 840 } // 06:00 to 14:00
+      },
+      {
+        label: 'Arrival',
+        city: 'Barcelona',
+        price: '0€', // No extra cost for default range
+        icon: 'landing',
+        timeRange: { start: 840, end: 1440 } // 14:00 to 00:00(+1)
+      }
+    ],
+    
+    // Helper functions for flight schedule
+    getTimeSlots: function(type: 'departure' | 'arrival') {
+      return this.timeSlots[type];
+    },
+    
+    getDefaultRange: function(type: 'departure' | 'arrival') {
+      return this.defaultRanges[type];
+    },
+    
+    getPricePerStep: function() {
+      return this.pricing.pricePerStep;
+    },
+    
+    getConstants: function() {
+      return this.constants;
+    },
+    
+    getInitialFlightData: function() {
+      return this.initialFlightData;
+    },
+    
+    // Calculate price based on steps from default range
+    calculatePriceFromDefault: function(timeRange: { start: number; end: number }, isDeparture: boolean): number {
+      const defaultRange = isDeparture ? this.defaultRanges.departure : this.defaultRanges.arrival;
+      const timeSlots = isDeparture ? this.timeSlots.departure : this.timeSlots.arrival;
+      
+      // Find the closest time slots for start and end
+      const startStep = timeSlots.findIndex(slot => Math.abs(slot.value - timeRange.start) < 30);
+      const endStep = timeSlots.findIndex(slot => Math.abs(slot.value - timeRange.end) < 30);
+      
+      // Find the default start and end steps
+      const defaultStartStep = timeSlots.findIndex(slot => Math.abs(slot.value - defaultRange.start) < 30);
+      const defaultEndStep = timeSlots.findIndex(slot => Math.abs(slot.value - defaultRange.end) < 30);
+      
+      // Calculate total steps moved from default
+      const totalStepsMoved = Math.abs(startStep - defaultStartStep) + Math.abs(endStep - defaultEndStep);
+      
+      return totalStepsMoved * this.pricing.pricePerStep;
+    },
+    
+    // Get available time slots for a flight type
+    getAvailableTimeSlots: function(type: 'departure' | 'arrival') {
+      return this.timeSlots[type];
     }
   },
 
@@ -1182,6 +1322,7 @@ export const sportsPreferenceData = AppData.sportsPreference;
 export const packageTypeData = AppData.packageType;
 export const departureCityData = AppData.departureCity;
 export const removeLeagueData = AppData.removeLeague;
+export const flightScheduleData = AppData.flightSchedule;
 
 // Export the main object as default
 export default AppData; 
