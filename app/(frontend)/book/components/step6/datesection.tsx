@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import { useFormContext } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
+import { pricing } from '../../../../lib/appdata'
 
 // Types
 interface DurationOption {
@@ -27,7 +28,7 @@ const MONTH_NAMES = [
 
 const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-const PRICE = '150€'
+// Dynamic pricing will be calculated based on sport, package, and nights
 
 // Utility functions
 const resetTimeToMidnight = (date: Date): Date => {
@@ -50,6 +51,17 @@ export default function DateSection() {
   // Optional React Hook Form integration
   const formContext = useFormContext?.() || null
   const setValue = formContext?.setValue
+
+  // Calculate dynamic price based on sport, package, and nights
+  const calculatePrice = useCallback((nights: number): string => {
+    const sport = formData.selectedSport as 'football' | 'basketball'
+    const packageType = formData.selectedPackage as 'standard' | 'premium'
+    
+    if (!sport || !packageType) return '€'
+    
+    const price = pricing.getPrice(sport, packageType, nights)
+    return `${price}€`
+  }, [formData.selectedSport, formData.selectedPackage])
   
   // Consistent default values
   const getDefaultValues = () => ({
@@ -255,6 +267,9 @@ export default function DateSection() {
       }
     }
 
+    // Calculate price for the selected duration
+    const currentPrice = calculatePrice(DURATION_OPTIONS[selectedDuration].nights)
+
     if (isSelected) {
       const bgColor = isInRange ? 'bg-[#D5EBC5]' : 'bg-[#76C043]'
       const textColorSelected = isInRange ? 'text-lime-600' : 'text-white'
@@ -268,7 +283,7 @@ export default function DateSection() {
               {day}
             </div>
             <div className={`text-center justify-center ${textColorSelected} text-sm font-normal font-['Poppins'] leading-relaxed`}>
-              {PRICE}
+              {currentPrice}
             </div>
           </div>
         </div>
@@ -282,11 +297,11 @@ export default function DateSection() {
           {day}
         </div>
         <div className="text-center justify-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed">
-          {PRICE}
+          {currentPrice}
         </div>
       </div>
     )
-  }, [getDateStatus, handleDateClick, renderEmptyDay])
+  }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePrice, selectedDuration])
 
   const renderCalendarWeeks = useCallback((days: (number | null)[], monthIndex: number, year: number) => {
     const weeks: (number | null)[][] = []
@@ -359,6 +374,26 @@ export default function DateSection() {
         </div>
         
         <div className="self-stretch flex flex-col justify-start items-start gap-3">
+          {/* Package and Price Info */}
+          {formData.selectedSport && formData.selectedPackage && (
+            <div className="w-full p-4 bg-white rounded-lg border border-gray-200">
+              <div className="flex flex-col gap-2">
+                <div className="text-sm text-gray-600 font-medium">
+                  {pricing.getPackageName(
+                    formData.selectedSport as 'football' | 'basketball',
+                    formData.selectedPackage as 'standard' | 'premium'
+                  )}
+                </div>
+                <div className="text-lg font-bold text-lime-600">
+                  {calculatePrice(DURATION_OPTIONS[selectedDuration].nights)}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {DURATION_OPTIONS[selectedDuration].days} days, {DURATION_OPTIONS[selectedDuration].nights} nights
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Duration Selection */}
           <div className="p-1 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-gray-200 w-full overflow-x-auto">
             <div className="flex xl:inline-flex justify-start items-center gap-1 xl:gap-0 min-w-max xl:min-w-0">

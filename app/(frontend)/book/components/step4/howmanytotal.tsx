@@ -26,7 +26,7 @@ interface CounterItemProps {
 // Constants
 const DEFAULT_VALUES: CounterFormData = {
   adults: 1,
-  kids: 2,
+  kids: 0,
   babies: 0,
 };
 
@@ -79,9 +79,14 @@ const CounterItem: React.FC<CounterItemProps> = ({
         {/* Decrement Button */}
         <button
           type="button"
-          onClick={onDecrement}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🎯 Decrement button clicked for', title);
+            onDecrement();
+          }}
           disabled={isMinimumReached}
-          className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <HiMinus 
             className={`w-4 h-4 xl:w-3.5 xl:h-3.5 ${!isMinimumReached ? 'text-zinc-950' : 'text-neutral-300'}`} 
@@ -96,9 +101,14 @@ const CounterItem: React.FC<CounterItemProps> = ({
         {/* Increment Button */}
         <button
           type="button"
-          onClick={onIncrement}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🎯 Increment button clicked for', title);
+            onIncrement();
+          }}
           disabled={!canIncrement}
-          className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <HiPlus className={`w-4 h-4 xl:w-3.5 xl:h-3.5 ${canIncrement ? 'text-zinc-950' : 'text-neutral-300'}`} />
         </button>
@@ -123,29 +133,42 @@ export default function HowManyTotal() {
     return DEFAULT_VALUES;
   }
   
-  const { control, watch, setValue, handleSubmit } = useForm<CounterFormData>({
+  const { control, watch, setValue, handleSubmit, reset } = useForm<CounterFormData>({
     defaultValues: getDefaultValues(),
     mode: 'onChange',
   });
 
+  // Debug: Log the initial form state
+  useEffect(() => {
+    const initialValues = getDefaultValues();
+    console.log('🎯 HowManyTotal initialized with values:', initialValues);
+    console.log('🎯 FormData.peopleCount:', formData.peopleCount);
+    console.log('🎯 FromHero:', formData.fromHero);
+  }, []); // Only run once on mount
+
   const watchedValues = watch();
 
   // Sync with context when context data changes (especially for hero data)
+  // Only sync on mount and when fromHero flag is true
   useEffect(() => {
     const contextPeopleCount = formData.peopleCount;
-    const formPeopleCount = watchedValues;
     
-    if (contextPeopleCount.adults !== formPeopleCount.adults ||
-        contextPeopleCount.kids !== formPeopleCount.kids ||
-        contextPeopleCount.babies !== formPeopleCount.babies) {
+    // Only sync if we have hero data and the values are different
+    if (formData.fromHero && 
+        (contextPeopleCount.adults !== watchedValues.adults ||
+         contextPeopleCount.kids !== watchedValues.kids ||
+         contextPeopleCount.babies !== watchedValues.babies)) {
       
       setValue('adults', contextPeopleCount.adults);
       setValue('kids', contextPeopleCount.kids);
       setValue('babies', contextPeopleCount.babies);
-      console.log('🎯 HowManyTotal - synced with context:', contextPeopleCount);
+      console.log('🎯 HowManyTotal - synced with hero context:', contextPeopleCount);
     }
-  }, [formData.peopleCount, watchedValues, setValue]);
+  }, [formData.peopleCount, formData.fromHero, setValue]); // Removed watchedValues to prevent loops
+
+  // Calculate total count from watched values
   const totalCount = watchedValues.adults + watchedValues.kids + watchedValues.babies;
+  console.log('🎯 Current total count:', totalCount, 'Values:', watchedValues);
   const canAddMore = totalCount < MAX_TOTAL_PEOPLE;
 
   const updateCount = (
@@ -154,19 +177,32 @@ export default function HowManyTotal() {
     minValue: number
   ) => {
     const currentValue = watchedValues[field];
+    console.log(`🎯 updateCount called: ${operation} ${field}, current: ${currentValue}, total: ${totalCount}, canAddMore: ${canAddMore}`);
     
     if (operation === 'increment') {
-      if (totalCount >= MAX_TOTAL_PEOPLE) return;
-      setValue(field, currentValue + 1, { shouldValidate: true });
+      if (totalCount >= MAX_TOTAL_PEOPLE) {
+        console.log(`🎯 Cannot increment - max people reached (${totalCount}/${MAX_TOTAL_PEOPLE})`);
+        return;
+      }
+      const newValue = currentValue + 1;
+      console.log(`🎯 Setting ${field} to ${newValue}`);
+      setValue(field, newValue, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+      console.log(`🎯 Successfully incremented ${field} from ${currentValue} to ${newValue}`);
     } else {
+      if (currentValue <= minValue) {
+        console.log(`🎯 Cannot decrement - minimum value reached (${currentValue} <= ${minValue})`);
+        return;
+      }
       const newValue = Math.max(minValue, currentValue - 1);
-      setValue(field, newValue, { shouldValidate: true });
+      console.log(`🎯 Setting ${field} to ${newValue}`);
+      setValue(field, newValue, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+      console.log(`🎯 Successfully decremented ${field} from ${currentValue} to ${newValue}`);
     }
   };
 
   const onSubmit = (data: CounterFormData) => {
     const totalPeople = data.adults + data.kids + data.babies;
-    console.log('Current counts:', data, 'Total:', totalPeople);
+    console.log('🎯 Form submitted - Current counts:', data, 'Total:', totalPeople);
     
     // Update the booking context with detailed people count
     updateFormData({ 
@@ -183,7 +219,7 @@ export default function HowManyTotal() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0">
+      <div className="w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0">
         <div className="self-stretch flex-1 flex flex-col justify-start items-start gap-3">
           {/* Header */}
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">

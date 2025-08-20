@@ -541,6 +541,72 @@ export const AppData = {
     ]
   },
 
+  // Pricing data based on sport, package, and nights
+  pricing: {
+    football: {
+      standard: {
+        name: "GoGame Kickoff",
+        prices: {
+          1: 299,
+          2: 379,
+          3: 459,
+          4: 529
+        }
+      },
+      premium: {
+        name: "GoGame Legend",
+        prices: {
+          1: 1299,
+          2: 1499,
+          3: 1699,
+          4: 1899
+        }
+      }
+    },
+    basketball: {
+      standard: {
+        name: "GoGame Slam",
+        prices: {
+          1: 279,
+          2: 359,
+          3: 439,
+          4: 509
+        }
+      },
+      premium: {
+        name: "GoGame MVP",
+        prices: {
+          1: 1279,
+          2: 1479,
+          3: 1679,
+          4: 1859
+        }
+      }
+    },
+    
+    // Helper function to get price
+    getPrice: function(sport: 'football' | 'basketball', packageType: 'standard' | 'premium', nights: number): number {
+      const sportData = this[sport];
+      if (!sportData) return 0;
+      
+      const packageData = sportData[packageType];
+      if (!packageData) return 0;
+      
+      return packageData.prices[nights as keyof typeof packageData.prices] || 0;
+    },
+    
+    // Helper function to get package name
+    getPackageName: function(sport: 'football' | 'basketball', packageType: 'standard' | 'premium'): string {
+      const sportData = this[sport];
+      if (!sportData) return '';
+      
+      const packageData = sportData[packageType];
+      if (!packageData) return '';
+      
+      return packageData.name;
+    }
+  },
+
   // Initialize with dummy data
   initialize: function() {
     // Add dummy bookings
@@ -694,6 +760,7 @@ export const paymentMethods = AppData.paymentMethods.list;
 export const faqs = AppData.faqs.list;
 export const travelPackages = AppData.travelPackages.list;
 export const reviews = AppData.reviews.list;
+export const pricing = AppData.pricing;
 
 // Export the main object as default
 export default AppData; 
