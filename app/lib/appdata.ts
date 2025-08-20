@@ -1269,6 +1269,98 @@ export const AppData = {
     ]
   },
 
+  // Personal Info Data
+  personalInfo: {
+    text: {
+      title: "Personal Information",
+      primaryTravelerTitle: "Primary Traveler Information",
+      extraTravelerTitle: "Extra Traveler Information",
+      reservationTitle: "Your Reservation",
+      paymentMethodTitle: "Payment Method",
+      confirm: "Confirm",
+      clearForm: "Clear Form",
+      flightHotel: "Flight + Hotel",
+      totalCost: "Total Cost"
+    },
+    formFields: {
+      travelerName: {
+        label: "Traveler's name (as on ID/ passport)",
+        placeholder: "Enter your name"
+      },
+      email: {
+        label: "Traveler's email",
+        placeholder: "Enter your email"
+      },
+      phone: {
+        label: "Phone number",
+        placeholder: "Enter your phone number"
+      },
+      dateOfBirth: {
+        label: "Date of birth"
+      },
+      documentType: {
+        label: "Document type",
+        id: "ID",
+        passport: "Passport"
+      },
+      documentNumber: {
+        label: "Documents number",
+        placeholder: "Enter your documents number"
+      }
+    },
+    paymentMethods: [
+      {
+        value: 'credit',
+        label: "Credit Card/Debit Card",
+        icon: "/stepper/icon/visa.png",
+        alt: "Visa",
+        additionalIcon: "/stepper/icon/mastercard.png",
+        additionalAlt: "Mastercard"
+      },
+      {
+        value: 'google',
+        label: "Google Pay",
+        icon: "/stepper/icon/gpay.png",
+        alt: "Google Pay"
+      },
+      {
+        value: 'apple',
+        label: "Apple Pay",
+        icon: "/stepper/icon/apay.png",
+        alt: "Apple Pay"
+      }
+    ],
+    reservationSummary: {
+      title: "Reservation Summary",
+      departure: {
+        city: "Barcelona",
+        date: "20 July 2025",
+        label: "Departure: Barcelona"
+      },
+      return: {
+        city: "Barcelona",
+        date: "23 July 2025",
+        label: "Return: Back to Barcelona"
+      },
+      pricing: {
+        concept: "Concept",
+        price: "Price",
+        quantity: "Qty",
+        total: "Total",
+        barcelona: "Barcelona",
+        priceValue: "150.00€",
+        quantityValue: "x2",
+        totalValue: "300.00€",
+        returnPrice: "00.00€",
+        returnTotal: "00.00€"
+      },
+      totalCost: "300.00€"
+    },
+    storage: {
+      key: "personalinfo_form_data"
+    }
+  },
+
   // Initialize with dummy data
   initialize: function() {
     // Add dummy bookings
@@ -1432,6 +1524,7 @@ export const departureCityData = AppData.departureCity;
 export const removeLeagueData = AppData.removeLeague;
 export const flightScheduleData = AppData.flightSchedule;
 export const extrasData = AppData.extrasData;
+export const personalInfoData = AppData.personalInfo;
 
 // Export the main object as default
 export default AppData; 

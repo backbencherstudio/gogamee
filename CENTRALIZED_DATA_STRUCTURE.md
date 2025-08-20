@@ -45,6 +45,13 @@ All data has been centralized in `app/lib/appdata.ts` to make the application mo
 - **Constants**: Currency symbols and quantity limits
 - **Extra Services**: Available add-on services with pricing and descriptions
 
+### 8. Personal Info Data (`AppData.personalInfo`)
+- **Text Constants**: UI text labels and messages for all sections
+- **Form Fields**: Labels and placeholders for all input fields
+- **Payment Methods**: Available payment options with icons and labels
+- **Reservation Summary**: Flight and hotel booking details with pricing
+- **Storage**: Local storage configuration for form persistence
+
 ## Data Structure
 
 ### Hero Data Interface
@@ -213,14 +220,94 @@ export interface ExtrasData {
 }
 ```
 
+### Personal Info Data Interface
+```typescript
+export interface PersonalInfoData {
+  text: {
+    title: string;
+    primaryTravelerTitle: string;
+    extraTravelerTitle: string;
+    reservationTitle: string;
+    paymentMethodTitle: string;
+    confirm: string;
+    clearForm: string;
+    flightHotel: string;
+    totalCost: string;
+  };
+  formFields: {
+    travelerName: {
+      label: string;
+      placeholder: string;
+    };
+    email: {
+      label: string;
+      placeholder: string;
+    };
+    phone: {
+      label: string;
+      placeholder: string;
+    };
+    dateOfBirth: {
+      label: string;
+    };
+    documentType: {
+      label: string;
+      id: string;
+      passport: string;
+    };
+    documentNumber: {
+      label: string;
+      placeholder: string;
+    };
+  };
+  paymentMethods: Array<{
+    value: 'credit' | 'google' | 'apple';
+    label: string;
+    icon: string;
+    alt: string;
+    additionalIcon?: string;
+    additionalAlt?: string;
+  }>;
+  reservationSummary: {
+    title: string;
+    departure: {
+      city: string;
+      date: string;
+      label: string;
+    };
+    return: {
+      city: string;
+      date: string;
+      label: string;
+    };
+    pricing: {
+      concept: string;
+      price: string;
+      quantity: string;
+      total: string;
+      barcelona: string;
+      priceValue: string;
+      quantityValue: string;
+      totalValue: string;
+      returnPrice: string;
+      returnTotal: string;
+    };
+    totalCost: string;
+  };
+  storage: {
+    key: string;
+  };
+}
+```
+
 ## How to Use
 
 ### 1. Import the Data
 ```typescript
-import { heroData, sportsPreferenceData, packageTypeData, departureCityData, removeLeagueData, flightScheduleData, extrasData } from '../../lib/appdata'
+import { heroData, sportsPreferenceData, packageTypeData, departureCityData, removeLeagueData, flightScheduleData, extrasData, personalInfoData } from '../../lib/appdata'
 // or
 import AppData from '../../lib/appdata'
-const { hero, sportsPreference, packageType, departureCity, removeLeague, flightSchedule, extras } = AppData
+const { hero, sportsPreference, packageType, departureCity, removeLeague, flightSchedule, extras, personalInfo } = AppData
 ```
 
 ### 2. Access Sports Data
@@ -367,6 +454,33 @@ const currency = extrasData.constants.currencySymbol
 const maxQuantity = extrasData.constants.defaultMaxQuantity
 ```
 
+### 11. Access Personal Info Data
+```typescript
+// Get all text constants
+const textConstants = personalInfoData.text
+
+// Get form field labels and placeholders
+const travelerNameLabel = personalInfoData.formFields.travelerName.label
+const emailPlaceholder = personalInfoData.formFields.email.placeholder
+const documentTypeLabel = personalInfoData.formFields.documentType.label
+
+// Get payment methods
+const paymentMethods = personalInfoData.paymentMethods
+const creditCardLabel = personalInfoData.paymentMethods[0].label
+
+// Get reservation summary
+const departureCity = personalInfoData.reservationSummary.departure.city
+const totalCost = personalInfoData.reservationSummary.totalCost
+
+// Get storage key
+const storageKey = personalInfoData.storage.key
+
+// Get specific text
+const title = personalInfoData.text.title
+const confirmButtonText = personalInfoData.text.confirm
+const clearButtonText = personalInfoData.text.clearForm
+```
+
 ## Helper Functions
 
 ### Hero Section Helpers
@@ -416,6 +530,13 @@ const maxQuantity = extrasData.constants.defaultMaxQuantity
 - `constants`: Access to currency symbols and quantity limits
 - `initialExtras`: Array of available extra services with pricing and descriptions
 
+### Personal Info Helpers
+- `text`: Access to all UI text constants and labels
+- `formFields`: Access to form field labels and placeholders
+- `paymentMethods`: Array of available payment options with icons
+- `reservationSummary`: Flight and hotel booking details with pricing
+- `storage`: Local storage configuration for form persistence
+
 ## Benefits of Centralization
 
 1. **Single Source of Truth**: All data is managed in one place
@@ -445,7 +566,7 @@ export const AppData = {
   // Replace static data with API calls
   async initialize() {
     try {
-      const [sports, cities, packages, packageTypes, departureCities, removeLeagues, flightSchedule, extras] = await Promise.all([
+      const [sports, cities, packages, packageTypes, departureCities, removeLeagues, flightSchedule, extras, personalInfo] = await Promise.all([
         fetch('/api/sports'),
         fetch('/api/cities'),
         fetch('/api/packages'),
@@ -453,7 +574,8 @@ export const AppData = {
         fetch('/api/departure-cities'),
         fetch('/api/remove-leagues'),
         fetch('/api/flight-schedule'),
-        fetch('/api/extras')
+        fetch('/api/extras'),
+        fetch('/api/personal-info')
       ]);
       
       this.hero.sports = await sports.json();
@@ -462,13 +584,14 @@ export const AppData = {
       this.packageType.packages = await packageTypes.json();
       this.departureCity.cities = await departureCities.json();
       this.removeLeague.leagues = await removeLeagues.json();
-      this.flightSchedule = await flightSchedule.json();
-      this.extrasData = await extras.json();
+      this.flightSchedule.timeSlots = await flightSchedule.json();
+      this.extrasData.initialExtras = await extras.json();
+      this.personalInfo.text = await personalInfo.json();
     } catch (error) {
       console.error('Failed to initialize data:', error);
     }
   }
-}
+};
 ```
 
 ## Components Updated
@@ -507,6 +630,12 @@ export const AppData = {
    - Now uses `extrasData` from appdata.ts
    - Text constants and UI labels centralized
    - Extra services and pricing centralized
+
+8. **Personal Info** (`app/(frontend)/book/components/step9/personalinfo.tsx`)
+   - Now uses `personalInfoData` from appdata.ts
+   - Form field labels and placeholders centralized
+   - Payment methods and reservation summary centralized
+   - Local storage functionality implemented
 
 ## Next Steps
 

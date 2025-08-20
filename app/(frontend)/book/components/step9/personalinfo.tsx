@@ -5,6 +5,7 @@ import React, { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
+import { personalInfoData } from '../../../../lib/appdata'
 
 interface TravelerInfo {
   name: string
@@ -70,7 +71,8 @@ const FormInput: React.FC<{
   value: string
   onChange: (value: string) => void
   className?: string
-}> = ({ label, type = 'text', placeholder, value, onChange, className = '' }) => (
+  error?: string
+}> = ({ label, type = 'text', placeholder, value, onChange, className = '', error }) => (
   <div className={`flex-1 inline-flex flex-col justify-start items-start gap-2 ${className}`}>
     <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
       {label}
@@ -80,8 +82,15 @@ const FormInput: React.FC<{
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="self-stretch h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C] w-full"
+      className={`self-stretch h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 w-full ${
+        error ? 'outline-red-500' : 'outline-zinc-200 focus:outline-[#6AAD3C]'
+      }`}
     />
+    {error && (
+      <div className="text-red-500 text-sm font-normal font-['Poppins']">
+        {error}
+      </div>
+    )}
   </div>
 )
 
@@ -108,7 +117,7 @@ const DocumentTypeRadio: React.FC<{
   </div>
 )
 
-const STORAGE_KEY = 'personalinfo_form_data'
+const STORAGE_KEY = personalInfoData.storage.key
 
 // Helper functions for localStorage
 const saveToStorage = (data: PersonalInfoFormData) => {
@@ -130,20 +139,31 @@ const loadFromStorage = (): PersonalInfoFormData | null => {
 }
 
 export default function Personalinfo() {
-  const { updateFormData, nextStep } = useBooking()
+  const { updateFormData, nextStep, formData } = useBooking()
+  
+  // Check if we have people count data from howmanytotal page
+  const hasMultipleTravelers = formData.peopleCount && 
+    (formData.peopleCount.adults > 1 || formData.peopleCount.kids > 0 || formData.peopleCount.babies > 0)
+  
+  // Debug: Log the people count data
+  useEffect(() => {
+    console.log('🎯 PersonalInfo - People Count Data:', formData.peopleCount)
+    console.log('🎯 PersonalInfo - Has Multiple Travelers:', hasMultipleTravelers)
+  }, [formData.peopleCount, hasMultipleTravelers])
   
   // Load initial data from localStorage or use defaults
   const getInitialValues = (): PersonalInfoFormData => {
     const savedData = loadFromStorage()
     return savedData || {
       primaryTraveler: defaultTravelerInfo,
-      extraTraveler: defaultTravelerInfo,
+      extraTraveler: hasMultipleTravelers ? defaultTravelerInfo : { ...defaultTravelerInfo, name: '', email: '', phone: '', dateOfBirth: '', documentType: 'ID', documentNumber: '' },
       paymentMethod: 'credit'
     }
   }
   
-  const { control, handleSubmit, watch, getValues, reset } = useForm<PersonalInfoFormData>({
-    defaultValues: getInitialValues()
+  const { control, handleSubmit, watch, getValues, formState: { errors } } = useForm<PersonalInfoFormData>({
+    defaultValues: getInitialValues(),
+    mode: 'onBlur'
   })
 
   // Watch all form values for auto-save
@@ -180,19 +200,7 @@ export default function Personalinfo() {
     nextStep()
   }
 
-  // Function to clear form and localStorage
-  const clearForm = () => {
-    try {
-      localStorage.removeItem(STORAGE_KEY)
-      reset({
-        primaryTraveler: defaultTravelerInfo,
-        extraTraveler: defaultTravelerInfo,
-        paymentMethod: 'credit'
-      })
-    } catch (error) {
-      console.error('Error clearing form:', error)
-    }
-  }
+
 
 
 
@@ -201,9 +209,9 @@ export default function Personalinfo() {
       <div className="w-full max-w-[894px] px-3 md:px-4 xl:px-6 py-4 md:py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 md:gap-6 min-h-[600px] xl:min-h-0">
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
-            <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-              Personal Informations
-            </div>
+                         <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
+               {personalInfoData.text.title}
+             </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -212,58 +220,182 @@ export default function Personalinfo() {
               <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4">
                 <div className="self-stretch flex flex-col justify-start items-start gap-5">
                   <div className="self-stretch inline-flex justify-start items-center gap-2">
+                                         <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
+                       {personalInfoData.text.primaryTravelerTitle}
+                     </div>
+                  </div>
+                  <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                    <div className="self-stretch flex flex-col md:inline-flex md:flex-row justify-start items-start gap-4 md:gap-6">
+                                             <Controller
+                         name="primaryTraveler.name"
+                         control={control}
+                         rules={{ required: 'Traveler name is required' }}
+                         render={({ field }) => (
+                                                      <FormInput
+                              label={personalInfoData.formFields.travelerName.label}
+                              placeholder={personalInfoData.formFields.travelerName.placeholder}
+                              value={field.value}
+                              onChange={field.onChange}
+                              error={errors.primaryTraveler?.name?.message}
+                            />
+                         )}
+                       />
+                                             <Controller
+                         name="primaryTraveler.email"
+                         control={control}
+                         rules={{ 
+                           required: 'Email is required',
+                           pattern: {
+                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                             message: 'Invalid email address'
+                           }
+                         }}
+                         render={({ field }) => (
+                                                      <FormInput
+                              label={personalInfoData.formFields.email.label}
+                              type="email"
+                              placeholder={personalInfoData.formFields.email.placeholder}
+                              value={field.value}
+                              onChange={field.onChange}
+                              error={errors.primaryTraveler?.email?.message}
+                            />
+                         )}
+                       />
+                    </div>
+                    <div className="self-stretch flex flex-col md:inline-flex md:flex-row justify-start items-start gap-4 md:gap-6">
+                                             <Controller
+                         name="primaryTraveler.phone"
+                         control={control}
+                         rules={{ required: 'Phone number is required' }}
+                         render={({ field }) => (
+                                                      <FormInput
+                              label={personalInfoData.formFields.phone.label}
+                              type="tel"
+                              placeholder={personalInfoData.formFields.phone.placeholder}
+                              value={field.value}
+                              onChange={field.onChange}
+                              error={errors.primaryTraveler?.phone?.message}
+                            />
+                         )}
+                       />
+                                             <Controller
+                         name="primaryTraveler.dateOfBirth"
+                         control={control}
+                         rules={{ required: 'Date of birth is required' }}
+                         render={({ field }) => (
+                           <FormInput
+                             label={personalInfoData.formFields.dateOfBirth.label}
+                             type="date"
+                             value={field.value}
+                             onChange={field.onChange}
+                             error={errors.primaryTraveler?.dateOfBirth?.message}
+                           />
+                         )}
+                       />
+                    </div>
+                    <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                      <div className="self-stretch flex flex-col justify-center items-start gap-4">
+                        <div className="self-stretch inline-flex justify-start items-center gap-2">
+                          <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
+                            {personalInfoData.formFields.documentType.label}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                        <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                                                     <Controller
+                             name="primaryTraveler.documentType"
+                             control={control}
+                             rules={{ required: 'Document type is required' }}
+                             render={({ field }) => (
+                               <>
+                                 <DocumentTypeRadio
+                                   id="primaryID"
+                                   name="primaryDocType"
+                                   value="ID"
+                                   selectedValue={field.value}
+                                   onChange={field.onChange}
+                                   label={personalInfoData.formFields.documentType.id}
+                                 />
+                                 <DocumentTypeRadio
+                                   id="primaryPassport"
+                                   name="primaryDocType"
+                                   value="Passport"
+                                   selectedValue={field.value}
+                                   onChange={field.onChange}
+                                   label={personalInfoData.formFields.documentType.passport}
+                                 />
+                               </>
+                             )}
+                           />
+                           {errors.primaryTraveler?.documentType && (
+                             <div className="text-red-500 text-sm font-normal font-['Poppins']">
+                               {errors.primaryTraveler.documentType.message}
+                             </div>
+                           )}
+                        </div>
+                        <div className="self-stretch flex flex-col justify-start items-start gap-2">
+                          <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
+                            {personalInfoData.formFields.documentNumber.label}
+                          </div>
+                                                     <Controller
+                                                     name="primaryTraveler.documentNumber"
+                         control={control}
+                         rules={{ required: 'Document number is required' }}
+                         render={({ field }) => (
+                           <>
+                             <input
+                               type="text"
+                               value={field.value}
+                               onChange={field.onChange}
+                               placeholder={personalInfoData.formFields.documentNumber.placeholder}
+                               className={`self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 w-full ${
+                                 errors.primaryTraveler?.documentNumber ? 'outline-red-500' : 'outline-zinc-200 focus:outline-[#6AAD3C]'
+                               }`}
+                             />
+                             {errors.primaryTraveler?.documentNumber && (
+                               <div className="text-red-500 text-sm font-normal font-['Poppins']">
+                                 {errors.primaryTraveler.documentNumber.message}
+                               </div>
+                             )}
+                           </>
+                         )}
+                       />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Extra Traveler Information - Only show if multiple travelers */}
+              {hasMultipleTravelers && (
+                <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
+                  <div className="self-stretch inline-flex justify-start items-center gap-2">
                     <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                      Primary traveler informations
+                      {personalInfoData.text.extraTravelerTitle}
                     </div>
                   </div>
                   <div className="self-stretch flex flex-col justify-start items-start gap-4">
                     <div className="self-stretch flex flex-col md:inline-flex md:flex-row justify-start items-start gap-4 md:gap-6">
                       <Controller
-                        name="primaryTraveler.name"
+                        name="extraTraveler.name"
                         control={control}
                         render={({ field }) => (
                           <FormInput
-                            label="Traveler's name (as on ID/ passport)"
-                            placeholder="Enter your name"
+                            label={personalInfoData.formFields.travelerName.label}
+                            placeholder={personalInfoData.formFields.travelerName.placeholder}
                             value={field.value}
                             onChange={field.onChange}
                           />
                         )}
                       />
                       <Controller
-                        name="primaryTraveler.email"
+                        name="extraTraveler.dateOfBirth"
                         control={control}
                         render={({ field }) => (
                           <FormInput
-                            label="Traveler's email"
-                            type="email"
-                            placeholder="Enter your email"
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                        )}
-                      />
-                    </div>
-                    <div className="self-stretch flex flex-col md:inline-flex md:flex-row justify-start items-start gap-4 md:gap-6">
-                      <Controller
-                        name="primaryTraveler.phone"
-                        control={control}
-                        render={({ field }) => (
-                          <FormInput
-                            label="Phone number"
-                            type="tel"
-                            placeholder="Enter your phone number"
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                        )}
-                      />
-                      <Controller
-                        name="primaryTraveler.dateOfBirth"
-                        control={control}
-                        render={({ field }) => (
-                          <FormInput
-                            label="Date of birth"
+                            label={personalInfoData.formFields.dateOfBirth.label}
                             type="date"
                             value={field.value}
                             onChange={field.onChange}
@@ -275,32 +407,32 @@ export default function Personalinfo() {
                       <div className="self-stretch flex flex-col justify-center items-start gap-4">
                         <div className="self-stretch inline-flex justify-start items-center gap-2">
                           <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                            Document type
+                            {personalInfoData.formFields.documentType.label}
                           </div>
                         </div>
                       </div>
                       <div className="self-stretch flex flex-col justify-start items-start gap-4">
                         <div className="self-stretch flex flex-col justify-start items-start gap-4">
                           <Controller
-                            name="primaryTraveler.documentType"
+                            name="extraTraveler.documentType"
                             control={control}
                             render={({ field }) => (
                               <>
                                 <DocumentTypeRadio
-                                  id="primaryID"
-                                  name="primaryDocType"
+                                  id="extraID"
+                                  name="extraDocType"
                                   value="ID"
                                   selectedValue={field.value}
                                   onChange={field.onChange}
-                                  label="ID"
+                                  label={personalInfoData.formFields.documentType.id}
                                 />
                                 <DocumentTypeRadio
-                                  id="primaryPassport"
-                                  name="primaryDocType"
+                                  id="extraPassport"
+                                  name="extraDocType"
                                   value="Passport"
                                   selectedValue={field.value}
                                   onChange={field.onChange}
-                                  label="Passport"
+                                  label={personalInfoData.formFields.documentType.passport}
                                 />
                               </>
                             )}
@@ -308,17 +440,17 @@ export default function Personalinfo() {
                         </div>
                         <div className="self-stretch flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
-                            Documents number
+                            {personalInfoData.formFields.documentNumber.label}
                           </div>
                           <Controller
-                            name="primaryTraveler.documentNumber"
+                            name="extraTraveler.documentNumber"
                             control={control}
                             render={({ field }) => (
                               <input
                                 type="text"
                                 value={field.value}
                                 onChange={field.onChange}
-                                placeholder="Enter your documents number"
+                                placeholder={personalInfoData.formFields.documentNumber.placeholder}
                                 className="self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
                               />
                             )}
@@ -328,114 +460,22 @@ export default function Personalinfo() {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Extra Traveler Information */}
-              <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
-                <div className="self-stretch inline-flex justify-start items-center gap-2">
-                  <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                    Extra travelers info
-                  </div>
-                </div>
-                <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                  <div className="self-stretch flex flex-col md:inline-flex md:flex-row justify-start items-start gap-4 md:gap-6">
-                    <Controller
-                      name="extraTraveler.name"
-                      control={control}
-                      render={({ field }) => (
-                        <FormInput
-                          label="Name (as on ID/ passport)"
-                          placeholder="Enter your name"
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      )}
-                    />
-                    <Controller
-                      name="extraTraveler.dateOfBirth"
-                      control={control}
-                      render={({ field }) => (
-                        <FormInput
-                          label="Date of birth"
-                          type="date"
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      )}
-                    />
-                  </div>
-                  <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                    <div className="self-stretch flex flex-col justify-center items-start gap-4">
-                      <div className="self-stretch inline-flex justify-start items-center gap-2">
-                        <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                          Document type
-                        </div>
-                      </div>
-                    </div>
-                    <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                      <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                        <Controller
-                          name="extraTraveler.documentType"
-                          control={control}
-                          render={({ field }) => (
-                            <>
-                              <DocumentTypeRadio
-                                id="extraID"
-                                name="extraDocType"
-                                value="ID"
-                                selectedValue={field.value}
-                                onChange={field.onChange}
-                                label="ID"
-                              />
-                              <DocumentTypeRadio
-                                id="extraPassport"
-                                name="extraDocType"
-                                value="Passport"
-                                selectedValue={field.value}
-                                onChange={field.onChange}
-                                label="Passport"
-                              />
-                            </>
-                          )}
-                        />
-                      </div>
-                      <div className="self-stretch flex flex-col justify-start items-start gap-2">
-                        <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
-                          Documents number
-                        </div>
-                        <Controller
-                          name="extraTraveler.documentNumber"
-                          control={control}
-                          render={({ field }) => (
-                            <input
-                              type="text"
-                              value={field.value}
-                              onChange={field.onChange}
-                              placeholder="Enter your documents number"
-                              className="self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
-                            />
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              )}
 
               {/* Reservation Summary */}
               <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
                 <div className="self-stretch inline-flex justify-start items-center gap-2">
                   <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                    Your Reservation
+                    {personalInfoData.text.reservationTitle}
                   </div>
                 </div>
                 <div className="w-full max-w-[811px] p-3 md:p-6 bg-white rounded-xl outline-1 outline-offset-[-1px] outline-green-50 flex flex-col justify-start items-start gap-3 md:gap-5">
                   <div className="self-stretch inline-flex justify-start items-center gap-20">
                     <div className="flex-1 flex justify-start items-center gap-4">
                       <div className="flex-1 inline-flex flex-col justify-start items-start gap-1.5">
-                        <div className="justify-center text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
-                          Flight + Hotel
-                        </div>
+                                                 <div className="justify-center text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
+                           {personalInfoData.text.flightHotel}
+                         </div>
                       </div>
                     </div>
                   </div>
@@ -448,12 +488,12 @@ export default function Personalinfo() {
                               <FaPlane className="w-6 h-6 md:w-8 md:h-8 text-[#6AAD3C]" />
                             </div>
                             <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
-                              <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none">
-                                Departure: Barcelona
-                              </div>
-                              <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
-                                20 July 2025
-                              </div>
+                                                             <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none">
+                                 {personalInfoData.reservationSummary.departure.label}
+                               </div>
+                               <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
+                                 {personalInfoData.reservationSummary.departure.date}
+                               </div>
                             </div>
                           </div>
                         </div>
@@ -465,12 +505,12 @@ export default function Personalinfo() {
                               <FaPlane className="w-6 h-6 md:w-8 md:h-8 text-[#6AAD3C] transform rotate-180" />
                             </div>
                             <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
-                              <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none">
-                                Return: Back to Barcelona
-                              </div>
-                              <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
-                                23 July 2025
-                              </div>
+                                                             <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none">
+                                 {personalInfoData.reservationSummary.return.label}
+                               </div>
+                               <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
+                                 {personalInfoData.reservationSummary.return.date}
+                               </div>
                             </div>
                           </div>
                         </div>
@@ -479,80 +519,80 @@ export default function Personalinfo() {
                     <div className="self-stretch pb-3 md:pb-5 border-b border-gray-200 flex flex-col justify-start items-start gap-2.5">
                       {/* Mobile View */}
                       <div className="block md:hidden w-full space-y-3">
-                        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                          <span className="text-neutral-800 text-sm font-medium font-['Poppins']">Barcelona</span>
-                          <div className="text-right">
-                            <div className="text-neutral-800 text-sm font-normal font-['Poppins']">150.00€ x2</div>
-                            <div className="text-neutral-800 text-sm font-medium font-['Poppins']">300.00€</div>
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-neutral-800 text-sm font-medium font-['Poppins']">Barcelona</span>
-                          <div className="text-right">
-                            <div className="text-neutral-800 text-sm font-normal font-['Poppins']">00.00€ x2</div>
-                            <div className="text-neutral-800 text-sm font-medium font-['Poppins']">00.00€</div>
-                          </div>
-                        </div>
+                                                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                           <span className="text-neutral-800 text-sm font-medium font-['Poppins']">{personalInfoData.reservationSummary.pricing.barcelona}</span>
+                           <div className="text-right">
+                             <div className="text-neutral-800 text-sm font-normal font-['Poppins']">{personalInfoData.reservationSummary.pricing.priceValue} {personalInfoData.reservationSummary.pricing.quantityValue}</div>
+                             <div className="text-neutral-800 text-sm font-medium font-['Poppins']">{personalInfoData.reservationSummary.pricing.totalValue}</div>
+                           </div>
+                         </div>
+                         <div className="flex justify-between items-center py-2">
+                           <span className="text-neutral-800 text-sm font-medium font-['Poppins']">{personalInfoData.reservationSummary.pricing.barcelona}</span>
+                           <div className="text-right">
+                             <div className="text-neutral-800 text-sm font-normal font-['Poppins']">{personalInfoData.reservationSummary.pricing.returnPrice} {personalInfoData.reservationSummary.pricing.quantityValue}</div>
+                             <div className="text-neutral-800 text-sm font-medium font-['Poppins']">{personalInfoData.reservationSummary.pricing.returnTotal}</div>
+                           </div>
+                         </div>
                       </div>
                       
                       {/* Desktop View */}
                       <div className="hidden md:block self-stretch">
                         <div className="self-stretch inline-flex justify-between items-center">
-                          <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
-                            <div className="self-stretch justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                              Concept
-                            </div>
-                            <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                              Barcelona
-                            </div>
-                            <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                              Barcelona
-                            </div>
-                          </div>
-                          <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
-                            <div className="self-stretch justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                              Price
-                            </div>
-                            <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                              150.00€
-                            </div>
-                            <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                              00.00€
-                            </div>
-                          </div>
-                          <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
-                            <div className="self-stretch justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                              Qty
-                            </div>
-                            <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                              x2
-                            </div>
-                            <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                              x2
-                            </div>
-                          </div>
-                          <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
-                            <div className="self-stretch text-right justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                              Total
-                            </div>
-                            <div className="self-stretch text-right justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                              300.00€
-                            </div>
-                            <div className="self-stretch text-right justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                              00.00€
-                            </div>
-                          </div>
+                                                     <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
+                             <div className="self-stretch justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.concept}
+                             </div>
+                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.barcelona}
+                             </div>
+                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.barcelona}
+                             </div>
+                           </div>
+                           <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
+                             <div className="self-stretch justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.price}
+                             </div>
+                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.priceValue}
+                             </div>
+                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.returnPrice}
+                             </div>
+                           </div>
+                           <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
+                             <div className="self-stretch justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.quantity}
+                             </div>
+                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.quantityValue}
+                             </div>
+                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.quantityValue}
+                             </div>
+                           </div>
+                           <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
+                             <div className="self-stretch text-right justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.total}
+                             </div>
+                             <div className="self-stretch text-right justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.totalValue}
+                             </div>
+                             <div className="self-stretch text-right justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {personalInfoData.reservationSummary.pricing.returnTotal}
+                             </div>
+                           </div>
                         </div>
                       </div>
                     </div>
-                    <div className="self-stretch inline-flex justify-between items-center">
-                      <div className="justify-center text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
-                        Total Cost
-                      </div>
-                      <div className="justify-center text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
-                        300.00€
-                      </div>
-                    </div>
+                                         <div className="self-stretch inline-flex justify-between items-center">
+                       <div className="justify-center text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
+                         {personalInfoData.text.totalCost}
+                       </div>
+                       <div className="justify-center text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
+                         {personalInfoData.reservationSummary.totalCost}
+                       </div>
+                     </div>
                   </div>
                 </div>
               </div>
@@ -561,22 +601,23 @@ export default function Personalinfo() {
               <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
                 <div className="self-stretch inline-flex justify-start items-center gap-2">
                   <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                    Payment Method
+                    {personalInfoData.text.paymentMethodTitle}
                   </div>
                 </div>
                 
-                <Controller
-                  name="paymentMethod"
-                  control={control}
-                  render={({ field }) => (
+                                 <Controller
+                   name="paymentMethod"
+                   control={control}
+                   rules={{ required: 'Payment method is required' }}
+                   render={({ field }) => (
                     <>
                       {/* Credit Card Option */}
-                      <PaymentMethodCard
-                        value="credit"
-                        selectedValue={field.value}
-                        onChange={field.onChange}
-                        label="Credit Card/Debit Card"
-                      >
+                                             <PaymentMethodCard
+                         value="credit"
+                         selectedValue={field.value}
+                         onChange={field.onChange}
+                         label={personalInfoData.paymentMethods[0].label}
+                       >
                         <div className="flex justify-start items-center gap-3">
                           <div className="w-16 p-2 rounded-[2.92px] outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
                             <Image src="/stepper/icon/visa.png" alt="Visa" width={64} height={32} className="h-auto w-full" />
@@ -588,12 +629,12 @@ export default function Personalinfo() {
                       </PaymentMethodCard>
 
                       {/* Google Pay Option */}
-                      <PaymentMethodCard
-                        value="google"
-                        selectedValue={field.value}
-                        onChange={field.onChange}
-                        label="Google Pay"
-                      >
+                                             <PaymentMethodCard
+                         value="google"
+                         selectedValue={field.value}
+                         onChange={field.onChange}
+                         label={personalInfoData.paymentMethods[1].label}
+                       >
                         <div className="flex justify-start items-center gap-2.5">
                           <div className="p-2 mr-8 rounded outline-green-50 inline-flex flex-col justify-center items-center gap-2">
                             <Image 
@@ -609,12 +650,12 @@ export default function Personalinfo() {
                       </PaymentMethodCard>
 
                       {/* Apple Pay Option */}
-                      <PaymentMethodCard
-                        value="apple"
-                        selectedValue={field.value}
-                        onChange={field.onChange}
-                        label="Apple Pay"
-                      >
+                                             <PaymentMethodCard
+                         value="apple"
+                         selectedValue={field.value}
+                         onChange={field.onChange}
+                         label={personalInfoData.paymentMethods[2].label}
+                       >
                         <div className="w-20 flex justify-start items-center gap-2.5">
                           <div className="flex-1 p-2 rounded outline-green-50 inline-flex flex-col justify-center items-center gap-2">
                             <Image 
@@ -631,6 +672,11 @@ export default function Personalinfo() {
                     </>
                   )}
                 />
+                {errors.paymentMethod && (
+                  <div className="text-red-500 text-sm font-normal font-['Poppins']">
+                    {errors.paymentMethod.message}
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-full md:w-auto">
@@ -638,20 +684,12 @@ export default function Personalinfo() {
                 type="submit"
                 className="w-full md:w-44 h-12 md:h-11 px-4 md:px-3.5 py-2 md:py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
               >
-                <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-                  Confirm
-                </div>
+                                 <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
+                   {personalInfoData.text.confirm}
+                 </div>
               </button>
               
-              <button 
-                type="button"
-                onClick={clearForm}
-                className="w-full md:w-32 h-12 md:h-11 px-4 md:px-3.5 py-2 md:py-1.5 bg-gray-500 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-gray-600 transition-colors"
-              >
-                <div className="text-center justify-start text-white text-sm font-normal font-['Inter']">
-                  Clear Form
-                </div>
-              </button>
+
             </div>
           </div>
         </div>
