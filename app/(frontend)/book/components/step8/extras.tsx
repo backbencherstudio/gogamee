@@ -29,9 +29,10 @@ interface FormData {
 const createInitialExtras = (): ExtraService[] => {
   return extrasData.initialExtras.map(extra => ({
     ...extra,
-    isSelected: extra.isIncluded || false,
-    quantity: extra.isIncluded ? 1 : 0,
-    isGroupOption: extra.id === 'breakfast' || extra.id === 'travel-insurance' || extra.id === 'seats-together'
+    // Use the centralized data as is
+    isSelected: extra.isSelected,
+    quantity: extra.quantity,
+    isGroupOption: extra.isGroupOption || false
   }))
 }
 
@@ -84,6 +85,12 @@ export default function Extras() {
         // For individual options, keep current quantity
         return { ...extra, isSelected: newIsSelected }
       }
+      
+      // Ensure only one package can be selected at a time
+      if (extra.isGroupOption && extra.id !== id) {
+        return { ...extra, isSelected: false, quantity: 0 }
+      }
+      
       return extra
     })
     setValue('extras', updatedExtras)

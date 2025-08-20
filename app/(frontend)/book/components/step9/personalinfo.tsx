@@ -1,11 +1,77 @@
 'use client'
 
 import Image from 'next/image'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
-import { personalInfoData } from '../../../../lib/appdata'
+import { personalInfoData, pricing, flightScheduleData, extrasData } from '../../../../lib/appdata'
+
+// Utility functions for dynamic data calculation
+const formatDate = (dateString: string): string => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric' 
+  })
+}
+
+const formatTime = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  const nextDay = minutes >= 1440 ? '(+1)' : ''
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}${nextDay}`
+}
+
+const calculateDuration = (departureDate: string, returnDate: string): number => {
+  if (!departureDate || !returnDate) return 0
+  const start = new Date(departureDate)
+  const end = new Date(returnDate)
+  const diffTime = end.getTime() - start.getTime()
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+}
+
+const calculateBasePrice = (sport: string, packageType: string, nights: number): number => {
+  if (!sport || !packageType || !nights) return 0
+  
+  const validSport = sport as 'football' | 'basketball'
+  const validPackage = packageType as 'standard' | 'premium'
+  
+  return pricing.getPrice(validSport, validPackage, nights)
+}
+
+const calculateExtrasCost = (extras: Array<{
+  isSelected: boolean
+  isIncluded?: boolean
+  price: number
+  quantity: number
+}>): number => {
+  if (!extras || !Array.isArray(extras)) return 0
+  
+  return extras
+    .filter(extra => extra.isSelected && !extra.isIncluded)
+    .reduce((total, extra) => total + (extra.price * extra.quantity), 0)
+}
+
+const calculateFlightScheduleCost = (flightSchedule: {
+  departure: { start: number; end: number }
+  arrival: { start: number; end: number }
+} | null): number => {
+  if (!flightSchedule) return 0
+  
+  const departureCost = flightScheduleData.calculatePriceFromDefault(
+    flightSchedule.departure, 
+    true
+  )
+  const arrivalCost = flightScheduleData.calculatePriceFromDefault(
+    flightSchedule.arrival, 
+    false
+  )
+  
+  return departureCost + arrivalCost
+}
 
 interface TravelerInfo {
   name: string
@@ -123,6 +189,7 @@ const STORAGE_KEY = personalInfoData.storage.key
 const saveToStorage = (data: PersonalInfoFormData) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    console.log('💾 Saved to localStorage:', data)
   } catch (error) {
     console.error('Error saving to localStorage:', error)
   }
@@ -131,7 +198,12 @@ const saveToStorage = (data: PersonalInfoFormData) => {
 const loadFromStorage = (): PersonalInfoFormData | null => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY)
-    return saved ? JSON.parse(saved) : null
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      console.log('📂 Loaded from localStorage:', parsed)
+      return parsed
+    }
+    return null
   } catch (error) {
     console.error('Error loading from localStorage:', error)
     return null
@@ -145,20 +217,91 @@ export default function Personalinfo() {
   const hasMultipleTravelers = formData.peopleCount && 
     (formData.peopleCount.adults > 1 || formData.peopleCount.kids > 0 || formData.peopleCount.babies > 0)
   
-  // Debug: Log the people count data
+  // Calculate dynamic reservation data from all previous steps
+  const reservationData = useMemo(() => {
+    const totalPeople = formData.peopleCount ? 
+      formData.peopleCount.adults + formData.peopleCount.kids + formData.peopleCount.babies : 0
+    
+    const duration = calculateDuration(formData.departureDate || '', formData.returnDate || '')
+    const nights = Math.max(0, duration - 1)
+    
+    const basePrice = calculateBasePrice(
+      formData.selectedSport || '', 
+      formData.selectedPackage || '', 
+      nights
+    )
+    
+    const extrasCost = calculateExtrasCost(formData.extras || [])
+    const flightScheduleCost = calculateFlightScheduleCost(formData.flightSchedule)
+    
+    // Calculate package total (base price × total people)
+    const packageTotal = basePrice * totalPeople
+    
+    // Calculate extras total (extras cost is fixed for the entire group, not per person)
+    const extrasTotal = extrasCost
+    
+    // Calculate flight schedule total (flight schedule cost × total people)
+    const flightScheduleTotal = flightScheduleCost * totalPeople
+    
+    // Calculate grand total
+    const grandTotal = packageTotal + extrasTotal + flightScheduleTotal
+    
+    return {
+      departureCity: formData.selectedCity || 'Barcelona',
+      departureDate: formatDate(formData.departureDate || ''),
+      returnDate: formatDate(formData.returnDate || ''),
+      duration,
+      nights,
+      basePrice,
+      extrasCost,
+      flightScheduleCost,
+      packageTotal,
+      extrasTotal,
+      flightScheduleTotal,
+      grandTotal,
+      totalPeople,
+      departureTimeRange: formData.flightSchedule ? 
+        `${formatTime(formData.flightSchedule.departure.start)} - ${formatTime(formData.flightSchedule.departure.end)}` : '',
+      arrivalTimeRange: formData.flightSchedule ? 
+        `${formatTime(formData.flightSchedule.arrival.start)} - ${formatTime(formData.flightSchedule.arrival.end)}` : ''
+    }
+  }, [formData])
+  
+  // Debug: Log the reservation data
   useEffect(() => {
     console.log('🎯 PersonalInfo - People Count Data:', formData.peopleCount)
     console.log('🎯 PersonalInfo - Has Multiple Travelers:', hasMultipleTravelers)
-  }, [formData.peopleCount, hasMultipleTravelers])
+    console.log('🎯 PersonalInfo - Reservation Data:', reservationData)
+    
+    // Debug calculation breakdown
+    if (formData.extras && formData.extras.length > 0) {
+      console.log('🔍 Extras Breakdown:')
+      formData.extras.forEach((extra, index) => {
+        if (extra.isSelected && !extra.isIncluded) {
+          console.log(`  - ${extra.name}: ${extra.price}€ × ${extra.quantity} = ${(extra.price * extra.quantity).toFixed(2)}€`)
+        }
+      })
+      console.log(`  Total Extras Cost: ${reservationData.extrasCost.toFixed(2)}€`)
+      console.log(`  Extras Total (×${reservationData.totalPeople}): ${reservationData.extrasTotal.toFixed(2)}€`)
+    }
+    
+         console.log(`💰 Final Calculation:`)
+     console.log(`  Package: ${reservationData.basePrice}€ × ${reservationData.totalPeople} = ${reservationData.packageTotal.toFixed(2)}€`)
+     console.log(`  Extras: ${reservationData.extrasCost}€ (fixed for group) = ${reservationData.extrasTotal.toFixed(2)}€`)
+     console.log(`  Flight Schedule: ${reservationData.flightScheduleCost}€ × ${reservationData.totalPeople} = ${reservationData.flightScheduleTotal.toFixed(2)}€`)
+     console.log(`  Grand Total: ${reservationData.grandTotal.toFixed(2)}€`)
+  }, [formData.peopleCount, hasMultipleTravelers, reservationData, formData.extras])
   
   // Load initial data from localStorage or use defaults
   const getInitialValues = (): PersonalInfoFormData => {
     const savedData = loadFromStorage()
-    return savedData || {
+    const initialValues = savedData || {
       primaryTraveler: defaultTravelerInfo,
       extraTraveler: hasMultipleTravelers ? defaultTravelerInfo : { ...defaultTravelerInfo, name: '', email: '', phone: '', dateOfBirth: '', documentType: 'ID', documentNumber: '' },
       paymentMethod: 'credit'
     }
+    console.log('🎯 Initial form values:', initialValues)
+    return initialValues
   }
   
   const { control, handleSubmit, watch, getValues, formState: { errors } } = useForm<PersonalInfoFormData>({
@@ -175,18 +318,42 @@ export default function Personalinfo() {
     saveToStorage(currentValues)
   }, [watchedValues, getValues])
 
+  // Also save when form data changes to ensure all updates are captured
+  useEffect(() => {
+    const currentValues = getValues()
+    if (currentValues.primaryTraveler.name || 
+        currentValues.primaryTraveler.email || 
+        currentValues.primaryTraveler.phone || 
+        currentValues.primaryTraveler.dateOfBirth || 
+        currentValues.primaryTraveler.documentType || 
+        currentValues.primaryTraveler.documentNumber) {
+      saveToStorage(currentValues)
+    }
+  }, [formData, getValues])
+
 
   const onSubmit = (data: PersonalInfoFormData) => {
     console.log('Form Data:', data)
+    console.log('Reservation Data:', reservationData)
     
-    // Update booking context with personal info
+    // Update booking context with personal info and calculated totals
     updateFormData({
       personalInfo: {
         firstName: data.primaryTraveler.name.split(' ')[0] || '',
         lastName: data.primaryTraveler.name.split(' ').slice(1).join(' ') || '',
         email: data.primaryTraveler.email,
         phone: data.primaryTraveler.phone
-      }
+      },
+             // Add calculated totals for the next step
+       calculatedTotals: {
+         basePrice: reservationData.basePrice,
+         extrasCost: reservationData.extrasCost,
+         flightScheduleCost: reservationData.flightScheduleCost,
+         totalCost: reservationData.grandTotal,
+         totalPeople: reservationData.totalPeople,
+         duration: reservationData.duration,
+         nights: reservationData.nights
+       }
     })
     
     // Clear localStorage after successful submission
@@ -462,6 +629,8 @@ export default function Personalinfo() {
                 </div>
               )}
 
+              
+
               {/* Reservation Summary */}
               <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
                 <div className="self-stretch inline-flex justify-start items-center gap-2">
@@ -469,7 +638,7 @@ export default function Personalinfo() {
                     {personalInfoData.text.reservationTitle}
                   </div>
                 </div>
-                <div className="w-full max-w-[811px] p-3 md:p-6 bg-white rounded-xl outline-1 outline-offset-[-1px] outline-green-50 flex flex-col justify-start items-start gap-3 md:gap-5">
+                                 <div className="w-full p-3 md:p-6 bg-white rounded-xl outline-1 outline-offset-[-1px] outline-green-50 flex flex-col justify-start items-start gap-3 md:gap-5">
                   <div className="self-stretch inline-flex justify-start items-center gap-20">
                     <div className="flex-1 flex justify-start items-center gap-4">
                       <div className="flex-1 inline-flex flex-col justify-start items-start gap-1.5">
@@ -488,12 +657,17 @@ export default function Personalinfo() {
                               <FaPlane className="w-6 h-6 md:w-8 md:h-8 text-[#6AAD3C]" />
                             </div>
                             <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
-                                                             <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none">
-                                 {personalInfoData.reservationSummary.departure.label}
-                               </div>
-                               <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
-                                 {personalInfoData.reservationSummary.departure.date}
-                               </div>
+                              <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none whitespace-nowrap">
+                                Departure: {reservationData.departureCity}
+                              </div>
+                              <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
+                                {reservationData.departureDate}
+                              </div>
+                              {reservationData.departureTimeRange && (
+                                <div className="self-stretch justify-center text-zinc-400 text-xs font-normal font-['Poppins'] leading-relaxed">
+                                  {reservationData.departureTimeRange}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -505,12 +679,17 @@ export default function Personalinfo() {
                               <FaPlane className="w-6 h-6 md:w-8 md:h-8 text-[#6AAD3C] transform rotate-180" />
                             </div>
                             <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
-                                                             <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none">
-                                 {personalInfoData.reservationSummary.return.label}
-                               </div>
-                               <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
-                                 {personalInfoData.reservationSummary.return.date}
-                               </div>
+                              <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none whitespace-nowrap">
+                                Return: Back to {reservationData.departureCity}
+                              </div>
+                              <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
+                                {reservationData.returnDate}
+                              </div>
+                              {reservationData.arrivalTimeRange && (
+                                <div className="self-stretch justify-center text-zinc-400 text-xs font-normal font-['Poppins'] leading-relaxed">
+                                  {reservationData.arrivalTimeRange}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -519,80 +698,214 @@ export default function Personalinfo() {
                     <div className="self-stretch pb-3 md:pb-5 border-b border-gray-200 flex flex-col justify-start items-start gap-2.5">
                       {/* Mobile View */}
                       <div className="block md:hidden w-full space-y-3">
-                                                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                           <span className="text-neutral-800 text-sm font-medium font-['Poppins']">{personalInfoData.reservationSummary.pricing.barcelona}</span>
+                                                 {/* Package Row */}
+                         <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                           <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                             {pricing.getPackageName(
+                               formData.selectedSport as 'football' | 'basketball', 
+                               formData.selectedPackage as 'standard' | 'premium'
+                             ) || 'Package'}
+                           </span>
                            <div className="text-right">
-                             <div className="text-neutral-800 text-sm font-normal font-['Poppins']">{personalInfoData.reservationSummary.pricing.priceValue} {personalInfoData.reservationSummary.pricing.quantityValue}</div>
-                             <div className="text-neutral-800 text-sm font-medium font-['Poppins']">{personalInfoData.reservationSummary.pricing.totalValue}</div>
+                             <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
+                               {reservationData.basePrice}€ x{reservationData.totalPeople}
+                             </div>
+                             <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                               {reservationData.packageTotal.toFixed(2)}€
+                             </div>
                            </div>
                          </div>
-                         <div className="flex justify-between items-center py-2">
-                           <span className="text-neutral-800 text-sm font-medium font-['Poppins']">{personalInfoData.reservationSummary.pricing.barcelona}</span>
+                        
+                                                 {/* Individual Extras Rows - Group costs, not per person */}
+                         {formData.extras && formData.extras.filter(extra => extra.isSelected && !extra.isIncluded).map((extra, index) => (
+                           <div key={extra.id} className="flex justify-between items-center py-2 border-b border-gray-100">
+                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                               {extra.name} x{extra.quantity}
+                             </span>
+                             <div className="text-right">
+                               <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
+                                 {extra.price}€
+                               </div>
+                               <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                                 {(extra.price * extra.quantity).toFixed(2)}€
+                               </div>
+                             </div>
+                           </div>
+                         ))}
+                        
+                                                 {/* Flight Schedule Row */}
+                         {reservationData.flightScheduleTotal > 0 && (
+                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                               Flight Schedule Adjustments
+                             </span>
+                             <div className="text-right">
+                               <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
+                                 {reservationData.flightScheduleCost}€ x{reservationData.totalPeople}
+                               </div>
+                               <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                                 {reservationData.flightScheduleTotal.toFixed(2)}€
+                               </div>
+                             </div>
+                           </div>
+                         )}
+                        
+                                                 {/* Subtotal Row */}
+                         <div className="flex justify-between items-center py-4 border-t-2 border-lime-400 bg-lime-50 rounded-lg px-3">
+                           <span className="text-neutral-800 text-lg font-bold font-['Poppins'] text-gray-800">
+                             {personalInfoData.text.totalCost}
+                           </span>
                            <div className="text-right">
-                             <div className="text-neutral-800 text-sm font-normal font-['Poppins']">{personalInfoData.reservationSummary.pricing.returnPrice} {personalInfoData.reservationSummary.pricing.quantityValue}</div>
-                             <div className="text-neutral-800 text-sm font-medium font-['Poppins']">{personalInfoData.reservationSummary.pricing.returnTotal}</div>
+                             <div className="text-neutral-800 text-xl font-bold font-['Poppins'] text-lime-700">
+                               {reservationData.grandTotal.toFixed(2)}€
+                             </div>
                            </div>
                          </div>
                       </div>
                       
-                      {/* Desktop View */}
-                      <div className="hidden md:block self-stretch">
-                        <div className="self-stretch inline-flex justify-between items-center">
-                                                     <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
-                             <div className="self-stretch justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.concept}
-                             </div>
-                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.barcelona}
-                             </div>
-                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.barcelona}
-                             </div>
-                           </div>
-                           <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
-                             <div className="self-stretch justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.price}
-                             </div>
-                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.priceValue}
-                             </div>
-                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.returnPrice}
-                             </div>
-                           </div>
-                           <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
-                             <div className="self-stretch justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.quantity}
-                             </div>
-                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.quantityValue}
-                             </div>
-                             <div className="self-stretch justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.quantityValue}
-                             </div>
-                           </div>
-                           <div className="w-20 inline-flex flex-col justify-start items-start gap-3">
-                             <div className="self-stretch text-right justify-center text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.total}
-                             </div>
-                             <div className="self-stretch text-right justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.totalValue}
-                             </div>
-                             <div className="self-stretch text-right justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                               {personalInfoData.reservationSummary.pricing.returnTotal}
-                             </div>
-                           </div>
+                                            {/* Desktop View */}
+                      <div className="hidden md:block w-full">
+                        <div className="w-full grid grid-cols-4 gap-4 border-b-2 border-gray-300 pb-4 mb-2">
+                          <div className="text-center text-neutral-800 text-base font-bold font-['Poppins'] leading-none text-gray-700">
+                            Concept
+                          </div>
+                          <div className="text-center text-neutral-800 text-base font-bold font-['Poppins'] leading-none text-gray-700">
+                            Price
+                          </div>
+                          <div className="text-center text-neutral-800 text-base font-bold font-['Poppins'] leading-none text-gray-700">
+                            Qty
+                          </div>
+                          <div className="text-right text-neutral-800 text-base font-bold font-['Poppins'] leading-none text-gray-700">
+                            Total
+                          </div>
                         </div>
+                        
+                                                 {/* Package Row */}
+                         <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
+                           <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
+                             {pricing.getPackageName(
+                               formData.selectedSport as 'football' | 'basketball', 
+                               formData.selectedPackage as 'standard' | 'premium'
+                             ) || 'Package'}
+                           </div>
+                           <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                             {reservationData.basePrice}€
+                           </div>
+                           <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                             x{reservationData.totalPeople}
+                           </div>
+                           <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+                             {reservationData.packageTotal.toFixed(2)}€
+                           </div>
+                         </div>
+                        
+                                                 {/* Extras Rows - Group costs, not per person */}
+                         {formData.extras && formData.extras.filter(extra => extra.isSelected && !extra.isIncluded).map((extra, index) => (
+                           <div key={extra.id} className="w-full grid grid-cols-4 gap-4 py-2 border-b border-gray-100">
+                             <div className="text-left text-neutral-800 text-sm font-medium font-['Poppins'] leading-none">
+                               {extra.name}
+                             </div>
+                             <div className="text-center text-neutral-800 text-sm font-normal font-['Poppins'] leading-none">
+                               {extra.price}€
+                             </div>
+                             <div className="text-center text-neutral-800 text-sm font-normal font-['Poppins'] leading-none">
+                               x{extra.quantity}
+                             </div>
+                             <div className="text-right text-neutral-800 text-sm font-medium font-['Poppins'] leading-none">
+                               {(extra.price * extra.quantity).toFixed(2)}€
+                             </div>
+                           </div>
+                         ))}
+                        
+                                                 {/* Flight Schedule Row */}
+                         {reservationData.flightScheduleTotal > 0 && (
+                           <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
+                             <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
+                               Flight Schedule Adjustments
+                             </div>
+                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {reservationData.flightScheduleCost}€
+                             </div>
+                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               x{reservationData.totalPeople}
+                             </div>
+                             <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+                               {reservationData.flightScheduleTotal.toFixed(2)}€
+                             </div>
+                           </div>
+                         )}
+                        
+                                                 {/* Subtotal Row */}
+                         <div className="w-full grid grid-cols-4 gap-4 py-3 border-t-2 border-gray-300">
+                           <div className="text-left text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+                             Subtotal
+                           </div>
+                           <div className="text-center text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+                             -
+                           </div>
+                           <div className="text-center text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+                             -
+                           </div>
+                           <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+                             {reservationData.grandTotal.toFixed(2)}€
+                           </div>
+                         </div>
                       </div>
                     </div>
-                                         <div className="self-stretch inline-flex justify-between items-center">
-                       <div className="justify-center text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
-                         {personalInfoData.text.totalCost}
-                       </div>
-                       <div className="justify-center text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
-                         {personalInfoData.reservationSummary.totalCost}
-                       </div>
-                     </div>
+                                         {/* Total Cost Summary */}
+                    <div className="w-full bg-gradient-to-r from-lime-50 to-green-50 rounded-xl p-6 mt-6 border-2 border-lime-200 shadow-sm">
+                      <div className="space-y-3">
+                        <div className="text-center mb-4">
+                          <h3 className="text-lg font-bold text-gray-800 font-['Poppins']">
+                            Booking Summary
+                          </h3>
+                        </div>
+                        
+                                                 <div className="space-y-2">
+                           <div className="flex justify-between items-center py-2 border-b border-lime-200">
+                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                               Package Total:
+                             </span>
+                             <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
+                               {reservationData.packageTotal.toFixed(2)}€
+                             </span>
+                           </div>
+                           
+                           {reservationData.extrasTotal > 0 && (
+                             <div className="flex justify-between items-center py-2 border-b border-lime-200">
+                               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                                 Extras Total:
+                               </span>
+                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
+                                 {reservationData.extrasTotal.toFixed(2)}€
+                               </span>
+                             </div>
+                           )}
+                           
+                           {reservationData.flightScheduleTotal > 0 && (
+                             <div className="flex justify-between items-center py-2 border-b border-lime-200">
+                               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                                 Flight Schedule Total:
+                               </span>
+                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
+                                 {reservationData.flightScheduleTotal.toFixed(2)}€
+                               </span>
+                             </div>
+                           )}
+                         </div>
+                        
+                                                 <div className="border-t-2 border-lime-400 pt-4 mt-4">
+                           <div className="flex justify-between items-center">
+                             <span className="text-neutral-800 text-xl font-bold font-['Poppins'] text-gray-800">
+                               {personalInfoData.text.totalCost}
+                             </span>
+                             <span className="text-neutral-800 text-2xl font-bold font-['Poppins'] text-lime-700">
+                               {reservationData.grandTotal.toFixed(2)}€
+                             </span>
+                           </div>
+                         </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -697,3 +1010,6 @@ export default function Personalinfo() {
     </form>
   )
 }
+
+
+

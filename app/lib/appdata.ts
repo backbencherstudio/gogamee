@@ -1195,13 +1195,13 @@ export const AppData = {
   // Extras Data
   extrasData: {
     text: {
-      title: "What's included in your package?",
-      perPerson: "per person",
+      title: "Do you want to add extra services?",
+      perPerson: "Per person",
       included: "Included",
       add: "Add",
       remove: "Remove",
       confirm: "Confirm",
-      totalCost: "Total cost"
+      totalCost: "Total Extra Services Cost:"
     },
     constants: {
       currencySymbol: "€",
@@ -1215,10 +1215,11 @@ export const AppData = {
         description: "Start your day full of energy with breakfast for only 10 euros per person",
         price: 10,
         icon: "/stepper/icon/icon1.svg",
-        isSelected: false,
-        quantity: 1,
+        isSelected: false, // Start with breakfast NOT selected
+        quantity: 0,
         currency: "EUR",
-        isIncluded: true
+        isIncluded: false, // Not included by default
+        isGroupOption: true // Group-only option
       },
       {
         id: "travel-insurance",
@@ -1227,9 +1228,10 @@ export const AppData = {
         price: 20,
         icon: "/stepper/icon/icon2.svg",
         isSelected: false,
-        quantity: 1,
+        quantity: 0,
         currency: "EUR",
-        isIncluded: true
+        isIncluded: false,
+        isGroupOption: true // Group-only option
       },
       {
         id: "underseat-bag",
@@ -1237,10 +1239,11 @@ export const AppData = {
         description: "Check the measurements accepted by the airline you are flying with.",
         price: 0,
         icon: "/stepper/icon/icon3.svg",
-        isSelected: false,
-        quantity: 1,
+        isSelected: true, // This is included by default
+        quantity: 3, // 3 underseat bags included
         currency: "EUR",
-        isIncluded: true
+        isIncluded: true, // This is included by default
+        isGroupOption: false // Individual option
       },
       {
         id: "extra-luggage",
@@ -1249,10 +1252,11 @@ export const AppData = {
         price: 40,
         icon: "/stepper/icon/icon4.svg",
         isSelected: false,
-        quantity: 1,
+        quantity: 0,
         currency: "EUR",
-        isIncluded: true,
-        maxQuantity: 5
+        isIncluded: false,
+        maxQuantity: 5,
+        isGroupOption: false // Individual option
       },
       {
         id: "seats-together",
@@ -1261,10 +1265,11 @@ export const AppData = {
         price: 20,
         icon: "/stepper/icon/icon5.svg",
         isSelected: false,
-        quantity: 1,
+        quantity: 0,
         currency: "EUR",
-        isIncluded: true,
-        maxQuantity: 10
+        isIncluded: false,
+        maxQuantity: 10,
+        isGroupOption: true // Group-only option
       }
     ]
   },

@@ -640,8 +640,8 @@ Booking completed with ALL collected data:
                 label="Google Pay"
                 icon={
                   <div className="flex justify-start items-center gap-2.5">
-                    <div className="p-1.5 md:p-2 rounded inline-flex flex-col justify-start items-start gap-2">
-                      <Image src="/stepper/icon/gpay.png" alt="Google Pay" className="h-4 md:h-6 w-auto" width={91} height={17} />
+                    <div className="p-1.5 md:p-2 rounded inline-flex flex-col justify-start items-start gap-2  mr-2">
+                      <Image src="/stepper/icon/gpay.png" alt="Google Pay" className="h-4 md:h-6 w-auto scale-250" width={91} height={17} />
                     </div>
                   </div>
                 }

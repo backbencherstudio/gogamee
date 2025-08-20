@@ -70,6 +70,15 @@ export interface BookingContextType {
       cvv: string
       cardholderName: string
     }
+    calculatedTotals?: {
+      basePrice: number
+      extrasCost: number
+      flightScheduleCost: number
+      totalCost: number
+      totalPeople: number
+      duration: number
+      nights: number
+    }
     fromHero?: boolean
   }
   updateFormData: (stepData: Partial<BookingContextType['formData']>) => void
@@ -115,6 +124,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       cvv: '',
       cardholderName: ''
     },
+    calculatedTotals: undefined,
     fromHero: false
   })
 
