@@ -11,6 +11,12 @@ interface DurationOption {
   nights: number
 }
 
+interface DateRestrictions {
+  allowedStartDays: number[] // 0 = Sunday, 1 = Monday, etc.
+  blockedDays: number[]
+  description: string
+}
+
 
 
 // Constants
@@ -20,6 +26,27 @@ const DURATION_OPTIONS: DurationOption[] = [
   { days: 4, nights: 3 },
   { days: 5, nights: 4 }
 ]
+
+// Date restrictions based on competition type
+const DATE_RESTRICTIONS = {
+  european: {
+    allowedStartDays: [2], // Tuesday only
+    blockedDays: [0, 1, 3, 4, 5, 6], // Sun, Mon, Wed, Thu, Fri, Sat
+    description: "European Competition - Tuesday departure only"
+  },
+  national: {
+    weekend: {
+      allowedStartDays: [5, 6], // Friday and Saturday
+      blockedDays: [0, 1, 2, 3, 4], // Sun, Mon, Tue, Wed, Thu
+      description: "National League - Weekend matches (Fri/Sat departure)"
+    },
+    midweek: {
+      allowedStartDays: [2], // Tuesday only
+      blockedDays: [0, 1, 3, 4, 5, 6], // Sun, Mon, Wed, Thu, Fri, Sat
+      description: "National League - Midweek matches (Tuesday departure)"
+    }
+  }
+}
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -45,6 +72,11 @@ const isDateInPast = (date: Date): boolean => {
   return checkDate < today
 }
 
+const isDateAllowedForCompetition = (date: Date, restrictions: DateRestrictions): boolean => {
+  const dayOfWeek = date.getDay() // 0 = Sunday, 1 = Monday, etc.
+  return restrictions.allowedStartDays.includes(dayOfWeek)
+}
+
 export default function DateSection() {
   const { formData, updateFormData, nextStep } = useBooking()
   
@@ -62,6 +94,8 @@ export default function DateSection() {
     const price = pricing.getPrice(sport, packageType, nights)
     return `${price}€`
   }, [formData.selectedSport, formData.selectedPackage])
+
+
   
   // Consistent default values
   const getDefaultValues = () => ({
@@ -81,6 +115,22 @@ export default function DateSection() {
   const [selectedYear, setSelectedYear] = useState<number | null>(defaultValues.selectedYear)
   const [currentDate, setCurrentDate] = useState(defaultValues.currentDate)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [nationalMatchType, setNationalMatchType] = useState<'weekend' | 'midweek'>('weekend')
+
+  // Get date restrictions based on competition type
+  const getDateRestrictions = useCallback((): DateRestrictions => {
+    const selectedLeague = formData.selectedLeague
+    
+    if (selectedLeague === 'european') {
+      return DATE_RESTRICTIONS.european
+    } else if (selectedLeague === 'national') {
+      // Use the selected match type for National Leagues
+      return DATE_RESTRICTIONS.national[nationalMatchType]
+    }
+    
+    // Default to European restrictions if no league is selected
+    return DATE_RESTRICTIONS.european
+  }, [formData.selectedLeague, nationalMatchType])
 
   // Set proper current date after hydration
   useEffect(() => {
@@ -179,6 +229,14 @@ export default function DateSection() {
     setSelectedYear(null)
   }, [])
 
+  const handleMatchTypeChange = useCallback((matchType: 'weekend' | 'midweek') => {
+    setNationalMatchType(matchType)
+    // Clear selection when match type changes
+    setSelectedStartDate(null)
+    setSelectedMonth(null)
+    setSelectedYear(null)
+  }, [])
+
   const navigateMonth = useCallback((direction: 'prev' | 'next') => {
     setCurrentDate(prevDate => {
       const newDate = new Date(prevDate)
@@ -230,19 +288,33 @@ export default function DateSection() {
   }, [getDaysInMonth, getFirstDayOfMonth])
 
   const getDateStatus = useCallback((day: number | null, monthIndex: number, year: number) => {
-    if (!day || !selectedDateRange) {
-      return { isSelected: false, isInRange: false, isDisabled: day ? isDateInPast(new Date(year, monthIndex, day)) : false }
+    if (!day) {
+      return { isSelected: false, isInRange: false, isDisabled: false }
     }
 
     const currentCheckDate = new Date(year, monthIndex, day)
-    const { startDate, endDate } = selectedDateRange
+    const restrictions = getDateRestrictions()
     
+    // Check if date is in the past
+    const isPast = isDateInPast(currentCheckDate)
+    
+    // Check if date is allowed for the competition type
+    const isAllowed = isDateAllowedForCompetition(currentCheckDate, restrictions)
+    
+    // Date is disabled if it's in the past OR not allowed for competition
+    const isDisabled = isPast || !isAllowed
+    
+    // Check selection status
+    if (!selectedDateRange) {
+      return { isSelected: false, isInRange: false, isDisabled }
+    }
+
+    const { startDate, endDate } = selectedDateRange
     const isSelected = currentCheckDate >= startDate && currentCheckDate <= endDate
     const isInRange = currentCheckDate > startDate && currentCheckDate < endDate
-    const isDisabled = isDateInPast(currentCheckDate)
 
     return { isSelected, isInRange, isDisabled }
-  }, [selectedDateRange])
+  }, [selectedDateRange, getDateRestrictions])
 
   // Render functions
   const renderEmptyDay = useCallback(() => (
@@ -390,6 +462,58 @@ export default function DateSection() {
                 <div className="text-xs text-gray-500">
                   {DURATION_OPTIONS[selectedDuration].days} days, {DURATION_OPTIONS[selectedDuration].nights} nights
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Competition Type and Date Restrictions Info */}
+          {formData.selectedLeague && (
+            <div className="w-full p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex flex-col gap-2">
+                <div className="text-sm font-medium text-blue-800">
+                  {formData.selectedLeague === 'european' ? '🏆 European Competition' : '⚽ National League'}
+                </div>
+                <div className="text-xs text-blue-600">
+                  {getDateRestrictions().description}
+                </div>
+                <div className="text-xs text-blue-500">
+                  Available departure days: {
+                    getDateRestrictions().allowedStartDays.map(day => 
+                      ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day]
+                    ).join(', ')
+                  }
+                </div>
+                
+                {/* Match Type Toggle for National League */}
+                {formData.selectedLeague === 'national' && (
+                  <div className="mt-2 p-2 bg-white rounded border border-blue-200">
+                    <div className="text-xs text-blue-700 font-medium mb-2">Match Type:</div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleMatchTypeChange('weekend')}
+                        className={`px-3 py-1 text-xs rounded ${
+                          nationalMatchType === 'weekend' 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        Weekend Matches
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleMatchTypeChange('midweek')}
+                        className={`px-3 py-1 text-xs rounded ${
+                          nationalMatchType === 'midweek' 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        Midweek Matches
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
