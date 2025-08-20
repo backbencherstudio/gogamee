@@ -29,31 +29,44 @@ interface FlightSelectionData {
 // ========================= CONSTANTS =========================
 const MINUTES_IN_DAY = 1440 // 24 * 60
 const EXTENDED_DAY_MINUTES = 2160 // 36 * 60 (1.5 days)
-const TIME_STEP = 15 // 15-minute intervals
+const PRICE_PER_STEP = 20 // €20 per step
 const HOURS_PER_DAY = 24
 
-const TIME_MARKS = [
-  { value: 0, label: '00:00' },
-  { value: 360, label: '06:00' }, // 6 * 60
-  { value: 720, label: '12:00' }, // 12 * 60
-  { value: 1080, label: '18:00' }, // 18 * 60
-  { value: 1440, label: '00:00(+1)' } // 24 * 60
+// Predefined time slots for departure (outbound flight)
+const DEPARTURE_TIME_SLOTS = [
+  { value: 360, label: '06:00' },   // 6:00 AM
+  { value: 660, label: '11:00' },   // 11:00 AM
+  { value: 840, label: '14:00' },   // 2:00 PM
+  { value: 1080, label: '18:00' },  // 6:00 PM
+  { value: 1440, label: '00:00(+1)' } // 12:00 AM next day
 ] as const
+
+// Predefined time slots for arrival (return flight)
+const ARRIVAL_TIME_SLOTS = [
+  { value: 660, label: '11:00' },   // 11:00 AM
+  { value: 840, label: '14:00' },   // 2:00 PM
+  { value: 1140, label: '19:00' },  // 7:00 PM
+  { value: 1440, label: '00:00(+1)' } // 12:00 AM next day
+] as const
+
+// Default ranges (no extra cost)
+const DEFAULT_DEPARTURE_RANGE = { start: 360, end: 840 }  // 06:00 to 14:00
+const DEFAULT_ARRIVAL_RANGE = { start: 840, end: 1440 }   // 14:00 to 00:00(+1)
 
 const INITIAL_FLIGHT_DATA: FlightInfo[] = [
   {
     label: 'Departure from',
     city: 'Barcelona',
-    price: '20€',
+    price: '0€', // No extra cost for default range
     icon: 'takeoff',
-    timeRange: { start: 360, end: 720 } // 06:00 to 12:00
+    timeRange: DEFAULT_DEPARTURE_RANGE // 06:00 to 14:00
   },
   {
     label: 'Arrival',
     city: 'Barcelona',
-    price: '20€',
+    price: '0€', // No extra cost for default range
     icon: 'landing',
-    timeRange: { start: 1080, end: 1800 } // 18:00 to 06:00(+1)
+    timeRange: DEFAULT_ARRIVAL_RANGE // 14:00 to 00:00(+1)
   }
 ] as const
 
@@ -89,6 +102,30 @@ const calculateDuration = (start: number, end: number): string => {
   const durationMinutes = end - start
   const hours = Math.round((durationMinutes / 60) * 10) / 10
   return `${hours} hours`
+}
+
+// Calculate price based on steps from default range
+const calculatePriceFromDefault = (timeRange: TimeRange, isDeparture: boolean): number => {
+  const defaultRange = isDeparture ? DEFAULT_DEPARTURE_RANGE : DEFAULT_ARRIVAL_RANGE
+  const timeSlots = isDeparture ? DEPARTURE_TIME_SLOTS : ARRIVAL_TIME_SLOTS
+  
+  // Find the closest time slots for start and end
+  const startStep = timeSlots.findIndex(slot => Math.abs(slot.value - timeRange.start) < 30)
+  const endStep = timeSlots.findIndex(slot => Math.abs(slot.value - timeRange.end) < 30)
+  
+  // Find the default start and end steps
+  const defaultStartStep = timeSlots.findIndex(slot => Math.abs(slot.value - defaultRange.start) < 30)
+  const defaultEndStep = timeSlots.findIndex(slot => Math.abs(slot.value - defaultRange.end) < 30)
+  
+  // Calculate total steps moved from default
+  const totalStepsMoved = Math.abs(startStep - defaultStartStep) + Math.abs(endStep - defaultEndStep)
+  
+  return totalStepsMoved * PRICE_PER_STEP
+}
+
+// Get available time slots for a flight type
+const getAvailableTimeSlots = (isDeparture: boolean) => {
+  return isDeparture ? DEPARTURE_TIME_SLOTS : ARRIVAL_TIME_SLOTS
 }
 
 // ========================= MEMOIZED COMPONENTS =========================
@@ -165,17 +202,30 @@ TimeDisplay.displayName = 'TimeDisplay'
 
 const TimeRangeSlider = React.memo(({ 
   timeRange, 
-  onChange 
+  onChange,
+  isDeparture
 }: { 
   timeRange: TimeRange
   onChange: (range: TimeRange) => void
+  isDeparture: boolean
 }) => {
+  const timeSlots = getAvailableTimeSlots(isDeparture)
+  
   const handleRangeChange = useCallback((values: number[]) => {
+    // Snap to nearest time slots
+    const snappedStart = timeSlots.reduce((prev, curr) => 
+      Math.abs(curr.value - values[0]) < Math.abs(prev.value - values[0]) ? curr : prev
+    ).value
+    
+    const snappedEnd = timeSlots.reduce((prev, curr) => 
+      Math.abs(curr.value - values[1]) < Math.abs(prev.value - values[1]) ? curr : prev
+    ).value
+    
     onChange({
-      start: values[0],
-      end: values[1]
+      start: snappedStart,
+      end: snappedEnd
     })
-  }, [onChange])
+  }, [onChange, timeSlots])
 
   const selectedRangeStyle = useMemo(() => ({
     left: `${getTimeMarkPosition(timeRange.start)}%`,
@@ -187,7 +237,7 @@ const TimeRangeSlider = React.memo(({
     <div className="w-full xl:w-80 flex flex-col justify-center items-center gap-1.5">
       <div className="w-full h-5 relative">
         <Range
-          step={TIME_STEP}
+          step={1}
           min={0}
           max={EXTENDED_DAY_MINUTES}
           values={[timeRange.start, timeRange.end]}
@@ -222,16 +272,9 @@ const TimeRangeSlider = React.memo(({
       </div>
       
       <div className="w-full flex justify-between items-center px-2">
-        {TIME_MARKS.map((mark, index) => (
-          <div key={mark.value} className="text-zinc-400 text-xs font-normal font-['Inter'] leading-tight">
-            {index === TIME_MARKS.length - 1 ? (
-              <div className="flex gap-1">
-                <span>00:00</span>
-                <span>(+1)</span>
-              </div>
-            ) : (
-              mark.label
-            )}
+        {timeSlots.map((slot) => (
+          <div key={slot.value} className="text-zinc-400 text-xs font-normal font-['Inter'] leading-tight">
+            {slot.label}
           </div>
         ))}
       </div>
@@ -249,23 +292,30 @@ const FlightCard = React.memo(({
   flightInfo: FlightInfo
   isDeparture: boolean
   onTimeRangeChange: (range: TimeRange) => void
-}) => (
-  <div className="flex-1 min-h-0 p-4 xl:p-5 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex flex-col justify-start items-center gap-6 xl:gap-8">
-    <div className="self-stretch flex flex-col justify-center items-center gap-6 xl:gap-8">
-      <FlightInfoHeader 
-        label={flightInfo.label}
-        city={flightInfo.city}
-        price={flightInfo.price}
-        icon={flightInfo.icon}
-      />
-      <TimeRangeSlider 
-        timeRange={flightInfo.timeRange}
-        onChange={onTimeRangeChange}
-      />
+}) => {
+  // Calculate current price based on steps from default
+  const currentPrice = calculatePriceFromDefault(flightInfo.timeRange, isDeparture)
+  const priceDisplay = currentPrice === 0 ? '0€' : `+${currentPrice}€`
+  
+  return (
+    <div className="flex-1 min-h-0 p-4 xl:p-5 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex flex-col justify-start items-center gap-6 xl:gap-8">
+      <div className="self-stretch flex flex-col justify-center items-center gap-6 xl:gap-8">
+        <FlightInfoHeader 
+          label={flightInfo.label}
+          city={flightInfo.city}
+          price={priceDisplay}
+          icon={flightInfo.icon}
+        />
+        <TimeRangeSlider 
+          timeRange={flightInfo.timeRange}
+          onChange={onTimeRangeChange}
+          isDeparture={isDeparture}
+        />
+      </div>
+      <TimeDisplay timeRange={flightInfo.timeRange} isDeparture={isDeparture} />
     </div>
-    <TimeDisplay timeRange={flightInfo.timeRange} isDeparture={isDeparture} />
-  </div>
-))
+  )
+})
 
 FlightCard.displayName = 'FlightCard'
 
@@ -287,7 +337,7 @@ export default function FlightSchedule() {
         {
           label: 'Departure from',
           city: 'Barcelona',
-          price: '20€',
+          price: '0€', // Will be calculated dynamically
           icon: 'takeoff',
           timeRange: {
             start: formData.flightSchedule.departure.start,
@@ -297,7 +347,7 @@ export default function FlightSchedule() {
         {
           label: 'Arrival',
           city: 'Barcelona',
-          price: '20€',
+          price: '0€', // Will be calculated dynamically
           icon: 'landing',
           timeRange: {
             start: formData.flightSchedule.arrival.start,
@@ -315,7 +365,7 @@ export default function FlightSchedule() {
         {
           label: 'Departure from',
           city: 'Barcelona',
-          price: '20€',
+          price: '0€', // Will be calculated dynamically
           icon: 'takeoff',
           timeRange: {
             start: formData.flightSchedule.departure.start,
@@ -325,7 +375,7 @@ export default function FlightSchedule() {
         {
           label: 'Arrival',
           city: 'Barcelona',
-          price: '20€',
+          price: '0€', // Will be calculated dynamically
           icon: 'landing',
           timeRange: {
             start: formData.flightSchedule.arrival.start,
@@ -351,6 +401,13 @@ export default function FlightSchedule() {
       endTime: minutesToTime(flight.timeRange.end),
       duration: calculateDuration(flight.timeRange.start, flight.timeRange.end)
     }))
+  }, [flightData])
+
+  // Calculate total additional cost
+  const totalAdditionalCost = useMemo(() => {
+    const departureCost = calculatePriceFromDefault(flightData[0].timeRange, true)
+    const arrivalCost = calculatePriceFromDefault(flightData[1].timeRange, false)
+    return departureCost + arrivalCost
   }, [flightData])
   
   const handleConfirm = useCallback(() => {
@@ -394,6 +451,23 @@ export default function FlightSchedule() {
               />
             ))}
           </div>
+          
+          {/* Total Additional Cost Display */}
+          {totalAdditionalCost > 0 && (
+            <div className="w-full p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div className="flex justify-between items-center">
+                <div className="text-sm text-yellow-800 font-medium">
+                  Total Additional Cost:
+                </div>
+                <div className="text-lg font-bold text-yellow-700">
+                  +{totalAdditionalCost}€
+                </div>
+              </div>
+              <div className="text-xs text-yellow-600 mt-1">
+                Based on {Math.floor(totalAdditionalCost / PRICE_PER_STEP)} step(s) from default times
+              </div>
+            </div>
+          )}
           
           <button 
             onClick={handleConfirm}
