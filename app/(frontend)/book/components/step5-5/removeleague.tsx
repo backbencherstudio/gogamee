@@ -50,6 +50,8 @@ const LeagueCard = React.memo(({ league, onRemove }: LeagueCardProps) => {
         alt={league.name}
         fill
         className="object-cover"
+        priority={league.id === '1'} // Priority for first image (La Liga)
+        sizes="(max-width: 768px) 160px, 192px" // Responsive sizes for mobile/desktop
       />
       <div className="absolute inset-0 bg-black/30" />
       
