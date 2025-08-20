@@ -94,10 +94,10 @@ const LeagueCard = React.memo(({ league, onRemove }: LeagueCardProps) => {
           className={`absolute bottom-0 left-0 right-0 px-4 pb-5 transition-all duration-300 ease-out 
                      ${isClicked ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-4 pointer-events-none'}
                      md:opacity-0 md:translate-y-4 md:pointer-events-none 
-                     md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-none`}
+                     md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto`}
           onClick={handleRemoveClick}
         >
-          <div className="self-stretch px-4 py-2 w-full bg-[#6AAD3C] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 transition-colors cursor-pointer md:cursor-default">
+          <div className="self-stretch px-4 py-2 w-full bg-[#6AAD3C] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 transition-colors cursor-pointer">
             <div className="text-center justify-start text-white text-sm font-semibold font-['Inter'] leading-snug">
               Remove
             </div>

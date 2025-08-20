@@ -311,11 +311,11 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     // Special logic for step 5 (league selection)
     if (currentStep === 4) { // Step 5 (0-indexed)
-      if (currentData.selectedLeague === 'european') {
-        // Go to remove league step
+      if (currentData.selectedLeague === 'national') {
+        // Go to remove league step for National Leagues
         setCurrentStep(4.5) // We'll use 4.5 to represent step 5.5
       } else {
-        // Go directly to date selection (step 6)
+        // Go directly to date selection (step 6) for European Competition
         setCurrentStep(5)
       }
     } else if (currentStep === 4.5) {
@@ -331,8 +331,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (currentStep === 4.5) {
       // From remove league, go back to league selection
       setCurrentStep(4)
-    } else if (currentStep === 5 && formData.selectedLeague === 'european') {
-      // If coming from date selection and had european selected, go to remove league
+    } else if (currentStep === 5 && formData.selectedLeague === 'national') {
+      // If coming from date selection and had national selected, go to remove league
       setCurrentStep(4.5)
     } else {
       // Normal progression
