@@ -71,8 +71,328 @@ export interface BookingData {
   requiresEuropeanLeagueHandling: boolean;
 }
 
+// Hero Section Data Structure
+export interface HeroData {
+  sports: Array<{
+    id: string;
+    name: string;
+    label: string;
+    value: string;
+  }>;
+  packTypes: Array<{
+    id: number;
+    name: string;
+    basePrice: number;
+    currency: string;
+  }>;
+  departureCities: Array<{
+    id: number;
+    name: string;
+    country: string;
+  }>;
+  peopleCategories: Array<{
+    id: string;
+    name: string;
+    minAge: number;
+    maxAge: number;
+    minCount: number;
+    maxCount: number;
+    defaultCount: number;
+  }>;
+  maxTotalPeople: number;
+  minAdults: number;
+}
+
+// Sports Preference Data Structure
+export interface SportsPreferenceData {
+  sports: Array<{
+    value: string;
+    label: string;
+    description: string;
+  }>;
+}
+
+// Package Type Data Structure
+export interface PackageTypeData {
+  packages: Array<{
+    value: string;
+    label: string;
+    description: string;
+    features: string[];
+    basePrice: number;
+    currency: string;
+  }>;
+}
+
+// Departure City Data Structure
+export interface DepartureCityData {
+  cities: Array<{
+    value: string;
+    label: string;
+    gradient: string;
+    accent: string;
+    country: string;
+    description?: string;
+  }>;
+}
+
 // Main application data object
 export const AppData = {
+  // Hero Section Data
+  hero: {
+    sports: [
+      { id: "football", name: "Football", label: "Football", value: "Football" },
+      { id: "basketball", name: "Basketball", label: "Basketball", value: "Basketball" },
+      { id: "both", name: "Both", label: "Both", value: "Both" }
+    ],
+    
+    packTypes: [
+      { id: 1, name: "Standard", basePrice: 299, currency: "EUR" },
+      { id: 2, name: "Premium", basePrice: 1399, currency: "EUR" }
+    ],
+    
+    departureCities: [
+      { id: 1, name: "Madrid", country: "Spain" },
+      { id: 2, name: "Barcelona", country: "Spain" },
+      { id: 3, name: "Málaga", country: "Spain" },
+      { id: 4, name: "Valencia", country: "Spain" },
+      { id: 5, name: "Alicante", country: "Spain" },
+      { id: 6, name: "Bilbao", country: "Spain" }
+    ],
+    
+    peopleCategories: [
+      { 
+        id: "adults", 
+        name: "Adults", 
+        minAge: 18, 
+        maxAge: 100, 
+        minCount: 1, 
+        maxCount: 10, 
+        defaultCount: 2 
+      },
+      { 
+        id: "children", 
+        name: "Children", 
+        minAge: 2, 
+        maxAge: 17, 
+        minCount: 0, 
+        maxCount: 10, 
+        defaultCount: 0 
+      },
+      { 
+        id: "babies", 
+        name: "Babies", 
+        minAge: 0, 
+        maxAge: 1, 
+        minCount: 0, 
+        maxCount: 10, 
+        defaultCount: 0 
+      }
+    ],
+    
+    maxTotalPeople: 10,
+    minAdults: 1,
+    
+    // Helper functions for hero section
+    getPackTypesBySport: function(sport: "Football" | "Basketball" | "Both", fromText: string) {
+      const basePrices = {
+        "Football": { standard: 299, premium: 1399 },
+        "Basketball": { standard: 279, premium: 1279 },
+        "Both": { standard: 279, premium: 1279 } // Use lowest price for "Both"
+      };
+      
+      const sportPrices = basePrices[sport];
+      
+      return this.packTypes.map(pack => ({
+        ...pack,
+        price: `${fromText} ${sportPrices[pack.name.toLowerCase() as keyof typeof sportPrices]}€`
+      }));
+    },
+    
+    getSportById: function(id: string) {
+      return this.sports.find(sport => sport.id === id);
+    },
+    
+    getPackTypeById: function(id: number) {
+      return this.packTypes.find(pack => pack.id === id);
+    },
+    
+    getCityById: function(id: number) {
+      return this.departureCities.find(city => city.id === id);
+    },
+    
+    getPeopleCategoryById: function(id: string) {
+      return this.peopleCategories.find(category => category.id === id);
+    }
+  },
+
+  // Sports Preference Data
+  sportsPreference: {
+    sports: [
+      { value: 'football', label: 'Football', description: 'We always try to maximize the time at the destination' },
+      { value: 'basketball', label: 'Basketball', description: 'We always try to maximize the time at the destination' },
+      { value: 'both', label: 'Both', description: 'We always try to maximize the time at the destination' }
+    ],
+    
+    getSportByValue: function(value: string) {
+      return this.sports.find(sport => sport.value === value);
+    },
+    
+    getAllSports: function() {
+      return this.sports;
+    }
+  },
+
+  // Package Type Data
+  packageType: {
+    packages: [
+      {
+        value: 'standard',
+        label: 'Standard',
+        description: 'Perfect for budget-conscious travelers who want quality experiences',
+        features: [
+          'Standard accommodation (3-star hotels)',
+          'Basic meals included',
+          'Public transport or shuttle service',
+          'Essential welcome pack',
+          'Standard match tickets'
+        ],
+        basePrice: 299,
+        currency: 'EUR'
+      },
+      {
+        value: 'premium',
+        label: 'Premium',
+        description: 'Luxury experience with exclusive access and premium services',
+        features: [
+          'Premium accommodation (4-5 star hotels)',
+          'Gourmet meals and dining experiences',
+          'Private transfers and VIP transport',
+          'Exclusive welcome pack with team merchandise',
+          'Premium match tickets with better seating',
+          'Personal guide and concierge service'
+        ],
+        basePrice: 1399,
+        currency: 'EUR'
+      }
+    ],
+    
+    getPackageByValue: function(value: string) {
+      return this.packages.find(pkg => pkg.value === value);
+    },
+    
+    getAllPackages: function() {
+      return this.packages;
+    },
+    
+    getPackageFeatures: function(value: string) {
+      const pkg = this.getPackageByValue(value);
+      return pkg ? pkg.features : [];
+    },
+    
+    getPackagePrice: function(value: string, sport?: string, nights?: number) {
+      const pkg = this.getPackageByValue(value);
+      if (!pkg) return 0;
+      
+      // If sport and nights are provided, use the pricing logic from hero section
+      if (sport && nights) {
+        const sportPrices: Record<string, Record<string, number>> = {
+          "football": { standard: 299, premium: 1399 },
+          "basketball": { standard: 279, premium: 1279 }
+        };
+        
+        const sportData = sportPrices[sport.toLowerCase()];
+        const basePrice = sportData?.[value] || pkg.basePrice;
+        
+        // Apply night multiplier (basic logic - can be enhanced)
+        if (nights > 1) {
+          return basePrice + (nights - 1) * 80; // Additional 80€ per extra night
+        }
+        
+        return basePrice;
+      }
+      
+      return pkg.basePrice;
+    }
+  },
+
+  // Departure City Data
+  departureCity: {
+    cities: [
+      { 
+        value: 'madrid', 
+        label: 'Madrid',
+        gradient: 'from-slate-700 via-slate-600 to-slate-800',
+        accent: 'hover:from-slate-600 hover:via-slate-500 hover:to-slate-700',
+        country: 'Spain',
+        description: 'Capital city with rich cultural heritage and vibrant atmosphere'
+      },
+      { 
+        value: 'barcelona', 
+        label: 'Barcelona',
+        gradient: 'from-emerald-600 via-emerald-500 to-emerald-700',
+        accent: 'hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-600',
+        country: 'Spain',
+        description: 'Coastal city known for stunning architecture and Mediterranean charm'
+      },
+      { 
+        value: 'malaga', 
+        label: 'Málaga',
+        gradient: 'from-amber-600 via-amber-500 to-amber-700',
+        accent: 'hover:from-amber-500 hover:via-amber-400 hover:to-amber-600',
+        country: 'Spain',
+        description: 'Sunny coastal city with beautiful beaches and rich history'
+      },
+      { 
+        value: 'valencia', 
+        label: 'Valencia',
+        gradient: 'from-blue-600 via-blue-500 to-blue-700',
+        accent: 'hover:from-blue-500 hover:via-blue-400 hover:to-blue-600',
+        country: 'Spain',
+        description: 'Modern city with futuristic architecture and traditional charm'
+      },
+      { 
+        value: 'alicante', 
+        label: 'Alicante',
+        gradient: 'from-orange-600 via-orange-500 to-orange-700',
+        accent: 'hover:from-orange-500 hover:via-orange-400 hover:to-orange-600',
+        country: 'Spain',
+        description: 'Coastal gem with stunning beaches and Mediterranean lifestyle'
+      },
+      { 
+        value: 'bilbao', 
+        label: 'Bilbao',
+        gradient: 'from-red-600 via-red-500 to-red-700',
+        accent: 'hover:from-red-500 hover:via-red-400 hover:to-red-600',
+        country: 'Spain',
+        description: 'Industrial city transformed into a cultural and culinary destination'
+      }
+    ],
+    
+    getCityByValue: function(value: string) {
+      return this.cities.find(city => city.value === value);
+    },
+    
+    getAllCities: function() {
+      return this.cities;
+    },
+    
+    getCityGradient: function(value: string) {
+      const city = this.getCityByValue(value);
+      return city ? city.gradient : '';
+    },
+    
+    getCityAccent: function(value: string) {
+      const city = this.getCityByValue(value);
+      return city ? city.accent : '';
+    },
+    
+    getCityDescription: function(value: string) {
+      const city = this.getCityByValue(value);
+      return city ? city.description : '';
+    }
+  },
+
   // Booking related data
   bookings: {
     all: [] as BookingData[],
@@ -761,6 +1081,12 @@ export const faqs = AppData.faqs.list;
 export const travelPackages = AppData.travelPackages.list;
 export const reviews = AppData.reviews.list;
 export const pricing = AppData.pricing;
+
+// Export new data structures
+export const heroData = AppData.hero;
+export const sportsPreferenceData = AppData.sportsPreference;
+export const packageTypeData = AppData.packageType;
+export const departureCityData = AppData.departureCity;
 
 // Export the main object as default
 export default AppData; 

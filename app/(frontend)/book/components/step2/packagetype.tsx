@@ -4,22 +4,12 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { IoChevronDown } from 'react-icons/io5'
 import { useBooking } from '../../context/BookingContext'
+import { packageTypeData } from '../../../../lib/appdata'
 
 // Types
-interface PackageOption {
-  readonly value: string
-  readonly label: string
-}
-
 interface PackageFormData {
   selectedPackage: string
 }
-
-// Constants
-const PACKAGE_OPTIONS: readonly PackageOption[] = [
-  { value: 'standard', label: 'Standard' },
-  { value: 'premium', label: 'Premium' },
-] as const
 
 const PackageType: React.FC = () => {
   // Context
@@ -47,7 +37,7 @@ const PackageType: React.FC = () => {
   
   // Memoized values
   const selectedLabel = useMemo(() => 
-    PACKAGE_OPTIONS.find(pkg => pkg.value === selectedPackage)?.label || 'Select a package',
+    packageTypeData.getPackageByValue(selectedPackage)?.label || 'Select a package',
     [selectedPackage]
   )
   
@@ -71,9 +61,9 @@ const PackageType: React.FC = () => {
     nextStep()
   }, [updateFormData, nextStep])
   
-  const renderDropdownOption = useCallback((pkg: PackageOption, index: number) => {
+  const renderDropdownOption = useCallback((pkg: { value: string; label: string }, index: number) => {
     const isFirst = index === 0
-    const isLast = index === PACKAGE_OPTIONS.length - 1
+    const isLast = index === packageTypeData.getAllPackages().length - 1
     const isSelected = selectedPackage === pkg.value
     
     return (
@@ -151,7 +141,7 @@ const PackageType: React.FC = () => {
               role="listbox"
               aria-label="Package options"
             >
-              {PACKAGE_OPTIONS.map(renderDropdownOption)}
+              {packageTypeData.getAllPackages().map(renderDropdownOption)}
             </div>
           )}
         </div>

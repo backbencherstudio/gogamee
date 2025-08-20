@@ -1,0 +1,291 @@
+# Centralized Data Structure Documentation
+
+## Overview
+All data has been centralized in `app/lib/appdata.ts` to make the application more maintainable and easier to integrate with your backend database. This document explains the new structure and how to use it.
+
+## What Has Been Centralized
+
+### 1. Hero Section Data (`AppData.hero`)
+- **Sports**: Football, Basketball, Both
+- **Pack Types**: Standard and Premium packages with dynamic pricing
+- **Departure Cities**: Madrid, Barcelona, Málaga, Valencia, Alicante, Bilbao
+- **People Categories**: Adults, Children, Babies with age ranges and limits
+- **Configuration**: Maximum total people, minimum adults required
+
+### 2. Sports Preference Data (`AppData.sportsPreference`)
+- **Sports Options**: Football, Basketball, Both with descriptions
+- **Helper Functions**: Get sport by value, get all sports
+
+### 3. Package Type Data (`AppData.packageType`)
+- **Package Options**: Standard and Premium packages with detailed features
+- **Descriptions**: Detailed explanations of what each package includes
+- **Features**: List of amenities and services for each package
+- **Pricing**: Base prices with dynamic calculation based on sport and duration
+
+### 4. Departure City Data (`AppData.departureCity`)
+- **City Options**: Madrid, Barcelona, Málaga, Valencia, Alicante, Bilbao
+- **Visual Styling**: Unique gradients and hover effects for each city
+- **Descriptions**: Rich descriptions of each city's character and attractions
+- **Country Information**: All cities are in Spain with consistent data structure
+
+## Data Structure
+
+### Hero Data Interface
+```typescript
+export interface HeroData {
+  sports: Array<{
+    id: string;
+    name: string;
+    label: string;
+    value: string;
+  }>;
+  packTypes: Array<{
+    id: number;
+    name: string;
+    basePrice: number;
+    currency: string;
+  }>;
+  departureCities: Array<{
+    id: number;
+    name: string;
+    country: string;
+  }>;
+  peopleCategories: Array<{
+    id: string;
+    name: string;
+    minAge: number;
+    maxAge: number;
+    minCount: number;
+    maxCount: number;
+    defaultCount: number;
+  }>;
+  maxTotalPeople: number;
+  minAdults: number;
+}
+```
+
+### Sports Preference Data Interface
+```typescript
+export interface SportsPreferenceData {
+  sports: Array<{
+    value: string;
+    label: string;
+    description: string;
+  }>;
+}
+```
+
+### Package Type Data Interface
+```typescript
+export interface PackageTypeData {
+  packages: Array<{
+    value: string;
+    label: string;
+    description: string;
+    features: string[];
+    basePrice: number;
+    currency: string;
+  }>;
+}
+```
+
+### Departure City Data Interface
+```typescript
+export interface DepartureCityData {
+  cities: Array<{
+    value: string;
+    label: string;
+    gradient: string;
+    accent: string;
+    country: string;
+    description?: string;
+  }>;
+}
+```
+
+## How to Use
+
+### 1. Import the Data
+```typescript
+import { heroData, sportsPreferenceData, packageTypeData, departureCityData } from '../../lib/appdata'
+// or
+import AppData from '../../lib/appdata'
+const { hero, sportsPreference, packageType, departureCity } = AppData
+```
+
+### 2. Access Sports Data
+```typescript
+// Get all sports
+const allSports = heroData.sports
+
+// Get sport by ID
+const football = heroData.getSportById('football')
+
+// Get pack types for a specific sport
+const packTypes = heroData.getPackTypesBySport('Football', 'From')
+```
+
+### 3. Access City Data
+```typescript
+// Get all departure cities
+const cities = heroData.departureCities
+
+// Get city by ID
+const madrid = heroData.getCityById(1)
+```
+
+### 4. Access People Categories
+```typescript
+// Get people category data
+const adultsCategory = heroData.getPeopleCategoryById('adults')
+
+// Access limits
+const maxTotal = heroData.maxTotalPeople
+const minAdults = heroData.minAdults
+```
+
+### 5. Access Sports Preference Data
+```typescript
+// Get all sports
+const sports = sportsPreferenceData.getAllSports()
+
+// Get sport by value
+const football = sportsPreferenceData.getSportByValue('football')
+```
+
+### 6. Access Package Type Data
+```typescript
+// Get all packages
+const packages = packageTypeData.getAllPackages()
+
+// Get package by value
+const standard = packageTypeData.getPackageByValue('standard')
+
+// Get package features
+const features = packageTypeData.getPackageFeatures('premium')
+
+// Get dynamic pricing
+const price = packageTypeData.getPackagePrice('standard', 'football', 3)
+```
+
+### 7. Access Departure City Data
+```typescript
+// Get all cities
+const cities = departureCityData.getAllCities()
+
+// Get city by value
+const madrid = departureCityData.getCityByValue('madrid')
+
+// Get city styling
+const gradient = departureCityData.getCityGradient('barcelona')
+const accent = departureCityData.getCityAccent('valencia')
+
+// Get city description
+const description = departureCityData.getCityDescription('alicante')
+```
+
+## Helper Functions
+
+### Hero Section Helpers
+- `getPackTypesBySport(sport, fromText)`: Returns pack types with dynamic pricing based on sport
+- `getSportById(id)`: Returns sport by ID
+- `getPackTypeById(id)`: Returns pack type by ID
+- `getCityById(id)`: Returns city by ID
+- `getPeopleCategoryById(id)`: Returns people category by ID
+
+### Sports Preference Helpers
+- `getSportByValue(value)`: Returns sport by value
+- `getAllSports()`: Returns all available sports
+
+### Package Type Helpers
+- `getPackageByValue(value)`: Returns package by value
+- `getAllPackages()`: Returns all available packages
+- `getPackageFeatures(value)`: Returns features list for a package
+- `getPackagePrice(value, sport?, nights?)`: Returns dynamic pricing based on sport and duration
+
+### Departure City Helpers
+- `getCityByValue(value)`: Returns city by value
+- `getAllCities()`: Returns all available cities
+- `getCityGradient(value)`: Returns gradient classes for city styling
+- `getCityAccent(value)`: Returns hover accent classes for city styling
+- `getCityDescription(value)`: Returns description of the city
+
+## Benefits of Centralization
+
+1. **Single Source of Truth**: All data is managed in one place
+2. **Easy Backend Integration**: Replace AppData with API calls
+3. **Consistent Data**: Same data structure across all components
+4. **Maintainable**: Update data in one place, affects all components
+5. **Type Safety**: Full TypeScript support with interfaces
+6. **Scalable**: Easy to add new sports, cities, packages, or categories
+7. **Dynamic Pricing**: Smart pricing logic that considers sport and duration
+
+## Backend Integration
+
+When you're ready to connect to your backend:
+
+1. **Replace AppData.initialize()** with API calls
+2. **Update the data structures** to match your database schema
+3. **Keep the same interface** for seamless component updates
+4. **Add loading states** for async data fetching
+
+## Example Backend Integration
+```typescript
+// In appdata.ts
+export const AppData = {
+  // ... existing structure
+  
+  // Replace static data with API calls
+  async initialize() {
+    try {
+      const [sports, cities, packages, packageTypes, departureCities] = await Promise.all([
+        fetch('/api/sports'),
+        fetch('/api/cities'),
+        fetch('/api/packages'),
+        fetch('/api/package-types'),
+        fetch('/api/departure-cities')
+      ]);
+      
+      this.hero.sports = await sports.json();
+      this.hero.departureCities = await cities.json();
+      this.hero.packTypes = await packages.json();
+      this.packageType.packages = await packageTypes.json();
+      this.departureCity.cities = await departureCities.json();
+    } catch (error) {
+      console.error('Failed to initialize data:', error);
+    }
+  }
+}
+```
+
+## Components Updated
+
+1. **Hero Section** (`app/(frontend)/home/components/Hero/herosection.tsx`)
+   - Now uses `heroData` from appdata.ts
+   - All constants replaced with centralized data
+   - Dynamic pricing based on sport selection
+
+2. **Sports Preference** (`app/(frontend)/book/components/step1/sportsyoupreffer.tsx`)
+   - Now uses `sportsPreferenceData` from appdata.ts
+   - Sports options and descriptions centralized
+   - Consistent with hero section data
+
+3. **Package Type** (`app/(frontend)/book/components/step2/packagetype.tsx`)
+   - Now uses `packageTypeData` from appdata.ts
+   - Package options and features centralized
+   - Dynamic pricing and feature descriptions
+
+4. **Departure City** (`app/(frontend)/book/components/step3/departurecity.tsx`)
+   - Now uses `departureCityData` from appdata.ts
+   - City options with gradients and styling centralized
+   - Rich descriptions and visual effects centralized
+
+## Next Steps
+
+1. **Test the components** to ensure they work with centralized data
+2. **Update other components** to use centralized data where applicable
+3. **Prepare backend endpoints** that match the data structure
+4. **Replace static data** with API calls when ready
+5. **Add error handling** for data loading failures
+
+This centralized approach will make your application much easier to maintain and integrate with your backend database. 

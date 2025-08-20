@@ -4,41 +4,7 @@ import { IoChevronDown } from "react-icons/io5"
 import { gsap } from "gsap"
 import { useRouter } from "next/navigation"
 import { useLanguage, formatPeopleCount } from "../../../_components/common/LanguageContext"
-
-// Dynamic pack types based on sport selection
-const getPackTypes = (sport: "Football" | "Basketball" | "Both", fromText: string) => {
-  const packTypes = [
-    {
-      id: 1,
-      name: "Standard",
-      price: sport === "Football" 
-        ? `${fromText} 299€` 
-        : sport === "Basketball" 
-          ? `${fromText} 279€` 
-          : `${fromText} 279€` // Both - use lowest price
-    },
-    {
-      id: 2,
-      name: "Premium",
-      price: sport === "Football" 
-        ? `${fromText} 1399€` 
-        : sport === "Basketball" 
-          ? `${fromText} 1279€` 
-          : `${fromText} 1279€` // Both - use lowest price
-    }
-  ]
-  return packTypes
-}
-
-// Extended departure cities list
-const departureCities = [
-  { id: 1, name: "Madrid" },
-  { id: 2, name: "Barcelona" },
-  { id: 3, name: "Málaga" },
-  { id: 4, name: "Valencia" },
-  { id: 5, name: "Alicante" },
-  { id: 6, name: "Bilbao" },
-]
+import { heroData } from "../../../../lib/appdata"
 
 // People categories for the counter interface
 interface PeopleCount {
@@ -57,17 +23,17 @@ export default function HeroSection() {
   const [selectedSport, setSelectedSport] = useState<"Football" | "Basketball" | "Both">("Football")
 
   // Get dynamic pack types based on selected sport
-  const packTypes = getPackTypes(selectedSport, t.common.from)
+  const packTypes = heroData.getPackTypesBySport(selectedSport, t.common.from)
 
   // Dropdown states
   const [selectedPack, setSelectedPack] = useState(packTypes[0])
-  const [selectedCity, setSelectedCity] = useState(departureCities[0])
+  const [selectedCity, setSelectedCity] = useState(heroData.departureCities[0])
   
   // People counter state
   const [peopleCount, setPeopleCount] = useState<PeopleCount>({
-    adults: 2,
-    children: 0,
-    babies: 0
+    adults: heroData.peopleCategories.find(cat => cat.id === 'adults')?.defaultCount || 2,
+    children: heroData.peopleCategories.find(cat => cat.id === 'children')?.defaultCount || 0,
+    babies: heroData.peopleCategories.find(cat => cat.id === 'babies')?.defaultCount || 0
   })
 
   // Dropdown visibility states
@@ -78,7 +44,7 @@ export default function HeroSection() {
 
   // Update selected pack when sport changes to maintain consistency
   useEffect(() => {
-    const newPackTypes = getPackTypes(selectedSport, t.common.from)
+    const newPackTypes = heroData.getPackTypesBySport(selectedSport, t.common.from)
     // Find the same pack type (Standard/Premium) in the new list
     const matchingPack = newPackTypes.find(pack => pack.name === selectedPack.name)
     if (matchingPack) {
@@ -99,15 +65,16 @@ export default function HeroSection() {
     setPeopleCount(prev => {
       const newCount = { ...prev }
       const currentValue = newCount[category]
+      const categoryData = heroData.peopleCategories.find(cat => cat.id === category)
       
       if (increment) {
-        // Check if we can add more (max 10 total)
-        if (totalPeople < 10) {
+        // Check if we can add more (max total people)
+        if (totalPeople < heroData.maxTotalPeople) {
           newCount[category] = currentValue + 1
         }
       } else {
-        // Check if we can subtract (minimum 1 adult required)
-        if (category === 'adults' && currentValue > 1) {
+        // Check if we can subtract (minimum requirements)
+        if (category === 'adults' && currentValue > heroData.minAdults) {
           newCount[category] = currentValue - 1
         } else if (category !== 'adults' && currentValue > 0) {
           newCount[category] = currentValue - 1
@@ -185,17 +152,17 @@ export default function HeroSection() {
           >
             {/* Sport Selection - Mobile: Stack vertically, Desktop: Horizontal */}
             <div className="bg-gray-50 rounded-lg flex flex-col sm:flex-row w-full sm:inline-flex justify-start items-center">
-              {(["Football", "Basketball", "Both"] as const).map((sport, index, array) => {
-                const sportLabel = sport === "Football" ? t.hero.football : sport === "Basketball" ? t.hero.basketball : t.hero.both
+              {heroData.sports.map((sport, index, array) => {
+                const sportLabel = sport.name === "Football" ? t.hero.football : sport.name === "Basketball" ? t.hero.basketball : t.hero.both
                 return (
                   <button
-                    key={sport}
+                    key={sport.id}
                     onClick={(e) => {
                       e.stopPropagation()
-                      setSelectedSport(sport)
+                      setSelectedSport(sport.name as "Football" | "Basketball" | "Both")
                     }}
                     className={`w-full sm:w-36 h-11 px-3.5 py-1.5 flex justify-center items-center gap-2.5 cursor-pointer ${
-                      selectedSport === sport ? "bg-[#76C043] text-white" : "text-neutral-600"
+                      selectedSport === sport.name ? "bg-[#76C043] text-white" : "text-neutral-600"
                     } ${
                       // Mobile: rounded corners for first and last
                       index === 0
@@ -269,7 +236,7 @@ export default function HeroSection() {
                 </div>
                 {openDropdown === "city" && (
                   <div className="absolute top-[100%] left-0 right-0 mt-1 bg-white rounded-lg shadow-lg z-[100] py-1 border border-gray-200">
-                    {departureCities.map((city) => (
+                    {heroData.departureCities.map((city) => (
                       <div
                         key={city.id}
                         onClick={(e) => {
@@ -320,7 +287,7 @@ export default function HeroSection() {
                               e.stopPropagation()
                               updatePeopleCount('adults', false)
                             }}
-                            disabled={peopleCount.adults <= 1}
+                            disabled={peopleCount.adults <= heroData.minAdults}
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             −
@@ -331,7 +298,7 @@ export default function HeroSection() {
                               e.stopPropagation()
                               updatePeopleCount('adults', true)
                             }}
-                            disabled={totalPeople >= 10}
+                            disabled={totalPeople >= heroData.maxTotalPeople}
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             +
@@ -362,7 +329,7 @@ export default function HeroSection() {
                               e.stopPropagation()
                               updatePeopleCount('children', true)
                             }}
-                            disabled={totalPeople >= 10}
+                            disabled={totalPeople >= heroData.maxTotalPeople}
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             +
@@ -393,7 +360,7 @@ export default function HeroSection() {
                               e.stopPropagation()
                               updatePeopleCount('babies', true)
                             }}
-                            disabled={totalPeople >= 10}
+                            disabled={totalPeople >= heroData.maxTotalPeople}
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             +
@@ -404,7 +371,7 @@ export default function HeroSection() {
                       {/* Total count display */}
                       <div className="pt-2 border-t border-gray-200">
                         <div className="text-xs text-gray-500 font-['Poppins'] text-center">
-                          {t.hero.total}: {totalPeople}/10 {t.hero.people}
+                          {t.hero.total}: {totalPeople}/{heroData.maxTotalPeople} {t.hero.people}
                         </div>
                       </div>
                     </div>

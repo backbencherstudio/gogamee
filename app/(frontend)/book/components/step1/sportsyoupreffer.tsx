@@ -4,23 +4,12 @@ import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { IoChevronDown } from 'react-icons/io5'
 import { useBooking } from '../../context/BookingContext'
+import { sportsPreferenceData } from '../../../../lib/appdata'
 
 // Types
-interface SportOption {
-  value: string
-  label: string
-}
-
 interface FormData {
   selectedSport: string
 }
-
-// Constants
-const SPORTS_OPTIONS: readonly SportOption[] = [
-  { value: 'football', label: 'Football' },
-  { value: 'basketball', label: 'Basketball' },
-  { value: 'both', label: 'Both' },
-] as const
 
 export default function SportsYouPreffer() {
   const { formData, updateFormData, nextStep } = useBooking()
@@ -49,7 +38,7 @@ export default function SportsYouPreffer() {
 
   // Memoized selected label for better performance
   const selectedLabel = useMemo(() => {
-    return SPORTS_OPTIONS.find(sport => sport.value === selectedSport)?.label || 'Select a sport'
+    return sportsPreferenceData.getSportByValue(selectedSport)?.label || 'Select a sport'
   }, [selectedSport])
 
   // Callbacks for better performance
@@ -82,7 +71,7 @@ export default function SportsYouPreffer() {
           What sport do you prefer?
         </h1>
         <p className="text-sm xl:text-base text-neutral-600 font-['Poppins'] leading-6 xl:leading-7">
-          We always try to maximize the time at the destination
+          {sportsPreferenceData.getSportByValue(selectedSport)?.description || 'We always try to maximize the time at the destination'}
         </p>
       </div>
 
@@ -121,7 +110,7 @@ export default function SportsYouPreffer() {
                 {/* Dropdown Options */}
                 {isOpen && (
                   <div className="absolute top-12 left-0 w-full xl:max-w-96 bg-white rounded-lg border border-gray-200 shadow-lg z-10">
-                    {SPORTS_OPTIONS.map((sport, index) => (
+                    {sportsPreferenceData.getAllSports().map((sport, index) => (
                       <div
                         key={sport.value}
                         onClick={() => handleSportSelect(sport.value, onChange)}
@@ -129,7 +118,7 @@ export default function SportsYouPreffer() {
                           px-5 py-3 cursor-pointer hover:bg-gray-50 transition-all
                           ${value === sport.value ? 'bg-lime-50 text-lime-700' : 'text-zinc-950'}
                           ${index === 0 ? 'rounded-t-lg' : ''}
-                          ${index === SPORTS_OPTIONS.length - 1 ? 'rounded-b-lg' : ''}
+                          ${index === sportsPreferenceData.getAllSports().length - 1 ? 'rounded-b-lg' : ''}
                         `}
                         role="option"
                         aria-selected={value === sport.value}

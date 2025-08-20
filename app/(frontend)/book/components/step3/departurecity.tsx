@@ -3,6 +3,7 @@
 import React, { useCallback, useMemo, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
+import { departureCityData } from '../../../../lib/appdata'
 
 // Types
 interface CityOption {
@@ -15,46 +16,6 @@ interface CityOption {
 interface FormData {
   selectedCity: string
 }
-
-// Constants
-const CITY_OPTIONS: readonly CityOption[] = [
-  { 
-    value: 'madrid', 
-    label: 'Madrid',
-    gradient: 'from-slate-700 via-slate-600 to-slate-800',
-    accent: 'hover:from-slate-600 hover:via-slate-500 hover:to-slate-700'
-  },
-  { 
-    value: 'barcelona', 
-    label: 'Barcelona',
-    gradient: 'from-emerald-600 via-emerald-500 to-emerald-700',
-    accent: 'hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-600'
-  },
-  { 
-    value: 'malaga', 
-    label: 'Málaga',
-    gradient: 'from-amber-600 via-amber-500 to-amber-700',
-    accent: 'hover:from-amber-500 hover:via-amber-400 hover:to-amber-600'
-  },
-  { 
-    value: 'valencia', 
-    label: 'Valencia',
-    gradient: 'from-blue-600 via-blue-500 to-blue-700',
-    accent: 'hover:from-blue-500 hover:via-blue-400 hover:to-blue-600'
-  },
-  { 
-    value: 'alicante', 
-    label: 'Alicante',
-    gradient: 'from-orange-600 via-orange-500 to-orange-700',
-    accent: 'hover:from-orange-500 hover:via-orange-400 hover:to-orange-600'
-  },
-  { 
-    value: 'bilbao', 
-    label: 'Bilbao',
-    gradient: 'from-red-600 via-red-500 to-red-700',
-    accent: 'hover:from-red-500 hover:via-red-400 hover:to-red-600'
-  },
-] as const
 
 // Components
 const CheckIcon: React.FC = React.memo(() => (
@@ -203,7 +164,7 @@ const DepartureCity: React.FC = () => {
             control={control}
             render={({ field }) => (
               <>
-                {CITY_OPTIONS.map((city) => (
+                {departureCityData.getAllCities().map((city) => (
                   <CityCard
                     key={city.value}
                     city={city}
