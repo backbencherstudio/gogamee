@@ -192,6 +192,37 @@ export interface FlightScheduleData {
   }>;
 }
 
+// Extras Data Structure
+export interface ExtrasData {
+  text: {
+    title: string;
+    perPerson: string;
+    included: string;
+    add: string;
+    remove: string;
+    confirm: string;
+    totalCost: string;
+  };
+  constants: {
+    currencySymbol: string;
+    defaultMaxQuantity: number;
+    minQuantity: number;
+  };
+  initialExtras: Array<{
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    icon: string;
+    isSelected: boolean;
+    quantity: number;
+    maxQuantity?: number;
+    isIncluded?: boolean;
+    isGroupOption?: boolean;
+    currency: string;
+  }>;
+}
+
 // Main application data object
 export const AppData = {
   // Hero Section Data
@@ -1161,6 +1192,83 @@ export const AppData = {
     }
   },
 
+  // Extras Data
+  extrasData: {
+    text: {
+      title: "What's included in your package?",
+      perPerson: "per person",
+      included: "Included",
+      add: "Add",
+      remove: "Remove",
+      confirm: "Confirm",
+      totalCost: "Total cost"
+    },
+    constants: {
+      currencySymbol: "€",
+      defaultMaxQuantity: 10,
+      minQuantity: 1
+    },
+    initialExtras: [
+      {
+        id: "breakfast",
+        name: "Breakfast",
+        description: "Start your day full of energy with breakfast for only 10 euros per person",
+        price: 10,
+        icon: "/stepper/icon/icon1.svg",
+        isSelected: false,
+        quantity: 1,
+        currency: "EUR",
+        isIncluded: true
+      },
+      {
+        id: "travel-insurance",
+        name: "Travel Insurance",
+        description: "Cover yourself for delays or strikes as well as medical insurance in the country you are going to.",
+        price: 20,
+        icon: "/stepper/icon/icon2.svg",
+        isSelected: false,
+        quantity: 1,
+        currency: "EUR",
+        isIncluded: true
+      },
+      {
+        id: "underseat-bag",
+        name: "Underseat bag",
+        description: "Check the measurements accepted by the airline you are flying with.",
+        price: 0,
+        icon: "/stepper/icon/icon3.svg",
+        isSelected: false,
+        quantity: 1,
+        currency: "EUR",
+        isIncluded: true
+      },
+      {
+        id: "extra-luggage",
+        name: "Extra luggage",
+        description: "Extra luggage (8kg- 10kg)",
+        price: 40,
+        icon: "/stepper/icon/icon4.svg",
+        isSelected: false,
+        quantity: 1,
+        currency: "EUR",
+        isIncluded: true,
+        maxQuantity: 5
+      },
+      {
+        id: "seats-together",
+        name: "Seats together",
+        description: "Do you want to sit together on the flight? Otherwise the seats will be chosen randomly.",
+        price: 20,
+        icon: "/stepper/icon/icon5.svg",
+        isSelected: false,
+        quantity: 1,
+        currency: "EUR",
+        isIncluded: true,
+        maxQuantity: 10
+      }
+    ]
+  },
+
   // Initialize with dummy data
   initialize: function() {
     // Add dummy bookings
@@ -1323,6 +1431,7 @@ export const packageTypeData = AppData.packageType;
 export const departureCityData = AppData.departureCity;
 export const removeLeagueData = AppData.removeLeague;
 export const flightScheduleData = AppData.flightSchedule;
+export const extrasData = AppData.extrasData;
 
 // Export the main object as default
 export default AppData; 

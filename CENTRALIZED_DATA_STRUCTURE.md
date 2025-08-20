@@ -40,6 +40,11 @@ All data has been centralized in `app/lib/appdata.ts` to make the application mo
 - **Pricing Logic**: Cost calculation based on time deviations
 - **Flight Information**: Initial flight data with labels and icons
 
+### 7. Extras Data (`AppData.extrasData`)
+- **Text Constants**: UI text labels and messages
+- **Constants**: Currency symbols and quantity limits
+- **Extra Services**: Available add-on services with pricing and descriptions
+
 ## Data Structure
 
 ### Hero Data Interface
@@ -175,14 +180,47 @@ export interface FlightScheduleData {
 }
 ```
 
+### Extras Data Interface
+```typescript
+export interface ExtrasData {
+  text: {
+    title: string;
+    perPerson: string;
+    included: string;
+    add: string;
+    remove: string;
+    confirm: string;
+    totalCost: string;
+  };
+  constants: {
+    currencySymbol: string;
+    defaultMaxQuantity: number;
+    minQuantity: number;
+  };
+  initialExtras: Array<{
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    icon: string;
+    isSelected: boolean;
+    quantity: number;
+    maxQuantity?: number;
+    isIncluded?: boolean;
+    isGroupOption?: boolean;
+    currency: string;
+  }>;
+}
+```
+
 ## How to Use
 
 ### 1. Import the Data
 ```typescript
-import { heroData, sportsPreferenceData, packageTypeData, departureCityData, removeLeagueData, flightScheduleData } from '../../lib/appdata'
+import { heroData, sportsPreferenceData, packageTypeData, departureCityData, removeLeagueData, flightScheduleData, extrasData } from '../../lib/appdata'
 // or
 import AppData from '../../lib/appdata'
-const { hero, sportsPreference, packageType, departureCity, removeLeague, flightSchedule } = AppData
+const { hero, sportsPreference, packageType, departureCity, removeLeague, flightSchedule, extras } = AppData
 ```
 
 ### 2. Access Sports Data
@@ -305,6 +343,30 @@ const price = flightScheduleData.calculatePriceFromDefault(
 const availableSlots = flightScheduleData.getAvailableTimeSlots('departure')
 ```
 
+### 10. Access Extras Data
+```typescript
+// Get all text constants
+const textConstants = extrasData.text
+
+// Get currency symbol
+const currencySymbol = extrasData.constants.currencySymbol
+
+// Get default max quantity
+const defaultMaxQuantity = extrasData.constants.defaultMaxQuantity
+
+// Get initial extras list
+const initialExtras = extrasData.initialExtras
+
+// Get specific text
+const title = extrasData.text.title
+const addButtonText = extrasData.text.add
+const removeButtonText = extrasData.text.remove
+
+// Get currency and quantity constants
+const currency = extrasData.constants.currencySymbol
+const maxQuantity = extrasData.constants.defaultMaxQuantity
+```
+
 ## Helper Functions
 
 ### Hero Section Helpers
@@ -349,6 +411,11 @@ const availableSlots = flightScheduleData.getAvailableTimeSlots('departure')
 - `calculatePriceFromDefault(timeRange, isDeparture)`: Calculates price based on deviation from default
 - `getAvailableTimeSlots(type)`: Returns available time slots for a flight type
 
+### Extras Helpers
+- `text`: Access to all UI text constants
+- `constants`: Access to currency symbols and quantity limits
+- `initialExtras`: Array of available extra services with pricing and descriptions
+
 ## Benefits of Centralization
 
 1. **Single Source of Truth**: All data is managed in one place
@@ -378,14 +445,15 @@ export const AppData = {
   // Replace static data with API calls
   async initialize() {
     try {
-      const [sports, cities, packages, packageTypes, departureCities, removeLeagues, flightSchedule] = await Promise.all([
+      const [sports, cities, packages, packageTypes, departureCities, removeLeagues, flightSchedule, extras] = await Promise.all([
         fetch('/api/sports'),
         fetch('/api/cities'),
         fetch('/api/packages'),
         fetch('/api/package-types'),
         fetch('/api/departure-cities'),
         fetch('/api/remove-leagues'),
-        fetch('/api/flight-schedule')
+        fetch('/api/flight-schedule'),
+        fetch('/api/extras')
       ]);
       
       this.hero.sports = await sports.json();
@@ -395,6 +463,7 @@ export const AppData = {
       this.departureCity.cities = await departureCities.json();
       this.removeLeague.leagues = await removeLeagues.json();
       this.flightSchedule = await flightSchedule.json();
+      this.extrasData = await extras.json();
     } catch (error) {
       console.error('Failed to initialize data:', error);
     }
@@ -433,6 +502,11 @@ export const AppData = {
    - Now uses `flightScheduleData` from appdata.ts
    - Time slots and default ranges centralized
    - Pricing logic and flight information centralized
+
+7. **Extras** (`app/(frontend)/book/components/step8/extras.tsx`)
+   - Now uses `extrasData` from appdata.ts
+   - Text constants and UI labels centralized
+   - Extra services and pricing centralized
 
 ## Next Steps
 

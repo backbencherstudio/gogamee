@@ -4,6 +4,7 @@ import React, { useMemo, useCallback } from 'react'
 import Image from 'next/image'
 import { useForm, Controller } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
+import { extrasData } from '../../../../lib/appdata'
 
 // Types
 interface ExtraService {
@@ -24,85 +25,14 @@ interface FormData {
   extras: ExtraService[]
 }
 
-// Constants
-const CURRENCY_SYMBOL = '€'
-const DEFAULT_MAX_QUANTITY = 10
-const MIN_QUANTITY = 1
-
-// Static text (only in English since we removed language selection)
-const TEXT = {
-  title: "Do you want to add extra services?",
-  perPerson: "Per person",
-  included: "Included",
-  add: "Add",
-  remove: "Remove",
-  confirm: "Confirm",
-  totalCost: "Total Extra Services Cost:"
-} as const
-
 // Initial data factory
 const createInitialExtras = (): ExtraService[] => {
-  return [
-    {
-      id: 'breakfast',
-      name: "Breakfast",
-      description: "Start your day full of energy with breakfast for only 10 euros per person",
-      price: 10,
-      icon: '/stepper/icon/icon1.svg',
-      isSelected: false,
-      quantity: 1,
-      maxQuantity: DEFAULT_MAX_QUANTITY,
-      isGroupOption: true, // Group-only option
-      currency: 'EUR'
-    },
-    {
-      id: 'travel-insurance',
-      name: "Travel Insurance",
-      description: "Cover yourself for delays or strikes as well as medical insurance in the country you are going to.",
-      price: 20,
-      icon: '/stepper/icon/icon2.svg',
-      isSelected: false,
-      quantity: 1,
-      maxQuantity: DEFAULT_MAX_QUANTITY,
-      isGroupOption: true, // Group-only option
-      currency: 'EUR'
-    },
-    {
-      id: 'underseat-bag',
-      name: "Underseat bag",
-      description: "Check the measurements accepted by the airline you are flying with.",
-      price: 0,
-      icon: '/stepper/icon/icon3.svg',
-      isSelected: true,
-      quantity: 3,
-      isIncluded: true,
-      currency: 'EUR'
-    },
-    {
-      id: 'extra-luggage',
-      name: "Extra luggage",
-      description: "Extra luggage (8kg- 10kg)",
-      price: 40,
-      icon: '/stepper/icon/icon4.svg',
-      isSelected: false,
-      quantity: 0, // Start at 0 for all passengers
-      maxQuantity: 5,
-      isGroupOption: false, // Individual selection allowed
-      currency: 'EUR'
-    },
-    {
-      id: 'seats-together',
-      name: "Seats together",
-      description: "Do you want to sit together on the flight? Otherwise the seats will be chosen randomly.",
-      price: 20,
-      icon: '/stepper/icon/icon5.svg',
-      isSelected: false,
-      quantity: 1,
-      maxQuantity: DEFAULT_MAX_QUANTITY,
-      isGroupOption: true, // Group-only option
-      currency: 'EUR'
-    }
-  ]
+  return extrasData.initialExtras.map(extra => ({
+    ...extra,
+    isSelected: extra.isIncluded || false,
+    quantity: extra.isIncluded ? 1 : 0,
+    isGroupOption: extra.id === 'breakfast' || extra.id === 'travel-insurance' || extra.id === 'seats-together'
+  }))
 }
 
 export default function Extras() {
@@ -168,10 +98,10 @@ export default function Extras() {
         }
         
         // For individual options (like extra luggage), allow quantity changes
-        const newQuantity = Math.max(
-          0, // Allow 0 for extra luggage
-          Math.min(extra.maxQuantity || DEFAULT_MAX_QUANTITY, extra.quantity + change)
-        )
+                  const newQuantity = Math.max(
+            0, // Allow 0 for extra luggage
+            Math.min(extra.maxQuantity || extrasData.constants.defaultMaxQuantity, extra.quantity + change)
+          )
         return { ...extra, quantity: newQuantity }
       }
       return extra
@@ -234,7 +164,7 @@ export default function Extras() {
           type="button"
           onClick={() => handleQuantityChange(extra.id, 1)}
           className="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors opacity-60 hover:opacity-80"
-          disabled={extra.quantity >= (extra.maxQuantity || DEFAULT_MAX_QUANTITY)}
+          disabled={extra.quantity >= (extra.maxQuantity || extrasData.constants.defaultMaxQuantity)}
         >
           +
         </button>
@@ -253,7 +183,7 @@ export default function Extras() {
       }`}
     >
       <div className="text-center justify-start text-white text-sm sm:text-lg font-normal font-['Inter'] leading-5 sm:leading-7">
-        {extra.isSelected ? TEXT.remove : TEXT.add}
+        {extra.isSelected ? 'Remove' : 'Add'}
       </div>
     </button>
   )
@@ -278,12 +208,12 @@ export default function Extras() {
                 {extra.name}
               </div>
               <div className="text-[#6AAD3C] text-base font-semibold font-['Poppins']">
-                {extra.isIncluded ? TEXT.included : `+${CURRENCY_SYMBOL}${extra.price}`}
+                {extra.isIncluded ? 'Included' : `+${extra.currency}${extra.price}`}
               </div>
               {!extra.isIncluded && (
-                <div className="text-neutral-600 text-sm font-normal font-['Poppins']">
-                  {TEXT.perPerson}
-                </div>
+                                  <div className="text-neutral-600 text-sm font-normal font-['Poppins']">
+                    {extrasData.text.perPerson}
+                  </div>
               )}
             </div>
           </div>
@@ -331,11 +261,11 @@ export default function Extras() {
         <div className="inline-flex flex-col justify-center items-end gap-4">
           <div className="flex flex-col justify-start items-end gap-1">
             <div className="self-stretch text-right justify-start text-[#6AAD3C] text-lg font-semibold font-['Poppins'] leading-loose">
-              {extra.isIncluded ? TEXT.included : `+${CURRENCY_SYMBOL}${extra.price}`}
+              {extra.isIncluded ? 'Included' : `+${extra.currency}${extra.price}`}
             </div>
             {!extra.isIncluded && (
               <div className="self-stretch text-right justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
-                {TEXT.perPerson}
+                {extrasData.text.perPerson}
               </div>
             )}
           </div>
@@ -361,9 +291,9 @@ export default function Extras() {
       <div className="w-full xl:w-[894px] px-3 sm:px-4 xl:px-6 py-4 sm:py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 sm:gap-6 min-h-[400px] sm:min-h-[500px] xl:min-h-0">
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
-            <div className="justify-center text-neutral-800 text-xl sm:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 sm:leading-8 xl:leading-10">
-              {TEXT.title}
-            </div>
+                          <div className="justify-center text-neutral-800 text-xl sm:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 sm:leading-8 xl:leading-10">
+                {extrasData.text.title}
+              </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             <div className="self-stretch flex flex-col justify-start items-start gap-3">
@@ -383,10 +313,10 @@ export default function Extras() {
               <div className="self-stretch p-3 sm:p-4 bg-lime-50 rounded-lg border border-lime-200">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 sm:gap-0">
                   <div className="text-neutral-800 text-base sm:text-lg font-medium font-['Poppins']">
-                    {TEXT.totalCost}
+                    {extrasData.text.totalCost}
                   </div>
                   <div className="text-lime-600 text-lg sm:text-xl font-semibold font-['Poppins']">
-                    +{CURRENCY_SYMBOL}{totalExtrasCost}
+                    +{extrasData.constants.currencySymbol}{totalExtrasCost}
                   </div>
                 </div>
               </div>
@@ -397,7 +327,7 @@ export default function Extras() {
               className="w-full sm:w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
             >
               <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-                {TEXT.confirm}
+                {extrasData.text.confirm}
               </div>
             </button>
           </div>
