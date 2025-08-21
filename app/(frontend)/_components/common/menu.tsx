@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { HiGlobeAlt } from 'react-icons/hi'
 import { HiMenu, HiX } from 'react-icons/hi'
 import { useLanguage, Language } from './LanguageContext'
+import Image from 'next/image'
 
 const languages = [
   { code: 'Eng', label: 'English', value: 'en' as Language },
@@ -39,7 +40,7 @@ export default function Menu() {
       <div className="max-w-[1200px] mx-auto px-4 lg:px-0 flex justify-between items-center relative">
         {/* Logo */}
         <div className="font-bold font-['Poppins'] text-3xl md:text-4xl text-black">
-          LOGO
+          <Image src="/logo.svg" className="min-w-36 h-auto" alt="Logo" width={100} height={100} />
         </div>
 
         {/* Mobile Menu Button */}

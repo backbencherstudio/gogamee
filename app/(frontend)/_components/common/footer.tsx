@@ -2,6 +2,7 @@
 import { Mail, Phone, Heart, Instagram, MessageCircle } from "lucide-react"
 import Link from "next/link"
 import { useLanguage } from "./LanguageContext"
+import Image from "next/image"
 
 export default function Footer() {
   const { t } = useLanguage()
@@ -12,7 +13,7 @@ export default function Footer() {
       <div className="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-0">
         {/* Logo and Contact Section */}
         <div className="w-full max-w-md lg:w-80 lg:max-w-none mx-auto lg:mx-0 space-y-6 text-center lg:text-left">
-          <h3 className="text-white text-4xl sm:text-5xl font-bold font-[Inter]">LOGO</h3>
+          <Image src="/logowhite.svg" className="min-w-36 h-auto" alt="Logo" width={100} height={100} />
           <p className="text-neutral-300 text-lg font-normal font-['Inter'] leading-7">
             {t.footer.description}
           </p>
