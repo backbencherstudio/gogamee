@@ -43,13 +43,57 @@ export default function Menu() {
           <Image src="/logo.svg" className="min-w-36 h-auto" alt="Logo" width={100} height={100} />
         </div>
 
-        {/* Mobile Menu Button */}
-        <button 
-          className="lg:hidden p-2 text-slate-700 hover:text-lime-600 cursor-pointer"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          {isMenuOpen ? <HiX size={24} /> : <HiMenu size={24} />}
-        </button>
+        {/* Mobile Language & Contact - Always Visible */}
+        <div className="lg:hidden flex items-center gap-3">
+          {/* Language Selector - Mobile */}
+          <div className="relative">
+            <button 
+              onClick={toggleLangDropdown}
+              className="flex items-center gap-2 py-2 hover:text-lime-600 transition-colors cursor-pointer"
+            >
+              <HiGlobeAlt className="w-5 h-5 text-slate-700" />
+              <span className="text-slate-700 font-['Poppins']">{selectedLang.code}</span>
+              <div className="w-4 h-4 relative ml-1">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transform transition-transform ${isLangDropdownOpen ? 'rotate-180' : ''}`}>
+                  <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </button>
+
+            {/* Language Dropdown - Mobile */}
+            {isLangDropdownOpen && (
+              <div className="absolute top-full right-0 bg-white rounded-lg shadow-lg mt-2 py-2 w-40 z-50">
+                {languages.map((lang) => (
+                  <button
+                    key={lang.code}
+                    onClick={() => selectLanguage(lang)}
+                    className={`w-full px-4 py-2 text-left hover:bg-gray-50 transition-colors cursor-pointer ${
+                      selectedLang.code === lang.code ? 'text-[#76C043]' : 'text-slate-700'
+                    }`}
+                  >
+                    <span className="font-['Poppins']">{lang.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Contact Button - Mobile */}
+          <Link 
+            href="/contact"
+            className="px-3 py-2 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2 hover:bg-lime-600 transition-colors cursor-pointer"
+          >
+            <span className="text-center text-white text-sm font-normal font-['Inter'] leading-5">{t.menu.contactUs}</span>
+          </Link>
+
+          {/* Mobile Menu Button */}
+          <button 
+            className="p-2 text-slate-700 hover:text-lime-600 cursor-pointer"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+          >
+            {isMenuOpen ? <HiX size={24} /> : <HiMenu size={24} />}
+          </button>
+        </div>
 
         {/* Navigation Links - Desktop */}
         <div className="hidden lg:flex justify-center items-center gap-14">
@@ -123,47 +167,6 @@ export default function Menu() {
                   {item.label}
                 </Link>
               ))}
-              
-              {/* Language Selector - Mobile */}
-              <div className="relative">
-                <button 
-                  onClick={toggleLangDropdown}
-                  className="flex items-center gap-2 py-2 w-full hover:text-lime-600 transition-colors cursor-pointer"
-                >
-                  <HiGlobeAlt className="w-5 h-5 text-slate-700" />
-                  <span className="text-slate-700 font-['Poppins']">{selectedLang.code}</span>
-                  <div className="w-4 h-4 relative ml-1">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`transform transition-transform ${isLangDropdownOpen ? 'rotate-180' : ''}`}>
-                      <path d="M4 6L8 10L12 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  </div>
-                </button>
-
-                {/* Language Dropdown - Mobile */}
-                {isLangDropdownOpen && (
-                  <div className="bg-gray-50 rounded-lg mt-2 py-2">
-                    {languages.map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => selectLanguage(lang)}
-                        className={`w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors cursor-pointer ${
-                          selectedLang.code === lang.code ? 'text-[#76C043]' : 'text-slate-700'
-                        }`}
-                      >
-                        <span className="font-['Poppins']">{lang.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <Link 
-                href="/contact"
-                className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors w-full cursor-pointer"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">{t.menu.contactUs}</span>
-              </Link>
             </nav>
           </div>
         )}
