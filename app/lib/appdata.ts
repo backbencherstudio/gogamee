@@ -839,7 +839,7 @@ export const AppData = {
     }
   },
 
-  // Homepage Leagues Data
+  // Leagues Data
   homepageLeagues: {
     football: [
       {
