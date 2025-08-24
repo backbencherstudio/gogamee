@@ -467,7 +467,7 @@ export default function DateSection() {
           )}
 
           {/* Competition Type and Date Restrictions Info */}
-          {formData.selectedLeague && (
+          {/* {formData.selectedLeague && (
             <div className="w-full p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex flex-col gap-2">
                 <div className="text-sm font-medium text-blue-800">
@@ -482,10 +482,10 @@ export default function DateSection() {
                       ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day]
                     ).join(', ')
                   }
-                </div>
+                </div> */}
                 
                 {/* Match Type Toggle for National League */}
-                {formData.selectedLeague === 'national' && (
+                {/* {formData.selectedLeague === 'national' && (
                   <div className="mt-2 p-2 bg-white rounded border border-blue-200">
                     <div className="text-xs text-blue-700 font-medium mb-2">Match Type:</div>
                     <div className="flex gap-2">
@@ -516,7 +516,7 @@ export default function DateSection() {
                 )}
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Duration Selection */}
           <div className="p-1 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-gray-200 w-full overflow-x-auto">

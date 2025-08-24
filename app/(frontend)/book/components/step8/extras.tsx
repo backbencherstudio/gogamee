@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useCallback } from 'react'
+import React, { useMemo, useCallback, useEffect } from 'react'
 import Image from 'next/image'
 import { useForm, Controller } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
@@ -37,7 +37,7 @@ const createInitialExtras = (): ExtraService[] => {
 }
 
 export default function Extras() {
-  const { formData, updateExtras, nextStep } = useBooking()
+  const { formData, updateExtras, nextStep, getTotalPeople } = useBooking()
   
   // Get initial extras from BookingContext or create defaults
   const getInitialExtras = (): ExtraService[] => {
@@ -59,12 +59,34 @@ export default function Extras() {
   const watchedValues = watch()
   const { extras } = watchedValues
 
+  // Get total number of travelers
+  const totalTravelers = getTotalPeople()
+
+  // Update quantities for group options when total travelers changes
+  useEffect(() => {
+    const updatedExtras = extras.map(extra => {
+      if (extra.isGroupOption && extra.isSelected) {
+        return { ...extra, quantity: totalTravelers }
+      }
+      return extra
+    })
+    setValue('extras', updatedExtras)
+  }, [totalTravelers, setValue, extras])
+
   // Memoized calculations
   const totalExtrasCost = useMemo(() => {
     return extras
       .filter(extra => extra.isSelected && !extra.isIncluded)
-      .reduce((total, extra) => total + (extra.price * extra.quantity), 0)
-  }, [extras])
+      .reduce((total, extra) => {
+        if (extra.isGroupOption) {
+          // For group options, multiply by total travelers
+          return total + (extra.price * totalTravelers)
+        } else {
+          // For individual options, use the quantity
+          return total + (extra.price * extra.quantity)
+        }
+      }, 0)
+  }, [extras, totalTravelers])
 
   // Event handlers
   const handleToggleExtra = useCallback((id: string) => {
@@ -72,51 +94,44 @@ export default function Extras() {
       if (extra.id === id && !extra.isIncluded) {
         const newIsSelected = !extra.isSelected
         
-        // For group options, when selected, quantity should be 1
-        if (extra.isGroupOption && newIsSelected) {
-          return { ...extra, isSelected: newIsSelected, quantity: 1 }
-        }
-        
-        // For group options, when deselected, quantity should be 0
-        if (extra.isGroupOption && !newIsSelected) {
-          return { ...extra, isSelected: newIsSelected, quantity: 0 }
+        if (extra.isGroupOption) {
+          // For group options, when selected, quantity should be total travelers
+          // When deselected, quantity should be 0
+          return { 
+            ...extra, 
+            isSelected: newIsSelected, 
+            quantity: newIsSelected ? totalTravelers : 0 
+          }
         }
         
         // For individual options, keep current quantity
         return { ...extra, isSelected: newIsSelected }
       }
       
-      // Ensure only one package can be selected at a time
-      if (extra.isGroupOption && extra.id !== id) {
-        return { ...extra, isSelected: false, quantity: 0 }
-      }
-      
       return extra
     })
     setValue('extras', updatedExtras)
-  }, [extras, setValue])
+  }, [extras, setValue, totalTravelers])
 
   const handleQuantityChange = useCallback((id: string, change: number) => {
     const updatedExtras = extras.map(extra => {
       if (extra.id === id && !extra.isIncluded) {
-        // For group options, quantity should always be 1 when selected
+        // For group options, quantity should always be total travelers when selected
         if (extra.isGroupOption) {
           return extra
         }
         
         // For individual options (like extra luggage), allow quantity changes
-                  const newQuantity = Math.max(
-            0, // Allow 0 for extra luggage
-            Math.min(extra.maxQuantity || extrasData.constants.defaultMaxQuantity, extra.quantity + change)
-          )
+        const newQuantity = Math.max(
+          0, // Allow 0 for extra luggage
+          Math.min(extra.maxQuantity || extrasData.constants.defaultMaxQuantity, extra.quantity + change)
+        )
         return { ...extra, quantity: newQuantity }
       }
       return extra
     })
     setValue('extras', updatedExtras)
   }, [extras, setValue])
-
-
 
   const onSubmit = useCallback((data: FormData) => {
     const selectedExtras = data.extras.filter(extra => extra.isSelected)
@@ -125,7 +140,11 @@ export default function Extras() {
     // Calculate total cost
     const totalCost = selectedExtras.reduce((total, extra) => {
       if (!extra.isIncluded) {
-        return total + (extra.price * extra.quantity)
+        if (extra.isGroupOption) {
+          return total + (extra.price * totalTravelers)
+        } else {
+          return total + (extra.price * extra.quantity)
+        }
       }
       return total
     }, 0)
@@ -137,9 +156,7 @@ export default function Extras() {
     
     // Navigate to next step
     nextStep()
-  }, [updateExtras, nextStep])
-
-
+  }, [updateExtras, nextStep, totalTravelers])
 
   const renderQuantityControls = (extra: ExtraService) => {
     // For group options, show quantity but don't allow individual changes
@@ -147,7 +164,7 @@ export default function Extras() {
       return (
         <div className="flex items-center gap-2">
           <div className="justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none min-w-[20px] text-center">
-            x{extra.quantity}
+            x{extra.isSelected ? totalTravelers : 0}
           </div>
         </div>
       )
@@ -218,9 +235,9 @@ export default function Extras() {
                 {extra.isIncluded ? 'Included' : `+${extra.currency}${extra.price}`}
               </div>
               {!extra.isIncluded && (
-                                  <div className="text-neutral-600 text-sm font-normal font-['Poppins']">
-                    {extrasData.text.perPerson}
-                  </div>
+                <div className="text-neutral-600 text-sm font-normal font-['Poppins']">
+                  {extra.isGroupOption ? extrasData.text.perPerson : extrasData.text.perPerson}
+                </div>
               )}
             </div>
           </div>
@@ -272,7 +289,7 @@ export default function Extras() {
             </div>
             {!extra.isIncluded && (
               <div className="self-stretch text-right justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
-                {extrasData.text.perPerson}
+                {extra.isGroupOption ? extrasData.text.perPerson : extrasData.text.perPerson}
               </div>
             )}
           </div>
@@ -298,9 +315,9 @@ export default function Extras() {
       <div className="w-full xl:w-[894px] px-3 sm:px-4 xl:px-6 py-4 sm:py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 sm:gap-6 min-h-[400px] sm:min-h-[500px] xl:min-h-0">
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
-                          <div className="justify-center text-neutral-800 text-xl sm:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 sm:leading-8 xl:leading-10">
-                {extrasData.text.title}
-              </div>
+            <div className="justify-center text-neutral-800 text-xl sm:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 sm:leading-8 xl:leading-10">
+              {extrasData.text.title}
+            </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             <div className="self-stretch flex flex-col justify-start items-start gap-3">
