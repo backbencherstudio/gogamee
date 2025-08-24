@@ -83,7 +83,7 @@ export default function PackageTable() {
                             </span>
                           </div>
                           <span className="text-2xl font-bold font-['Poppins'] text-zinc-950">
-                            {type === 'Standard' ? (selectedSport === 'football' ? 'Standard GoGame Slam' : 'Standard GoGame Slam') : (selectedSport === 'football' ? 'Premium GoGame MVP' : 'Premium GoGame MVP')}
+                            {type === 'Standard' ? (selectedSport === 'football' ? 'Standard GoGame Kickoff' : 'Standard GoGame Slam') : (selectedSport === 'football' ? 'Premium GoGame Legend' : 'Premium GoGame MVP')}
                           </span>
                         </div>
                       </th>

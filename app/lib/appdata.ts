@@ -747,7 +747,7 @@ export const AppData = {
     list: [
       // Football packages
       { id: 'f1', sport: 'football', category: 'Match Ticket', standard: 'General or lateral section', premium: 'Premium or central tribune seat' },
-      { id: 'f2', sport: 'football', category: 'Flights', standard: 'Round-trip from a major city', premium: 'Round-trip from a major city' },
+      { id: 'f2', sport: 'football', category: 'Flights', standard: 'Round-trip to a major city', premium: 'Round-trip to a major city' },
       { id: 'f3', sport: 'football', category: 'Hotel', standard: '3-star hotel or apartment', premium: '4–5 star hotel near stadium or city center' },
       { id: 'f4', sport: 'football', category: 'Transfers', standard: 'Public transport or shuttle', premium: 'Private transfers (airport & stadium)' },
       { id: 'f5', sport: 'football', category: 'Welcome Pack', standard: 'Exclusive GoGame merchandise', premium: 'Official team jersey + premium goodies' },
@@ -756,7 +756,7 @@ export const AppData = {
       
       // Basketball packages
       { id: 'b1', sport: 'basketball', category: 'Match Ticket', standard: 'Standard seat (upper and lateral seats)', premium: 'VIP seat' },
-      { id: 'b2', sport: 'basketball', category: 'Flights', standard: 'Round-trip from a major city', premium: 'Round-trip from a major city' },
+      { id: 'b2', sport: 'basketball', category: 'Flights', standard: 'Round-trip to a major city', premium: 'Round-trip to a major city' },
       { id: 'b3', sport: 'basketball', category: 'Hotel', standard: '3-star hotel or apartment', premium: '4–5 star hotel in premium location' },
       { id: 'b4', sport: 'basketball', category: 'Transfers', standard: 'Public transport or shuttle', premium: 'Private transfers (airport & stadium)' },
       { id: 'b5', sport: 'basketball', category: 'Welcome Pack', standard: 'Travel guide + surprise gift', premium: 'Official team jersey + premium goodies' },
@@ -836,6 +836,191 @@ export const AppData = {
     
     getByLevel: function(level: number) {
       return this.list.filter(league => league.level === level);
+    }
+  },
+
+  // Homepage Leagues Data
+  homepageLeagues: {
+    football: [
+      {
+        id: "premier-league",
+        name: "Premier League",
+        image: "/homepage/image/fb1.png",
+        country: "England",
+        description: "English top-flight football league"
+      },
+      {
+        id: "la-liga",
+        name: "La Liga",
+        image: "/homepage/image/fb3.png",
+        country: "Spain",
+        description: "Spanish top-flight football league"
+      },
+      {
+        id: "bundesliga",
+        name: "Bundesliga",
+        image: "/homepage/image/fb4.png",
+        country: "Germany",
+        description: "German top-flight football league"
+      },
+      {
+        id: "serie-a",
+        name: "Serie A",
+        image: "/homepage/image/fb5.png",
+        country: "Italy",
+        description: "Italian top-flight football league"
+      },
+      {
+        id: "ligue-1",
+        name: "Ligue 1",
+        image: "/homepage/image/fb6.png",
+        country: "France",
+        description: "French top-flight football league"
+      },
+      {
+        id: "champions-league",
+        name: "Champions League",
+        image: "/homepage/image/fb7.png",
+        country: "Europe",
+        description: "European elite club competition"
+      },
+      {
+        id: "europa-league",
+        name: "Europa League",
+        image: "/homepage/image/fb8.png",
+        country: "Europe",
+        description: "European secondary club competition"
+      }
+    ],
+    
+    basketball: [
+      {
+        id: "liga-endesa",
+        name: "Liga Endesa",
+        image: "/homepage/image/bs1.png",
+        country: "Spain",
+        description: "Spanish top-flight basketball league"
+      },
+      {
+        id: "basketbol-super-ligi",
+        name: "Basketbol Süper Ligi",
+        image: "/homepage/image/bs2.png",
+        country: "Turkey",
+        description: "Turkish top-flight basketball league"
+      },
+      {
+        id: "lnb-pro-a",
+        name: "LNB Pro A",
+        image: "/homepage/image/bs3.png",
+        country: "France",
+        description: "French top-flight basketball league"
+      },
+      {
+        id: "lega-basket-serie-a",
+        name: "Lega Basket Serie A",
+        image: "/homepage/image/bs4.png",
+        country: "Italy",
+        description: "Italian top-flight basketball league"
+      },
+      {
+        id: "basketball-bundesliga",
+        name: "Basketball Bundesliga",
+        image: "/homepage/image/bs5.png",
+        country: "Germany",
+        description: "German top-flight basketball league"
+      },
+      {
+        id: "lietuvos-krepsinio-lyga",
+        name: "Lietuvos krepšinio lyga",
+        image: "/homepage/image/bs6.png",
+        country: "Lithuania",
+        description: "Lithuanian top-flight basketball league"
+      },
+      {
+        id: "european-competition",
+        name: "European competition",
+        image: "/homepage/image/bs7.png",
+        country: "Europe",
+        description: "European basketball competitions"
+      }
+    ],
+    
+    // Helper functions for homepage leagues
+    getFootballLeagues: function() {
+      return this.football;
+    },
+    
+    getBasketballLeagues: function() {
+      return this.basketball;
+    },
+    
+    getLeaguesBySport: function(sport: 'football' | 'basketball') {
+      return sport === 'football' ? this.football : this.basketball;
+    },
+    
+    getLeagueById: function(sport: 'football' | 'basketball', id: string) {
+      const leagues = this.getLeaguesBySport(sport);
+      return leagues.find(league => league.id === id);
+    },
+    
+    getLeagueByName: function(sport: 'football' | 'basketball', name: string) {
+      const leagues = this.getLeaguesBySport(sport);
+      return leagues.find(league => league.name === name);
+    },
+    
+    getLeaguesByCountry: function(sport: 'football' | 'basketball', country: string) {
+      const leagues = this.getLeaguesBySport(sport);
+      return leagues.filter(league => league.country === country);
+    },
+    
+    // Add new league
+    addLeague: function(sport: 'football' | 'basketball', leagueData: {
+      name: string;
+      image: string;
+      country: string;
+      description: string;
+    }) {
+      const newId = `${sport}_${Date.now()}`;
+      const newLeague = { ...leagueData, id: newId };
+      
+      if (sport === 'football') {
+        this.football.push(newLeague);
+      } else {
+        this.basketball.push(newLeague);
+      }
+      
+      return newLeague;
+    },
+    
+    // Update existing league
+    updateLeague: function(sport: 'football' | 'basketball', id: string, updates: Partial<{
+      name: string;
+      image: string;
+      country: string;
+      description: string;
+    }>) {
+      const leagues = this.getLeaguesBySport(sport);
+      const index = leagues.findIndex(league => league.id === id);
+      
+      if (index !== -1) {
+        leagues[index] = { ...leagues[index], ...updates };
+        return leagues[index];
+      }
+      
+      return null;
+    },
+    
+    // Delete league
+    deleteLeague: function(sport: 'football' | 'basketball', id: string) {
+      const leagues = this.getLeaguesBySport(sport);
+      const index = leagues.findIndex(league => league.id === id);
+      
+      if (index !== -1) {
+        leagues.splice(index, 1);
+        return true;
+      }
+      
+      return false;
     }
   },
 
@@ -1771,6 +1956,7 @@ export const extrasData = AppData.extrasData;
 export const personalInfoData = AppData.personalInfo;
 export const paymentData = AppData.payment;
 export const leaguePricingData = AppData.leaguePricing;
+export const homepageLeaguesData = AppData.homepageLeagues;
 
 // Export the main object as default
 export default AppData; 

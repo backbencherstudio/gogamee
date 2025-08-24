@@ -1,171 +1,167 @@
-# AppData Structure - কিভাবে ব্যবহার করবেন
+# AppData Structure Documentation
 
-## Overview
-এই নতুন `AppData` structure আপনার পুরো application এর সব ডেটা একটিমাত্র object এর মধ্যে রাখে। এটি constructor function এর মত কাজ করে এবং backend integration এর জন্য খুবই সহজ।
+This file contains the centralized data structure for the entire GoGame application. All data is stored here and can be easily updated and managed.
 
-## কিভাবে ব্যবহার করবেন
+## 🏆 New: Homepage Leagues Management
 
-### 1. Import করুন
-```typescript
-import AppData from '@/lib/dummydata';
-// অথবা
-import { AppData } from '@/lib/dummydata';
-```
+The leagues data has been moved from the component to `appdata.ts` for easy management. You can now:
 
-### 2. ডেটা Access করুন
-```typescript
-// সব bookings
-const allBookings = AppData.bookings.all;
+### Quick Updates
+- **Add new leagues** - Just add them to the arrays in `appdata.ts`
+- **Change images** - Update the image paths directly
+- **Modify names** - Edit league names in one place
+- **Add descriptions** - Include country and description info
 
-// শুধু pending bookings
-const pendingBookings = AppData.bookings.pending;
-
-// নির্দিষ্ট ID এর booking
-const booking = AppData.bookings.getById(1);
-
-// সব sports
-const sports = AppData.sports.list;
-
-// নির্দিষ্ট sport
-const football = AppData.sports.getById("football");
-```
-
-### 3. ডেটা Update করুন
-```typescript
-// নতুন booking যোগ করুন
-AppData.bookings.add(newBooking);
-
-// Existing booking update করুন
-AppData.bookings.update(1, { status: "completed" });
-
-// Booking delete করুন
-AppData.bookings.delete(1);
-```
-
-### 4. Backward Compatibility
-আপনার existing code এ কোন পরিবর্তন করতে হবে না। সব exports আগের মতই আছে:
-```typescript
-import { dummyBookings, sports, packages } from '@/lib/dummydata';
-```
-
-## Backend Integration এর জন্য
-
-### 1. API Methods ব্যবহার করুন
-```typescript
-// সব ডেটা fetch করুন
-const data = await AppData.api.fetchAll();
-
-// নির্দিষ্ট section update করুন
-await AppData.api.updateSection('bookings', newBookings);
-```
-
-### 2. API Methods Replace করুন
-`AppData.api` object এর methods গুলো replace করে দিন আপনার actual API calls দিয়ে:
+### Available Functions
 
 ```typescript
-// app/lib/dummydata.ts এ
-api: {
-  fetchAll: async function() {
-    const response = await fetch('/api/app-data');
-    const data = await response.json();
-    return data;
-  },
-  
-  updateSection: async function(section: string, data: any) {
-    const response = await fetch(`/api/${section}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    return response.json();
-  }
-}
+import { homepageLeaguesData } from '@/app/lib/appdata'
+
+// Get all leagues
+const footballLeagues = homepageLeaguesData.getFootballLeagues()
+const basketballLeagues = homepageLeaguesData.getBasketballLeagues()
+
+// Add new league
+homepageLeaguesData.addLeague('football', {
+  name: "New League",
+  image: "/path/to/image.png",
+  country: "Country",
+  description: "Description"
+})
+
+// Update existing league
+homepageLeaguesData.updateLeague('football', 'league-id', {
+  name: "Updated Name"
+})
+
+// Delete league
+homepageLeaguesData.deleteLeague('football', 'league-id')
+
+// Find leagues
+const league = homepageLeaguesData.getLeagueByName('football', 'Premier League')
+const countryLeagues = homepageLeaguesData.getLeaguesByCountry('football', 'Spain')
 ```
 
-## Benefits
+### Current Leagues
 
-1. **Single Source of Truth**: সব ডেটা একটিমাত্র object এ
-2. **Easy API Integration**: শুধু API methods replace করলেই হবে
-3. **Backward Compatible**: Existing code এ কোন পরিবর্তন লাগবে না
-4. **Type Safe**: TypeScript interfaces দিয়ে fully typed
-5. **Organized**: সব ডেটা logical sections এ organized
-6. **Extensible**: নতুন features যোগ করা সহজ
+#### Football Leagues
+- Premier League (England)
+- La Liga (Spain)
+- Bundesliga (Germany)
+- Serie A (Italy)
+- Ligue 1 (France)
+- Champions League (Europe)
+- Europa League (Europe)
 
-## Structure
+#### Basketball Leagues
+- Liga Endesa (Spain)
+- Basketbol Süper Ligi (Turkey)
+- LNB Pro A (France)
+- Lega Basket Serie A (Italy)
+- Basketball Bundesliga (Germany)
+- Lietuvos krepšinio lyga (Lithuania)
+- European competition (Europe)
 
-```
-AppData
-├── bookings (booking management)
-├── sports (sports list)
-├── packages (package types)
-├── cities (city list)
-├── leagues (league levels)
-├── extras (additional services)
-├── paymentMethods (payment options)
-├── timeRanges (flight times)
-├── initialize() (setup function)
-└── api (API integration methods)
-```
+## 📁 Data Sections
 
-## Example Usage
+### 1. Hero Section (`hero`)
+- Sports options (Football, Basketball, Both)
+- Package types with pricing
+- Departure cities
+- People categories
 
-```typescript
-// Component এ
-import AppData from '@/lib/dummydata';
+### 2. Sports Preference (`sportsPreference`)
+- Sport selection options
+- Descriptions for each sport
 
-export default function BookingList() {
-  const [bookings, setBookings] = useState(AppData.bookings.all);
-  
-  const handleStatusChange = (id: number, status: string) => {
-    AppData.bookings.update(id, { status });
-    setBookings([...AppData.bookings.all]);
-  };
-  
-  return (
-    <div>
-      {bookings.map(booking => (
-        <div key={booking.id}>
-          {booking.fullName} - {booking.status}
-          <button onClick={() => handleStatusChange(booking.id, "completed")}>
-            Complete
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-}
-```
+### 3. Package Types (`packageType`)
+- Standard and Premium packages
+- Features and pricing
+- Sport-specific pricing logic
 
+### 4. Departure Cities (`departureCity`)
+- Spanish cities with gradients
+- Country information
+- City descriptions
 
-========================
+### 5. Remove League (`removeLeague`)
+- League removal options
+- Pricing for removals
+- Free removal allowance
 
+### 6. Flight Schedule (`flightSchedule`)
+- Time slot options
+- Default ranges
+- Pricing per step
 
+### 7. Extras (`extrasData`)
+- Additional services
+- Pricing and quantities
+- Group vs individual options
 
-এই structure ব্যবহার করে আপনার application এর সব ডেটা organized থাকবে এবং backend ready হওয়ার পর খুব সহজেই API integration করতে পারবেন! 
+### 8. Personal Info (`personalInfo`)
+- Form field configurations
+- Payment methods
+- Reservation summary
 
+### 9. Payment (`payment`)
+- Payment method options
+- Credit card validation
+- Processing configuration
 
-import AppData from '@/lib/dummydata';
+### 10. Bookings (`bookings`)
+- All booking records
+- Status management
+- CRUD operations
 
-// সব bookings
-const allBookings = AppData.bookings.all;
+### 11. Reviews (`reviews`)
+- Customer testimonials
+- Rating system
+- Avatar images
 
-// শুধু pending bookings  
-const pendingBookings = AppData.bookings.pending;
+### 12. FAQs (`faqs`)
+- Frequently asked questions
+- Detailed answers
+- Category management
 
-// নতুন booking যোগ করুন
-AppData.bookings.add(newBooking);
+## 🔧 How to Update Data
 
-// Existing booking update করুন
-AppData.bookings.update(1, { status: "completed" });
+### Simple Updates
+1. Open `app/lib/appdata.ts`
+2. Find the relevant section
+3. Update the data directly
+4. Save the file
 
+### Adding New Items
+1. Add the new item to the appropriate array
+2. Include all required properties
+3. Follow the existing data structure
 
+### Removing Items
+1. Delete the item from the array
+2. Ensure no other code references it
+3. Update any related logic
 
-===========================
+## 📊 Data Structure Benefits
 
-// app/lib/dummydata.ts এ
-api: {
-  fetchAll: async function() {
-    const response = await fetch('/api/app-data');
-    return response.json();
-  }
-}
+- **Centralized**: All data in one place
+- **Type-safe**: Full TypeScript support
+- **Maintainable**: Easy to update and manage
+- **Scalable**: Can easily add new sections
+- **Consistent**: Uniform structure across all data
+
+## 🚀 Future Enhancements
+
+- API integration for backend data
+- Local storage persistence
+- Real-time data updates
+- Admin panel for data management
+- Data validation and sanitization
+
+## 📝 Example Usage
+
+See `example-usage.tsx` for detailed examples of how to use the data structures and functions.
+
+---
+
+**Note**: All changes to this file will be reflected immediately in the application. For production use, consider implementing proper data persistence and validation.
