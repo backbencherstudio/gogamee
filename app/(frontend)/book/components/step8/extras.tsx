@@ -350,7 +350,7 @@ export default function Extras() {
               type="submit"
               className="w-full sm:w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
             >
-              <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
+              <div className="text-center justify-start text-[#ffffff] text-base font-normal font-['Inter']">
                 {extrasData.text.confirm}
               </div>
             </button>
