@@ -13,7 +13,7 @@ export default function HomePage() {
       <div className="">
         <HeroSection />
         <HowItWorks />
-        <Leagues className="w-full bg-[#D5EBC5]" />
+        <Leagues />
         <Reviews />
         <Faq className="w-full bg-[#FCFEFB]" />
         <Mailus />
