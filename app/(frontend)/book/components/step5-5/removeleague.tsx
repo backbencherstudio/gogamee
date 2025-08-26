@@ -39,7 +39,7 @@ const LeagueCard = React.memo(({ league, onRemove, onUndo }: LeagueCardProps) =>
     setIsClicked(prev => !prev)
   }, [])
 
-  // Reset clicked state when league is removed
+  // Reset clicked state when the league is removed
   useEffect(() => {
     if (league.removed) {
       setIsClicked(false)
