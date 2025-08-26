@@ -50,7 +50,7 @@ export default function Extras() {
     }
   }
   
-  const { control, watch, setValue, handleSubmit } = useForm<FormData>({
+  const { control, watch, setValue, handleSubmit, getValues } = useForm<FormData>({
     defaultValues: {
       extras: getInitialExtras()
     }
@@ -64,14 +64,15 @@ export default function Extras() {
 
   // Update quantities for group options when total travelers changes
   useEffect(() => {
-    const updatedExtras = extras.map(extra => {
+    const currentExtras = getValues('extras')
+    const updatedExtras = currentExtras.map(extra => {
       if (extra.isGroupOption && extra.isSelected) {
         return { ...extra, quantity: totalTravelers }
       }
       return extra
     })
     setValue('extras', updatedExtras)
-  }, [totalTravelers, setValue, extras])
+  }, [totalTravelers, setValue, getValues])
 
   // Memoized calculations
   const totalExtrasCost = useMemo(() => {
@@ -176,7 +177,7 @@ export default function Extras() {
         <button
           type="button"
           onClick={() => handleQuantityChange(extra.id, -1)}
-          className="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors opacity-60 hover:opacity-80"
+          className="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors opacity-60 hover:opacity-80 cursor-pointer disabled:cursor-not-allowed"
           disabled={extra.quantity <= 0}
         >
           -
@@ -187,7 +188,7 @@ export default function Extras() {
         <button
           type="button"
           onClick={() => handleQuantityChange(extra.id, 1)}
-          className="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors opacity-60 hover:opacity-80"
+          className="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors opacity-60 hover:opacity-80 cursor-pointer disabled:cursor-not-allowed"
           disabled={extra.quantity >= (extra.maxQuantity || extrasData.constants.defaultMaxQuantity)}
         >
           +
@@ -200,7 +201,7 @@ export default function Extras() {
     <button
       type="button"
       onClick={() => handleToggleExtra(extra.id)}
-      className={`w-28 sm:w-32 h-10 px-4 sm:px-6 py-2.5 rounded outline-1 outline-offset-[-1px] flex justify-center items-center gap-2.5 transition-all ${
+      className={`w-28 sm:w-32 h-10 px-4 sm:px-6 py-2.5 rounded outline-1 outline-offset-[-1px] flex justify-center items-center gap-2.5 transition-all cursor-pointer ${
         extra.isSelected
           ? 'bg-red-500 outline-red-500 hover:bg-red-600'
           : 'bg-[#6AAD3C] outline-[#6AAD3C] hover:bg-lime-600'

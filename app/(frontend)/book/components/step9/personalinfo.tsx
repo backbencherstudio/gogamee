@@ -5,7 +5,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
-import { personalInfoData, pricing, flightScheduleData, leaguePricingData } from '../../../../lib/appdata'
+import { personalInfoData, pricing, flightScheduleData, leaguePricingData, removeLeagueData } from '../../../../lib/appdata'
 
 // Utility functions for dynamic data calculation
 const formatDate = (dateString: string): string => {
@@ -240,6 +240,11 @@ export default function Personalinfo() {
     const flightScheduleCost = calculateFlightScheduleCost(formData.flightSchedule)
     const leagueCost = calculateLeagueCost(formData.selectedLeague || '')
     
+    // League removal cost: first removal free, subsequent removals 20€ each per person
+    const removedLeaguesCount = Array.isArray(formData.removedLeagues) ? formData.removedLeagues.length : 0
+    const removalCostPerPerson = removeLeagueData.calculateTotalCost(removedLeaguesCount)
+    const removalTotal = removalCostPerPerson * totalPeople
+    
     // Calculate package total (base price × total people)
     const packageTotal = basePrice * totalPeople
     
@@ -253,7 +258,7 @@ export default function Personalinfo() {
     const leagueTotal = leagueCost * totalPeople
     
     // Calculate grand total
-    const grandTotal = packageTotal + extrasTotal + flightScheduleTotal + leagueTotal
+    const grandTotal = packageTotal + extrasTotal + flightScheduleTotal + leagueTotal + removalTotal
     
     return {
       departureCity: formData.selectedCity || 'Barcelona',
@@ -269,6 +274,8 @@ export default function Personalinfo() {
       extrasTotal,
       flightScheduleTotal,
       leagueTotal,
+      removalCostPerPerson,
+      removalTotal,
       grandTotal,
       totalPeople,
       departureTimeRange: formData.flightSchedule ? 
@@ -301,6 +308,9 @@ export default function Personalinfo() {
      console.log(`  Extras: ${reservationData.extrasCost}€ (fixed for group) = ${reservationData.extrasTotal.toFixed(2)}€`)
      console.log(`  Flight Schedule: ${reservationData.flightScheduleCost}€ × ${reservationData.totalPeople} = ${reservationData.flightScheduleTotal.toFixed(2)}€`)
      console.log(`  League: ${reservationData.leagueCost}€ × ${reservationData.totalPeople} = ${reservationData.leagueTotal.toFixed(2)}€`)
+     if (formData.removedLeagues && formData.removedLeagues.length > 0) {
+       console.log(`  League Removal: ${reservationData.removalCostPerPerson}€ × ${reservationData.totalPeople} = ${reservationData.removalTotal.toFixed(2)}€`)
+     }
      console.log(`  Grand Total: ${reservationData.grandTotal.toFixed(2)}€`)
   }, [formData.peopleCount, hasMultipleTravelers, reservationData, formData.extras])
   
@@ -763,7 +773,7 @@ export default function Personalinfo() {
                            </div>
                          )}
                         
-                                                 {/* League Additional Cost Row */}
+                         {/* League Additional Cost Row */}
                          {reservationData.leagueTotal > 0 && (
                            <div className="flex justify-between items-center py-2 border-b border-gray-100">
                              <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
@@ -775,6 +785,23 @@ export default function Personalinfo() {
                                </div>
                                <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
                                  {reservationData.leagueTotal.toFixed(2)}€
+                               </div>
+                             </div>
+                           </div>
+                         )}
+                        
+                         {/* League Removal Row */}
+                         {reservationData.removalTotal > 0 && (
+                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                               League removals
+                             </span>
+                             <div className="text-right">
+                               <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
+                                 {reservationData.removalCostPerPerson}€ x{reservationData.totalPeople}
+                               </div>
+                               <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                                 {reservationData.removalTotal.toFixed(2)}€
                                </div>
                              </div>
                            </div>
@@ -865,7 +892,7 @@ export default function Personalinfo() {
                            </div>
                          )}
                         
-                                                 {/* League Additional Cost Row */}
+                         {/* League Additional Cost Row */}
                          {reservationData.leagueTotal > 0 && (
                            <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
                              <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
@@ -879,6 +906,24 @@ export default function Personalinfo() {
                              </div>
                              <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
                                {reservationData.leagueTotal.toFixed(2)}€
+                             </div>
+                           </div>
+                         )}
+                        
+                         {/* League Removal Row */}
+                         {reservationData.removalTotal > 0 && (
+                           <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
+                             <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
+                               League removals
+                             </div>
+                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               {reservationData.removalCostPerPerson}€
+                             </div>
+                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               x{reservationData.totalPeople}
+                             </div>
+                             <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+                               {reservationData.removalTotal.toFixed(2)}€
                              </div>
                            </div>
                          )}
@@ -948,6 +993,17 @@ export default function Personalinfo() {
                                </span>
                                <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                  {reservationData.leagueTotal.toFixed(2)}€
+                               </span>
+                             </div>
+                           )}
+                          
+                           {reservationData.removalTotal > 0 && (
+                             <div className="flex justify-between items-center py-2 border-b border-lime-200">
+                               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                                 League removals:
+                               </span>
+                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
+                                 {reservationData.removalTotal.toFixed(2)}€
                                </span>
                              </div>
                            )}
