@@ -18,15 +18,21 @@ interface League {
 interface LeagueCardProps {
   league: League
   onRemove: (leagueId: string) => void
+  onUndo: (leagueId: string) => void
 }
 
-const LeagueCard = React.memo(({ league, onRemove }: LeagueCardProps) => {
+const LeagueCard = React.memo(({ league, onRemove, onUndo }: LeagueCardProps) => {
   const [isClicked, setIsClicked] = useState(false)
   
   const handleRemoveClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click
     onRemove(league.id)
   }, [league.id, onRemove])
+
+  const handleUndoClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent card click
+    onUndo(league.id)
+  }, [league.id, onUndo])
 
   const handleCardClick = useCallback(() => {
     // Only for small screens - toggle the clicked state
@@ -95,10 +101,16 @@ const LeagueCard = React.memo(({ league, onRemove }: LeagueCardProps) => {
         </div>
       )}
 
-      {/* Removed overlay */}
+      {/* Removed overlay with undo button */}
       {league.removed && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3">
           <div className="text-white text-lg font-bold">REMOVED</div>
+          <button
+            onClick={handleUndoClick}
+            className="px-4 py-2 bg-[#6AAD3C] hover:bg-lime-600 rounded-[999px] text-white text-sm font-semibold transition-colors cursor-pointer"
+          >
+            Undo
+          </button>
         </div>
       )}
     </div>
@@ -145,25 +157,37 @@ export default function RemoveLeague() {
     if (selectedLeagueType === 'national') {
       if (selectedSport === 'football') {
         const footballLeagues = homepageLeaguesData.getFootballLeagues()
-        console.log('🎯 RemoveLeague - Football + National selected, showing football leagues:', footballLeagues.length)
-        return footballLeagues
+        // Filter out European competitions for national leagues
+        const nationalFootballLeagues = footballLeagues.filter(league => 
+          league.id !== 'european-competition'
+        )
+        console.log('🎯 RemoveLeague - Football + National selected, showing football leagues (excluding European):', nationalFootballLeagues.length)
+        return nationalFootballLeagues
       } else if (selectedSport === 'basketball') {
         const basketballLeagues = homepageLeaguesData.getBasketballLeagues()
-        console.log('🎯 RemoveLeague - Basketball + National selected, showing basketball leagues:', basketballLeagues.length)
-        return basketballLeagues
+        // Filter out European competitions for national leagues
+        const nationalBasketballLeagues = basketballLeagues.filter(league => 
+          league.id !== 'european-competition'
+        )
+        console.log('🎯 RemoveLeague - Basketball + National selected, showing basketball leagues (excluding European):', nationalBasketballLeagues.length)
+        return nationalBasketballLeagues
       } else if (selectedSport === 'both') {
-        // For "Both" sports, show leagues from both sports
+        // For "Both" sports, show leagues from both sports but exclude European competitions
         const footballLeagues = homepageLeaguesData.getFootballLeagues()
         const basketballLeagues = homepageLeaguesData.getBasketballLeagues()
-        const bothLeagues = [...footballLeagues, ...basketballLeagues]
-        console.log('🎯 RemoveLeague - Both sports + National selected, showing both leagues:', bothLeagues.length)
+        const bothLeagues = [...footballLeagues, ...basketballLeagues].filter(league => 
+          league.id !== 'european-competition'
+        )
+        console.log('🎯 RemoveLeague - Both sports + National selected, showing both leagues (excluding European):', bothLeagues.length)
         return bothLeagues
       }
     }
     
-    // Default fallback - return football leagues
-    const defaultLeagues = homepageLeaguesData.getFootballLeagues()
-    console.log('🎯 RemoveLeague - Default fallback, showing football leagues:', defaultLeagues.length)
+    // Default fallback - return football leagues (excluding European)
+    const defaultLeagues = homepageLeaguesData.getFootballLeagues().filter(league => 
+      league.id !== 'european-competition'
+    )
+    console.log('🎯 RemoveLeague - Default fallback, showing football leagues (excluding European):', defaultLeagues.length)
     return defaultLeagues
   }, [formData.selectedSport, formData.selectedLeague])
   
@@ -200,7 +224,15 @@ export default function RemoveLeague() {
   const handleRemoveLeague = useCallback((leagueId: string) => {
     setLeagues(prev => prev.map(league => 
       league.id === leagueId 
-        ? { ...league, removed: !league.removed }
+        ? { ...league, removed: true }
+        : league
+    ))
+  }, [])
+
+  const handleUndoLeague = useCallback((leagueId: string) => {
+    setLeagues(prev => prev.map(league => 
+      league.id === leagueId 
+        ? { ...league, removed: false }
         : league
     ))
   }, [])
@@ -269,6 +301,7 @@ export default function RemoveLeague() {
             key={league.id} 
             league={league} 
             onRemove={handleRemoveLeague}
+            onUndo={handleUndoLeague}
           />
         ))}
       </div>
