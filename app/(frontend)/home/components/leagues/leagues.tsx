@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { homepageLeaguesData } from "@/app/lib/appdata"
 
 export default function SportsLeagues() {
   const [isFootball, setIsFootball] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   // Get leagues data from appdata.ts
   const footballLeagues = homepageLeaguesData.getFootballLeagues()
@@ -13,23 +14,46 @@ export default function SportsLeagues() {
 
   const currentLeagues = isFootball ? footballLeagues : basketballLeagues
 
+  // Auto-slide for desktop only
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % currentLeagues.length)
-    }, 3000) // Change slide every 3 seconds
+    }, 2000) // Change slide every 2 seconds
 
     return () => clearInterval(interval)
   }, [currentLeagues.length])
 
   const extendedLeagues = [...currentLeagues, ...currentLeagues, ...currentLeagues]
 
+  // Handle manual scroll for mobile
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const scrollLeft = scrollContainerRef.current.scrollLeft
+      const cardWidth = 128 + 16 // mobile card width + gap
+      const newIndex = Math.round(scrollLeft / cardWidth) % currentLeagues.length
+      setCurrentIndex(newIndex)
+    }
+  }
+
+  // Auto-scroll effect for desktop
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      const cardWidth = 128 + 16 // mobile card width + gap
+      const scrollPosition = currentIndex * cardWidth
+      scrollContainerRef.current.scrollTo({
+        left: scrollPosition,
+        behavior: 'smooth'
+      })
+    }
+  }, [currentIndex])
+
   return (
-    <div className="w-full min-h-[645px] px-28 py-24 bg-[#D5EBC5] flex flex-col justify-start items-center gap-12">
+    <div className="w-full min-h-[645px] px-4 sm:px-8 md:px-16 lg:px-28 py-24 bg-[#D5EBC5] flex flex-col justify-start items-center gap-12">
       <div className="flex flex-col justify-start items-center gap-6">
         <div className="flex flex-col justify-start items-center gap-12">
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="flex flex-col justify-start items-center gap-3">
-              <div className="text-center text-zinc-950 text-5xl font-semibold font-poppins leading-[57.60px]">
+              <div className="text-center text-zinc-950 text-3xl sm:text-4xl md:text-5xl font-semibold font-poppins leading-tight md:leading-[57.60px] px-4">
                 Ready for these leagues?
               </div>
             </div>
@@ -48,31 +72,69 @@ export default function SportsLeagues() {
           <div className={`text-lg font-medium font-poppins leading-loose ${!isFootball ? 'text-neutral-800' : 'text-zinc-500'}`}>Basketball</div>
         </div>
       </div>
-      <div className="self-stretch flex flex-col justify-start items-start gap-6">
+      <div className="self-stretch flex flex-col justify-start items-start gap-6 px-4 sm:px-0">
+        {/* Auto-slide indicator for desktop */}
+        {/* <div className="hidden sm:block w-full text-center text-sm text-zinc-600 mb-2">
+          ← Cards auto-slide every 2 seconds → <span className="text-lime-600 font-medium">• Auto-sliding active</span>
+        </div> */}
+        
+        {/* Mobile: Horizontal scrollable, Desktop: Auto-slide */}
         <div className="w-full overflow-hidden">
-          <div
-            className="flex transition-transform duration-500 ease-in-out gap-6"
-            style={{
-              transform: `translateX(-${currentIndex * (160 + 24)}px)`, // 160px card width + 24px gap
-              width: `${extendedLeagues.length * (160 + 24)}px`,
-            }}
-          >
-            {extendedLeagues.map((league, index) => (
-              <div
-                key={`${league.name}-${index}`}
-                className="flex-shrink-0 w-40 h-72 px-4 py-6 rounded relative overflow-hidden"
-                style={{
-                  backgroundImage: `url(${league.image})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                }}
-              >
-                <div className="absolute inset-0 bg-black/30" />
-                <div className="relative z-10 h-full flex flex-col justify-center items-center">
-                  <div className="text-center text-white text-base font-bold font-poppins leading-7">{league.name}</div>
+          {/* Mobile: Scrollable container */}
+          <div className="block sm:hidden w-full overflow-x-auto overflow-y-hidden scrollbar-hide">
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-4 min-w-max pb-4"
+              style={{
+                width: `${extendedLeagues.length * (128 + 16)}px`,
+              }}
+              onScroll={handleScroll}
+            >
+              {extendedLeagues.map((league, index) => (
+                <div
+                  key={`${league.name}-${index}`}
+                  className="flex-shrink-0 w-32 h-64 px-3 py-4 rounded relative overflow-hidden"
+                  style={{
+                    backgroundImage: `url(${league.image})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                >
+                  <div className="absolute inset-0 bg-black/30" />
+                  <div className="relative z-10 h-full flex flex-col justify-center items-center">
+                    <div className="text-center text-white text-sm font-bold font-poppins leading-tight px-2">{league.name}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </div>
+          
+          {/* Desktop: Auto-slide container */}
+          <div className="hidden sm:block w-full overflow-hidden">
+            <div
+              className="flex transition-transform duration-500 ease-in-out gap-6"
+              style={{
+                transform: `translateX(-${currentIndex * (160 + 24)}px)`, // desktop: 160px card width + 24px gap
+                width: `${extendedLeagues.length * (160 + 24)}px`,
+              }}
+            >
+              {extendedLeagues.map((league, index) => (
+                <div
+                  key={`${league.name}-${index}`}
+                  className="flex-shrink-0 w-40 h-72 px-4 py-6 rounded relative overflow-hidden"
+                  style={{
+                    backgroundImage: `url(${league.image})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                >
+                  <div className="absolute inset-0 bg-black/30" />
+                  <div className="relative z-10 h-full flex flex-col justify-center items-center">
+                    <div className="text-center text-white text-base font-bold font-poppins leading-7">{league.name}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -66,6 +66,18 @@ body {
   display: none;  /* Safari and Chrome */
 }
 
+/* Smooth scrolling for mobile */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch; /* iOS momentum scrolling */
+}
+
+/* Touch-friendly scrolling */
+.touch-scroll {
+  scroll-snap-type: x mandatory;
+  scroll-snap-align: start;
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
