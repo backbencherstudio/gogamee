@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { homepageLeaguesData } from "@/app/lib/appdata"
+import Link from "next/link"
 
 export default function SportsLeagues() {
   const [isFootball, setIsFootball] = useState(true)
@@ -138,6 +139,13 @@ export default function SportsLeagues() {
           </div>
         </div>
       </div>
+      
+      <Link href="/packages">
+      <div className="px-4 py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
+        <div className="text-center justify-start text-white text-sm sm:text-base lg:text-lg font-normal font-['Inter'] leading-7">View packages</div>
+      </div>
+      </Link>
+      
     </div>
   )
 }

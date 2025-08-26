@@ -878,18 +878,11 @@ export const AppData = {
         description: "French top-flight football league"
       },
       {
-        id: "champions-league",
-        name: "Champions League",
+        id: "european-competition",
+        name: "European Competition",
         image: "/homepage/image/fb7.png",
         country: "Europe",
-        description: "European elite club competition"
-      },
-      {
-        id: "europa-league",
-        name: "Europa League",
-        image: "/homepage/image/fb8.png",
-        country: "Europe",
-        description: "European secondary club competition"
+        description: "European club competitions including Champions League and Europa League"
       }
     ],
     
