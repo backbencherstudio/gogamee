@@ -50,10 +50,7 @@ const minutesToTime = (minutes: number): string => {
   return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}${nextDay}`
 }
 
-const getTimeMarkPosition = (minutes: number): number => {
-  const constants = flightScheduleData.getConstants()
-  return (minutes / constants.extendedDayMinutes) * 100
-}
+// Removed old getTimeMarkPosition helper since slider uses discrete indices now
 
 const calculateDuration = (start: number, end: number): string => {
   const durationMinutes = end - start
@@ -154,28 +151,31 @@ const TimeRangeSlider = React.memo(({
   isDeparture: boolean
 }) => {
   const timeSlots = getAvailableTimeSlots(isDeparture)
-  
-  const handleRangeChange = useCallback((values: number[]) => {
-    // Snap to nearest time slots
-    const snappedStart = timeSlots.reduce((prev, curr) => 
-      Math.abs(curr.value - values[0]) < Math.abs(prev.value - values[0]) ? curr : prev
-    ).value
-    
-    const snappedEnd = timeSlots.reduce((prev, curr) => 
-      Math.abs(curr.value - values[1]) < Math.abs(prev.value - values[1]) ? curr : prev
-    ).value
-    
-    onChange({
-      start: snappedStart,
-      end: snappedEnd
-    })
+
+  // Map current minutes to discrete slot indices
+  const startIndex = useMemo(() => {
+    const idx = timeSlots.findIndex(slot => slot.value === timeRange.start)
+    return idx >= 0 ? idx : 0
+  }, [timeRange.start, timeSlots])
+
+  const endIndex = useMemo(() => {
+    const idx = timeSlots.findIndex(slot => slot.value === timeRange.end)
+    return idx >= 0 ? idx : timeSlots.length - 1
+  }, [timeRange.end, timeSlots])
+
+  const handleRangeChange = useCallback((indices: number[]) => {
+    const normalized = [Math.min(indices[0], indices[1]), Math.max(indices[0], indices[1])]
+    const newStart = timeSlots[normalized[0]]?.value ?? timeSlots[0].value
+    const newEnd = timeSlots[normalized[1]]?.value ?? timeSlots[timeSlots.length - 1].value
+    onChange({ start: newStart, end: newEnd })
   }, [onChange, timeSlots])
 
-  const selectedRangeStyle = useMemo(() => ({
-    left: `${getTimeMarkPosition(timeRange.start)}%`,
-    width: `${getTimeMarkPosition(timeRange.end) - getTimeMarkPosition(timeRange.start)}%`,
-    ...SLIDER_STYLES.selectedRange
-  }), [timeRange.start, timeRange.end])
+  const selectedRangeStyle = useMemo(() => {
+    const lastIndex = Math.max(timeSlots.length - 1, 1)
+    const left = (startIndex / lastIndex) * 100
+    const width = ((endIndex - startIndex) / lastIndex) * 100
+    return { left: `${left}%`, width: `${width}%`, ...SLIDER_STYLES.selectedRange }
+  }, [startIndex, endIndex, timeSlots.length])
 
   return (
     <div className="w-full xl:w-80 flex flex-col justify-center items-center gap-1.5">
@@ -183,8 +183,8 @@ const TimeRangeSlider = React.memo(({
         <Range
           step={1}
           min={0}
-          max={flightScheduleData.getConstants().extendedDayMinutes}
-          values={[timeRange.start, timeRange.end]}
+          max={Math.max(timeSlots.length - 1, 1)}
+          values={[startIndex, endIndex]}
           onChange={handleRangeChange}
           renderTrack={({ props, children }) => (
             <div
@@ -202,15 +202,16 @@ const TimeRangeSlider = React.memo(({
               {children}
             </div>
           )}
-          renderThumb={({ props, isDragged }) => (
+          renderThumb={({ props, isDragged, index }) => (
             <div
               {...props}
-              style={{
-                ...props.style,
-                backgroundColor: isDragged ? '#65a30d' : 'white',
-              }}
-              className="w-5 h-5 border-2 border-[#6AAD3C] rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
-            />
+              className="relative w-5 h-5 border-2 border-[#6AAD3C] rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300 bg-white"
+              style={{ ...props.style, backgroundColor: isDragged ? '#65a30d' : 'white' }}
+            >
+              <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-white border border-gray-200 rounded text-[10px] text-gray-600 whitespace-nowrap">
+                {timeSlots[index === 0 ? startIndex : endIndex]?.label}
+              </div>
+            </div>
           )}
         />
       </div>
