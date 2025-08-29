@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Plus, Package as PackageIcon, Trash2, X } from 'lucide-react'
+import { Plus, Package as PackageIcon, Trash2, X, Edit } from 'lucide-react'
 import AddPackage from './addpackage'
 import AppData from '../../../../lib/appdata'
 import DeleteConfirmationModal from '../../../../../components/ui/delete-confirmation-modal'
@@ -22,7 +22,6 @@ interface PackageManagementProps {
 }
 
 export default function PackageManagement({ 
-  initialPackages,
   onPackageAdd,
   onPackageDelete
 }: PackageManagementProps) {
@@ -30,6 +29,7 @@ export default function PackageManagement({
   const [selectedSport, setSelectedSport] = useState<'football' | 'basketball' | 'all'>('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
 
   // Load package data from AppData
   useEffect(() => {
@@ -63,6 +63,16 @@ export default function PackageManagement({
         onPackageAdd(addedPackage as PackageData);
       }
     }
+  };
+
+  // Update existing package
+  const handleUpdatePackage = (updated: Omit<PackageData, 'id'>) => {
+    if (!editingPackageId) return;
+    const saved = AppData.travelPackages.update(editingPackageId, updated);
+    if (saved) {
+      setPackages(AppData.travelPackages.getAll() as PackageData[]);
+    }
+    setEditingPackageId(null);
   };
 
   return (
@@ -140,6 +150,13 @@ export default function PackageManagement({
                   
                   {/* Action Buttons */}
                   <div className="flex gap-2">
+                    <button
+                      onClick={() => setEditingPackageId(pkg.id)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                      title="Edit Package"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
                     <button 
                       onClick={() => setDeleteConfirm(pkg.id)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
@@ -200,6 +217,50 @@ export default function PackageManagement({
                 onSubmit={handleAddPackage}
                 onCancel={() => setShowAddForm(false)}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Package Modal */}
+      {editingPackageId && (
+        <div 
+          className="fixed inset-0 bg-black/30 bg-opacity-20 flex items-center justify-center z-50 p-4"
+          onClick={() => setEditingPackageId(null)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">Edit Package</h2>
+              <button
+                onClick={() => setEditingPackageId(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6">
+              {(() => {
+                const pkg = packages.find(p => p.id === editingPackageId);
+                if (!pkg) return null;
+                const initial = {
+                  sport: pkg.sport,
+                  category: pkg.category,
+                  standard: pkg.standard,
+                  premium: pkg.premium
+                };
+                return (
+                  <AddPackage
+                    initialData={initial}
+                    submitLabel="Save Changes"
+                    showSport={false}
+                    onSubmit={handleUpdatePackage}
+                    onCancel={() => setEditingPackageId(null)}
+                  />
+                );
+              })()}
             </div>
           </div>
         </div>

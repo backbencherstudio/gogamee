@@ -12,15 +12,20 @@ interface PackageData {
 interface AddPackageProps {
   onSubmit: (packageData: PackageData) => void;
   onCancel: () => void;
+  initialData?: PackageData;
+  submitLabel?: string;
+  showSport?: boolean;
 }
 
-export default function AddPackage({ onSubmit, onCancel }: AddPackageProps) {
-  const [formData, setFormData] = useState<PackageData>({
-    sport: 'football',
-    category: '',
-    standard: '',
-    premium: ''
-  });
+export default function AddPackage({ onSubmit, onCancel, initialData, submitLabel, showSport }: AddPackageProps) {
+  const [formData, setFormData] = useState<PackageData>(
+    initialData || {
+      sport: 'football',
+      category: '',
+      standard: '',
+      premium: ''
+    }
+  );
 
   const [errors, setErrors] = useState<Partial<PackageData>>({});
 
@@ -58,30 +63,32 @@ export default function AddPackage({ onSubmit, onCancel }: AddPackageProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Sport Selection */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-          Sport *
-        </label>
-        <div className="flex gap-4">
-          {[
-            { value: 'football', label: 'Football' },
-            { value: 'basketball', label: 'Basketball' }
-          ].map((option) => (
-            <label key={option.value} className="flex items-center cursor-pointer">
-              <input
-                type="radio"
-                name="sport"
-                value={option.value}
-                checked={formData.sport === option.value}
-                onChange={(e) => handleInputChange('sport', e.target.value as 'football' | 'basketball')}
-                className="mr-2 text-[#76C043] focus:ring-[#76C043]"
-              />
-              <span className="text-gray-700 font-['Poppins']">{option.label}</span>
-            </label>
-          ))}
+      {/* Sport Selection (optional) */}
+      {showSport !== false && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+            Sport *
+          </label>
+          <div className="flex gap-4">
+            {[
+              { value: 'football', label: 'Football' },
+              { value: 'basketball', label: 'Basketball' }
+            ].map((option) => (
+              <label key={option.value} className="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="sport"
+                  value={option.value}
+                  checked={formData.sport === option.value}
+                  onChange={(e) => handleInputChange('sport', e.target.value as 'football' | 'basketball')}
+                  className="mr-2 text-[#76C043] focus:ring-[#76C043]"
+                />
+                <span className="text-gray-700 font-['Poppins']">{option.label}</span>
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Category */}
       <div>
@@ -158,7 +165,7 @@ export default function AddPackage({ onSubmit, onCancel }: AddPackageProps) {
           className="flex items-center gap-2 px-6 py-3 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
         >
           <Save className="w-4 h-4" />
-          Add Package
+          {submitLabel || 'Add Package'}
         </button>
       </div>
     </form>
