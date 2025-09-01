@@ -24,7 +24,7 @@ export default function Menu() {
     { label: t.menu.home, href: '/' },
     { label: t.menu.packages, href: '/packages' },
     { label: t.menu.faqs, href: '/faqs' },
-    { label: t.menu.about, href: '/about Us' },
+    { label: t.menu.about, href: '/about' },
   ]
 
   const toggleLangDropdown = () => {
