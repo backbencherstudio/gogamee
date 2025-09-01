@@ -233,7 +233,7 @@ export default function Extras() {
                 {extra.name}
               </div>
               <div className="text-[#6AAD3C] text-base font-semibold font-['Poppins']">
-                {extra.isIncluded ? 'Included' : `+${extra.currency}${extra.price}`}
+                {extra.isIncluded ? 'Included' : `+${extra.price}€`}
               </div>
               {!extra.isIncluded && (
                 <div className="text-neutral-600 text-sm font-normal font-['Poppins']">
@@ -286,7 +286,7 @@ export default function Extras() {
         <div className="inline-flex flex-col justify-center items-end gap-4">
           <div className="flex flex-col justify-start items-end gap-1">
             <div className="self-stretch text-right justify-start text-[#6AAD3C] text-lg font-semibold font-['Poppins'] leading-loose">
-              {extra.isIncluded ? 'Included' : `+${extra.currency}${extra.price}`}
+              {extra.isIncluded ? 'Included' : `+${extra.price}€`}
             </div>
             {!extra.isIncluded && (
               <div className="self-stretch text-right justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
