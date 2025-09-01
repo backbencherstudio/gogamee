@@ -537,7 +537,7 @@ export default function DateSection() {
                   <div className={`justify-center text-xs xl:text-sm font-normal font-['Poppins'] leading-relaxed ${
                     selectedDuration === index ? 'text-white' : 'text-black'
                   }`}>
-                    {option.nights}{option.nights === 1 ? ' Night' : 'Night'}
+                    {option.nights}{option.nights === 1 ? ' Night' : ' Night'}
                   </div>
                 </div>
               ))}
