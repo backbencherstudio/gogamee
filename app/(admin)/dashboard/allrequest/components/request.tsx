@@ -11,12 +11,13 @@ import DeleteConfirmationModal from "../../../../../components/ui/delete-confirm
 export default function EventReqTable() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState("all")
-  const [timeFilter, setTimeFilter] = useState("30days")
+  const [timeFilter, setTimeFilter] = useState("alltime")
   const [showDateDropdown, setShowDateDropdown] = useState(false)
   const [bookings, setBookings] = useState(AppData.bookings.all)
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
 
   const dateRangeOptions = [
+    { value: "alltime", label: "All Time" },
     { value: "7days", label: "Last 7 days" },
     { value: "15days", label: "Last 15 days" },
     { value: "30days", label: "Last 30 days" },
@@ -39,19 +40,21 @@ export default function EventReqTable() {
       return true
     })
 
-    // Then filter by date range
-    const days = Number.parseInt(timeFilter.replace("days", ""))
-    const { startDate, endDate } = getFilteredDateRange(days)
+    // Then filter by date range (skip if "all time" is selected)
+    if (timeFilter !== "alltime") {
+      const days = Number.parseInt(timeFilter.replace("days", ""))
+      const { startDate, endDate } = getFilteredDateRange(days)
 
-    filtered = filtered.filter((item) => {
-      try {
-        const submittedDate = parseISO(item.bookingTimestamp)
-        return isWithinInterval(submittedDate, { start: startDate, end: endDate })
-      } catch (error) {
-        console.error("Date parsing error for item:", item.id, error)
-        return false
-      }
-    })
+      filtered = filtered.filter((item) => {
+        try {
+          const submittedDate = parseISO(item.bookingTimestamp)
+          return isWithinInterval(submittedDate, { start: startDate, end: endDate })
+        } catch (error) {
+          console.error("Date parsing error for item:", item.id, error)
+          return false
+        }
+      })
+    }
 
     return filtered
   }, [activeTab, timeFilter, bookings])
@@ -143,12 +146,16 @@ export default function EventReqTable() {
   }
 
   const debugInfo = useMemo(() => {
-    const days = Number.parseInt(timeFilter.replace("days", ""))
-    const { startDate, endDate } = getFilteredDateRange(days)
+    let dateRange = "All Time"
+    if (timeFilter !== "alltime") {
+      const days = Number.parseInt(timeFilter.replace("days", ""))
+      const { startDate, endDate } = getFilteredDateRange(days)
+      dateRange = `${format(startDate, "MMM dd, yyyy")} - ${format(endDate, "MMM dd, yyyy")}`
+    }
     return {
       totalData: bookings.length,
       filteredCount: filteredData.length,
-      dateRange: `${format(startDate, "MMM dd, yyyy")} - ${format(endDate, "MMM dd, yyyy")}`,
+      dateRange,
       activeTab,
       timeFilter,
     }
@@ -319,61 +326,63 @@ export default function EventReqTable() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-2">
-                                         <BookingSummaryModal 
-                       bookingData={{
-                         id: booking.id,
-                         status: booking.status,
-                         selectedSport: booking.selectedSport,
-                         selectedPackage: booking.selectedPackage,
-                         selectedCity: booking.selectedCity,
-                         selectedLeague: booking.selectedLeague,
-                         adults: booking.adults,
-                         kids: booking.kids,
-                         babies: booking.babies,
-                         totalPeople: booking.totalPeople,
-                         departureDate: booking.departureDate,
-                         returnDate: booking.returnDate,
-                         departureDateFormatted: booking.departureDateFormatted,
-                         returnDateFormatted: booking.returnDateFormatted,
-                         departureTimeStart: booking.departureTimeStart,
-                         departureTimeEnd: booking.departureTimeEnd,
-                         arrivalTimeStart: booking.arrivalTimeStart,
-                         arrivalTimeEnd: booking.arrivalTimeEnd,
-                         departureTimeRange: booking.departureTimeRange,
-                         arrivalTimeRange: booking.arrivalTimeRange,
-                         removedLeagues: Array.isArray(booking.removedLeagues) ? 
-                           booking.removedLeagues.map(league => ({ 
-                             id: typeof league === 'string' ? league : (league as { id?: string; name?: string }).id || '', 
-                             name: typeof league === 'string' ? league : (league as { id?: string; name?: string }).name || '', 
-                             country: 'Spain' 
-                           })) : [],
-                         removedLeaguesCount: booking.removedLeaguesCount,
-                         hasRemovedLeagues: booking.hasRemovedLeagues,
-                         allExtras: booking.allExtras,
-                         selectedExtras: booking.selectedExtras,
-                         selectedExtrasNames: booking.selectedExtrasNames,
-                         totalExtrasCost: booking.totalExtrasCost,
-                         extrasCount: booking.extrasCount,
-                         firstName: booking.firstName,
-                         lastName: booking.lastName,
-                         fullName: booking.fullName,
-                         email: booking.email,
-                         phone: booking.phone,
-                         paymentMethod: booking.paymentMethod,
-                         cardNumber: booking.cardNumber,
-                         expiryDate: booking.expiryDate,
-                         cvv: booking.cvv,
-                         cardholderName: booking.cardholderName,
-                         bookingTimestamp: booking.bookingTimestamp,
-                         bookingDate: booking.bookingDate,
-                         bookingTime: booking.bookingTime,
-                         isBookingComplete: booking.isBookingComplete,
-                         travelDuration: booking.travelDuration,
-                         hasFlightPreferences: booking.hasFlightPreferences,
-                         requiresEuropeanLeagueHandling: booking.requiresEuropeanLeagueHandling
-                       }}
+                                                                 <BookingSummaryModal 
+                          bookingData={{
+                            id: booking.id,
+                            status: booking.status,
+                            selectedSport: booking.selectedSport,
+                            selectedPackage: booking.selectedPackage,
+                            selectedCity: booking.selectedCity,
+                            selectedLeague: booking.selectedLeague,
+                            adults: booking.adults,
+                            kids: booking.kids,
+                            babies: booking.babies,
+                            totalPeople: booking.totalPeople,
+                            departureDate: booking.departureDate,
+                            returnDate: booking.returnDate,
+                            departureDateFormatted: booking.departureDateFormatted,
+                            returnDateFormatted: booking.returnDateFormatted,
+                            departureTimeStart: booking.departureTimeStart,
+                            departureTimeEnd: booking.departureTimeEnd,
+                            arrivalTimeStart: booking.arrivalTimeStart,
+                            arrivalTimeEnd: booking.arrivalTimeEnd,
+                            departureTimeRange: booking.departureTimeRange,
+                            arrivalTimeRange: booking.arrivalTimeRange,
+                            removedLeagues: Array.isArray(booking.removedLeagues) ? 
+                              booking.removedLeagues.map(league => ({ 
+                                id: typeof league === 'string' ? league : (league as { id?: string; name?: string }).id || '', 
+                                name: typeof league === 'string' ? league : (league as { id?: string; name?: string }).name || '', 
+                                country: 'Spain' 
+                              })) : [],
+                            removedLeaguesCount: booking.removedLeaguesCount,
+                            hasRemovedLeagues: booking.hasRemovedLeagues,
+                            allExtras: booking.allExtras,
+                            selectedExtras: booking.selectedExtras,
+                            selectedExtrasNames: booking.selectedExtrasNames,
+                            totalExtrasCost: booking.totalExtrasCost,
+                            extrasCount: booking.extrasCount,
+                            firstName: booking.firstName,
+                            lastName: booking.lastName,
+                            fullName: booking.fullName,
+                            email: booking.email,
+                            phone: booking.phone,
+                            paymentMethod: booking.paymentMethod,
+                            cardNumber: booking.cardNumber,
+                            expiryDate: booking.expiryDate,
+                            cvv: booking.cvv,
+                            cardholderName: booking.cardholderName,
+                            bookingTimestamp: booking.bookingTimestamp,
+                            bookingDate: booking.bookingDate,
+                            bookingTime: booking.bookingTime,
+                            isBookingComplete: booking.isBookingComplete,
+                            travelDuration: booking.travelDuration,
+                            hasFlightPreferences: booking.hasFlightPreferences,
+                            requiresEuropeanLeagueHandling: booking.requiresEuropeanLeagueHandling,
+                            destinationCity: booking.destinationCity,
+                            assignedMatch: booking.assignedMatch
+                          }}
                        onStatusUpdate={() => {
-                         // Refresh the bookings data to show updated status
+                         // Refresh the bookings data to show updated status and internal management fields
                          setBookings([...AppData.bookings.all])
                        }}
                      />

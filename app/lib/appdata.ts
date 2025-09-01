@@ -69,6 +69,9 @@ export interface BookingData {
   travelDuration: number;
   hasFlightPreferences: boolean;
   requiresEuropeanLeagueHandling: boolean;
+  // New fields for GoGame internal management
+  destinationCity?: string;
+  assignedMatch?: string;
 }
 
 // Hero Section Data Structure
@@ -1835,7 +1838,9 @@ export const AppData = {
         isBookingComplete: true,
         travelDuration: 4,
         hasFlightPreferences: true,
-        requiresEuropeanLeagueHandling: false
+        requiresEuropeanLeagueHandling: false,
+        destinationCity: "",
+        assignedMatch: ""
       },
       {
         id: 2,
@@ -1887,7 +1892,9 @@ export const AppData = {
         isBookingComplete: true,
         travelDuration: 6,
         hasFlightPreferences: true,
-        requiresEuropeanLeagueHandling: true
+        requiresEuropeanLeagueHandling: true,
+        destinationCity: "",
+        assignedMatch: ""
       }
     ];
     
@@ -1918,6 +1925,200 @@ export const AppData = {
       // return response.json();
       console.log(`API update for ${section} not yet implemented`);
       return null;
+    }
+  },
+
+  // Email templates and functions
+  emailTemplates: {
+    // Generate confirmation email content
+    generateConfirmationEmail: function(booking: BookingData) {
+      const subject = `🎉 Your GoGame Adventure is Confirmed! Booking #${booking.id}`;
+      
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>GoGame Booking Confirmation</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .booking-details { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .highlight { background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
+            .button { display: inline-block; background: #4caf50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; margin: 10px 0; }
+            .status-confirmed { color: #4caf50; font-weight: bold; }
+            .status-pending { color: #ff9800; font-weight: bold; }
+            .status-cancelled { color: #f44336; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🎉 GoGame Adventure Confirmed!</h1>
+              <p>Your surprise sports journey is ready to begin</p>
+            </div>
+            
+            <div class="content">
+              <h2>Hello ${booking.fullName}!</h2>
+              <p>Thank you for choosing GoGame for your sports adventure! Your booking has been confirmed and we're excited to create an unforgettable experience for you.</p>
+              
+              <div class="booking-details">
+                <h3>📋 Booking Summary</h3>
+                <p><strong>Booking ID:</strong> #${booking.id}</p>
+                <p><strong>Status:</strong> <span class="status-${booking.status}">${booking.status === 'completed' ? '✅ Confirmed' : booking.status === 'pending' ? '⏳ Pending' : '❌ Cancelled'}</span></p>
+                <p><strong>Sport:</strong> ${booking.selectedSport}</p>
+                <p><strong>Package:</strong> ${booking.selectedPackage}</p>
+                <p><strong>Departure City:</strong> ${booking.selectedCity}</p>
+                <p><strong>Travel Dates:</strong> ${booking.departureDateFormatted} - ${booking.returnDateFormatted}</p>
+                <p><strong>Total Travelers:</strong> ${booking.totalPeople} (${booking.adults} adults, ${booking.kids} kids, ${booking.babies} babies)</p>
+              </div>
+              
+              ${booking.destinationCity && booking.assignedMatch ? `
+                <div class="highlight">
+                  <h3>🎯 Your Surprise Destination & Match</h3>
+                  <p><strong>Destination City:</strong> ${booking.destinationCity}</p>
+                  <p><strong>Match:</strong> ${booking.assignedMatch}</p>
+                  <p><em>Get ready for an incredible experience!</em></p>
+                </div>
+              ` : `
+                <div class="highlight">
+                  <h3>🎯 Your Surprise Awaits!</h3>
+                  <p>Your destination and match details will be revealed 48 hours before departure. We're working hard to create the perfect surprise for you!</p>
+                </div>
+              `}
+              
+              ${booking.selectedExtras.length > 0 ? `
+                <div class="booking-details">
+                  <h3>🎁 Selected Extras</h3>
+                  <ul>
+                    ${booking.selectedExtras.map(extra => `<li>${extra.name} (Qty: ${extra.quantity}) - ${extra.price === 0 ? 'Included' : extra.price + '€'}</li>`).join('')}
+                  </ul>
+                  <p><strong>Total Extras Cost:</strong> ${booking.totalExtrasCost}€</p>
+                </div>
+              ` : ''}
+              
+              <div class="booking-details">
+                <h3>📞 Contact Information</h3>
+                <p><strong>Email:</strong> ${booking.email}</p>
+                <p><strong>Phone:</strong> ${booking.phone}</p>
+                <p><strong>Payment Method:</strong> ${booking.paymentMethod}</p>
+              </div>
+              
+              <div class="highlight">
+                <h3>📅 Important Information</h3>
+                <ul>
+                  <li>Please ensure you have valid travel documents (passport/ID)</li>
+                  <li>Check-in details will be provided closer to departure</li>
+                  <li>For any questions, contact our support team</li>
+                  <li>Travel insurance is recommended for all trips</li>
+                </ul>
+              </div>
+              
+              <div class="footer">
+                <p>Thank you for choosing GoGame!</p>
+                <p>© 2024 GoGame. All rights reserved.</p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      const textContent = `
+        GoGame Adventure Confirmation - Booking #${booking.id}
+        
+        Hello ${booking.fullName}!
+        
+        Thank you for choosing GoGame for your sports adventure! Your booking has been confirmed.
+        
+        BOOKING SUMMARY:
+        - Booking ID: #${booking.id}
+        - Status: ${booking.status === 'completed' ? 'Confirmed' : booking.status === 'pending' ? 'Pending' : 'Cancelled'}
+        - Sport: ${booking.selectedSport}
+        - Package: ${booking.selectedPackage}
+        - Departure City: ${booking.selectedCity}
+        - Travel Dates: ${booking.departureDateFormatted} - ${booking.returnDateFormatted}
+        - Total Travelers: ${booking.totalPeople}
+        
+        ${booking.destinationCity && booking.assignedMatch ? `
+        YOUR SURPRISE DESTINATION & MATCH:
+        - Destination City: ${booking.destinationCity}
+        - Match: ${booking.assignedMatch}
+        ` : `
+        YOUR SURPRISE AWAITS:
+        Your destination and match details will be revealed 48 hours before departure.
+        `}
+        
+        ${booking.selectedExtras.length > 0 ? `
+        SELECTED EXTRAS:
+        ${booking.selectedExtras.map(extra => `- ${extra.name} (Qty: ${extra.quantity}) - ${extra.price === 0 ? 'Included' : extra.price + '€'}`).join('\n')}
+        Total Extras Cost: ${booking.totalExtrasCost}€
+        ` : ''}
+        
+        CONTACT INFORMATION:
+        - Email: ${booking.email}
+        - Phone: ${booking.phone}
+        - Payment Method: ${booking.paymentMethod}
+        
+        IMPORTANT INFORMATION:
+        - Please ensure you have valid travel documents
+        - Check-in details will be provided closer to departure
+        - For any questions, contact our support team
+        - Travel insurance is recommended
+        
+        Thank you for choosing GoGame!
+        © 2024 GoGame. All rights reserved.
+      `;
+      
+      return {
+        subject,
+        htmlContent,
+        textContent
+      };
+    },
+    
+    // Send confirmation email (placeholder for future API integration)
+    sendConfirmationEmail: async function(booking: BookingData) {
+      try {
+        // TODO: Replace with actual email API call
+        // const emailContent = this.generateConfirmationEmail(booking);
+        // const response = await fetch('/api/send-email', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({
+        //     to: booking.email,
+        //     subject: emailContent.subject,
+        //     html: emailContent.htmlContent,
+        //     text: emailContent.textContent
+        //   })
+        // });
+        // 
+        // if (!response.ok) {
+        //   throw new Error('Failed to send email');
+        // }
+        // 
+        // return await response.json();
+        
+        // For now, just log the email content
+        const emailContent = this.generateConfirmationEmail(booking);
+        console.log('📧 Email would be sent to:', booking.email);
+        console.log('📧 Subject:', emailContent.subject);
+        console.log('📧 HTML Content length:', emailContent.htmlContent.length);
+        console.log('📧 Text Content length:', emailContent.textContent.length);
+        
+        return {
+          success: true,
+          message: 'Email content generated successfully (API integration pending)',
+          emailContent
+        };
+      } catch (error) {
+        console.error('❌ Error sending confirmation email:', error);
+        throw new Error('Failed to send confirmation email');
+      }
     }
   }
 };

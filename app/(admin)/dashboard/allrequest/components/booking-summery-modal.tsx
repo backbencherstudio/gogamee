@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   CalendarIcon,
   Users,
@@ -98,6 +98,8 @@ interface BookingData {
   travelDuration: number
   hasFlightPreferences: boolean
   requiresEuropeanLeagueHandling: boolean
+  destinationCity?: string
+  assignedMatch?: string
 }
 
 interface BookingSummaryModalProps {
@@ -108,6 +110,38 @@ interface BookingSummaryModalProps {
 export default function BookingSummaryModal({ bookingData, onStatusUpdate }: BookingSummaryModalProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [destinationCity, setDestinationCity] = useState(bookingData.destinationCity || "")
+  const [assignedMatch, setAssignedMatch] = useState(bookingData.assignedMatch || "")
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [hasChanges, setHasChanges] = useState(false)
+
+  // Update local state when bookingData changes
+  const updateLocalState = () => {
+    setDestinationCity(bookingData.destinationCity || "")
+    setAssignedMatch(bookingData.assignedMatch || "")
+    setHasChanges(false) // Reset changes flag when data is updated
+  }
+
+  // Update local state when component mounts or bookingData changes
+  useEffect(() => {
+    updateLocalState()
+  }, [bookingData.destinationCity, bookingData.assignedMatch])
+
+  // Check for changes when input values change
+  useEffect(() => {
+    const currentDestinationCity = bookingData.destinationCity || ""
+    const currentAssignedMatch = bookingData.assignedMatch || ""
+    
+    const hasChangesNow = destinationCity !== currentDestinationCity || assignedMatch !== currentAssignedMatch
+    setHasChanges(hasChangesNow)
+  }, [destinationCity, assignedMatch, bookingData.destinationCity, bookingData.assignedMatch])
+
+  // Force update local state when modal opens to ensure fresh data
+  useEffect(() => {
+    if (isOpen) {
+      updateLocalState()
+    }
+  }, [isOpen])
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -207,7 +241,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <Trophy className="h-4 w-4 text-gray-500" />
                   <div>
@@ -225,8 +259,17 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <MapPin className="h-4 w-4 text-gray-500" />
                   <div>
-                    <p className="text-sm text-gray-500">Destination</p>
+                    <p className="text-sm text-gray-500">Departure City</p>
                     <p className="font-medium text-gray-900 capitalize">{bookingData.selectedCity}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <MapPin className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="text-sm text-gray-500">Destination City</p>
+                    <p className="font-medium text-gray-900 capitalize">
+                      {bookingData.destinationCity ? bookingData.destinationCity : "Not assigned yet"}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -234,6 +277,15 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                   <div>
                     <p className="text-sm text-gray-500">League</p>
                     <p className="font-medium text-gray-900 capitalize">{bookingData.selectedLeague}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <Trophy className="h-4 w-4 text-gray-500" />
+                  <div>
+                    <p className="text-sm text-gray-500">Assigned Match</p>
+                    <p className="font-medium text-gray-900 capitalize">
+                      {bookingData.assignedMatch ? bookingData.assignedMatch : "Not assigned yet"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -482,6 +534,127 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
               </div>
             </CardContent>
           </Card>
+
+          {/* GoGame Internal Management */}
+          <Card className="border border-blue-200 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Trophy className="h-4 w-4 text-blue-600" />
+                </div>
+                GoGame Internal Management
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                             <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                 <p className="text-sm text-blue-800">
+                   <strong>Note:</strong> These fields are for GoGame internal management only.
+                   The destination city and match details will be revealed to customers 48 hours before departure
+                   as part of the surprise experience. Please fill these in before approving the booking.
+                 </p>
+               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Destination City *
+                  </label>
+                  <input
+                    type="text"
+                    value={destinationCity}
+                    onChange={(e) => setDestinationCity(e.target.value)}
+                    placeholder="Enter destination city (e.g., London, Paris, Milan)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500">
+                    The city where the customer will travel to (surprise destination)
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Assigned Match *
+                  </label>
+                  <input
+                    type="text"
+                    value={assignedMatch}
+                    onChange={(e) => setAssignedMatch(e.target.value)}
+                    placeholder="Enter match details (e.g., Real Madrid vs Barcelona)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="text-xs text-gray-500">
+                    The specific match the customer will attend
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button
+                  onClick={async () => {
+                    if (!destinationCity.trim() || !assignedMatch.trim()) {
+                      alert("Please fill in both destination city and assigned match fields")
+                      return
+                    }
+                    
+                    setIsUpdating(true)
+                    try {
+                      // Import AppData dynamically to avoid SSR issues
+                      const { default: AppData } = await import('../../../../lib/appdata')
+                      
+                      // Find the booking by matching the data
+                      const bookingToUpdate = AppData.bookings.all.find(booking => 
+                        booking.fullName === bookingData.fullName &&
+                        booking.email === bookingData.email &&
+                        booking.phone === bookingData.phone &&
+                        Math.abs(new Date(booking.bookingTimestamp).getTime() - new Date(bookingData.bookingTimestamp).getTime()) < 60000
+                      )
+                      
+                      if (bookingToUpdate) {
+                        // Update booking with destination city and assigned match
+                        AppData.bookings.update(bookingToUpdate.id, { 
+                          destinationCity: destinationCity.trim(),
+                          assignedMatch: assignedMatch.trim()
+                        })
+                        console.log('✅ Destination and match details updated successfully')
+                        alert('✅ Destination and match details updated successfully!')
+                        
+                        // Update local state with the new values and disable button
+                        setDestinationCity(destinationCity.trim())
+                        setAssignedMatch(assignedMatch.trim())
+                        setHasChanges(false) // Disable button after successful update
+                        
+                        // Refresh parent component to show updated data
+                        if (onStatusUpdate) {
+                          onStatusUpdate()
+                        }
+                        
+                        // Force refresh the booking data to ensure UI shows updated values
+                        const updatedBooking = AppData.bookings.getById(bookingToUpdate.id)
+                        if (updatedBooking) {
+                          // Update the bookingData prop by triggering a re-render
+                          // This ensures the display fields show the updated values
+                          setTimeout(() => {
+                            updateLocalState()
+                          }, 100)
+                        }
+                      } else {
+                        console.error('❌ Could not find booking to update')
+                        alert('❌ Error: Could not find booking to update')
+                      }
+                    } catch (error) {
+                      console.error('❌ Error updating destination and match:', error)
+                      alert('❌ Error updating destination and match. Please try again.')
+                    } finally {
+                      setIsUpdating(false)
+                    }
+                  }}
+                                     disabled={isUpdating || !destinationCity.trim() || !assignedMatch.trim() || !hasChanges}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                                     {isUpdating ? 'Updating...' : hasChanges ? 'Update Details' : 'No Changes'}
+                </Button>
+                
+
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Footer */}
@@ -506,7 +679,9 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                           <div className="flex flex-col gap-3">
                 <div className="text-xs text-gray-500 text-center">
                   {bookingData.status === "pending" 
-                    ? "Click Approve to confirm this booking, or Reject to cancel it"
+                    ? (!destinationCity.trim() || !assignedMatch.trim()) 
+                      ? "⚠️ Please fill in destination city and assigned match before approving"
+                      : "Click Approve to confirm this booking, or Reject to cancel it"
                     : bookingData.status === "completed"
                     ? "✅ This booking has been confirmed and cannot be modified"
                     : "❌ This booking has been rejected and cannot be modified"
@@ -538,8 +713,16 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                               AppData.bookings.update(bookingToUpdate.id, { status: "completed" })
                               console.log('✅ Booking approved and status updated to completed')
                               
+                              // Send confirmation email automatically
+                              try {
+                                const result = await AppData.emailTemplates.sendConfirmationEmail(bookingToUpdate)
+                                console.log('✅ Confirmation email sent automatically:', result)
+                              } catch (emailError) {
+                                console.error('❌ Error sending automatic confirmation email:', emailError)
+                              }
+                              
                               // Show success message
-                              alert('✅ Booking approved successfully! Status updated to completed.')
+                              alert('✅ Booking approved successfully! Status updated to completed and confirmation email sent.')
                               
                               // Refresh parent component to show updated data
                               if (onStatusUpdate) {
@@ -557,7 +740,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                             setIsOpen(false)
                           }
                         }} 
-                        disabled={isProcessing}
+                        disabled={isProcessing || !destinationCity.trim() || !assignedMatch.trim()}
                         className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isProcessing ? 'Processing...' : '✓ Approve'}
@@ -584,8 +767,16 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                               AppData.bookings.update(bookingToUpdate.id, { status: "cancelled" })
                               console.log('✅ Booking rejected and status updated to cancelled')
                               
+                              // Send rejection email automatically
+                              try {
+                                const result = await AppData.emailTemplates.sendConfirmationEmail(bookingToUpdate)
+                                console.log('✅ Rejection email sent automatically:', result)
+                              } catch (emailError) {
+                                console.error('❌ Error sending automatic rejection email:', emailError)
+                              }
+                              
                               // Show success message
-                              alert('✅ Booking rejected successfully! Status updated to cancelled.')
+                              alert('✅ Booking rejected successfully! Status updated to cancelled and rejection email sent.')
                               
                               // Refresh parent component to show updated data
                               if (onStatusUpdate) {
