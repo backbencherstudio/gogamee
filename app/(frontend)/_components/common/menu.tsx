@@ -24,6 +24,7 @@ export default function Menu() {
     { label: t.menu.home, href: '/' },
     { label: t.menu.packages, href: '/packages' },
     { label: t.menu.faqs, href: '/faqs' },
+    { label: t.menu.about, href: '/about Us' },
   ]
 
   const toggleLangDropdown = () => {
@@ -39,8 +40,8 @@ export default function Menu() {
     <div className="w-full bg-white py-5">
       <div className="max-w-[1200px] mx-auto px-4 lg:px-0 flex justify-between items-center relative">
         {/* Logo */}
-        <div className="font-bold font-['Poppins'] text-3xl md:text-4xl text-black">
-          <Image src="/logo.svg" className="min-w-36 h-auto" alt="Logo" width={100} height={100} />
+        <div className="font-bold font-['Poppins'] text-3xl md:text-4xl text-black flex items-center">
+          <Image src="/logo.svg" className=" min-w-24 md:min-w-32 h-auto" alt="Logo" width={80} height={80} />
         </div>
 
         {/* Mobile Language & Contact - Always Visible */}

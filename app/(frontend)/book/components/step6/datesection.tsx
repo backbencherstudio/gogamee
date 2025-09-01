@@ -537,14 +537,14 @@ export default function DateSection() {
                   <div className={`justify-center text-xs xl:text-sm font-normal font-['Poppins'] leading-relaxed ${
                     selectedDuration === index ? 'text-white' : 'text-black'
                   }`}>
-                    {option.nights}{option.nights === 1 ? ' Night' : 'Night'}
+                    {option.nights}{option.nights === 1 ? ' Night' : ' Night'}
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Calendar Section */}
+          {/* Calendar Sectioon */}
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             <div className="w-full p-4 xl:p-6 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex justify-center items-start overflow-x-auto">
               <div className="flex flex-col xl:flex-row justify-start items-start gap-6 xl:gap-8 min-w-full xl:min-w-0">
