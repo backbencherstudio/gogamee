@@ -12,6 +12,38 @@ interface Translations {
     packages: string
     faqs: string
     contactUs: string
+    about: string
+  }
+  // About page translations
+  about: {
+    headline: string
+    whoWeAre: string
+    whoWeAreDesc: string
+    ourStory: string
+    ourStoryDesc: string
+    mission: string
+    missionDesc: string
+    vision: string
+    visionDesc: string
+    ourValues: string
+    passionForSports: string
+    passionForSportsDesc: string
+    adventureSurprise: string
+    adventureSurpriseDesc: string
+    trustSimplicity: string
+    trustSimplicityDesc: string
+    community: string
+    communityDesc: string
+    whyChooseUs: string
+    uniqueConcept: string
+    uniqueConceptDesc: string
+    allInOnePacks: string
+    allInOnePacksDesc: string
+    accessible: string
+    accessibleDesc: string
+    growingCommunity: string
+    growingCommunityDesc: string
+    cta: string
   }
   // Hero section translations
   hero: {
@@ -66,7 +98,38 @@ const translations: Record<Language, Translations> = {
       home: 'Home',
       packages: 'Packages',
       faqs: 'FAQs',
-      contactUs: 'Contact us'
+      contactUs: 'Contact us',
+      about: 'About Us'
+    },
+    about: {
+      headline: 'We turn sports into unforgettable surprise adventures.',
+      whoWeAre: 'Who we are',
+      whoWeAreDesc: 'GoGame is a sports travel platform with a twist: the destination and the match are a surprise until 48 hours before you travel. We organize everything — flights, hotel, and tickets — so you only need to enjoy the experience.',
+      ourStory: 'Our Story',
+      ourStoryDesc: 'GoGame was born from our passion for sports and travel. After years of following matches across Europe, we realized that fans love both the adrenaline of the game and the adventure of discovering new places — so we decided to combine them.',
+      mission: 'Mission',
+      missionDesc: 'To bring fans closer to live sports while adding the thrill of surprise. We create complete, worry-free trips that turn every match into a unique adventure.',
+      vision: 'Vision',
+      visionDesc: 'To become the leading platform for surprise sports travel in Europe, creating a global community of fans who explore new cities and live sports in a different, exciting way.',
+      ourValues: 'Our Values',
+      passionForSports: 'Passion for sports',
+      passionForSportsDesc: 'We believe live matches are unforgettable moments.',
+      adventureSurprise: 'Adventure & surprise',
+      adventureSurpriseDesc: 'Every trip should feel as thrilling as the game itself.',
+      trustSimplicity: 'Trust & simplicity',
+      trustSimplicityDesc: 'We take care of everything so you can just enjoy.',
+      community: 'Community',
+      communityDesc: 'Sports are better when shared — we connect fans everywhere.',
+      whyChooseUs: 'Why choose us',
+      uniqueConcept: 'Unique concept',
+      uniqueConceptDesc: 'The destination is always a surprise.',
+      allInOnePacks: 'All-in-one packs',
+      allInOnePacksDesc: 'Flights, hotel, and tickets included.',
+      accessible: 'Accessible',
+      accessibleDesc: 'Standard and Premium packs for all budgets.',
+      growingCommunity: 'Growing community',
+      growingCommunityDesc: 'A growing community of fans who love to travel and cheer together.',
+      cta: 'Are you ready to play the game of travel? Discover your pack today.'
     },
     hero: {
       title: 'Are you ready to experience sports like never before?',
@@ -113,7 +176,38 @@ const translations: Record<Language, Translations> = {
       home: 'Inicio',
       packages: 'Paquetes',
       faqs: 'Preguntas',
-      contactUs: 'Contáctanos'
+      contactUs: 'Contáctanos',
+      about: 'Sobre nosotros'
+    },
+    about: {
+      headline: 'Convertimos el deporte en aventuras sorpresa inolvidables.',
+      whoWeAre: 'Quiénes somos',
+      whoWeAreDesc: 'GoGame es una plataforma de viajes deportivos con un toque diferente: el destino y el partido son sorpresa hasta 48 horas antes de viajar. Organizamos todo (vuelos, hotel y entradas) para que solo tengas que disfrutar de la experiencia.',
+      ourStory: 'Nuestra historia',
+      ourStoryDesc: 'GoGame nació de nuestra pasión por el deporte y los viajes. Tras años siguiendo partidos por Europa, nos dimos cuenta de que los fans disfrutan tanto de la adrenalina del juego como de la aventura de descubrir nuevos lugares — así que decidimos unir ambas cosas.',
+      mission: 'Misión',
+      missionDesc: 'Acercar a los aficionados al deporte en directo, añadiendo la emoción de la sorpresa. Creamos viajes completos y sin complicaciones que convierten cada partido en una aventura única.',
+      vision: 'Visión',
+      visionDesc: 'Convertirnos en la plataforma líder de viajes deportivos sorpresa en Europa, creando una comunidad global de fans que exploran nuevas ciudades y viven el deporte de una forma distinta y emocionante.',
+      ourValues: 'Nuestros valores',
+      passionForSports: 'Pasión por el deporte',
+      passionForSportsDesc: 'Creemos que un partido en directo es un momento inolvidable.',
+      adventureSurprise: 'Aventura y sorpresa',
+      adventureSurpriseDesc: 'Cada viaje debe ser tan emocionante como el propio juego.',
+      trustSimplicity: 'Confianza y sencillez',
+      trustSimplicityDesc: 'Nos encargamos de todo para que tú solo disfrutes.',
+      community: 'Comunidad',
+      communityDesc: 'El deporte es mejor cuando se comparte — conectamos a fans de todas partes.',
+      whyChooseUs: 'Por qué elegirnos',
+      uniqueConcept: 'Concepto único',
+      uniqueConceptDesc: 'El destino siempre es sorpresa.',
+      allInOnePacks: 'Packs todo incluido',
+      allInOnePacksDesc: 'Vuelos, hotel y entradas.',
+      accessible: 'Accesible',
+      accessibleDesc: 'Opciones Standard y Premium para todos los presupuestos.',
+      growingCommunity: 'Comunidad creciente',
+      growingCommunityDesc: 'Una comunidad creciente de fans que aman viajar y animar juntos.',
+      cta: '¿Listo para jugar el partido de tu vida? Descubre tu pack hoy mismo.'
     },
     hero: {
       title: '¿Estás listo para experimentar los deportes como nunca antes?',
