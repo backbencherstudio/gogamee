@@ -848,42 +848,42 @@ export const AppData = {
       {
         id: "premier-league",
         name: "Premier League",
-        image: "/homepage/image/fb1.png",
+        image: "/homepage/image/premierleague.jpeg",
         country: "England",
         description: "English top-flight football league"
       },
       {
         id: "la-liga",
         name: "La Liga",
-        image: "/homepage/image/fb3.png",
+        image: "/homepage/image/laliga.jpeg",
         country: "Spain",
         description: "Spanish top-flight football league"
       },
       {
         id: "bundesliga",
         name: "Bundesliga",
-        image: "/homepage/image/fb4.png",
+        image: "/homepage/image/bundesliga.jpeg",
         country: "Germany",
         description: "German top-flight football league"
       },
       {
         id: "serie-a",
         name: "Serie A",
-        image: "/homepage/image/fb5.png",
+        image: "/homepage/image/seriea.jpeg",
         country: "Italy",
         description: "Italian top-flight football league"
       },
       {
         id: "ligue-1",
         name: "Ligue 1",
-        image: "/homepage/image/fb6.png",
+        image: "/homepage/image/ligue1.jpg",
         country: "France",
         description: "French top-flight football league"
       },
       {
         id: "european-competition",
         name: "European Competition",
-        image: "/homepage/image/fb7.png",
+        image: "/homepage/image/eredivisie.jpg",
         country: "Europe",
         description: "European club competitions including Champions League and Europa League"
       }
@@ -891,51 +891,51 @@ export const AppData = {
     
     basketball: [
       {
-        id: "liga-endesa",
-        name: "Liga Endesa",
-        image: "/homepage/image/bs1.png",
+        id: "lnb pro a",
+        name: "Lnb Pro A",
+        image: "/homepage/image/lnbproa.jpg",
         country: "Spain",
         description: "Spanish top-flight basketball league"
       },
       {
         id: "basketbol-super-ligi",
         name: "Basketbol Süper Ligi",
-        image: "/homepage/image/bs2.png",
+        image: "/homepage/image/basketballsuperligi.jpg",
         country: "Turkey",
         description: "Turkish top-flight basketball league"
       },
       {
-        id: "lnb-pro-a",
-        name: "LNB Pro A",
-        image: "/homepage/image/bs3.png",
+        id: "la liga acb",
+        name: "la Liga ACB",
+        image: "/homepage/image/laligaacb.jpg",
         country: "France",
         description: "French top-flight basketball league"
       },
       {
         id: "lega-basket-serie-a",
         name: "Lega Basket Serie A",
-        image: "/homepage/image/bs4.png",
+        image: "/homepage/image/legaseriea.jpg",
         country: "Italy",
         description: "Italian top-flight basketball league"
       },
       {
         id: "basketball-bundesliga",
         name: "Basketball Bundesliga",
-        image: "/homepage/image/bs5.png",
+        image: "/homepage/image/bundesligabasket.jpg",
         country: "Germany",
         description: "German top-flight basketball league"
       },
       {
         id: "lietuvos-krepsinio-lyga",
         name: "Lietuvos krepšinio lyga",
-        image: "/homepage/image/bs6.png",
+        image: "/homepage/image/lietuvoskrepsinio.jpg",
         country: "Lithuania",
         description: "Lithuanian top-flight basketball league"
       },
       {
         id: "european-competition",
         name: "European competition",
-        image: "/homepage/image/bs7.png",
+        image: "/homepage/image/euroleague.jpg",
         country: "Europe",
         description: "European basketball competitions"
       }
