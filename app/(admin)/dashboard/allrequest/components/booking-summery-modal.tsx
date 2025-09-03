@@ -275,8 +275,12 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <Trophy className="h-4 w-4 text-gray-500" />
                   <div>
-                    <p className="text-sm text-gray-500">League</p>
-                    <p className="font-medium text-gray-900 capitalize">{bookingData.selectedLeague}</p>
+                    <p className="text-sm text-gray-500">Competition</p>
+                    <p className="font-medium text-gray-900 capitalize">
+                      {bookingData.selectedLeague === 'european' ? 'European' : 
+                       bookingData.selectedLeague === 'national' ? 'National' : 
+                       bookingData.selectedLeague}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -372,7 +376,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
             </CardContent>
           </Card>
 
-          {/* Excluded Leagues */}
+          {/* Excluded Competitions */}
           {bookingData.hasRemovedLeagues && bookingData.removedLeagues.length > 0 && (
             <Card className="border border-red-200 shadow-sm">
               <CardHeader className="pb-4">
@@ -380,7 +384,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                   <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
                     <XCircle className="h-4 w-4 text-red-600" />
                   </div>
-                  Excluded Leagues
+                  Excluded Competitions
                 </CardTitle>
               </CardHeader>
               <CardContent>

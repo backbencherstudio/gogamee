@@ -1848,7 +1848,7 @@ export const AppData = {
         selectedSport: "basketball",
         selectedPackage: "premium",
         selectedCity: "madrid",
-        selectedLeague: "international",
+        selectedLeague: "european",
         adults: 2,
         kids: 1,
         babies: 0,
