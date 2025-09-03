@@ -208,21 +208,28 @@ const TimeRangeSlider = React.memo(({
               className="relative w-5 h-5 border-2 border-[#6AAD3C] rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300 bg-white"
               style={{ ...props.style, backgroundColor: isDragged ? '#65a30d' : 'white' }}
             >
-              <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-white border border-gray-200 rounded text-[10px] text-gray-600 whitespace-nowrap">
-                {timeSlots[index === 0 ? startIndex : endIndex]?.label}
-              </div>
+                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 whitespace-nowrap shadow-sm">
+                 {timeSlots[index === 0 ? startIndex : endIndex]?.label}
+               </div>
             </div>
           )}
         />
       </div>
       
-      <div className="w-full flex justify-between items-center px-2">
-        {timeSlots.map((slot) => (
-          <div key={slot.value} className="text-zinc-400 text-xs font-normal font-['Inter'] leading-tight">
-            {slot.label}
-          </div>
-        ))}
-      </div>
+             {/* <div className="w-full flex justify-between items-center px-2">
+         {timeSlots.map((slot, index) => (
+           <div 
+             key={slot.value} 
+             className="text-zinc-400 text-xs font-normal font-['Inter'] leading-tight"
+             style={{
+               transform: `translateX(${index === 0 ? '0' : index === timeSlots.length - 1 ? '0' : '-50%'})`,
+               marginLeft: index === 0 ? '0' : index === timeSlots.length - 1 ? '0' : '50%'
+             }}
+           >
+             {slot.label}
+           </div>
+         ))}
+       </div> */}
     </div>
   )
 })
