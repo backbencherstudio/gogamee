@@ -72,6 +72,7 @@ export interface BookingData {
   // New fields for GoGame internal management
   destinationCity?: string;
   assignedMatch?: string;
+  previousTravelInfo?: string;
 }
 
 // Hero Section Data Structure
@@ -1522,6 +1523,10 @@ export const AppData = {
       documentNumber: {
         label: "Documents number",
         placeholder: "Enter your documents number"
+      },
+      previousTravelInfo: {
+        label: "Previous Travel Experience",
+        placeholder: "Have you traveled with us before? If so, please write which city and which match, so we can take it into account. Thank you!"
       }
     },
     paymentMethods: [
@@ -1840,7 +1845,8 @@ export const AppData = {
         hasFlightPreferences: true,
         requiresEuropeanLeagueHandling: false,
         destinationCity: "",
-        assignedMatch: ""
+        assignedMatch: "",
+        previousTravelInfo: "Yes, I traveled to Barcelona for the Champions League match in 2021"
       },
       {
         id: 2,
@@ -1894,7 +1900,8 @@ export const AppData = {
         hasFlightPreferences: true,
         requiresEuropeanLeagueHandling: true,
         destinationCity: "",
-        assignedMatch: ""
+        assignedMatch: "",
+        previousTravelInfo: "Yes, I traveled to Barcelona for the Champions League match in 2023"
       }
     ];
     

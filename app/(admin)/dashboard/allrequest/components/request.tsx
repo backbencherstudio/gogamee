@@ -366,6 +366,7 @@ export default function EventReqTable() {
                             fullName: booking.fullName,
                             email: booking.email,
                             phone: booking.phone,
+                            previousTravelInfo: booking.previousTravelInfo,
                             paymentMethod: booking.paymentMethod,
                             cardNumber: booking.cardNumber,
                             expiryDate: booking.expiryDate,

@@ -63,6 +63,7 @@ export interface BookingContextType {
       lastName: string
       email: string
       phone: string
+      previousTravelInfo: string
     }
     paymentInfo: {
       cardNumber: string
@@ -117,7 +118,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
       firstName: '',
       lastName: '',
       email: '',
-      phone: ''
+      phone: '',
+      previousTravelInfo: ''
     },
     paymentInfo: {
       cardNumber: '',
@@ -300,7 +302,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         firstName: '',
         lastName: '',
         email: '',
-        phone: ''
+        phone: '',
+        previousTravelInfo: ''
       },
       paymentInfo: {
         cardNumber: '',

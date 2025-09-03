@@ -91,6 +91,7 @@ interface PersonalInfoFormData {
   primaryTraveler: TravelerInfo
   extraTraveler: TravelerInfo
   paymentMethod: 'credit' | 'google' | 'apple'
+  previousTravelInfo: string
 }
 
 const defaultTravelerInfo: TravelerInfo = {
@@ -320,7 +321,8 @@ export default function Personalinfo() {
     const initialValues = savedData || {
       primaryTraveler: defaultTravelerInfo,
       extraTraveler: hasMultipleTravelers ? defaultTravelerInfo : { ...defaultTravelerInfo, name: '', email: '', phone: '', dateOfBirth: '', documentType: 'ID', documentNumber: '' },
-      paymentMethod: 'credit'
+      paymentMethod: 'credit',
+      previousTravelInfo: ''
     }
     console.log('🎯 Initial form values:', initialValues)
     return initialValues
@@ -364,7 +366,8 @@ export default function Personalinfo() {
         firstName: data.primaryTraveler.name.split(' ')[0] || '',
         lastName: data.primaryTraveler.name.split(' ').slice(1).join(' ') || '',
         email: data.primaryTraveler.email,
-        phone: data.primaryTraveler.phone
+        phone: data.primaryTraveler.phone,
+        previousTravelInfo: data.previousTravelInfo
       },
              // Add calculated totals for the next step
        calculatedTotals: {
@@ -553,6 +556,26 @@ export default function Personalinfo() {
                        />
                         </div>
                       </div>
+                    </div>
+                    
+                    {/* Previous Travel Information */}
+                    <div className="self-stretch flex flex-col justify-start items-start gap-2">
+                      <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
+                        {personalInfoData.formFields.previousTravelInfo.label}
+                      </div>
+                      <Controller
+                        name="previousTravelInfo"
+                        control={control}
+                        render={({ field }) => (
+                          <textarea
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder={personalInfoData.formFields.previousTravelInfo.placeholder}
+                            className="self-stretch h-24 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C] resize-none"
+                            rows={4}
+                          />
+                        )}
+                      />
                     </div>
                   </div>
                 </div>

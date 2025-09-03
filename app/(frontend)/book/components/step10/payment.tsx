@@ -252,7 +252,8 @@ export default function Payment() {
           firstName: formData.personalInfo.firstName,
           lastName: formData.personalInfo.lastName,
           email: formData.personalInfo.email,
-          phone: formData.personalInfo.phone
+          phone: formData.personalInfo.phone,
+          previousTravelInfo: formData.personalInfo.previousTravelInfo
         },
         
         // Step 10: Payment Information
@@ -352,6 +353,7 @@ export default function Payment() {
         fullName: `${formData.personalInfo.firstName} ${formData.personalInfo.lastName}`.trim(),
         email: formData.personalInfo.email,
         phone: formData.personalInfo.phone,
+        previousTravelInfo: formData.personalInfo.previousTravelInfo,
         
         // Payment Information
         paymentMethod: data.paymentMethod,
@@ -461,6 +463,7 @@ export default function Payment() {
           fullName: singleFormDataObject.fullName,
           email: singleFormDataObject.email,
           phone: singleFormDataObject.phone,
+          previousTravelInfo: singleFormDataObject.previousTravelInfo,
           paymentMethod: selectedPayment,
           cardNumber: singleFormDataObject.cardNumber,
           expiryDate: singleFormDataObject.expiryDate,

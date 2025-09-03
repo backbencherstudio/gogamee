@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   CalendarIcon,
   Users,
@@ -98,6 +98,7 @@ interface BookingData {
   travelDuration: number
   hasFlightPreferences: boolean
   requiresEuropeanLeagueHandling: boolean
+  previousTravelInfo?: string
   destinationCity?: string
   assignedMatch?: string
 }
@@ -116,16 +117,16 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
   const [hasChanges, setHasChanges] = useState(false)
 
   // Update local state when bookingData changes
-  const updateLocalState = () => {
+  const updateLocalState = useCallback(() => {
     setDestinationCity(bookingData.destinationCity || "")
     setAssignedMatch(bookingData.assignedMatch || "")
     setHasChanges(false) // Reset changes flag when data is updated
-  }
+  }, [bookingData.destinationCity, bookingData.assignedMatch])
 
   // Update local state when component mounts or bookingData changes
   useEffect(() => {
     updateLocalState()
-  }, [bookingData.destinationCity, bookingData.assignedMatch])
+  }, [updateLocalState])
 
   // Check for changes when input values change
   useEffect(() => {
@@ -141,7 +142,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
     if (isOpen) {
       updateLocalState()
     }
-  }, [isOpen])
+  }, [isOpen, updateLocalState])
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -492,6 +493,19 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-gray-500">Phone</p>
                     <p className="font-medium text-gray-900 truncate">{bookingData.phone}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="flex items-start gap-3">
+                  <div className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-yellow-800 font-medium">Previous Travel Experience</p>
+                    <p className="font-medium text-gray-900 text-sm leading-relaxed">{bookingData.previousTravelInfo && bookingData.previousTravelInfo.trim() ? bookingData.previousTravelInfo : 'Not provided'}</p>
                   </div>
                 </div>
               </div>
