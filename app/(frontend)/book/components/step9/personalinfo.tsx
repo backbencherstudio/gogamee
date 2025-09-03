@@ -259,7 +259,9 @@ export default function Personalinfo() {
     const leagueTotal = leagueCost * totalPeople
     
     // Calculate grand total
-    const grandTotal = packageTotal + extrasTotal + flightScheduleTotal + leagueTotal + removalTotal
+    const singleTravelerSupplement = totalPeople === 1 ? 50 : 0
+
+    const grandTotal = packageTotal + extrasTotal + flightScheduleTotal + leagueTotal + removalTotal + singleTravelerSupplement
     
     return {
       departureCity: formData.selectedCity || 'Barcelona',
@@ -277,6 +279,7 @@ export default function Personalinfo() {
       leagueTotal,
       removalCostPerPerson,
       removalTotal,
+      singleTravelerSupplement,
       grandTotal,
       totalPeople,
       departureTimeRange: formData.flightSchedule ? 
@@ -311,6 +314,9 @@ export default function Personalinfo() {
      console.log(`  League: ${reservationData.leagueCost}€ × ${reservationData.totalPeople} = ${reservationData.leagueTotal.toFixed(2)}€`)
      if (formData.removedLeagues && formData.removedLeagues.length > 0) {
        console.log(`  League Removal: ${reservationData.removalCostPerPerson}€ × ${reservationData.totalPeople} = ${reservationData.removalTotal.toFixed(2)}€`)
+     }
+     if (reservationData.singleTravelerSupplement > 0) {
+       console.log(`  Single Traveler Supplement: ${reservationData.singleTravelerSupplement.toFixed(2)}€`)
      }
      console.log(`  Grand Total: ${reservationData.grandTotal.toFixed(2)}€`)
   }, [formData.peopleCount, hasMultipleTravelers, reservationData, formData.extras])
@@ -830,6 +836,23 @@ export default function Personalinfo() {
                            </div>
                          )}
                         
+                         {/* Single Traveler Supplement Row (Mobile) */}
+                         {reservationData.singleTravelerSupplement > 0 && (
+                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                               Single traveler supplement
+                             </span>
+                             <div className="text-right">
+                               <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
+                                 50€
+                               </div>
+                               <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                                 {reservationData.singleTravelerSupplement.toFixed(2)}€
+                               </div>
+                             </div>
+                           </div>
+                         )}
+
                                                  {/* Subtotal Row */}
                          <div className="flex justify-between items-center py-4 border-t-2 border-lime-400 bg-lime-50 rounded-lg px-3">
                            <span className="text-neutral-800 text-lg font-bold font-['Poppins'] text-gray-800">
@@ -951,6 +974,24 @@ export default function Personalinfo() {
                            </div>
                          )}
                         
+                         {/* Single Traveler Supplement Row (Desktop) */}
+                         {reservationData.singleTravelerSupplement > 0 && (
+                           <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
+                             <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
+                               Single traveler supplement
+                             </div>
+                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               50€
+                             </div>
+                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
+                               -
+                             </div>
+                             <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+                               {reservationData.singleTravelerSupplement.toFixed(2)}€
+                             </div>
+                           </div>
+                         )}
+
                                                  {/* Subtotal Row */}
                          <div className="w-full grid grid-cols-4 gap-4 py-3 border-t-2 border-gray-300">
                            <div className="text-left text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
@@ -1020,6 +1061,17 @@ export default function Personalinfo() {
                              </div>
                            )}
                           
+                          {reservationData.singleTravelerSupplement > 0 && (
+                            <div className="flex justify-between items-center py-2 border-b border-lime-200">
+                              <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                                Single traveler supplement:
+                              </span>
+                              <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
+                                {reservationData.singleTravelerSupplement.toFixed(2)}€
+                              </span>
+                            </div>
+                          )}
+
                            {reservationData.removalTotal > 0 && (
                              <div className="flex justify-between items-center py-2 border-b border-lime-200">
                                <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
@@ -1032,7 +1084,7 @@ export default function Personalinfo() {
                            )}
                          </div>
                         
-                                                 <div className="border-t-2 border-lime-400 pt-4 mt-4">
+                         <div className="border-t-2 border-lime-400 pt-4 mt-4">
                            <div className="flex justify-between items-center">
                              <span className="text-neutral-800 text-xl font-bold font-['Poppins'] text-gray-800">
                                {personalInfoData.text.totalCost}
