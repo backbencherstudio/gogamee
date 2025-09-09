@@ -10,6 +10,7 @@ import {
   FileText,
   Star,
   Package,
+  Info,
 } from "lucide-react"
 import { cn } from "@/app/lib/utils"
 
@@ -35,6 +36,7 @@ const sidebarData: SidebarSection[] = [
       { title: "FAQ", icon: HelpCircle, url: "/dashboard/faq" },
       { title: "Package", icon: Package, url: "/dashboard/package" },
       { title: "Testimonial", icon: Star, url: "/dashboard/testimonial" },
+      { title: "About Page", icon: Info, url: "/dashboard/about" },
     ],
   },
 ]

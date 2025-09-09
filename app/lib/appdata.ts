@@ -1935,6 +1935,197 @@ export const AppData = {
     }
   },
 
+  // About Page Data
+  aboutPage: {
+    // Hero section
+    hero: {
+      title: "About us",
+      backgroundImage: "/homepage/packbg.png"
+    },
+    
+    // Main content sections
+    content: {
+      headline: "We turn sports into unforgettable surprise adventures.",
+      sections: [
+        {
+          id: "who-we-are",
+          title: "Who we are",
+          description: "GoGame is a sports travel platform with a twist: the destination and the match are a surprise until 48 hours before you travel. We organize everything — flights, hotel, and tickets — so you only need to enjoy the experience.",
+          order: 1
+        },
+        {
+          id: "our-story",
+          title: "Our Story",
+          description: "GoGame was born from our passion for sports and travel. After years of following matches across Europe, we realized that fans love both the adrenaline of the game and the adventure of discovering new places — so we decided to combine them.",
+          order: 2
+        },
+        {
+          id: "mission",
+          title: "Mission",
+          description: "To bring fans closer to live sports while adding the thrill of surprise. We create complete, worry-free trips that turn every match into a unique adventure.",
+          order: 3
+        },
+        {
+          id: "vision",
+          title: "Vision",
+          description: "To become the leading platform for surprise sports travel in Europe, creating a global community of fans who explore new cities and live sports in a different, exciting way.",
+          order: 4
+        }
+      ],
+      
+      // Values section
+      values: {
+        title: "Our Values",
+        items: [
+          {
+            id: "passion-sports",
+            title: "Passion for sports",
+            description: "We believe live matches are unforgettable moments.",
+            order: 1
+          },
+          {
+            id: "adventure-surprise",
+            title: "Adventure & surprise",
+            description: "Every trip should feel as thrilling as the game itself.",
+            order: 2
+          },
+          {
+            id: "trust-simplicity",
+            title: "Trust & simplicity",
+            description: "We take care of everything so you can just enjoy.",
+            order: 3
+          },
+          {
+            id: "community",
+            title: "Community",
+            description: "Sports are better when shared — we connect fans everywhere.",
+            order: 4
+          }
+        ]
+      },
+      
+      // Why choose us section
+      whyChooseUs: {
+        title: "Why choose us",
+        items: [
+          {
+            id: "unique-concept",
+            title: "Unique concept",
+            description: "The destination is always a surprise.",
+            order: 1
+          },
+          {
+            id: "all-in-one-packs",
+            title: "All-in-one packs",
+            description: "Flights, hotel, and tickets.",
+            order: 2
+          },
+          {
+            id: "accessible",
+            title: "Accessible",
+            description: "Standard and Premium options for all budgets.",
+            order: 3
+          },
+          {
+            id: "growing-community",
+            title: "Growing community",
+            description: "A growing community of fans who love to travel and cheer together.",
+            order: 4
+          }
+        ]
+      },
+      
+      // CTA section
+      cta: {
+        text: "Ready to play the game of your life? Discover your pack today.",
+        buttonText: "Start the Game",
+        buttonLink: "/packages"
+      }
+    },
+    
+    // Helper functions
+    getHeroData: function() {
+      return this.hero;
+    },
+    
+    getContentData: function() {
+      return this.content;
+    },
+    
+    getSections: function() {
+      return this.content.sections.sort((a, b) => a.order - b.order);
+    },
+    
+    getValues: function() {
+      return this.content.values.items.sort((a, b) => a.order - b.order);
+    },
+    
+    getWhyChooseUs: function() {
+      return this.content.whyChooseUs.items.sort((a, b) => a.order - b.order);
+    },
+    
+    getCtaData: function() {
+      return this.content.cta;
+    },
+    
+    // Update functions
+    updateSection: function(sectionId: string, updates: Partial<{
+      title: string;
+      description: string;
+      order: number;
+    }>) {
+      const section = this.content.sections.find(s => s.id === sectionId);
+      if (section) {
+        Object.assign(section, updates);
+        return section;
+      }
+      return null;
+    },
+    
+    updateValue: function(valueId: string, updates: Partial<{
+      title: string;
+      description: string;
+      order: number;
+    }>) {
+      const value = this.content.values.items.find(v => v.id === valueId);
+      if (value) {
+        Object.assign(value, updates);
+        return value;
+      }
+      return null;
+    },
+    
+    updateWhyChooseUs: function(itemId: string, updates: Partial<{
+      title: string;
+      description: string;
+      order: number;
+    }>) {
+      const item = this.content.whyChooseUs.items.find(i => i.id === itemId);
+      if (item) {
+        Object.assign(item, updates);
+        return item;
+      }
+      return null;
+    },
+    
+    updateCta: function(updates: Partial<{
+      text: string;
+      buttonText: string;
+      buttonLink: string;
+    }>) {
+      Object.assign(this.content.cta, updates);
+      return this.content.cta;
+    },
+    
+    updateHero: function(updates: Partial<{
+      title: string;
+      backgroundImage: string;
+    }>) {
+      Object.assign(this.hero, updates);
+      return this.hero;
+    }
+  },
+
   // Email templates and functions
   emailTemplates: {
     // Generate confirmation email content
@@ -2158,6 +2349,7 @@ export const personalInfoData = AppData.personalInfo;
 export const paymentData = AppData.payment;
 export const leaguePricingData = AppData.leaguePricing;
 export const homepageLeaguesData = AppData.homepageLeagues;
+export const aboutPageData = AppData.aboutPage;
 
 // Export the main object as default
 export default AppData; 
