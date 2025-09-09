@@ -25,8 +25,10 @@ interface WhyChooseUs {
 
 
 
+type TabId = 'sections' | 'values' | 'whyChooseUs'
+
 export default function AboutManagement() {
-  const [activeTab, setActiveTab] = useState<'sections' | 'values' | 'whyChooseUs'>('sections')
+  const [activeTab, setActiveTab] = useState<TabId>('sections')
   const [isEditing, setIsEditing] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [sections, setSections] = useState<Section[]>([])
@@ -332,14 +334,14 @@ export default function AboutManagement() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="border-b border-gray-200 mb-6">
             <nav className="-mb-px flex space-x-8">
-              {[
+              {([
                 { id: 'sections', label: 'Main Sections' },
                 { id: 'values', label: 'Our Values' },
                 { id: 'whyChooseUs', label: 'Why Choose Us' }
-              ].map((tab) => (
+              ] as { id: TabId; label: string }[]).map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id)}
                   className={`py-3 px-1 border-b-2 font-medium text-sm font-['Poppins'] transition-colors ${
                     activeTab === tab.id
                       ? 'border-[#76C043] text-[#76C043]'
