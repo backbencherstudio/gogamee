@@ -169,23 +169,23 @@ export default function TestimonialPage() {
   };
 
   return (
-    <div className="pt-4 pl-10 min-h-screen mb-4 pr-8">
+    <div className="py-4 pl-10 min-h-screen mb-4 pr-8">
       <div className="flex flex-col gap-6">
         {/* Header Section */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
               Testimonial Management
             </h1>
             <p className="text-gray-600 font-['Poppins']">Manage customer reviews and testimonials displayed on the website</p>
           </div>
-          
+
           {/* Add Review Button */}
           <button
             onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 py-3 px-2 whitespace-nowrap bg-[#76C043] hover:bg-lime-600 rounded-lg font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md text-white w-fit"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-5 h-5 text-white" />
             Add Review
           </button>
         </div>
