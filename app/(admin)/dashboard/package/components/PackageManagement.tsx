@@ -76,16 +76,16 @@ export default function PackageManagement({
   };
 
   return (
-    <div className="pt-4 pl-10 min-h-screen mb-4 pr-8">
+    <div className="py-4 pl-10 min-h-screen mb-4 pr-8 ">
       <div className="flex flex-col gap-6">
         {/* Header Section */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-start flex-col gap-4">
           <div className="flex flex-col gap-2">
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
               Package Management
             </h1>
             <p className="text-gray-600 font-['Poppins']">Manage travel packages for football and basketball events</p>
-          </div>
+          </div> 
           
           {/* Add Package Button */}
           <button
@@ -98,10 +98,10 @@ export default function PackageManagement({
         </div>
 
         {/* Filter Section */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <span className="text-gray-700 font-medium font-['Poppins']">Filter by Sport:</span>
-            <div className="flex gap-2">
+        <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 shadow-sm">
+          <div className="flex flex-col gap-3">
+            <span className="text-gray-700 font-medium font-['Poppins'] whitespace-nowrap">Filter by Sport</span>
+            <div className="flex flex-wrap gap-2">
               {[
                 { value: 'all', label: 'All Sports' },
                 { value: 'football', label: 'Football' },
@@ -110,7 +110,7 @@ export default function PackageManagement({
                 <button
                   key={option.value}
                   onClick={() => setSelectedSport(option.value as 'football' | 'basketball' | 'all')}
-                  className={`px-4 py-2 rounded-lg font-medium font-['Poppins'] transition-all duration-200 ${
+                  className={`px-3 py-1.5 text-sm md:px-4 md:py-2 md:text-base rounded-md font-medium font-['Poppins'] transition-all duration-200 ${
                     selectedSport === option.value
                       ? 'bg-[#76C043] text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
