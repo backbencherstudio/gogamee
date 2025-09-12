@@ -169,7 +169,7 @@ export default function TestimonialPage() {
   };
 
   return (
-    <div className="pt-4 pl-10 min-h-screen mb-4 pr-8">
+    <div className="py-4 pl-10 min-h-screen mb-4 pr-8">
       <div className="flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex items-center justify-between">
