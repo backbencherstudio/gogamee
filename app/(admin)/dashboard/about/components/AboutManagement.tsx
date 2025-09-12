@@ -128,7 +128,7 @@ export default function AboutManagement() {
   const renderTabContent = () => {
     if (isEditing) {
       return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 ">
           <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800 mb-6">
             {activeTab === 'sections' && 'Edit Section'}
             {activeTab === 'values' && 'Edit Value'}
@@ -318,7 +318,7 @@ export default function AboutManagement() {
   }
 
   return (
-    <div className="pt-4 pl-10 min-h-screen mb-4 pr-8">
+    <div className="pt-4 pl-10 min-h-screen mb-4 pr-8 space-y-4 pb-4">
       <div className="flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex items-center justify-between">
