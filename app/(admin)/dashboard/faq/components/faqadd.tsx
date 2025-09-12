@@ -94,7 +94,7 @@ export default function FaqAdd() {
   };
 
   return (
-    <div className="w-full px-4 ml-6">
+    <div className="w-full px-4 ">
       <div className="pt-8 pb-8 min-h-screen">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 lg:gap-24 mb-8">
