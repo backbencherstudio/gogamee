@@ -40,7 +40,7 @@ export default function EventReqTable() {
       return true
     })
 
-    // Then filter by date range (skip if "all time" is selected)
+    // Then filter by date range (skip if "all time" is selected))
     if (timeFilter !== "alltime") {
       const days = Number.parseInt(timeFilter.replace("days", ""))
       const { startDate, endDate } = getFilteredDateRange(days)

@@ -253,6 +253,16 @@ export default function HowManyTotal() {
             </div>
             
             {/* Next Button */}
+            {totalCount === 1 && (
+              <div className="w-full xl:w-[473px] p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900">
+                <div className="text-sm xl:text-base font-medium font-['Poppins']">
+                  Single traveler supplement: 50€ will be applied.
+                </div>
+                <div className="text-xs xl:text-sm text-zinc-600 font-['Poppins'] mt-1">
+                  This fee applies only when traveling alone and will appear in your final summary.
+                </div>
+              </div>
+            )}
             <button
               type="submit"
               className="w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
