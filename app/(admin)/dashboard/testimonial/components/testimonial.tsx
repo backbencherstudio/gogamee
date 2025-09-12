@@ -508,7 +508,7 @@ export default function TestimonialPage() {
           ))}
         </div>
 
-        {/* Delete Confirmation Modal */}
+        {/* Delete Confirmation Modall */}
         <DeleteConfirmationModal
           isOpen={!!deleteConfirm}
           onClose={() => setDeleteConfirm(null)}
