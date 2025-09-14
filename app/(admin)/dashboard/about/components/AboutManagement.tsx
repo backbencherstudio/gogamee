@@ -30,6 +30,7 @@ type TabId = 'sections' | 'values' | 'whyChooseUs'
 export default function AboutManagement() {
   const [activeTab, setActiveTab] = useState<TabId>('sections')
   const [isEditing, setIsEditing] = useState(false)
+  const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [sections, setSections] = useState<Section[]>([])
   const [values, setValues] = useState<Value[]>([])
@@ -61,6 +62,7 @@ export default function AboutManagement() {
 
   const handleEdit = (type: string, id?: string) => {
     setIsEditing(true)
+    setIsAdding(false)
     setEditingId(id || null)
     
     if (type === 'headline') {
@@ -90,8 +92,56 @@ export default function AboutManagement() {
     }
   }
 
+  const handleAddNew = (type: string) => {
+    setIsAdding(true)
+    setIsEditing(false)
+    setEditingId(null)
+    
+    // Get the next order number
+    const data = type === 'sections' ? sections : type === 'values' ? values : whyChooseUs
+    const nextOrder = Math.max(...data.map(item => item.order), 0) + 1
+    
+    setFormData({
+      title: '',
+      description: '',
+      order: nextOrder,
+      text: '',
+      buttonText: '',
+      buttonLink: '',
+      backgroundImage: ''
+    })
+  }
+
   const handleSave = () => {
-    if (activeTab === 'sections' && editingId) {
+    if (editingId === 'headline') {
+      // Update headline - using the new updateContent method
+      AppData.aboutPage.updateContent({ headline: formData.text })
+      setHeadline(formData.text)
+    } else if (isAdding) {
+      // Adding new items
+      if (activeTab === 'sections') {
+        AppData.aboutPage.addSection({
+          title: formData.title,
+          description: formData.description,
+          order: formData.order
+        })
+        setSections(AppData.aboutPage.getSections())
+      } else if (activeTab === 'values') {
+        AppData.aboutPage.addValue({
+          title: formData.title,
+          description: formData.description,
+          order: formData.order
+        })
+        setValues(AppData.aboutPage.getValues())
+      } else if (activeTab === 'whyChooseUs') {
+        AppData.aboutPage.addWhyChooseUs({
+          title: formData.title,
+          description: formData.description,
+          order: formData.order
+        })
+        setWhyChooseUs(AppData.aboutPage.getWhyChooseUs())
+      }
+    } else if (activeTab === 'sections' && editingId) {
       AppData.aboutPage.updateSection(editingId, {
         title: formData.title,
         description: formData.description,
@@ -115,28 +165,47 @@ export default function AboutManagement() {
     }
 
     setIsEditing(false)
+    setIsAdding(false)
     setEditingId(null)
     setFormData({ title: '', description: '', order: 1, text: '', buttonText: '', buttonLink: '', backgroundImage: '' })
   }
 
   const handleCancel = () => {
     setIsEditing(false)
+    setIsAdding(false)
     setEditingId(null)
     setFormData({ title: '', description: '', order: 1, text: '', buttonText: '', buttonLink: '', backgroundImage: '' })
   }
 
   const renderTabContent = () => {
-    if (isEditing) {
+    if (isEditing || isAdding) {
       return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 ">
           <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800 mb-6">
-            {activeTab === 'sections' && 'Edit Section'}
-            {activeTab === 'values' && 'Edit Value'}
-            {activeTab === 'whyChooseUs' && 'Edit Why Choose Us Item'}
+            {editingId === 'headline' && 'Edit Main Headline'}
+            {isAdding && activeTab === 'sections' && 'Add New Section'}
+            {isAdding && activeTab === 'values' && 'Add New Value'}
+            {isAdding && activeTab === 'whyChooseUs' && 'Add New Why Choose Us Item'}
+            {isEditing && activeTab === 'sections' && editingId !== 'headline' && 'Edit Section'}
+            {isEditing && activeTab === 'values' && 'Edit Value'}
+            {isEditing && activeTab === 'whyChooseUs' && 'Edit Why Choose Us Item'}
           </h3>
           
           <div className="space-y-6">
-            {activeTab === 'sections' && (
+            {editingId === 'headline' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Main Headline</label>
+                <textarea
+                  value={formData.text}
+                  onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+                  rows={3}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
+                  placeholder="Enter main headline for the about page"
+                />
+              </div>
+            )}
+
+            {(activeTab === 'sections' && (isAdding || (isEditing && editingId !== 'headline'))) && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
@@ -171,7 +240,7 @@ export default function AboutManagement() {
               </>
             )}
 
-            {(activeTab === 'values' || activeTab === 'whyChooseUs') && (
+            {((activeTab === 'values' || activeTab === 'whyChooseUs') && (isAdding || isEditing)) && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Title</label>
@@ -243,6 +312,18 @@ export default function AboutManagement() {
               <p className="text-gray-600 font-['Poppins'] leading-relaxed">{headline}</p>
             </div>
 
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800">Sections</h3>
+                <button
+                  onClick={() => handleAddNew('sections')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  Add New Section
+                </button>
+              </div>
+            </div>
+
             {sections.map((section) => (
               <div key={section.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <div className="flex justify-between items-center mb-4">
@@ -267,6 +348,18 @@ export default function AboutManagement() {
 
         {activeTab === 'values' && (
           <div className="space-y-4">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800">Our Values</h3>
+                <button
+                  onClick={() => handleAddNew('values')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  Add New Value
+                </button>
+              </div>
+            </div>
+
             {values.map((value) => (
               <div key={value.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <div className="flex justify-between items-center mb-4">
@@ -291,6 +384,18 @@ export default function AboutManagement() {
 
         {activeTab === 'whyChooseUs' && (
           <div className="space-y-4">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800">Why Choose Us</h3>
+                <button
+                  onClick={() => handleAddNew('whyChooseUs')}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
+                >
+                  Add New Item
+                </button>
+              </div>
+            </div>
+
             {whyChooseUs.map((item) => (
               <div key={item.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                 <div className="flex justify-between items-center mb-4">

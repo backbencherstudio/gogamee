@@ -2129,6 +2129,75 @@ export const AppData = {
     }>) {
       Object.assign(this.hero, updates);
       return this.hero;
+    },
+    
+    updateContent: function(updates: Partial<{
+      headline: string;
+    }>) {
+      Object.assign(this.content, updates);
+      return this.content;
+    },
+    
+    // Add new items
+    addSection: function(sectionData: {
+      title: string;
+      description: string;
+      order: number;
+    }) {
+      const newId = `section_${Date.now()}`;
+      const newSection = { ...sectionData, id: newId };
+      this.content.sections.push(newSection);
+      return newSection;
+    },
+    
+    addValue: function(valueData: {
+      title: string;
+      description: string;
+      order: number;
+    }) {
+      const newId = `value_${Date.now()}`;
+      const newValue = { ...valueData, id: newId };
+      this.content.values.items.push(newValue);
+      return newValue;
+    },
+    
+    addWhyChooseUs: function(itemData: {
+      title: string;
+      description: string;
+      order: number;
+    }) {
+      const newId = `whyChooseUs_${Date.now()}`;
+      const newItem = { ...itemData, id: newId };
+      this.content.whyChooseUs.items.push(newItem);
+      return newItem;
+    },
+    
+    // Delete items
+    deleteSection: function(sectionId: string) {
+      const index = this.content.sections.findIndex(s => s.id === sectionId);
+      if (index !== -1) {
+        this.content.sections.splice(index, 1);
+        return true;
+      }
+      return false;
+    },
+    
+    deleteValue: function(valueId: string) {
+      const index = this.content.values.items.findIndex(v => v.id === valueId);
+      if (index !== -1) {
+        this.content.values.items.splice(index, 1);
+        return true;
+      }
+      return false;
+    },
+    
+    deleteWhyChooseUs: function(itemId: string) {
+      const index = this.content.whyChooseUs.items.findIndex(i => i.id === itemId);
+      if (index !== -1) {
+        this.content.whyChooseUs.items.splice(index, 1);
+        return true;
+      }
+      return false;
     }
   },
 
