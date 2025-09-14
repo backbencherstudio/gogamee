@@ -2132,6 +2132,54 @@ export const AppData = {
     }
   },
 
+  // Date Restrictions Management
+  dateRestrictions: {
+    european: {
+      allowedStartDays: [2], // Tuesday only
+      blockedDays: [0, 1, 3, 4, 5, 6], // Sun, Mon, Wed, Thu, Fri, Sat
+      description: 'European Competition - Tuesday departure only'
+    },
+    nationalWeekend: {
+      allowedStartDays: [5, 6], // Friday and Saturday
+      blockedDays: [0, 1, 2, 3, 4], // Sun, Mon, Tue, Wed, Thu
+      description: 'National League - Weekend matches (Fri/Sat departure)'
+    },
+    nationalMidweek: {
+      allowedStartDays: [2], // Tuesday only
+      blockedDays: [0, 1, 3, 4, 5, 6], // Sun, Mon, Wed, Thu, Fri, Sat
+      description: 'National League - Midweek matches (Tuesday departure)'
+    },
+    
+    // Helper functions for date restrictions
+    getRestrictions: function(competitionType: 'european' | 'nationalWeekend' | 'nationalMidweek') {
+      return this[competitionType];
+    },
+    
+    updateRestrictions: function(competitionType: 'european' | 'nationalWeekend' | 'nationalMidweek', updates: {
+      allowedStartDays?: number[];
+      blockedDays?: number[];
+      description?: string;
+    }) {
+      if (this[competitionType]) {
+        this[competitionType] = { ...this[competitionType], ...updates };
+        return this[competitionType];
+      }
+      return null;
+    },
+    
+    getAllRestrictions: function() {
+      return this;
+    },
+    
+    isDateAllowed: function(competitionType: 'european' | 'nationalWeekend' | 'nationalMidweek', date: Date) {
+      const restrictions = this.getRestrictions(competitionType);
+      if (!restrictions) return false;
+      
+      const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      return restrictions.allowedStartDays.includes(dayOfWeek);
+    }
+  },
+
   // Email templates and functions
   emailTemplates: {
     // Generate confirmation email content

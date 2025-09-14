@@ -13,6 +13,7 @@ import {
   Info,
   Menu,
   X,
+  Calendar,
 } from "lucide-react"
 import { cn } from "@/app/lib/utils"
 
@@ -39,6 +40,7 @@ const sidebarData: SidebarSection[] = [
       { title: "Package", icon: Package, url: "/dashboard/package" },
       { title: "Testimonial", icon: Star, url: "/dashboard/testimonial" },
       { title: "About Page", icon: Info, url: "/dashboard/about" },
+      { title: "Date Management", icon: Calendar, url: "/dashboard/managedate" },
     ],
   },
 ]
