@@ -750,22 +750,22 @@ export const AppData = {
   travelPackages: {
     list: [
       // Football packages
-      { id: 'f1', sport: 'football', category: 'Match Ticket', standard: 'General or lateral section', premium: 'Premium or central tribune seat' },
-      { id: 'f2', sport: 'football', category: 'Flights', standard: 'Round-trip to a major city', premium: 'Round-trip to a major city' },
-      { id: 'f3', sport: 'football', category: 'Hotel', standard: '3-star hotel or apartment', premium: '4–5 star hotel near stadium or city center' },
-      { id: 'f4', sport: 'football', category: 'Transfers', standard: 'Public transport or shuttle', premium: 'Private transfers (airport & stadium)' },
-      { id: 'f5', sport: 'football', category: 'Welcome Pack', standard: 'Exclusive GoGame merchandise', premium: 'Official team jersey + premium goodies' },
-      { id: 'f6', sport: 'football', category: 'Surprise Reveal', standard: 'Destination revealed 48h before. A secret clue before revealing the destination.', premium: 'Destination revealed 48h before. A secret clue before revealing the destination.' },
-      { id: 'f7', sport: 'football', category: 'Starting Price', standard: 'From 299€', premium: 'From 1399€' },
+      { id: 'f1', sport: 'football', category: 'Match Ticket', standard: 'General or lateral section', premium: 'Premium or central tribune seat', standardPrice: 50, premiumPrice: 150, currency: 'EUR' },
+      { id: 'f2', sport: 'football', category: 'Flights', standard: 'Round-trip to a major city', premium: 'Round-trip to a major city', standardPrice: 200, premiumPrice: 400, currency: 'EUR' },
+      { id: 'f3', sport: 'football', category: 'Hotel', standard: '3-star hotel or apartment', premium: '4–5 star hotel near stadium or city center', standardPrice: 80, premiumPrice: 200, currency: 'EUR' },
+      { id: 'f4', sport: 'football', category: 'Transfers', standard: 'Public transport or shuttle', premium: 'Private transfers (airport & stadium)', standardPrice: 20, premiumPrice: 80, currency: 'EUR' },
+      { id: 'f5', sport: 'football', category: 'Welcome Pack', standard: 'Exclusive GoGame merchandise', premium: 'Official team jersey + premium goodies', standardPrice: 15, premiumPrice: 50, currency: 'EUR' },
+      { id: 'f6', sport: 'football', category: 'Surprise Reveal', standard: 'Destination revealed 48h before. A secret clue before revealing the destination.', premium: 'Destination revealed 48h before. A secret clue before revealing the destination.', standardPrice: 0, premiumPrice: 0, currency: 'EUR' },
+      { id: 'f7', sport: 'football', category: 'Starting Price', standard: 'From 299€', premium: 'From 1399€', standardPrice: 299, premiumPrice: 1399, currency: 'EUR' },
       
       // Basketball packages
-      { id: 'b1', sport: 'basketball', category: 'Match Ticket', standard: 'Standard seat (upper and lateral seats)', premium: 'VIP seat' },
-      { id: 'b2', sport: 'basketball', category: 'Flights', standard: 'Round-trip to a major city', premium: 'Round-trip to a major city' },
-      { id: 'b3', sport: 'basketball', category: 'Hotel', standard: '3-star hotel or apartment', premium: '4–5 star hotel in premium location' },
-      { id: 'b4', sport: 'basketball', category: 'Transfers', standard: 'Public transport or shuttle', premium: 'Private transfers (airport & stadium)' },
-      { id: 'b5', sport: 'basketball', category: 'Welcome Pack', standard: 'Travel guide + surprise gift', premium: 'Official team jersey + premium goodies' },
-      { id: 'b6', sport: 'basketball', category: 'Surprise Reveal', standard: 'Destination revealed 48h before. A secret clue before revealing the destination.', premium: 'Destination revealed 48h before. A secret clue before revealing the destination.' },
-      { id: 'b7', sport: 'basketball', category: 'Starting Price', standard: 'From 279€', premium: 'From 1279€' },
+      { id: 'b1', sport: 'basketball', category: 'Match Ticket', standard: 'Standard seat (upper and lateral seats)', premium: 'VIP seat', standardPrice: 40, premiumPrice: 120, currency: 'EUR' },
+      { id: 'b2', sport: 'basketball', category: 'Flights', standard: 'Round-trip to a major city', premium: 'Round-trip to a major city', standardPrice: 180, premiumPrice: 350, currency: 'EUR' },
+      { id: 'b3', sport: 'basketball', category: 'Hotel', standard: '3-star hotel or apartment', premium: '4–5 star hotel in premium location', standardPrice: 70, premiumPrice: 180, currency: 'EUR' },
+      { id: 'b4', sport: 'basketball', category: 'Transfers', standard: 'Public transport or shuttle', premium: 'Private transfers (airport & stadium)', standardPrice: 18, premiumPrice: 70, currency: 'EUR' },
+      { id: 'b5', sport: 'basketball', category: 'Welcome Pack', standard: 'Travel guide + surprise gift', premium: 'Official team jersey + premium goodies', standardPrice: 12, premiumPrice: 45, currency: 'EUR' },
+      { id: 'b6', sport: 'basketball', category: 'Surprise Reveal', standard: 'Destination revealed 48h before. A secret clue before revealing the destination.', premium: 'Destination revealed 48h before. A secret clue before revealing the destination.', standardPrice: 0, premiumPrice: 0, currency: 'EUR' },
+      { id: 'b7', sport: 'basketball', category: 'Starting Price', standard: 'From 279€', premium: 'From 1279€', standardPrice: 279, premiumPrice: 1279, currency: 'EUR' },
     ],
     
     getBySport: function(sport: 'football' | 'basketball') {
@@ -776,14 +776,20 @@ export const AppData = {
       return this.list;
     },
     
-    add: function(packageData: { sport: 'football' | 'basketball'; category: string; standard: string; premium: string }) {
+    add: function(packageData: { sport: 'football' | 'basketball'; category: string; standard: string; premium: string; standardPrice?: number; premiumPrice?: number; currency?: string }) {
       const newId = `${packageData.sport}_${Date.now()}`;
-      const newPackage = { ...packageData, id: newId };
+      const newPackage = { 
+        ...packageData, 
+        id: newId,
+        standardPrice: packageData.standardPrice || 0,
+        premiumPrice: packageData.premiumPrice || 0,
+        currency: packageData.currency || 'EUR'
+      };
       this.list.unshift(newPackage); // Add to beginning for easy access
       return newPackage;
     },
     
-    update: function(id: string, updates: Partial<{ sport: 'football' | 'basketball'; category: string; standard: string; premium: string }>) {
+    update: function(id: string, updates: Partial<{ sport: 'football' | 'basketball'; category: string; standard: string; premium: string; standardPrice?: number; premiumPrice?: number; currency?: string }>) {
       const index = this.list.findIndex(pkg => pkg.id === id);
       if (index !== -1) {
         this.list[index] = { ...this.list[index], ...updates };

@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Plus, Package as PackageIcon, Trash2, X, Edit } from 'lucide-react'
+import { Plus, Package as PackageIcon, Trash2, X, Edit, DollarSign } from 'lucide-react'
 import AddPackage from './addpackage'
 import AppData from '../../../../lib/appdata'
 import DeleteConfirmationModal from '../../../../../components/ui/delete-confirmation-modal'
@@ -12,6 +12,9 @@ interface PackageData {
   category: string;
   standard: string;
   premium: string;
+  standardPrice?: number;
+  premiumPrice?: number;
+  currency?: string;
 }
 
 interface PackageManagementProps {
@@ -30,6 +33,7 @@ export default function PackageManagement({
   const [showAddForm, setShowAddForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
+  const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
 
   // Load package data from AppData
   useEffect(() => {
@@ -73,6 +77,20 @@ export default function PackageManagement({
       setPackages(AppData.travelPackages.getAll() as PackageData[]);
     }
     setEditingPackageId(null);
+  };
+
+  // Update package prices
+  const handleUpdatePrices = (priceData: { standardPrice: number; premiumPrice: number; currency: string }) => {
+    if (!editingPriceId) return;
+    const saved = AppData.travelPackages.update(editingPriceId, {
+      standardPrice: priceData.standardPrice,
+      premiumPrice: priceData.premiumPrice,
+      currency: priceData.currency
+    });
+    if (saved) {
+      setPackages(AppData.travelPackages.getAll() as PackageData[]);
+    }
+    setEditingPriceId(null);
   };
 
   return (
@@ -151,6 +169,13 @@ export default function PackageManagement({
                   {/* Action Buttons */}
                   <div className="flex gap-2">
                     <button
+                      onClick={() => setEditingPriceId(pkg.id)}
+                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                      title="Update Prices"
+                    >
+                      <DollarSign className="w-4 h-4" />
+                    </button>
+                    <button
                       onClick={() => setEditingPackageId(pkg.id)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
                       title="Edit Package"
@@ -171,12 +196,26 @@ export default function PackageManagement({
               {/* Package Content */}
               <div className="p-6 space-y-4">
                 <div>
-                  <h4 className="font-medium text-gray-700 mb-2 font-['Poppins']">Standard Package:</h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-gray-700 font-['Poppins']">Standard Package:</h4>
+                    {pkg.standardPrice && (
+                      <span className="text-lg font-bold text-green-600 font-['Poppins']">
+                        {pkg.standardPrice}{pkg.currency || '€'}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-600 text-sm font-['Poppins'] bg-gray-50 p-3 rounded-lg">{pkg.standard}</p>
                 </div>
                 
                 <div>
-                  <h4 className="font-medium text-gray-700 mb-2 font-['Poppins']">Premium Package:</h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-gray-700 font-['Poppins']">Premium Package:</h4>
+                    {pkg.premiumPrice && (
+                      <span className="text-lg font-bold text-blue-600 font-['Poppins']">
+                        {pkg.premiumPrice}{pkg.currency || '€'}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-600 text-sm font-['Poppins'] bg-gray-50 p-3 rounded-lg">{pkg.premium}</p>
                 </div>
               </div>
@@ -266,6 +305,43 @@ export default function PackageManagement({
         </div>
       )}
 
+      {/* Price Edit Modal */}
+      {editingPriceId && (
+        <div 
+          className="fixed inset-0 bg-black/30 bg-opacity-20 flex items-center justify-center z-50 p-4"
+          onClick={() => setEditingPriceId(null)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-md w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">Update Package Prices</h2>
+              <button
+                onClick={() => setEditingPriceId(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6">
+              {(() => {
+                const pkg = packages.find(p => p.id === editingPriceId);
+                if (!pkg) return null;
+                
+                return (
+                  <PriceEditForm
+                    packageData={pkg}
+                    onSubmit={handleUpdatePrices}
+                    onCancel={() => setEditingPriceId(null)}
+                  />
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal
         isOpen={!!deleteConfirm}
@@ -276,6 +352,160 @@ export default function PackageManagement({
       />
     </div>
   )
+}
+
+// Price Edit Form Component
+interface PriceEditFormProps {
+  packageData: PackageData;
+  onSubmit: (priceData: { standardPrice: number; premiumPrice: number; currency: string }) => void;
+  onCancel: () => void;
+}
+
+function PriceEditForm({ packageData, onSubmit, onCancel }: PriceEditFormProps) {
+  const [formData, setFormData] = useState({
+    standardPrice: packageData.standardPrice || 0,
+    premiumPrice: packageData.premiumPrice || 0,
+    currency: packageData.currency || 'EUR'
+  });
+
+  const [errors, setErrors] = useState<{ standardPrice?: string; premiumPrice?: string }>({});
+
+  const handleInputChange = (field: keyof typeof formData, value: string | number) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field as keyof typeof errors]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: { standardPrice?: string; premiumPrice?: string } = {};
+
+    if (formData.standardPrice < 0) {
+      newErrors.standardPrice = 'Standard price must be positive';
+    }
+    if (formData.premiumPrice < 0) {
+      newErrors.premiumPrice = 'Premium price must be positive';
+    }
+    if (formData.premiumPrice <= formData.standardPrice) {
+      newErrors.premiumPrice = 'Premium price must be higher than standard price';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      onSubmit(formData);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Package Info */}
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <h3 className="font-medium text-gray-900 font-['Poppins'] mb-2">{packageData.category}</h3>
+        <span className={`text-sm px-2 py-1 rounded-full font-medium ${
+          packageData.sport === 'football' 
+            ? 'bg-green-100 text-green-700' 
+            : 'bg-blue-100 text-blue-700'
+        }`}>
+          {packageData.sport === 'football' ? 'Football' : 'Basketball'}
+        </span>
+      </div>
+
+      {/* Currency Selection */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+          Currency *
+        </label>
+        <select
+          value={formData.currency}
+          onChange={(e) => handleInputChange('currency', e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors"
+        >
+          <option value="EUR">EUR (€)</option>
+          <option value="USD">USD ($)</option>
+          <option value="GBP">GBP (£)</option>
+        </select>
+      </div>
+
+      {/* Standard Price */}
+      <div>
+        <label htmlFor="standardPrice" className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+          Standard Package Price *
+        </label>
+        <div className="relative">
+          <input
+            type="number"
+            id="standardPrice"
+            min="0"
+            step="0.01"
+            value={formData.standardPrice}
+            onChange={(e) => handleInputChange('standardPrice', parseFloat(e.target.value) || 0)}
+            placeholder="Enter standard package price"
+            className={`w-full px-4 py-3 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors ${
+              errors.standardPrice ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-['Poppins']">
+            {formData.currency === 'EUR' ? '€' : formData.currency === 'USD' ? '$' : '£'}
+          </span>
+        </div>
+        {errors.standardPrice && (
+          <p className="mt-1 text-sm text-red-600 font-['Poppins']">{errors.standardPrice}</p>
+        )}
+      </div>
+
+      {/* Premium Price */}
+      <div>
+        <label htmlFor="premiumPrice" className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+          Premium Package Price *
+        </label>
+        <div className="relative">
+          <input
+            type="number"
+            id="premiumPrice"
+            min="0"
+            step="0.01"
+            value={formData.premiumPrice}
+            onChange={(e) => handleInputChange('premiumPrice', parseFloat(e.target.value) || 0)}
+            placeholder="Enter premium package price"
+            className={`w-full px-4 py-3 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors ${
+              errors.premiumPrice ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-['Poppins']">
+            {formData.currency === 'EUR' ? '€' : formData.currency === 'USD' ? '$' : '£'}
+          </span>
+        </div>
+        {errors.premiumPrice && (
+          <p className="mt-1 text-sm text-red-600 font-['Poppins']">{errors.premiumPrice}</p>
+        )}
+      </div>
+
+      {/* Form Actions */}
+      <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="flex items-center gap-2 px-6 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium font-['Poppins'] transition-all duration-200"
+        >
+          <X className="w-4 h-4" />
+          Cancel
+        </button>
+        <button
+          type="submit"
+          className="flex items-center gap-2 px-6 py-3 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
+        >
+          <DollarSign className="w-4 h-4" />
+          Update Prices
+        </button>
+      </div>
+    </form>
+  );
 }
 
 export type { PackageData, PackageManagementProps }
