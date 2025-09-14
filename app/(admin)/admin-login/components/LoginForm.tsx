@@ -192,7 +192,7 @@ export default function LoginForm() {
           </div>
         </div>
 
-        {/* Demo Credentials */}
+        {/* Demo Credentialss */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="text-sm font-medium text-blue-800 mb-2 font-['Poppins']">Demo Credentials</h3>
           <div className="text-xs text-blue-700 font-['Poppins'] space-y-1">
