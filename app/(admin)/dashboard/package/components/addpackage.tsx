@@ -7,6 +7,9 @@ interface PackageData {
   category: string;
   standard: string;
   premium: string;
+  standardPrice?: number;
+  premiumPrice?: number;
+  currency?: string;
 }
 
 interface AddPackageProps {
@@ -23,13 +26,16 @@ export default function AddPackage({ onSubmit, onCancel, initialData, submitLabe
       sport: 'football',
       category: '',
       standard: '',
-      premium: ''
+      premium: '',
+      standardPrice: 0,
+      premiumPrice: 0,
+      currency: 'EUR'
     }
   );
 
   const [errors, setErrors] = useState<Partial<PackageData>>({});
 
-  const handleInputChange = (field: keyof PackageData, value: string) => {
+  const handleInputChange = (field: keyof PackageData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
@@ -147,6 +153,76 @@ export default function AddPackage({ onSubmit, onCancel, initialData, submitLabe
         />
         {errors.premium && (
           <p className="mt-1 text-sm text-red-600 font-['Poppins']">{errors.premium}</p>
+        )}
+      </div>
+
+      {/* Currency Selection */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+          Currency *
+        </label>
+        <select
+          value={formData.currency}
+          onChange={(e) => handleInputChange('currency', e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors"
+        >
+          <option value="EUR">EUR (€)</option>
+          <option value="USD">USD ($)</option>
+          <option value="GBP">GBP (£)</option>
+        </select>
+      </div>
+
+      {/* Standard Price */}
+      <div>
+        <label htmlFor="standardPrice" className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+          Standard Package Price *
+        </label>
+        <div className="relative">
+          <input
+            type="number"
+            id="standardPrice"
+            min="0"
+            step="0.01"
+            value={formData.standardPrice}
+            onChange={(e) => handleInputChange('standardPrice', parseFloat(e.target.value) || 0)}
+            placeholder="Enter standard package price"
+            className={`w-full px-4 py-3 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors ${
+              errors.standardPrice ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-['Poppins']">
+            {formData.currency === 'EUR' ? '€' : formData.currency === 'USD' ? '$' : '£'}
+          </span>
+        </div>
+        {errors.standardPrice && (
+          <p className="mt-1 text-sm text-red-600 font-['Poppins']">{errors.standardPrice}</p>
+        )}
+      </div>
+
+      {/* Premium Price */}
+      <div>
+        <label htmlFor="premiumPrice" className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+          Premium Package Price *
+        </label>
+        <div className="relative">
+          <input
+            type="number"
+            id="premiumPrice"
+            min="0"
+            step="0.01"
+            value={formData.premiumPrice}
+            onChange={(e) => handleInputChange('premiumPrice', parseFloat(e.target.value) || 0)}
+            placeholder="Enter premium package price"
+            className={`w-full px-4 py-3 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors ${
+              errors.premiumPrice ? 'border-red-500' : 'border-gray-300'
+            }`}
+          />
+          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-['Poppins']">
+            {formData.currency === 'EUR' ? '€' : formData.currency === 'USD' ? '$' : '£'}
+          </span>
+        </div>
+        {errors.premiumPrice && (
+          <p className="mt-1 text-sm text-red-600 font-['Poppins']">{errors.premiumPrice}</p>
         )}
       </div>
 

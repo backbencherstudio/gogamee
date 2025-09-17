@@ -13,6 +13,7 @@ import {
   Info,
   Menu,
   X,
+  Calendar,
 } from "lucide-react"
 import { cn } from "@/app/lib/utils"
 
@@ -39,6 +40,7 @@ const sidebarData: SidebarSection[] = [
       { title: "Package", icon: Package, url: "/dashboard/package" },
       { title: "Testimonial", icon: Star, url: "/dashboard/testimonial" },
       { title: "About Page", icon: Info, url: "/dashboard/about" },
+      { title: "Date Management", icon: Calendar, url: "/dashboard/managedate" },
     ],
   },
 ]
@@ -101,8 +103,11 @@ export function Sidebar() {
       <div className="mt-auto pt-4 border-t border-gray-200">
         <button
           onClick={() => {
-            // Add logout logic here
-            console.log('Logout clicked')
+            // Clear admin login state
+            localStorage.removeItem('adminLoggedIn')
+            localStorage.removeItem('adminEmail')
+            // Redirect to login page
+            window.location.href = '/admin-login'
           }}
           className="flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer duration-200 text-[#76C043] hover:bg-[#76C043]/20 w-full text-left"
         >

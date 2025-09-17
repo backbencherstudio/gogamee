@@ -1,15 +1,15 @@
 "use client"
 import { useState, useMemo } from "react"
-import { FaTrash, FaCalendarAlt, FaUsers, FaDollarSign, FaPlane, FaMapMarkerAlt, FaEye } from "react-icons/fa"
-import { MdKeyboardArrowDown, MdSports } from "react-icons/md"
-import { useRouter } from "next/navigation"
+import { FaTrash, FaCalendarAlt, FaUsers, FaDollarSign, FaPlane, FaMapMarkerAlt } from "react-icons/fa"
+import { MdKeyboardArrowDown } from "react-icons/md"
+ 
 import { subDays, parseISO, isWithinInterval, format, startOfDay, endOfDay } from "date-fns"
 import AppData from "@/app/lib/appdata"
 import BookingSummaryModal from "./booking-summery-modal"
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal"
 
 export default function EventReqTable() {
-  const router = useRouter()
+  
   const [activeTab, setActiveTab] = useState("all")
   const [timeFilter, setTimeFilter] = useState("alltime")
   const [showDateDropdown, setShowDateDropdown] = useState(false)
@@ -86,24 +86,7 @@ export default function EventReqTable() {
     }
   }
 
-  const getSportIcon = (sport: string) => {
-    const iconClass = "w-4 h-4 text-white"
-    return <MdSports className={iconClass} />
-  }
-
-  const getSportColor = (sport: string) => {
-    const colors: { [key: string]: string } = {
-      football: "bg-green-500",
-      basketball: "bg-orange-500",
-      tennis: "bg-yellow-500",
-      formula1: "bg-red-500",
-      rugby: "bg-blue-500",
-      golf: "bg-emerald-600",
-      cycling: "bg-purple-500",
-      hockey: "bg-indigo-500",
-    }
-    return colors[sport] || "bg-gray-500"
-  }
+  
 
   const getPackageBadgeColor = (packageType: string) => {
     switch (packageType) {
@@ -132,7 +115,7 @@ export default function EventReqTable() {
   const formatDate = (dateString: string) => {
     try {
       return format(parseISO(dateString), "MMM dd, yyyy")
-    } catch (error) {
+    } catch {
       return dateString
     }
   }
@@ -140,7 +123,7 @@ export default function EventReqTable() {
   const formatTime = (dateString: string) => {
     try {
       return format(parseISO(dateString), "h:mm a")
-    } catch (error) {
+    } catch {
       return ""
     }
   }
@@ -162,12 +145,12 @@ export default function EventReqTable() {
   }, [filteredData.length, activeTab, timeFilter, bookings.length])
 
   return (
-    <div className="w-full px-4 ml-6">
+    <div className="w-full px-4 py-4">
       <div className="pt-4 pb-8 min-h-screen">
 
 
     
-    <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
       {/* Header Section */}
       <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-gray-50">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -212,13 +195,64 @@ export default function EventReqTable() {
 
       {/* Tab Navigation */}
       <div className="px-6 border-b border-gray-100">
-        <div className="flex space-x-8">
-                     {[
-             { key: "all", label: "All Bookings", count: bookings.length },
-             { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "completed").length },
-             { key: "pending", label: "Pending", count: bookings.filter((d) => d.status === "pending").length },
-             { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "cancelled").length },
-           ].map((tab) => (
+        {/* Mobile Layout */}
+        <div className="md:hidden space-y-2 my-4">
+          {/* All Requests - Full Width */}
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`w-full py-3 px-4 border-2 rounded-lg font-medium text-sm transition-colors
+              ${
+                activeTab === "all"
+                  ? "border-blue-500 text-blue-600 bg-blue-50"
+                  : "border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+          >
+            All Bookings
+            <span
+              className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium
+              ${activeTab === "all" ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}`}
+            >
+              {bookings.length}
+            </span>
+          </button>
+          
+          {/* Other tabs - 3 buttons in row */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "completed").length },
+              { key: "pending", label: "Pending", count: bookings.filter((d) => d.status === "pending").length },
+              { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "cancelled").length },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`py-3 px-2 border-2 rounded-lg font-medium text-xs transition-colors
+                  ${
+                    activeTab === tab.key
+                      ? "border-blue-500 text-blue-600 bg-blue-50"
+                      : "border-gray-200 text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
+              >
+                {tab.label}
+                <span
+                  className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-medium block mt-1
+                  ${activeTab === tab.key ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"}`}
+                >
+                  {tab.count}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden md:flex space-x-8">
+          {[
+            { key: "all", label: "All Bookings", count: bookings.length },
+            { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "completed").length },
+            { key: "pending", label: "Pending", count: bookings.filter((d) => d.status === "pending").length },
+            { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "cancelled").length },
+          ].map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
@@ -246,22 +280,22 @@ export default function EventReqTable() {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Booking Date
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Customer & Sport
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Travel Details
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Booking Info
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Actions
               </th>
             </tr>

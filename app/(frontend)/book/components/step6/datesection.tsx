@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import { useFormContext } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
-import { pricing } from '../../../../lib/appdata'
+import { pricing, AppData } from '../../../../lib/appdata'
 
 // Types
 interface DurationOption {
@@ -26,27 +26,6 @@ const DURATION_OPTIONS: DurationOption[] = [
   { days: 4, nights: 3 },
   { days: 5, nights: 4 }
 ]
-
-// Date restrictions based on competition type
-const DATE_RESTRICTIONS = {
-  european: {
-    allowedStartDays: [2], // Tuesday only
-    blockedDays: [0, 1, 3, 4, 5, 6], // Sun, Mon, Wed, Thu, Fri, Sat
-    description: "European Competition - Tuesday departure only"
-  },
-  national: {
-    weekend: {
-      allowedStartDays: [5, 6], // Friday and Saturday
-      blockedDays: [0, 1, 2, 3, 4], // Sun, Mon, Tue, Wed, Thu
-      description: "National League - Weekend matches (Fri/Sat departure)"
-    },
-    midweek: {
-      allowedStartDays: [2], // Tuesday only
-      blockedDays: [0, 1, 3, 4, 5, 6], // Sun, Mon, Wed, Thu, Fri, Sat
-      description: "National League - Midweek matches (Tuesday departure)"
-    }
-  }
-}
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -115,22 +94,21 @@ export default function DateSection() {
   const [selectedYear, setSelectedYear] = useState<number | null>(defaultValues.selectedYear)
   const [currentDate, setCurrentDate] = useState(defaultValues.currentDate)
   const [isHydrated, setIsHydrated] = useState(false)
-  const [nationalMatchType, setNationalMatchType] = useState<'weekend' | 'midweek'>('weekend')
 
   // Get date restrictions based on competition type
   const getDateRestrictions = useCallback((): DateRestrictions => {
     const selectedLeague = formData.selectedLeague
     
     if (selectedLeague === 'european') {
-      return DATE_RESTRICTIONS.european
+      return AppData.dateRestrictions.getRestrictions('european')
     } else if (selectedLeague === 'national') {
-      // Use the selected match type for National Leagues
-      return DATE_RESTRICTIONS.national[nationalMatchType]
+      // Default to weekend for national leagues
+      return AppData.dateRestrictions.getRestrictions('nationalWeekend')
     }
     
     // Default to European restrictions if no league is selected
-    return DATE_RESTRICTIONS.european
-  }, [formData.selectedLeague, nationalMatchType])
+    return AppData.dateRestrictions.getRestrictions('european')
+  }, [formData.selectedLeague])
 
   // Set proper current date after hydration
   useEffect(() => {
@@ -224,14 +202,6 @@ export default function DateSection() {
   const handleDurationChange = useCallback((index: number) => {
     setSelectedDuration(index)
     // Clear selection when duration changes
-    setSelectedStartDate(null)
-    setSelectedMonth(null)
-    setSelectedYear(null)
-  }, [])
-
-  const handleMatchTypeChange = useCallback((matchType: 'weekend' | 'midweek') => {
-    setNationalMatchType(matchType)
-    // Clear selection when match type changes
     setSelectedStartDate(null)
     setSelectedMonth(null)
     setSelectedYear(null)

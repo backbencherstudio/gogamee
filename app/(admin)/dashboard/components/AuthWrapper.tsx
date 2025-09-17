@@ -1,0 +1,45 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+interface AuthWrapperProps {
+  children: React.ReactNode
+}
+
+export default function AuthWrapper({ children }: AuthWrapperProps) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Check if user is logged in
+    const checkAuth = () => {
+      const isLoggedIn = localStorage.getItem('adminLoggedIn')
+      if (isLoggedIn === 'true') {
+        setIsAuthenticated(true)
+      } else {
+        router.push('/admin-login')
+      }
+      setIsLoading(false)
+    }
+
+    checkAuth()
+  }, [router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#76C043] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-['Poppins']">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return null
+  }
+
+  return <>{children}</>
+}
