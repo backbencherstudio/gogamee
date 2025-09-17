@@ -12,8 +12,8 @@ interface DurationOption {
 }
 
 interface DateRestrictions {
-  allowedStartDays: number[] // 0 = Sunday, 1 = Monday, etc.
-  blockedDays: number[]
+  enabledDates: string[] // Array of date strings in YYYY-MM-DD format
+  blockedDates: string[]
   description: string
 }
 
@@ -52,8 +52,15 @@ const isDateInPast = (date: Date): boolean => {
 }
 
 const isDateAllowedForCompetition = (date: Date, restrictions: DateRestrictions): boolean => {
-  const dayOfWeek = date.getDay() // 0 = Sunday, 1 = Monday, etc.
-  return restrictions.allowedStartDays.includes(dayOfWeek)
+  const dateString = date.toISOString().split('T')[0] // Format: YYYY-MM-DD
+  
+  // Check if date is explicitly blocked
+  if (restrictions.blockedDates.includes(dateString)) {
+    return false
+  }
+  
+  // Check if date is explicitly enabled
+  return restrictions.enabledDates.includes(dateString)
 }
 
 export default function DateSection() {
@@ -102,8 +109,7 @@ export default function DateSection() {
     if (selectedLeague === 'european') {
       return AppData.dateRestrictions.getRestrictions('european')
     } else if (selectedLeague === 'national') {
-      // Default to weekend for national leagues
-      return AppData.dateRestrictions.getRestrictions('nationalWeekend')
+      return AppData.dateRestrictions.getRestrictions('national')
     }
     
     // Default to European restrictions if no league is selected
@@ -441,49 +447,14 @@ export default function DateSection() {
             <div className="w-full p-4 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex flex-col gap-2">
                 <div className="text-sm font-medium text-blue-800">
-                  {formData.selectedLeague === 'european' ? '🏆 European Competition' : '⚽ National League'}
+                  {formData.selectedLeague === 'european' ? '🏆 European Leagues' : '⚽ National Leagues'}
                 </div>
                 <div className="text-xs text-blue-600">
                   {getDateRestrictions().description}
                 </div>
                 <div className="text-xs text-blue-500">
-                  Available departure days: {
-                    getDateRestrictions().allowedStartDays.map(day => 
-                      ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day]
-                    ).join(', ')
-                  }
-                </div> */}
-                
-                {/* Match Type Toggle for National League */}
-                {/* {formData.selectedLeague === 'national' && (
-                  <div className="mt-2 p-2 bg-white rounded border border-blue-200">
-                    <div className="text-xs text-blue-700 font-medium mb-2">Match Type:</div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleMatchTypeChange('weekend')}
-                        className={`px-3 py-1 text-xs rounded ${
-                          nationalMatchType === 'weekend' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        Weekend Matches
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleMatchTypeChange('midweek')}
-                        className={`px-3 py-1 text-xs rounded ${
-                          nationalMatchType === 'midweek' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        Midweek Matches
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  Available departure dates: Specific dates enabled in calendar
+                </div>
               </div>
             </div>
           )} */}

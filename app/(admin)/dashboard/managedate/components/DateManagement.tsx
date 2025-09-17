@@ -1,12 +1,12 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Calendar, Save, RefreshCw, Clock, CalendarDays } from 'lucide-react'
+import { Calendar, Save, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import AppData from '../../../../lib/appdata'
 
-// Date restriction interface
+// Date restriction interface for calendar-based system
 interface DateRestrictions {
-  allowedStartDays: number[] // 0 = Sunday, 1 = Monday, etc.
-  blockedDays: number[]
+  enabledDates: string[] // Array of date strings in YYYY-MM-DD format
+  blockedDates: string[]
   description: string
 }
 
@@ -24,10 +24,15 @@ export default function DateManagement() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
+  const [currentMonth, setCurrentMonth] = useState(new Date())
 
-  // Week day names
-  const weekDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  const weekDaysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  // Month names
+  const MONTH_NAMES = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ]
+
+  const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   // Load data from AppData
   useEffect(() => {
@@ -41,51 +46,96 @@ export default function DateManagement() {
     const competitionTypesData = [
       {
         id: 'european',
-        name: 'European Competition',
+        name: 'European Leagues',
         description: allRestrictions.european.description,
         restrictions: allRestrictions.european
       },
       {
-        id: 'nationalWeekend',
-        name: 'National League - Weekend',
-        description: allRestrictions.nationalWeekend.description,
-        restrictions: allRestrictions.nationalWeekend
-      },
-      {
-        id: 'nationalMidweek',
-        name: 'National League - Midweek',
-        description: allRestrictions.nationalMidweek.description,
-        restrictions: allRestrictions.nationalMidweek
+        id: 'national',
+        name: 'National Leagues',
+        description: allRestrictions.national.description,
+        restrictions: allRestrictions.national
       }
     ]
 
     setCompetitionTypes(competitionTypesData)
   }
 
-  const handleDayToggle = (dayIndex: number) => {
+  // Calendar utility functions
+  const getDaysInMonth = (date: Date): number => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+  }
+
+  const getFirstDayOfMonth = (date: Date): number => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay()
+  }
+
+  const generateCalendarDays = (date: Date): (number | null)[] => {
+    const daysInMonth = getDaysInMonth(date)
+    const firstDay = getFirstDayOfMonth(date)
+    const days: (number | null)[] = []
+
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < firstDay; i++) {
+      days.push(null)
+    }
+
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(day)
+    }
+
+    return days
+  }
+
+  const getDateStatus = (day: number | null, month: Date): 'enabled' | 'blocked' | 'neutral' => {
+    if (!day) return 'neutral'
+
+    const selectedComp = competitionTypes.find(comp => comp.id === selectedCompetition)
+    if (!selectedComp) return 'neutral'
+
+    const date = new Date(month.getFullYear(), month.getMonth(), day)
+    const dateString = date.toISOString().split('T')[0]
+
+    if (selectedComp.restrictions.enabledDates.includes(dateString)) {
+      return 'enabled'
+    } else if (selectedComp.restrictions.blockedDates.includes(dateString)) {
+      return 'blocked'
+    } else {
+      return 'neutral'
+    }
+  }
+
+  const handleDateClick = (day: number, month: Date) => {
     if (!isEditing) return
 
+    const date = new Date(month.getFullYear(), month.getMonth(), day)
+    const dateString = date.toISOString().split('T')[0]
+    
     setCompetitionTypes(prev => prev.map(comp => {
       if (comp.id === selectedCompetition) {
-        const newAllowedDays = [...comp.restrictions.allowedStartDays]
-        const newBlockedDays = [...comp.restrictions.blockedDays]
+        const newEnabledDates = [...comp.restrictions.enabledDates]
+        const newBlockedDates = [...comp.restrictions.blockedDates]
         
-        if (newAllowedDays.includes(dayIndex)) {
-          // Remove from allowed, add to blocked
-          newAllowedDays.splice(newAllowedDays.indexOf(dayIndex), 1)
-          newBlockedDays.push(dayIndex)
+        // Toggle date status: neutral -> enabled -> blocked -> neutral
+        if (newEnabledDates.includes(dateString)) {
+          // Currently enabled, move to blocked
+          newEnabledDates.splice(newEnabledDates.indexOf(dateString), 1)
+          newBlockedDates.push(dateString)
+        } else if (newBlockedDates.includes(dateString)) {
+          // Currently blocked, move to neutral
+          newBlockedDates.splice(newBlockedDates.indexOf(dateString), 1)
         } else {
-          // Remove from blocked, add to allowed
-          newBlockedDays.splice(newBlockedDays.indexOf(dayIndex), 1)
-          newAllowedDays.push(dayIndex)
+          // Currently neutral, move to enabled
+          newEnabledDates.push(dateString)
         }
 
         return {
           ...comp,
           restrictions: {
             ...comp.restrictions,
-            allowedStartDays: newAllowedDays.sort(),
-            blockedDays: newBlockedDays.sort()
+            enabledDates: newEnabledDates.sort(),
+            blockedDates: newBlockedDates.sort()
           }
         }
       }
@@ -119,12 +169,11 @@ export default function DateManagement() {
       // Update AppData with new restrictions
       const selectedComp = competitionTypes.find(comp => comp.id === selectedCompetition)
       if (selectedComp) {
-        // Update AppData with the new restrictions
-        const competitionType = selectedComp.id as 'european' | 'nationalWeekend' | 'nationalMidweek'
+        const competitionType = selectedComp.id as 'european' | 'national'
         
         AppData.dateRestrictions.updateRestrictions(competitionType, {
-          allowedStartDays: selectedComp.restrictions.allowedStartDays,
-          blockedDays: selectedComp.restrictions.blockedDays,
+          enabledDates: selectedComp.restrictions.enabledDates,
+          blockedDates: selectedComp.restrictions.blockedDates,
           description: selectedComp.restrictions.description
         })
         
@@ -155,7 +204,16 @@ export default function DateManagement() {
     setIsEditing(true)
   }
 
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth(prevMonth => {
+      const newMonth = new Date(prevMonth)
+      newMonth.setMonth(newMonth.getMonth() + (direction === 'prev' ? -1 : 1))
+      return newMonth
+    })
+  }
+
   const selectedCompetitionData = competitionTypes.find(comp => comp.id === selectedCompetition)
+  const calendarDays = generateCalendarDays(currentMonth)
 
   return (
     <div className="py-4 pl-10 min-h-screen mb-4 pr-8">
@@ -164,9 +222,9 @@ export default function DateManagement() {
         <div className="flex items-start flex-col gap-4">
           <div className="flex flex-col gap-2">
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
-              Date Management
+              Enable/Block Dates
             </h1>
-            <p className="text-gray-600 font-['Poppins']">Customize available departure days for different competition types</p>
+            <p className="text-gray-600 font-['Poppins']">Manage specific dates for different competition types using the calendar interface</p>
           </div>
         </div>
 
@@ -192,7 +250,7 @@ export default function DateManagement() {
           </div>
         </div>
 
-        {/* Date Restrictions Configuration */}
+        {/* Calendar Interface */}
         {selectedCompetitionData && (
           <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
             <div className="flex flex-col gap-6">
@@ -211,8 +269,8 @@ export default function DateManagement() {
                       onClick={handleEdit}
                       className="flex items-center gap-2 px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200"
                     >
-                      <CalendarDays className="w-4 h-4" />
-                      Edit Restrictions
+                      <Calendar className="w-4 h-4" />
+                      Edit Calendar
                     </button>
                   ) : (
                     <>
@@ -264,46 +322,89 @@ export default function DateManagement() {
                 />
               </div>
 
-              {/* Week Days Configuration */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3 font-['Poppins']">
-                  Available Departure Days
-                </label>
-                <div className="grid grid-cols-7 gap-2">
-                  {weekDays.map((day, index) => {
-                    const isAllowed = selectedCompetitionData.restrictions.allowedStartDays.includes(index)
-                    const isBlocked = selectedCompetitionData.restrictions.blockedDays.includes(index)
-                    
-                    return (
-                      <div key={index} className="flex flex-col items-center gap-2">
-                        <div className="text-xs font-medium text-gray-600 font-['Poppins']">
-                          {weekDaysShort[index]}
-                        </div>
+              {/* Calendar Display */}
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium text-gray-900 font-['Poppins']">
+                    Calendar Management
+                  </h3>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => navigateMonth('prev')}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <ChevronLeft className="w-5 h-5 text-gray-600" />
+                    </button>
+                    <span className="text-lg font-medium text-gray-900 font-['Poppins'] min-w-[200px] text-center">
+                      {MONTH_NAMES[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+                    </span>
+                    <button
+                      onClick={() => navigateMonth('next')}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      <ChevronRight className="w-5 h-5 text-gray-600" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  {/* Week day headers */}
+                  <div className="grid grid-cols-7 gap-1 mb-2">
+                    {WEEK_DAYS.map((day) => (
+                      <div key={day} className="text-center text-sm font-medium text-gray-600 font-['Poppins'] py-2">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar days */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {calendarDays.map((day, index) => {
+                      if (!day) {
+                        return <div key={index} className="h-12"></div>
+                      }
+
+                      const status = getDateStatus(day, currentMonth)
+                      const isClickable = isEditing
+                      
+                      return (
                         <button
-                          onClick={() => handleDayToggle(index)}
-                          disabled={!isEditing}
-                          className={`w-12 h-12 rounded-lg border-2 font-medium font-['Poppins'] transition-all duration-200 ${
-                            isEditing
-                              ? isAllowed
-                                ? 'bg-green-100 border-green-500 text-green-700 hover:bg-green-200'
-                                : isBlocked
-                                ? 'bg-red-100 border-red-500 text-red-700 hover:bg-red-200'
-                                : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
-                              : isAllowed
+                          key={index}
+                          onClick={() => isClickable && handleDateClick(day, currentMonth)}
+                          disabled={!isClickable}
+                          className={`h-12 rounded-lg border-2 font-medium font-['Poppins'] transition-all duration-200 ${
+                            isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+                          } ${
+                            status === 'enabled'
                               ? 'bg-green-100 border-green-500 text-green-700'
-                              : isBlocked
+                              : status === 'blocked'
                               ? 'bg-red-100 border-red-500 text-red-700'
-                              : 'bg-gray-100 border-gray-300 text-gray-700'
+                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                           }`}
                         >
-                          {isAllowed ? '✓' : isBlocked ? '✗' : '○'}
+                          <div className="text-sm">{day}</div>
+                          <div className="text-xs">379€</div>
                         </button>
-                        <div className="text-xs text-gray-500 font-['Poppins']">
-                          {isAllowed ? 'Allowed' : isBlocked ? 'Blocked' : 'Neutral'}
-                        </div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div className="flex items-center gap-6 text-sm font-['Poppins']">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-green-100 border-2 border-green-500 rounded"></div>
+                    <span className="text-green-700">Enabled</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-red-100 border-2 border-red-500 rounded"></div>
+                    <span className="text-red-700">Blocked</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-white border-2 border-gray-300 rounded"></div>
+                    <span className="text-gray-700">Neutral</span>
+                  </div>
                 </div>
               </div>
 
@@ -311,16 +412,9 @@ export default function DateManagement() {
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-gray-700 mb-2 font-['Poppins']">Current Configuration</h3>
                 <div className="text-sm text-gray-600 font-['Poppins']">
-                  <p><strong>Allowed Days:</strong> {
-                    selectedCompetitionData.restrictions.allowedStartDays
-                      .map(day => weekDays[day])
-                      .join(', ')
-                  }</p>
-                  <p><strong>Blocked Days:</strong> {
-                    selectedCompetitionData.restrictions.blockedDays
-                      .map(day => weekDays[day])
-                      .join(', ')
-                  }</p>
+                  <p><strong>Enabled Dates:</strong> {selectedCompetitionData.restrictions.enabledDates.length} dates</p>
+                  <p><strong>Blocked Dates:</strong> {selectedCompetitionData.restrictions.blockedDates.length} dates</p>
+                  <p><strong>Neutral Dates:</strong> All other dates</p>
                 </div>
               </div>
             </div>
@@ -330,7 +424,7 @@ export default function DateManagement() {
         {/* Preview Section */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
-            <Clock className="w-6 h-6 text-[#76C043]" />
+            <Calendar className="w-6 h-6 text-[#76C043]" />
             <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">
               Live Preview
             </h2>
@@ -338,11 +432,11 @@ export default function DateManagement() {
           
           <div className="text-sm text-gray-600 font-['Poppins']">
             <p className="mb-2">
-              These settings will be applied to the booking system. Users will only be able to select departure dates on the allowed days.
+              These settings will be applied to the booking system. Users will only be able to select departure dates that are enabled in the calendar.
             </p>
             <div className="bg-blue-50 p-3 rounded-lg">
               <p className="text-blue-800 font-medium">
-                💡 Tip: Changes will take effect immediately after saving. Test the booking flow to see the updated date restrictions.
+                Changes will take effect immediately after saving. Test the booking flow to see the updated date restrictions.
               </p>
             </div>
           </div>

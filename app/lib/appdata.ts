@@ -2201,32 +2201,44 @@ export const AppData = {
     }
   },
 
-  // Date Restrictions Management
+  // Date Restrictions Management - Calendar-based system
   dateRestrictions: {
     european: {
-      allowedStartDays: [2], // Tuesday only
-      blockedDays: [0, 1, 3, 4, 5, 6], // Sun, Mon, Wed, Thu, Fri, Sat
-      description: 'European Competition - Tuesday departure only'
+      enabledDates: [
+        '2025-09-23',
+        '2025-10-02',
+        '2025-10-07',
+        '2025-10-14',
+        '2025-10-21',
+        '2025-10-28',
+        '2025-10-29',
+        '2025-10-30',
+        '2025-10-31'
+      ], // Specific dates that are enabled
+      blockedDates: [], // Specific dates that are blocked
+      description: 'European Competition - Specific enabled dates'
     },
-    nationalWeekend: {
-      allowedStartDays: [5, 6], // Friday and Saturday
-      blockedDays: [0, 1, 2, 3, 4], // Sun, Mon, Tue, Wed, Thu
-      description: 'National League - Weekend matches (Fri/Sat departure)'
-    },
-    nationalMidweek: {
-      allowedStartDays: [2], // Tuesday only
-      blockedDays: [0, 1, 3, 4, 5, 6], // Sun, Mon, Wed, Thu, Fri, Sat
-      description: 'National League - Midweek matches (Tuesday departure)'
+    national: {
+      enabledDates: [
+        '2025-09-16',
+        '2025-09-30',
+        '2025-10-01',
+        '2025-10-15',
+        '2025-10-22',
+        '2025-10-29'
+      ], // Specific dates that are enabled
+      blockedDates: [], // Specific dates that are blocked
+      description: 'National League - Specific enabled dates'
     },
     
     // Helper functions for date restrictions
-    getRestrictions: function(competitionType: 'european' | 'nationalWeekend' | 'nationalMidweek') {
+    getRestrictions: function(competitionType: 'european' | 'national') {
       return this[competitionType];
     },
     
-    updateRestrictions: function(competitionType: 'european' | 'nationalWeekend' | 'nationalMidweek', updates: {
-      allowedStartDays?: number[];
-      blockedDays?: number[];
+    updateRestrictions: function(competitionType: 'european' | 'national', updates: {
+      enabledDates?: string[];
+      blockedDates?: string[];
       description?: string;
     }) {
       if (this[competitionType]) {
@@ -2240,12 +2252,110 @@ export const AppData = {
       return this;
     },
     
-    isDateAllowed: function(competitionType: 'european' | 'nationalWeekend' | 'nationalMidweek', date: Date) {
+    isDateAllowed: function(competitionType: 'european' | 'national', date: Date) {
       const restrictions = this.getRestrictions(competitionType);
       if (!restrictions) return false;
       
-      const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
-      return restrictions.allowedStartDays.includes(dayOfWeek);
+      const dateString = date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      
+      // Check if date is explicitly blocked
+      if (restrictions.blockedDates.includes(dateString)) {
+        return false;
+      }
+      
+      // Check if date is explicitly enabled
+      return restrictions.enabledDates.includes(dateString);
+    },
+    
+    // Helper function to format date for storage
+    formatDateForStorage: function(date: Date): string {
+      return date.toISOString().split('T')[0];
+    },
+    
+    // Helper function to parse stored date
+    parseStoredDate: function(dateString: string): Date {
+      return new Date(dateString + 'T00:00:00.000Z');
+    },
+    
+    // Add a date to enabled dates
+    enableDate: function(competitionType: 'european' | 'national', date: Date) {
+      const restrictions = this.getRestrictions(competitionType);
+      if (!restrictions) return false;
+      
+      const dateString = this.formatDateForStorage(date);
+      
+      // Remove from blocked dates if it exists there
+      const blockedIndex = restrictions.blockedDates.indexOf(dateString);
+      if (blockedIndex > -1) {
+        restrictions.blockedDates.splice(blockedIndex, 1);
+      }
+      
+      // Add to enabled dates if not already there
+      if (!restrictions.enabledDates.includes(dateString)) {
+        restrictions.enabledDates.push(dateString);
+        restrictions.enabledDates.sort(); // Keep sorted
+      }
+      
+      return true;
+    },
+    
+    // Add a date to blocked dates
+    blockDate: function(competitionType: 'european' | 'national', date: Date) {
+      const restrictions = this.getRestrictions(competitionType);
+      if (!restrictions) return false;
+      
+      const dateString = this.formatDateForStorage(date);
+      
+      // Remove from enabled dates if it exists there
+      const enabledIndex = restrictions.enabledDates.indexOf(dateString);
+      if (enabledIndex > -1) {
+        restrictions.enabledDates.splice(enabledIndex, 1);
+      }
+      
+      // Add to blocked dates if not already there
+      if (!restrictions.blockedDates.includes(dateString)) {
+        restrictions.blockedDates.push(dateString);
+        restrictions.blockedDates.sort(); // Keep sorted
+      }
+      
+      return true;
+    },
+    
+    // Remove a date from both enabled and blocked lists (neutral state)
+    removeDate: function(competitionType: 'european' | 'national', date: Date) {
+      const restrictions = this.getRestrictions(competitionType);
+      if (!restrictions) return false;
+      
+      const dateString = this.formatDateForStorage(date);
+      
+      // Remove from both lists
+      const enabledIndex = restrictions.enabledDates.indexOf(dateString);
+      if (enabledIndex > -1) {
+        restrictions.enabledDates.splice(enabledIndex, 1);
+      }
+      
+      const blockedIndex = restrictions.blockedDates.indexOf(dateString);
+      if (blockedIndex > -1) {
+        restrictions.blockedDates.splice(blockedIndex, 1);
+      }
+      
+      return true;
+    },
+    
+    // Get date status (enabled, blocked, or neutral)
+    getDateStatus: function(competitionType: 'european' | 'national', date: Date): 'enabled' | 'blocked' | 'neutral' {
+      const restrictions = this.getRestrictions(competitionType);
+      if (!restrictions) return 'neutral';
+      
+      const dateString = this.formatDateForStorage(date);
+      
+      if (restrictions.enabledDates.includes(dateString)) {
+        return 'enabled';
+      } else if (restrictions.blockedDates.includes(dateString)) {
+        return 'blocked';
+      } else {
+        return 'neutral';
+      }
     }
   },
 
