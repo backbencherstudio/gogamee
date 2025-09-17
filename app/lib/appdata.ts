@@ -1928,7 +1928,7 @@ export const AppData = {
     },
     
     // Update specific section
-    updateSection: async function(section: string, data: unknown) {
+    updateSection: async function(section: string, _data: unknown) {
       // TODO: Replace with actual API call
       // const response = await fetch(`/api/${section}`, {
       //   method: 'PUT',
@@ -2215,8 +2215,7 @@ export const AppData = {
         '2025-10-30',
         '2025-10-31'
       ], // Specific dates that are enabled
-      blockedDates: [], // Specific dates that are blocked
-      description: 'European Competition - Specific enabled dates'
+      blockedDates: [] as string[] // Specific dates that are blocked
     },
     national: {
       enabledDates: [
@@ -2227,8 +2226,7 @@ export const AppData = {
         '2025-10-22',
         '2025-10-29'
       ], // Specific dates that are enabled
-      blockedDates: [], // Specific dates that are blocked
-      description: 'National League - Specific enabled dates'
+      blockedDates: [] as string[] // Specific dates that are blocked
     },
     
     // Helper functions for date restrictions
@@ -2239,7 +2237,6 @@ export const AppData = {
     updateRestrictions: function(competitionType: 'european' | 'national', updates: {
       enabledDates?: string[];
       blockedDates?: string[];
-      description?: string;
     }) {
       if (this[competitionType]) {
         this[competitionType] = { ...this[competitionType], ...updates };

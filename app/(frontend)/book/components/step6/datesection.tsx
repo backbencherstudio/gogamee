@@ -14,7 +14,6 @@ interface DurationOption {
 interface DateRestrictions {
   enabledDates: string[] // Array of date strings in YYYY-MM-DD format
   blockedDates: string[]
-  description: string
 }
 
 
@@ -448,9 +447,6 @@ export default function DateSection() {
               <div className="flex flex-col gap-2">
                 <div className="text-sm font-medium text-blue-800">
                   {formData.selectedLeague === 'european' ? '🏆 European Leagues' : '⚽ National Leagues'}
-                </div>
-                <div className="text-xs text-blue-600">
-                  {getDateRestrictions().description}
                 </div>
                 <div className="text-xs text-blue-500">
                   Available departure dates: Specific dates enabled in calendar
