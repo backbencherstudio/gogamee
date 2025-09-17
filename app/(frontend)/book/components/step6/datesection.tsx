@@ -293,11 +293,9 @@ export default function DateSection() {
 
   // Render functions
   const renderEmptyDay = useCallback(() => (
-    <div className="w-12 h-12 inline-flex flex-col justify-start items-center">
-      <div className="self-stretch h-7 relative">
-        <div className="w-7 h-7 left-[11px] top-0 absolute text-center justify-center text-zinc-950 text-sm font-medium font-['Poppins'] leading-tight"> </div>
-      </div>
-      <div className="self-stretch text-center justify-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed"> </div>
+    <div className="w-12 h-12 inline-flex flex-col justify-center items-center">
+      <div className="text-center text-zinc-950 text-sm font-medium font-['Poppins'] leading-tight"> </div>
+      <div className="text-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed"> </div>
     </div>
   ), [])
 
@@ -329,13 +327,13 @@ export default function DateSection() {
 
       return (
         <div className={isInRange ? outline : ''}>
-          <div className={`w-12 h-12 ${bgColor} rounded inline-flex flex-col justify-start items-center cursor-pointer pt-2`} 
+          <div className={`w-12 h-12 ${bgColor} rounded inline-flex flex-col justify-center items-center cursor-pointer`} 
                onClick={handleClick}>
-            <div className={`text-center justify-center ${textColorSelected} text-sm font-medium font-['Poppins'] leading-tight`}>
+            <div className={`text-center ${textColorSelected} text-sm font-medium font-['Poppins'] leading-tight`}>
               {day}
             </div>
             {isStartDate && (
-              <div className={`text-center justify-center ${textColorSelected} text-sm font-normal font-['Poppins'] leading-relaxed`}>
+              <div className={`text-center ${textColorSelected} text-sm font-normal font-['Poppins'] leading-relaxed`}>
                 {currentPrice}
               </div>
             )}
@@ -345,13 +343,13 @@ export default function DateSection() {
     }
 
     return (
-      <div className={`w-12 h-12 rounded inline-flex flex-col justify-start items-center ${cursorClass} pt-2`} 
+      <div className={`w-12 h-12 rounded inline-flex flex-col justify-center items-center ${cursorClass}`} 
            onClick={handleClick}>
-        <div className={`text-center justify-center ${textColor} text-sm font-medium font-['Poppins'] leading-tight`}>
+        <div className={`text-center ${textColor} text-sm font-medium font-['Poppins'] leading-tight`}>
           {day}
         </div>
         {!isDisabled && (
-          <div className="text-center justify-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed">
+          <div className="text-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed">
             {currentPrice}
           </div>
         )}
