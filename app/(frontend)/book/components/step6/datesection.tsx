@@ -304,6 +304,7 @@ export default function DateSection() {
   const renderCalendarDay = useCallback((day: number | null, monthIndex: number, year: number, isCurrentMonth: boolean = true) => {
     if (!day) return renderEmptyDay()
 
+    const currentCheckDate = new Date(year, monthIndex, day)
     const { isSelected, isInRange, isDisabled } = getDateStatus(day, monthIndex, year)
     const textColor = isDisabled ? 'text-zinc-400' : 'text-zinc-950'
     const cursorClass = isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
@@ -321,6 +322,10 @@ export default function DateSection() {
       const bgColor = isInRange ? 'bg-[#D5EBC5]' : 'bg-[#76C043]'
       const textColorSelected = isInRange ? 'text-lime-600' : 'text-white'
       const outline = "rounded outline outline-1 outline-offset-[-1px] outline-[#6AAD3C] overflow-hidden"
+      
+      // Check if this is the start date (main selection) - only show price on start date
+      const isStartDate = selectedDateRange && 
+        currentCheckDate.getTime() === selectedDateRange.startDate.getTime()
 
       return (
         <div className={isInRange ? outline : ''}>
@@ -329,9 +334,11 @@ export default function DateSection() {
             <div className={`text-center justify-center ${textColorSelected} text-sm font-medium font-['Poppins'] leading-tight`}>
               {day}
             </div>
-            <div className={`text-center justify-center ${textColorSelected} text-sm font-normal font-['Poppins'] leading-relaxed`}>
-              {currentPrice}
-            </div>
+            {isStartDate && (
+              <div className={`text-center justify-center ${textColorSelected} text-sm font-normal font-['Poppins'] leading-relaxed`}>
+                {currentPrice}
+              </div>
+            )}
           </div>
         </div>
       )
@@ -343,9 +350,11 @@ export default function DateSection() {
         <div className={`text-center justify-center ${textColor} text-sm font-medium font-['Poppins'] leading-tight`}>
           {day}
         </div>
-        <div className="text-center justify-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed">
-          {currentPrice}
-        </div>
+        {!isDisabled && (
+          <div className="text-center justify-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed">
+            {currentPrice}
+          </div>
+        )}
       </div>
     )
   }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePrice, selectedDuration])
@@ -432,7 +441,7 @@ export default function DateSection() {
                   )}
                 </div>
                 <div className="text-lg font-bold text-lime-600">
-                  {calculatePrice(DURATION_OPTIONS[selectedDuration].nights)}
+                  From {calculatePrice(DURATION_OPTIONS[selectedDuration].nights)}
                 </div>
                 <div className="text-xs text-gray-500">
                   {DURATION_OPTIONS[selectedDuration].days} days, {DURATION_OPTIONS[selectedDuration].nights} nights
