@@ -384,7 +384,6 @@ export default function DateManagement() {
                           }`}
                         >
                           <div className="text-sm">{day}</div>
-                          <div className="text-xs">379€</div>
                         </button>
                       )
                     })}
