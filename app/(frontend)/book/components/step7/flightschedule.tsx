@@ -165,8 +165,23 @@ const TimeRangeSlider = React.memo(({
 
   const handleRangeChange = useCallback((indices: number[]) => {
     const normalized = [Math.min(indices[0], indices[1]), Math.max(indices[0], indices[1])]
-    const newStart = timeSlots[normalized[0]]?.value ?? timeSlots[0].value
-    const newEnd = timeSlots[normalized[1]]?.value ?? timeSlots[timeSlots.length - 1].value
+    
+    // Ensure minimum one step difference between start and end
+    let adjustedStart = normalized[0]
+    let adjustedEnd = normalized[1]
+    
+    if (adjustedStart === adjustedEnd) {
+      // If both knobs are at the same position, move the end knob one step forward
+      if (adjustedEnd < timeSlots.length - 1) {
+        adjustedEnd = adjustedEnd + 1
+      } else if (adjustedStart > 0) {
+        // If at the end, move start knob one step backward
+        adjustedStart = adjustedStart - 1
+      }
+    }
+    
+    const newStart = timeSlots[adjustedStart]?.value ?? timeSlots[0].value
+    const newEnd = timeSlots[adjustedEnd]?.value ?? timeSlots[timeSlots.length - 1].value
     onChange({ start: newStart, end: newEnd })
   }, [onChange, timeSlots])
 
@@ -205,12 +220,16 @@ const TimeRangeSlider = React.memo(({
           renderThumb={({ props, isDragged, index }) => (
             <div
               {...props}
-              className="relative w-5 h-5 border-2 border-[#6AAD3C] rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300 bg-white"
-              style={{ ...props.style, backgroundColor: isDragged ? '#65a30d' : 'white' }}
+              className="relative w-5 h-5 border-2 border-[#6AAD3C] rounded-full shadow-md cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-lime-300 bg-white"
+              style={{ 
+                ...props.style, 
+                backgroundColor: isDragged ? '#65a30d' : 'white',
+                cursor: isDragged ? 'grabbing' : 'grab'
+              }}
             >
-                             <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 whitespace-nowrap shadow-sm">
-                 {timeSlots[index === 0 ? startIndex : endIndex]?.label}
-               </div>
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 whitespace-nowrap shadow-sm">
+                {timeSlots[index === 0 ? startIndex : endIndex]?.label}
+              </div>
             </div>
           )}
         />
@@ -345,9 +364,27 @@ export default function FlightSchedule() {
   }, [formData.flightSchedule, isHydrated])
   
   const handleTimeRangeChange = useCallback((flightIndex: number, newRange: TimeRange) => {
+    // Ensure minimum one step difference between start and end times
+    const timeSlots = getAvailableTimeSlots(flightIndex === 0)
+    const startSlotIndex = timeSlots.findIndex(slot => slot.value === newRange.start)
+    const endSlotIndex = timeSlots.findIndex(slot => slot.value === newRange.end)
+    
+    let adjustedRange = { ...newRange }
+    
+    // If start and end are the same, adjust to maintain minimum range
+    if (startSlotIndex === endSlotIndex) {
+      if (endSlotIndex < timeSlots.length - 1) {
+        // Move end time one step forward
+        adjustedRange = { ...adjustedRange, end: timeSlots[endSlotIndex + 1].value }
+      } else if (startSlotIndex > 0) {
+        // Move start time one step backward
+        adjustedRange = { ...adjustedRange, start: timeSlots[startSlotIndex - 1].value }
+      }
+    }
+    
     setFlightData(prev => prev.map((flight, index) => 
       index === flightIndex 
-        ? { ...flight, timeRange: newRange }
+        ? { ...flight, timeRange: adjustedRange }
         : flight
     ))
   }, [])
