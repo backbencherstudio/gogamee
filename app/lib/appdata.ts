@@ -1,6 +1,18 @@
 // Main data structure for the entire application
 // This acts as a constructor function that can be easily replaced with API calls
 
+// Traveler Information Interface
+export interface TravelerInfo {
+  name: string;
+  email: string;
+  phone: string;
+  dateOfBirth: string;
+  documentType: 'ID' | 'Passport';
+  documentNumber: string;
+  isPrimary?: boolean;
+  travelerNumber?: number;
+}
+
 export interface BookingData {
   id: number;
   status: "pending" | "completed" | "cancelled";
@@ -73,6 +85,10 @@ export interface BookingData {
   destinationCity?: string;
   assignedMatch?: string;
   previousTravelInfo?: string;
+  // Traveler information
+  allTravelers?: TravelerInfo[];
+  primaryTraveler?: TravelerInfo;
+  extraTravelers?: TravelerInfo[];
 }
 
 // Hero Section Data Structure
@@ -1505,6 +1521,40 @@ export const AppData = {
       flightHotel: "Flight + Hotel",
       totalCost: "Total Cost"
     },
+    travelerFields: {
+      name: {
+        label: "Traveler's name (as on ID/ passport)",
+        placeholder: "Enter traveler's name",
+        required: true
+      },
+      email: {
+        label: "Traveler's email",
+        placeholder: "Enter traveler's email",
+        required: true,
+        onlyForPrimary: true
+      },
+      phone: {
+        label: "Phone number",
+        placeholder: "Enter phone number",
+        required: true,
+        onlyForPrimary: true
+      },
+      dateOfBirth: {
+        label: "Date of birth",
+        required: true
+      },
+      documentType: {
+        label: "Document type",
+        id: "ID",
+        passport: "Passport",
+        required: true
+      },
+      documentNumber: {
+        label: "Document number",
+        placeholder: "Enter document number",
+        required: true
+      }
+    },
     formFields: {
       travelerName: {
         label: "Traveler's name (as on ID/ passport)",
@@ -1585,6 +1635,113 @@ export const AppData = {
     },
     storage: {
       key: "personalinfo_form_data"
+    },
+    
+    // Helper functions for traveler management
+    createDefaultTraveler: function(): TravelerInfo {
+      return {
+        name: "",
+        email: "",
+        phone: "",
+        dateOfBirth: "",
+        documentType: "ID",
+        documentNumber: "",
+        isPrimary: false
+      };
+    },
+    
+    createPrimaryTraveler: function(name: string, email: string, phone: string, dateOfBirth: string, documentType: 'ID' | 'Passport', documentNumber: string): TravelerInfo {
+      return {
+        name,
+        email,
+        phone,
+        dateOfBirth,
+        documentType,
+        documentNumber,
+        isPrimary: true
+      };
+    },
+    
+    createExtraTraveler: function(name: string, dateOfBirth: string, documentType: 'ID' | 'Passport', documentNumber: string, travelerNumber: number): TravelerInfo {
+      return {
+        name,
+        email: "",
+        phone: "",
+        dateOfBirth,
+        documentType,
+        documentNumber,
+        isPrimary: false,
+        travelerNumber
+      };
+    },
+    
+    validateTraveler: function(traveler: TravelerInfo, isPrimary: boolean = false): { isValid: boolean; errors: string[] } {
+      const errors: string[] = [];
+      
+      if (!traveler.name.trim()) {
+        errors.push("Traveler name is required");
+      }
+      
+      if (!traveler.dateOfBirth) {
+        errors.push("Date of birth is required");
+      }
+      
+      if (!traveler.documentType) {
+        errors.push("Document type is required");
+      }
+      
+      if (!traveler.documentNumber.trim()) {
+        errors.push("Document number is required");
+      }
+      
+      if (isPrimary) {
+        if (!traveler.email.trim()) {
+          errors.push("Email is required for primary traveler");
+        } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(traveler.email)) {
+          errors.push("Invalid email format");
+        }
+        
+        if (!traveler.phone.trim()) {
+          errors.push("Phone number is required for primary traveler");
+        }
+      }
+      
+      return {
+        isValid: errors.length === 0,
+        errors
+      };
+    },
+    
+    formatTravelerForDisplay: function(traveler: TravelerInfo): string {
+      const age = traveler.dateOfBirth ? 
+        Math.floor((Date.now() - new Date(traveler.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : 0;
+      
+      return `${traveler.name} (${age} years old, ${traveler.documentType}: ${traveler.documentNumber})`;
+    },
+    
+    getTravelerAge: function(dateOfBirth: string): number {
+      if (!dateOfBirth) return 0;
+      return Math.floor((Date.now() - new Date(dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+    },
+    
+    categorizeTravelers: function(travelers: TravelerInfo[]): { adults: TravelerInfo[]; kids: TravelerInfo[]; babies: TravelerInfo[] } {
+      const adults: TravelerInfo[] = [];
+      const kids: TravelerInfo[] = [];
+      const babies: TravelerInfo[] = [];
+      
+      travelers.forEach(traveler => {
+        const age = this.getTravelerAge(traveler.dateOfBirth);
+        
+        if (age >= 18) {
+          adults.push(traveler);
+        } else if (age >= 2) {
+          kids.push(traveler);
+        } else {
+          babies.push(traveler);
+        }
+      });
+      
+      return { adults, kids, babies };
     }
   },
 
@@ -1852,7 +2009,29 @@ export const AppData = {
         requiresEuropeanLeagueHandling: false,
         destinationCity: "",
         assignedMatch: "",
-        previousTravelInfo: "Yes, I traveled to Barcelona for the Champions League match in 2021"
+        previousTravelInfo: "Yes, I traveled to Barcelona for the Champions League match in 2021",
+        // Traveler information
+        primaryTraveler: {
+          name: "Aut vitae perferendi",
+          email: "daryjiq@mailinator.com",
+          phone: "+1 (726) 455-4453",
+          dateOfBirth: "1990-05-15",
+          documentType: "Passport",
+          documentNumber: "AB1234567",
+          isPrimary: true
+        },
+        extraTravelers: [],
+        allTravelers: [
+          {
+            name: "Aut vitae perferendi",
+            email: "daryjiq@mailinator.com",
+            phone: "+1 (726) 455-4453",
+            dateOfBirth: "1990-05-15",
+            documentType: "Passport",
+            documentNumber: "AB1234567",
+            isPrimary: true
+          }
+        ]
       },
       {
         id: 2,
@@ -1907,7 +2086,70 @@ export const AppData = {
         requiresEuropeanLeagueHandling: true,
         destinationCity: "",
         assignedMatch: "",
-        previousTravelInfo: "Yes, I traveled to Barcelona for the Champions League match in 2023"
+        previousTravelInfo: "Yes, I traveled to Barcelona for the Champions League match in 2023",
+        // Traveler information for 3 people (2 adults + 1 kid)
+        primaryTraveler: {
+          name: "John Doe",
+          email: "john.doe@example.com",
+          phone: "+34 612 345 678",
+          dateOfBirth: "1985-03-20",
+          documentType: "Passport",
+          documentNumber: "CD9876543",
+          isPrimary: true
+        },
+        extraTravelers: [
+          {
+            name: "Jane Doe",
+            email: "",
+            phone: "",
+            dateOfBirth: "1988-07-12",
+            documentType: "ID",
+            documentNumber: "12345678A",
+            isPrimary: false,
+            travelerNumber: 2
+          },
+          {
+            name: "Tommy Doe",
+            email: "",
+            phone: "",
+            dateOfBirth: "2010-11-05",
+            documentType: "ID",
+            documentNumber: "87654321B",
+            isPrimary: false,
+            travelerNumber: 3
+          }
+        ],
+        allTravelers: [
+          {
+            name: "John Doe",
+            email: "john.doe@example.com",
+            phone: "+34 612 345 678",
+            dateOfBirth: "1985-03-20",
+            documentType: "Passport",
+            documentNumber: "CD9876543",
+            isPrimary: true
+          },
+          {
+            name: "Jane Doe",
+            email: "",
+            phone: "",
+            dateOfBirth: "1988-07-12",
+            documentType: "ID",
+            documentNumber: "12345678A",
+            isPrimary: false,
+            travelerNumber: 2
+          },
+          {
+            name: "Tommy Doe",
+            email: "",
+            phone: "",
+            dateOfBirth: "2010-11-05",
+            documentType: "ID",
+            documentNumber: "87654321B",
+            isPrimary: false,
+            travelerNumber: 3
+          }
+        ]
       }
     ];
     
@@ -2403,6 +2645,24 @@ export const AppData = {
                 <p><strong>Departure City:</strong> ${booking.selectedCity}</p>
                 <p><strong>Travel Dates:</strong> ${booking.departureDateFormatted} - ${booking.returnDateFormatted}</p>
                 <p><strong>Total Travelers:</strong> ${booking.totalPeople} (${booking.adults} adults, ${booking.kids} kids, ${booking.babies} babies)</p>
+                ${booking.allTravelers && booking.allTravelers.length > 0 ? `
+                  <div style="margin-top: 15px;">
+                    <h4>Traveler Details:</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                      ${booking.allTravelers.map((traveler, index) => `
+                        <li style="margin-bottom: 8px;">
+                          <strong>Traveler ${index + 1}:</strong> ${traveler.name}<br>
+                          <span style="color: #666; font-size: 14px;">
+                            ${traveler.isPrimary ? 'Primary Contact' : 'Additional Traveler'} | 
+                            ${traveler.dateOfBirth ? `DOB: ${traveler.dateOfBirth}` : ''} | 
+                            ${traveler.documentType}: ${traveler.documentNumber}
+                            ${traveler.isPrimary ? `<br>Email: ${traveler.email} | Phone: ${traveler.phone}` : ''}
+                          </span>
+                        </li>
+                      `).join('')}
+                    </ul>
+                  </div>
+                ` : ''}
               </div>
               
               ${booking.destinationCity && booking.assignedMatch ? `
@@ -2471,6 +2731,17 @@ export const AppData = {
         - Departure City: ${booking.selectedCity}
         - Travel Dates: ${booking.departureDateFormatted} - ${booking.returnDateFormatted}
         - Total Travelers: ${booking.totalPeople}
+        
+        ${booking.allTravelers && booking.allTravelers.length > 0 ? `
+        TRAVELER DETAILS:
+        ${booking.allTravelers.map((traveler, index) => `
+        Traveler ${index + 1}: ${traveler.name}
+          ${traveler.isPrimary ? 'Primary Contact' : 'Additional Traveler'}
+          ${traveler.dateOfBirth ? `DOB: ${traveler.dateOfBirth}` : ''}
+          ${traveler.documentType}: ${traveler.documentNumber}
+          ${traveler.isPrimary ? `Email: ${traveler.email} | Phone: ${traveler.phone}` : ''}
+        `).join('')}
+        ` : ''}
         
         ${booking.destinationCity && booking.assignedMatch ? `
         YOUR SURPRISE DESTINATION & MATCH:

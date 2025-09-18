@@ -65,6 +65,16 @@ export interface BookingContextType {
       phone: string
       previousTravelInfo: string
     }
+    allTravelers?: Array<{
+      name: string
+      email: string
+      phone: string
+      dateOfBirth: string
+      documentType: 'ID' | 'Passport'
+      documentNumber: string
+      isPrimary: boolean
+      travelerNumber?: number
+    }>
     paymentInfo: {
       cardNumber: string
       expiryDate: string

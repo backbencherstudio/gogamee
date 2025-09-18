@@ -89,7 +89,7 @@ interface TravelerInfo {
 
 interface PersonalInfoFormData {
   primaryTraveler: TravelerInfo
-  extraTraveler: TravelerInfo
+  extraTravelers: TravelerInfo[]
   paymentMethod: 'credit' | 'google' | 'apple'
   previousTravelInfo: string
 }
@@ -324,12 +324,34 @@ export default function Personalinfo() {
   // Load initial data from localStorage or use defaults
   const getInitialValues = (): PersonalInfoFormData => {
     const savedData = loadFromStorage()
+    
+    // Calculate how many extra travelers we need
+    const totalPeople = formData.peopleCount ? 
+      formData.peopleCount.adults + formData.peopleCount.kids + formData.peopleCount.babies : 1
+    const extraTravelersCount = Math.max(0, totalPeople - 1) // Total minus primary traveler
+    
+    // Create array of extra travelers
+    const extraTravelers = Array.from({ length: extraTravelersCount }, () => ({ ...defaultTravelerInfo }))
+    
     const initialValues = savedData || {
       primaryTraveler: defaultTravelerInfo,
-      extraTraveler: hasMultipleTravelers ? defaultTravelerInfo : { ...defaultTravelerInfo, name: '', email: '', phone: '', dateOfBirth: '', documentType: 'ID', documentNumber: '' },
+      extraTravelers: extraTravelers,
       paymentMethod: 'credit',
       previousTravelInfo: ''
     }
+    
+    // If saved data exists but has old structure, migrate it
+    if (savedData && 'extraTraveler' in savedData) {
+      const migratedData = {
+        primaryTraveler: savedData.primaryTraveler,
+        extraTravelers: savedData.extraTraveler ? [{ ...defaultTravelerInfo, ...savedData.extraTraveler }] : [],
+        paymentMethod: savedData.paymentMethod,
+        previousTravelInfo: savedData.previousTravelInfo
+      }
+      console.log('🎯 Migrated old form structure:', migratedData)
+      return migratedData
+    }
+    
     console.log('🎯 Initial form values:', initialValues)
     return initialValues
   }
@@ -356,7 +378,10 @@ export default function Personalinfo() {
         currentValues.primaryTraveler.phone || 
         currentValues.primaryTraveler.dateOfBirth || 
         currentValues.primaryTraveler.documentType || 
-        currentValues.primaryTraveler.documentNumber) {
+        currentValues.primaryTraveler.documentNumber ||
+        currentValues.extraTravelers.some(traveler => 
+          traveler.name || traveler.dateOfBirth || traveler.documentType || traveler.documentNumber
+        )) {
       saveToStorage(currentValues)
     }
   }, [formData, getValues])
@@ -365,6 +390,31 @@ export default function Personalinfo() {
   const onSubmit = (data: PersonalInfoFormData) => {
     console.log('Form Data:', data)
     console.log('Reservation Data:', reservationData)
+    
+    // Collect all traveler information
+    const allTravelers = [
+      {
+        name: data.primaryTraveler.name,
+        email: data.primaryTraveler.email,
+        phone: data.primaryTraveler.phone,
+        dateOfBirth: data.primaryTraveler.dateOfBirth,
+        documentType: data.primaryTraveler.documentType,
+        documentNumber: data.primaryTraveler.documentNumber,
+        isPrimary: true
+      },
+      ...data.extraTravelers.map((traveler, index) => ({
+        name: traveler.name,
+        email: '', // Extra travelers don't need email/phone
+        phone: '',
+        dateOfBirth: traveler.dateOfBirth,
+        documentType: traveler.documentType,
+        documentNumber: traveler.documentNumber,
+        isPrimary: false,
+        travelerNumber: index + 2
+      }))
+    ]
+    
+    console.log('All Travelers:', allTravelers)
     
     // Update booking context with personal info and calculated totals
     updateFormData({
@@ -375,17 +425,19 @@ export default function Personalinfo() {
         phone: data.primaryTraveler.phone,
         previousTravelInfo: data.previousTravelInfo
       },
-             // Add calculated totals for the next step
-       calculatedTotals: {
-         basePrice: reservationData.basePrice,
-         extrasCost: reservationData.extrasCost,
-         flightScheduleCost: reservationData.flightScheduleCost,
-         leagueCost: reservationData.leagueCost,
-         totalCost: reservationData.grandTotal,
-         totalPeople: reservationData.totalPeople,
-         duration: reservationData.duration,
-         nights: reservationData.nights
-       }
+      // Add all travelers information for the next step
+      allTravelers: allTravelers,
+      // Add calculated totals for the next step
+      calculatedTotals: {
+        basePrice: reservationData.basePrice,
+        extrasCost: reservationData.extrasCost,
+        flightScheduleCost: reservationData.flightScheduleCost,
+        leagueCost: reservationData.leagueCost,
+        totalCost: reservationData.grandTotal,
+        totalPeople: reservationData.totalPeople,
+        duration: reservationData.duration,
+        nights: reservationData.nights
+      }
     })
     
     // Clear localStorage after successful submission
@@ -587,96 +639,127 @@ export default function Personalinfo() {
                 </div>
               </div>
 
-              {/* Extra Traveler Information - Only show if multiple travelers */}
+              {/* Extra Travelers Information - Show correct number of travelers */}
               {hasMultipleTravelers && (
                 <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
                   <div className="self-stretch inline-flex justify-start items-center gap-2">
                     <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                      {personalInfoData.text.extraTravelerTitle}
+                      Extra Travelers ({reservationData.totalPeople - 1})
                     </div>
                   </div>
-                  <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                    <div className="self-stretch flex flex-col md:inline-flex md:flex-row justify-start items-start gap-4 md:gap-6">
-                      <Controller
-                        name="extraTraveler.name"
-                        control={control}
-                        render={({ field }) => (
-                          <FormInput
-                            label={personalInfoData.formFields.travelerName.label}
-                            placeholder={personalInfoData.formFields.travelerName.placeholder}
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                        )}
-                      />
-                      <Controller
-                        name="extraTraveler.dateOfBirth"
-                        control={control}
-                        render={({ field }) => (
-                          <FormInput
-                            label={personalInfoData.formFields.dateOfBirth.label}
-                            type="date"
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                        )}
-                      />
-                    </div>
-                    <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                      <div className="self-stretch flex flex-col justify-center items-start gap-4">
+                  <div className="self-stretch flex flex-col justify-start items-start gap-6">
+                    {Array.from({ length: reservationData.totalPeople - 1 }, (_, index) => (
+                      <div key={index} className="self-stretch flex flex-col justify-start items-start gap-4 border border-gray-200 rounded-lg p-4">
                         <div className="self-stretch inline-flex justify-start items-center gap-2">
-                          <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                            {personalInfoData.formFields.documentType.label}
+                          <div className="justify-start text-neutral-800 text-base font-semibold font-['Poppins'] leading-loose">
+                            Traveler {index + 2}
                           </div>
                         </div>
-                      </div>
-                      <div className="self-stretch flex flex-col justify-start items-start gap-4">
                         <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                          <Controller
-                            name="extraTraveler.documentType"
-                            control={control}
-                            render={({ field }) => (
-                              <>
-                                <DocumentTypeRadio
-                                  id="extraID"
-                                  name="extraDocType"
-                                  value="ID"
-                                  selectedValue={field.value}
+                          <div className="self-stretch flex flex-col md:inline-flex md:flex-row justify-start items-start gap-4 md:gap-6">
+                            <Controller
+                              name={`extraTravelers.${index}.name`}
+                              control={control}
+                              rules={{ required: `Traveler ${index + 2} name is required` }}
+                              render={({ field }) => (
+                                <FormInput
+                                  label={personalInfoData.formFields.travelerName.label}
+                                  placeholder={personalInfoData.formFields.travelerName.placeholder}
+                                  value={field.value}
                                   onChange={field.onChange}
-                                  label={personalInfoData.formFields.documentType.id}
+                                  error={errors.extraTravelers?.[index]?.name?.message}
                                 />
-                                <DocumentTypeRadio
-                                  id="extraPassport"
-                                  name="extraDocType"
-                                  value="Passport"
-                                  selectedValue={field.value}
+                              )}
+                            />
+                            <Controller
+                              name={`extraTravelers.${index}.dateOfBirth`}
+                              control={control}
+                              rules={{ required: `Traveler ${index + 2} date of birth is required` }}
+                              render={({ field }) => (
+                                <FormInput
+                                  label={personalInfoData.formFields.dateOfBirth.label}
+                                  type="date"
+                                  value={field.value}
                                   onChange={field.onChange}
-                                  label={personalInfoData.formFields.documentType.passport}
+                                  error={errors.extraTravelers?.[index]?.dateOfBirth?.message}
                                 />
-                              </>
-                            )}
-                          />
-                        </div>
-                        <div className="self-stretch flex flex-col justify-start items-start gap-2">
-                          <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
-                            {personalInfoData.formFields.documentNumber.label}
+                              )}
+                            />
                           </div>
-                          <Controller
-                            name="extraTraveler.documentNumber"
-                            control={control}
-                            render={({ field }) => (
-                              <input
-                                type="text"
-                                value={field.value}
-                                onChange={field.onChange}
-                                placeholder={personalInfoData.formFields.documentNumber.placeholder}
-                                className="self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
-                              />
-                            )}
-                          />
+                          <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                            <div className="self-stretch flex flex-col justify-center items-start gap-4">
+                              <div className="self-stretch inline-flex justify-start items-center gap-2">
+                                <div className="justify-start text-neutral-800 text-base font-semibold font-['Poppins'] leading-loose">
+                                  {personalInfoData.formFields.documentType.label}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                              <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                                <Controller
+                                  name={`extraTravelers.${index}.documentType`}
+                                  control={control}
+                                  rules={{ required: `Traveler ${index + 2} document type is required` }}
+                                  render={({ field }) => (
+                                    <>
+                                      <DocumentTypeRadio
+                                        id={`extra${index}ID`}
+                                        name={`extra${index}DocType`}
+                                        value="ID"
+                                        selectedValue={field.value}
+                                        onChange={field.onChange}
+                                        label={personalInfoData.formFields.documentType.id}
+                                      />
+                                      <DocumentTypeRadio
+                                        id={`extra${index}Passport`}
+                                        name={`extra${index}DocType`}
+                                        value="Passport"
+                                        selectedValue={field.value}
+                                        onChange={field.onChange}
+                                        label={personalInfoData.formFields.documentType.passport}
+                                      />
+                                    </>
+                                  )}
+                                />
+                                {errors.extraTravelers?.[index]?.documentType && (
+                                  <div className="text-red-500 text-sm font-normal font-['Poppins']">
+                                    {errors.extraTravelers[index].documentType.message}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="self-stretch flex flex-col justify-start items-start gap-2">
+                                <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
+                                  {personalInfoData.formFields.documentNumber.label}
+                                </div>
+                                <Controller
+                                  name={`extraTravelers.${index}.documentNumber`}
+                                  control={control}
+                                  rules={{ required: `Traveler ${index + 2} document number is required` }}
+                                  render={({ field }) => (
+                                    <>
+                                      <input
+                                        type="text"
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                        placeholder={personalInfoData.formFields.documentNumber.placeholder}
+                                        className={`self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 w-full ${
+                                          errors.extraTravelers?.[index]?.documentNumber ? 'outline-red-500' : 'outline-zinc-200 focus:outline-[#6AAD3C]'
+                                        }`}
+                                      />
+                                      {errors.extraTravelers?.[index]?.documentNumber && (
+                                        <div className="text-red-500 text-sm font-normal font-['Poppins']">
+                                          {errors.extraTravelers[index].documentNumber.message}
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               )}
