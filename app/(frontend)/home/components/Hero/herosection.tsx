@@ -124,7 +124,7 @@ export default function HeroSection() {
   }, [])
 
   return (
-    <div className="w-full h-[100vh] min-h-[600px] md:h-[720px] relative flex-shrink-0 max-w-[1200px] mx-auto">
+    <div className="w-full h-[100%] min-h-[600px] md:h-[720px] relative flex-shrink-0 max-w-[1200px] mx-auto">
       <div
         className="absolute inset-0 rounded-none md:rounded-[24px] overflow-hidden"
         style={{ backgroundImage: "url(/homepage/Herobg.png)", backgroundSize: "cover", backgroundPosition: "center" }}
