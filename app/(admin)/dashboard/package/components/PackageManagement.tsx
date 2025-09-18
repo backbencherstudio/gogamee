@@ -168,13 +168,16 @@ export default function PackageManagement({
                   
                   {/* Action Buttons */}
                   <div className="flex gap-2">
-                    <button
-                      onClick={() => setEditingPriceId(pkg.id)}
-                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
-                      title="Update Prices"
-                    >
-                      <DollarSign className="w-4 h-4" />
-                    </button>
+                    {/* Only show price edit button for Starting Price packages */}
+                    {pkg.category === 'Starting Price' && (
+                      <button
+                        onClick={() => setEditingPriceId(pkg.id)}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                        title="Update Prices"
+                      >
+                        <DollarSign className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       onClick={() => setEditingPackageId(pkg.id)}
                       className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
@@ -198,7 +201,8 @@ export default function PackageManagement({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium text-gray-700 font-['Poppins']">Standard Package:</h4>
-                    {pkg.standardPrice && (
+                    {/* Only show price for Starting Price packages */}
+                    {pkg.category === 'Starting Price' && pkg.standardPrice && (
                       <span className="text-lg font-bold text-green-600 font-['Poppins']">
                         {pkg.standardPrice}{pkg.currency || '€'}
                       </span>
@@ -210,7 +214,8 @@ export default function PackageManagement({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium text-gray-700 font-['Poppins']">Premium Package:</h4>
-                    {pkg.premiumPrice && (
+                    {/* Only show price for Starting Price packages */}
+                    {pkg.category === 'Starting Price' && pkg.premiumPrice && (
                       <span className="text-lg font-bold text-blue-600 font-['Poppins']">
                         {pkg.premiumPrice}{pkg.currency || '€'}
                       </span>
@@ -295,6 +300,7 @@ export default function PackageManagement({
                     initialData={initial}
                     submitLabel="Save Changes"
                     showSport={false}
+                    showPrices={pkg.category === 'Starting Price'}
                     onSubmit={handleUpdatePackage}
                     onCancel={() => setEditingPackageId(null)}
                   />
