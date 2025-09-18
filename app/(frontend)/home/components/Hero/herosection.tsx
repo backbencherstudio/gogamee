@@ -106,7 +106,7 @@ export default function HeroSection() {
   // Hero text animation
   useEffect(() => {
     if (heroTextRef.current) {
-      // Initial setup - hide text
+      // Initial setup -- hide text
       gsap.set(heroTextRef.current.children, {
         y: 100,
         opacity: 0,
