@@ -462,7 +462,7 @@ export default function DateSection() {
             </div>
           )} */}
 
-          {/* Duration Selection */}
+          {/* Duration Selectionn */}
           <div className="p-1 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-gray-200 w-full overflow-x-auto">
             <div className="flex xl:inline-flex justify-start items-center gap-1 xl:gap-0 min-w-max xl:min-w-0">
               {DURATION_OPTIONS.map((option, index) => (
