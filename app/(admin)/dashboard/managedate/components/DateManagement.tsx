@@ -386,7 +386,7 @@ export default function DateManagement() {
           </div>
         )}
 
-        {/* Preview Section */}
+        {/* Preview Sectionn */}
         <div className="bg-white rounded-lg border border-gray-200 p-3 md:p-4 lg:p-6 shadow-sm">
           <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
             <Calendar className="w-5 h-5 md:w-6 md:h-6 text-[#76C043]" />
