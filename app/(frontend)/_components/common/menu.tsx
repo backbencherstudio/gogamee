@@ -40,9 +40,9 @@ export default function Menu() {
     <div className="w-full bg-white py-5">
       <div className="max-w-[1200px] mx-auto px-4 lg:px-0 flex justify-between items-center relative">
         {/* Logo */}
-        <div className="font-bold font-['Poppins'] text-3xl md:text-4xl text-black flex items-center">
+        <Link href="/" className="font-bold font-['Poppins'] text-3xl md:text-4xl text-black flex items-center cursor-pointer">
           <Image src="/logo.svg" className=" min-w-24 md:min-w-32 h-auto" alt="Logo" width={80} height={80} />
-        </div>
+        </Link>
 
         {/* Mobile Language & Contact - Always Visible */}
         <div className="lg:hidden flex items-center gap-3">
