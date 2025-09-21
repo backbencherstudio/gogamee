@@ -458,6 +458,143 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
             </CardContent>
           </Card>
 
+          {/* Total Cost Breakdown */}
+          <Card className="border border-blue-200 shadow-sm bg-gradient-to-r from-blue-50 to-indigo-50">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Euro className="h-4 w-4 text-blue-600" />
+                </div>
+                Total Cost Breakdown
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {(() => {
+                // Calculate package price based on sport, package type, and travel duration
+                const getPackagePrice = (sport: string, packageType: string, nights: number): number => {
+                  const sportPrices: Record<string, Record<string, Record<number, number>>> = {
+                    "football": {
+                      "standard": { 1: 299, 2: 379, 3: 459, 4: 529 },
+                      "premium": { 1: 1299, 2: 1499, 3: 1699, 4: 1899 }
+                    },
+                    "basketball": {
+                      "standard": { 1: 279, 2: 359, 3: 439, 4: 509 },
+                      "premium": { 1: 1279, 2: 1479, 3: 1679, 4: 1859 }
+                    }
+                  };
+                  
+                  const sportData = sportPrices[sport.toLowerCase()];
+                  if (!sportData) return 0;
+                  
+                  const packageData = sportData[packageType.toLowerCase()];
+                  if (!packageData) return 0;
+                  
+                  // Get price for the number of nights, or use the highest available if nights exceed 4
+                  const maxNights = Math.max(...Object.keys(packageData).map(Number));
+                  const nightsToUse = Math.min(nights, maxNights);
+                  
+                  return packageData[nightsToUse] || 0;
+                };
+
+                // Calculate league surcharge
+                const getLeagueSurcharge = (league: string): number => {
+                  return league === 'european' ? 50 : 0;
+                };
+
+                const packagePrice = getPackagePrice(bookingData.selectedSport, bookingData.selectedPackage, bookingData.travelDuration);
+                const leagueSurcharge = getLeagueSurcharge(bookingData.selectedLeague);
+                const extrasCost = bookingData.totalExtrasCost;
+                const totalCost = packagePrice + leagueSurcharge + extrasCost;
+
+                return (
+                  <div className="space-y-4">
+                    {/* Package Price */}
+                    <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
+                      <div className="flex items-center gap-3">
+                        <Package className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="font-medium text-gray-900">
+                            {bookingData.selectedPackage.charAt(0).toUpperCase() + bookingData.selectedPackage.slice(1)} Package
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {bookingData.selectedSport} • {bookingData.travelDuration} night{bookingData.travelDuration > 1 ? 's' : ''}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 text-lg font-semibold text-gray-900">
+                        <Euro className="h-4 w-4" />
+                        {packagePrice}
+                      </div>
+                    </div>
+
+                    {/* League Surcharge */}
+                    {leagueSurcharge > 0 && (
+                      <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-3">
+                          <Trophy className="h-5 w-5 text-purple-600" />
+                          <div>
+                            <p className="font-medium text-gray-900">European Competition Surcharge</p>
+                            <p className="text-sm text-gray-600">Additional cost for European leagues</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-lg font-semibold text-gray-900">
+                          <Euro className="h-4 w-4" />
+                          {leagueSurcharge}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Extras Cost */}
+                    {extrasCost > 0 && (
+                      <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="h-5 w-5 text-green-600" />
+                          <div>
+                            <p className="font-medium text-gray-900">Selected Extras</p>
+                            <p className="text-sm text-gray-600">{bookingData.extrasCount} extra service{bookingData.extrasCount > 1 ? 's' : ''}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-lg font-semibold text-gray-900">
+                          <Euro className="h-4 w-4" />
+                          {extrasCost}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Total Cost */}
+                    <Separator className="my-4" />
+                    <div className="flex items-center justify-between p-6 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-lg border-2 border-blue-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                          <Euro className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <p className="text-xl font-bold text-gray-900">Total Cost</p>
+                          <p className="text-sm text-gray-600">For {bookingData.totalPeople} traveler{bookingData.totalPeople > 1 ? 's' : ''}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-3xl font-bold text-blue-900">
+                        <Euro className="h-8 w-8" />
+                        {totalCost}
+                      </div>
+                    </div>
+
+                    {/* Cost per person */}
+                    <div className="text-center p-3 bg-gray-100 rounded-lg">
+                      <p className="text-sm text-gray-600">
+                        <span className="font-medium">Cost per person:</span> 
+                        <span className="font-semibold text-gray-900 ml-1">
+                          <Euro className="h-3 w-3 inline mr-1" />
+                          {Math.round(totalCost / bookingData.totalPeople)}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+
           {/* Contact Information */}
           <Card className="border border-gray-200 shadow-sm">
             <CardHeader className="pb-4">
