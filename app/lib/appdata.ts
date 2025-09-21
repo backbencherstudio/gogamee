@@ -1361,7 +1361,7 @@ export const AppData = {
   },
 
   // Pricing data based on sport, package, and nights
-  pricing: {
+  pricingData: {
     football: {
       standard: {
         name: "GoGame Kickoff",
@@ -2150,6 +2150,313 @@ export const AppData = {
             travelerNumber: 3
           }
         ]
+      },
+      {
+        id: 3,
+        status: "pending",
+        selectedSport: "football",
+        selectedPackage: "standard",
+        selectedCity: "barcelona",
+        selectedLeague: "european",
+        adults: 2,
+        kids: 0,
+        babies: 0,
+        totalPeople: 2,
+        departureDate: "2025-09-30T18:00:00.000Z",
+        returnDate: "2025-10-02T18:00:00.000Z",
+        departureDateFormatted: "10/1/2025",
+        returnDateFormatted: "10/3/2025",
+        departureTimeStart: 360,
+        departureTimeEnd: 720,
+        arrivalTimeStart: 1080,
+        arrivalTimeEnd: 1800,
+        departureTimeRange: "06:00 - 12:00",
+        arrivalTimeRange: "18:00 - 06:00(+1)",
+        removedLeagues: [],
+        removedLeaguesCount: 0,
+        hasRemovedLeagues: false,
+        allExtras: this.extras.list.map(extra => ({ ...extra, isSelected: false, quantity: 1 })),
+        selectedExtras: [
+          { ...this.extras.getById("travel-insurance")!, isSelected: true, quantity: 2 }
+        ],
+        selectedExtrasNames: ["Travel Insurance"],
+        totalExtrasCost: 20,
+        extrasCount: 1,
+        firstName: "Ahmed",
+        lastName: "Hassan",
+        fullName: "Ahmed Hassan",
+        email: "ahmed.hassan@example.com",
+        phone: "+34 611 222 333",
+        paymentMethod: "card",
+        cardNumber: "**** **** **** 5678",
+        expiryDate: "08/26",
+        cvv: "***",
+        cardholderName: "Ahmed Hassan",
+        bookingTimestamp: "2025-09-15T14:30:00.000Z",
+        bookingDate: "9/15/2025",
+        bookingTime: "4:30:00 PM",
+        isBookingComplete: true,
+        travelDuration: 3,
+        hasFlightPreferences: true,
+        requiresEuropeanLeagueHandling: true,
+        destinationCity: "",
+        assignedMatch: "",
+        previousTravelInfo: "First time traveling for football matches",
+        primaryTraveler: {
+          name: "Ahmed Hassan",
+          email: "ahmed.hassan@example.com",
+          phone: "+34 611 222 333",
+          dateOfBirth: "1992-07-10",
+          documentType: "Passport",
+          documentNumber: "EF4567890",
+          isPrimary: true
+        },
+        extraTravelers: [
+          {
+            name: "Sarah Hassan",
+            email: "sarah.hassan@example.com",
+            phone: "+34 611 222 334",
+            dateOfBirth: "1995-11-25",
+            documentType: "Passport",
+            documentNumber: "GH5678901",
+            isPrimary: false,
+            travelerNumber: 2
+          }
+        ],
+        allTravelers: [
+          {
+            name: "Ahmed Hassan",
+            email: "ahmed.hassan@example.com",
+            phone: "+34 611 222 333",
+            dateOfBirth: "1992-07-10",
+            documentType: "Passport",
+            documentNumber: "EF4567890",
+            isPrimary: true,
+            travelerNumber: 1
+          },
+          {
+            name: "Sarah Hassan",
+            email: "sarah.hassan@example.com",
+            phone: "+34 611 222 334",
+            dateOfBirth: "1995-11-25",
+            documentType: "Passport",
+            documentNumber: "GH5678901",
+            isPrimary: false,
+            travelerNumber: 2
+          }
+        ]
+      },
+      {
+        id: 4,
+        status: "completed",
+        selectedSport: "basketball",
+        selectedPackage: "premium",
+        selectedCity: "madrid",
+        selectedLeague: "national",
+        adults: 1,
+        kids: 0,
+        babies: 0,
+        totalPeople: 1,
+        departureDate: "2025-10-15T18:00:00.000Z",
+        returnDate: "2025-10-17T18:00:00.000Z",
+        departureDateFormatted: "10/16/2025",
+        returnDateFormatted: "10/18/2025",
+        departureTimeStart: 480,
+        departureTimeEnd: 900,
+        arrivalTimeStart: 1200,
+        arrivalTimeEnd: 1800,
+        departureTimeRange: "08:00 - 15:00",
+        arrivalTimeRange: "20:00 - 06:00(+1)",
+        removedLeagues: [],
+        removedLeaguesCount: 0,
+        hasRemovedLeagues: false,
+        allExtras: this.extras.list.map(extra => ({ ...extra, isSelected: false, quantity: 1 })),
+        selectedExtras: [
+          { ...this.extras.getById("breakfast")!, isSelected: true, quantity: 1 },
+          { ...this.extras.getById("extra-luggage")!, isSelected: true, quantity: 1 }
+        ],
+        selectedExtrasNames: ["Breakfast", "Extra luggage"],
+        totalExtrasCost: 35,
+        extrasCount: 2,
+        firstName: "Maria",
+        lastName: "Rodriguez",
+        fullName: "Maria Rodriguez",
+        email: "maria.rodriguez@example.com",
+        phone: "+34 612 999 888",
+        paymentMethod: "google",
+        cardNumber: null,
+        expiryDate: null,
+        cvv: null,
+        cardholderName: null,
+        bookingTimestamp: "2025-09-20T09:45:00.000Z",
+        bookingDate: "9/20/2025",
+        bookingTime: "11:45:00 AM",
+        isBookingComplete: true,
+        travelDuration: 3,
+        hasFlightPreferences: true,
+        requiresEuropeanLeagueHandling: false,
+        destinationCity: "Madrid",
+        assignedMatch: "Real Madrid vs Barcelona",
+        previousTravelInfo: "Regular basketball fan, traveled to EuroLeague games before",
+        primaryTraveler: {
+          name: "Maria Rodriguez",
+          email: "maria.rodriguez@example.com",
+          phone: "+34 612 999 888",
+          dateOfBirth: "1988-04-12",
+          documentType: "ID",
+          documentNumber: "12345678A",
+          isPrimary: true
+        },
+        extraTravelers: [],
+        allTravelers: [
+          {
+            name: "Maria Rodriguez",
+            email: "maria.rodriguez@example.com",
+            phone: "+34 612 999 888",
+            dateOfBirth: "1988-04-12",
+            documentType: "ID",
+            documentNumber: "12345678A",
+            isPrimary: true,
+            travelerNumber: 1
+          }
+        ]
+      },
+      {
+        id: 5,
+        status: "pending",
+        selectedSport: "football",
+        selectedPackage: "standard",
+        selectedCity: "valencia",
+        selectedLeague: "european",
+        adults: 3,
+        kids: 1,
+        babies: 0,
+        totalPeople: 4,
+        departureDate: "2025-10-28T18:00:00.000Z",
+        returnDate: "2025-10-31T18:00:00.000Z",
+        departureDateFormatted: "10/29/2025",
+        returnDateFormatted: "11/1/2025",
+        departureTimeStart: 360,
+        departureTimeEnd: 720,
+        arrivalTimeStart: 1080,
+        arrivalTimeEnd: 1800,
+        departureTimeRange: "06:00 - 12:00",
+        arrivalTimeRange: "18:00 - 06:00(+1)",
+        removedLeagues: ["local", "regional"],
+        removedLeaguesCount: 2,
+        hasRemovedLeagues: true,
+        allExtras: this.extras.list.map(extra => ({ ...extra, isSelected: false, quantity: 1 })),
+        selectedExtras: [
+          { ...this.extras.getById("travel-insurance")!, isSelected: true, quantity: 4 },
+          { ...this.extras.getById("seats-together")!, isSelected: true, quantity: 4 },
+          { ...this.extras.getById("breakfast")!, isSelected: true, quantity: 4 }
+        ],
+        selectedExtrasNames: ["Travel Insurance", "Seats together", "Breakfast"],
+        totalExtrasCost: 60,
+        extrasCount: 3,
+        firstName: "David",
+        lastName: "Johnson",
+        fullName: "David Johnson",
+        email: "david.johnson@example.com",
+        phone: "+44 20 7946 0958",
+        paymentMethod: "card",
+        cardNumber: "**** **** **** 9999",
+        expiryDate: "06/27",
+        cvv: "***",
+        cardholderName: "David Johnson",
+        bookingTimestamp: "2025-09-25T16:20:00.000Z",
+        bookingDate: "9/25/2025",
+        bookingTime: "6:20:00 PM",
+        isBookingComplete: true,
+        travelDuration: 4,
+        hasFlightPreferences: true,
+        requiresEuropeanLeagueHandling: true,
+        destinationCity: "",
+        assignedMatch: "",
+        previousTravelInfo: "Family trip for Champions League experience",
+        primaryTraveler: {
+          name: "David Johnson",
+          email: "david.johnson@example.com",
+          phone: "+44 20 7946 0958",
+          dateOfBirth: "1980-12-03",
+          documentType: "Passport",
+          documentNumber: "IJ9012345",
+          isPrimary: true
+        },
+        extraTravelers: [
+          {
+            name: "Emma Johnson",
+            email: "emma.johnson@example.com",
+            phone: "+44 20 7946 0959",
+            dateOfBirth: "1983-08-15",
+            documentType: "Passport",
+            documentNumber: "KL0123456",
+            isPrimary: false,
+            travelerNumber: 2
+          },
+          {
+            name: "Tom Johnson",
+            email: "tom.johnson@example.com",
+            phone: "+44 20 7946 0960",
+            dateOfBirth: "2010-03-22",
+            documentType: "Passport",
+            documentNumber: "MN1234567",
+            isPrimary: false,
+            travelerNumber: 3
+          },
+          {
+            name: "Sophie Johnson",
+            email: "sophie.johnson@example.com",
+            phone: "+44 20 7946 0961",
+            dateOfBirth: "2015-11-08",
+            documentType: "Passport",
+            documentNumber: "OP2345678",
+            isPrimary: false,
+            travelerNumber: 4
+          }
+        ],
+        allTravelers: [
+          {
+            name: "David Johnson",
+            email: "david.johnson@example.com",
+            phone: "+44 20 7946 0958",
+            dateOfBirth: "1980-12-03",
+            documentType: "Passport",
+            documentNumber: "IJ9012345",
+            isPrimary: true,
+            travelerNumber: 1
+          },
+          {
+            name: "Emma Johnson",
+            email: "emma.johnson@example.com",
+            phone: "+44 20 7946 0959",
+            dateOfBirth: "1983-08-15",
+            documentType: "Passport",
+            documentNumber: "KL0123456",
+            isPrimary: false,
+            travelerNumber: 2
+          },
+          {
+            name: "Tom Johnson",
+            email: "tom.johnson@example.com",
+            phone: "+44 20 7946 0960",
+            dateOfBirth: "2010-03-22",
+            documentType: "Passport",
+            documentNumber: "MN1234567",
+            isPrimary: false,
+            travelerNumber: 3
+          },
+          {
+            name: "Sophie Johnson",
+            email: "sophie.johnson@example.com",
+            phone: "+44 20 7946 0961",
+            dateOfBirth: "2015-11-08",
+            documentType: "Passport",
+            documentNumber: "OP2345678",
+            isPrimary: false,
+            travelerNumber: 4
+          }
+        ]
       }
     ];
     
@@ -2447,28 +2754,117 @@ export const AppData = {
   dateRestrictions: {
     european: {
       enabledDates: [
+        '2025-09-22',
         '2025-09-23',
+        '2025-09-25',
+        '2025-09-28',
+        '2025-09-30',
         '2025-10-02',
+        '2025-10-05',
         '2025-10-07',
+        '2025-10-10',
+        '2025-10-12',
         '2025-10-14',
+        '2025-10-17',
+        '2025-10-19',
         '2025-10-21',
+        '2025-10-24',
+        '2025-10-26',
         '2025-10-28',
         '2025-10-29',
         '2025-10-30',
         '2025-10-31'
       ], // Specific dates that are enabled
-      blockedDates: [] as string[] // Specific dates that are blocked
+      blockedDates: [] as string[], // Specific dates that are blocked
+      customPrices: {
+        '2025-09-30': {
+          football: {
+            standard: 429,
+            premium: 1529
+          },
+          basketball: {
+            standard: 399,
+            premium: 1479
+          }
+        },
+        '2025-10-14': {
+          football: {
+            standard: 479,
+            premium: 1579
+          }
+        },
+        '2025-10-28': {
+          basketball: {
+            standard: 419,
+            premium: 1519
+          }
+        }
+      } as Record<string, {
+        football?: {
+          standard?: number;
+          premium?: number;
+        };
+        basketball?: {
+          standard?: number;
+          premium?: number;
+        };
+      }> // Date-specific pricing overrides
     },
     national: {
       enabledDates: [
-        '2025-09-16',
-        '2025-09-30',
+        '2025-09-22',
+        '2025-09-24',
+        '2025-09-26',
+        '2025-09-29',
         '2025-10-01',
+        '2025-10-03',
+        '2025-10-06',
+        '2025-10-08',
+        '2025-10-11',
+        '2025-10-13',
         '2025-10-15',
+        '2025-10-18',
+        '2025-10-20',
         '2025-10-22',
-        '2025-10-29'
+        '2025-10-25',
+        '2025-10-27',
+        '2025-10-29',
+        '2025-10-31'
       ], // Specific dates that are enabled
-      blockedDates: [] as string[] // Specific dates that are blocked
+      blockedDates: [] as string[], // Specific dates that are blocked
+      customPrices: {
+        '2025-10-01': {
+          football: {
+            standard: 399,
+            premium: 1499
+          }
+        },
+        '2025-10-15': {
+          basketball: {
+            standard: 379,
+            premium: 1479
+          }
+        },
+        '2025-10-29': {
+          football: {
+            standard: 449,
+            premium: 1549
+          },
+          basketball: {
+            standard: 429,
+            premium: 1529
+          }
+        }
+      } as Record<string, {
+        football?: {
+          standard?: number;
+          premium?: number;
+        };
+        basketball?: {
+          standard?: number;
+          premium?: number;
+        };
+      }> // Date-specific pricing overrides
     },
     
     // Helper functions for date restrictions
@@ -2479,6 +2875,16 @@ export const AppData = {
     updateRestrictions: function(competitionType: 'european' | 'national', updates: {
       enabledDates?: string[];
       blockedDates?: string[];
+      customPrices?: Record<string, {
+        football?: {
+          standard?: number;
+          premium?: number;
+        };
+        basketball?: {
+          standard?: number;
+          premium?: number;
+        };
+      }>;
     }) {
       if (this[competitionType]) {
         this[competitionType] = { ...this[competitionType], ...updates };
@@ -2595,6 +3001,151 @@ export const AppData = {
       } else {
         return 'neutral';
       }
+    },
+
+    // Pricing management functions
+    setCustomPrice: function(competitionType: 'european' | 'national', date: Date, sport: 'football' | 'basketball', packageType: 'standard' | 'premium', price: number) {
+      const restrictions = this.getRestrictions(competitionType);
+      if (!restrictions) return false;
+      
+      const dateString = this.formatDateForStorage(date);
+      
+      // Initialize customPrices if it doesn't exist
+      if (!restrictions.customPrices[dateString]) {
+        restrictions.customPrices[dateString] = {};
+      }
+      
+      // Initialize sport if it doesn't exist
+      if (!restrictions.customPrices[dateString][sport]) {
+        restrictions.customPrices[dateString][sport] = {};
+      }
+      
+      // Set the price
+      restrictions.customPrices[dateString][sport]![packageType] = price;
+      
+      return true;
+    },
+
+    getCustomPrice: function(competitionType: 'european' | 'national', date: Date, sport: 'football' | 'basketball', packageType: 'standard' | 'premium'): number | null {
+      const restrictions = this.getRestrictions(competitionType);
+      if (!restrictions) return null;
+      
+      const dateString = this.formatDateForStorage(date);
+      
+      return restrictions.customPrices[dateString]?.[sport]?.[packageType] || null;
+    },
+
+    removeCustomPrice: function(competitionType: 'european' | 'national', date: Date, sport: 'football' | 'basketball', packageType: 'standard' | 'premium') {
+      const restrictions = this.getRestrictions(competitionType);
+      if (!restrictions) return false;
+      
+      const dateString = this.formatDateForStorage(date);
+      
+      if (restrictions.customPrices[dateString]?.[sport]) {
+        delete restrictions.customPrices[dateString][sport]![packageType];
+        
+        // Clean up empty objects
+        if (Object.keys(restrictions.customPrices[dateString][sport]!).length === 0) {
+          delete restrictions.customPrices[dateString][sport];
+        }
+        if (Object.keys(restrictions.customPrices[dateString]).length === 0) {
+          delete restrictions.customPrices[dateString];
+        }
+      }
+      
+      return true;
+    },
+
+    getAllCustomPrices: function(competitionType: 'european' | 'national') {
+      const restrictions = this.getRestrictions(competitionType);
+      return restrictions ? restrictions.customPrices : {};
+    },
+
+    // Get effective price (custom price if exists, otherwise base price)
+    getEffectivePrice: function(competitionType: 'european' | 'national', date: Date, sport: 'football' | 'basketball', packageType: 'standard' | 'premium', basePrice: number): number {
+      const customPrice = this.getCustomPrice(competitionType, date, sport, packageType);
+      return customPrice !== null ? customPrice : basePrice;
+    }
+  },
+
+  // Pricing utility functions for booking system
+  pricing: {
+    // Get base price from travel packages
+    getBasePrice: function(sport: 'football' | 'basketball', packageType: 'standard' | 'premium', nights: number): number {
+      const packages = AppData.travelPackages.getBySport(sport);
+      const startingPricePackage = packages.find(pkg => pkg.category === 'Starting Price');
+      
+      if (!startingPricePackage) {
+        // Fallback to hardcoded prices if no package found
+        const fallbackPrices: Record<string, Record<string, Record<number, number>>> = {
+          "football": {
+            "standard": { 1: 299, 2: 379, 3: 459, 4: 529 },
+            "premium": { 1: 1299, 2: 1499, 3: 1699, 4: 1899 }
+          },
+          "basketball": {
+            "standard": { 1: 279, 2: 359, 3: 439, 4: 509 },
+            "premium": { 1: 1279, 2: 1479, 3: 1679, 4: 1859 }
+          }
+        };
+        
+        const sportData = fallbackPrices[sport];
+        if (!sportData) return 0;
+        
+        const packageData = sportData[packageType];
+        if (!packageData) return 0;
+        
+        const maxNights = Math.max(...Object.keys(packageData).map(Number));
+        const nightsToUse = Math.min(nights, maxNights);
+        
+        return packageData[nightsToUse] || 0;
+      }
+      
+      // Use package prices
+      const price = packageType === 'standard' ? startingPricePackage.standardPrice : startingPricePackage.premiumPrice;
+      return price || 0;
+    },
+
+    // Get effective price considering date-specific pricing
+    getEffectivePrice: function(competitionType: 'european' | 'national', date: Date, sport: 'football' | 'basketball', packageType: 'standard' | 'premium', nights: number): number {
+      const basePrice = this.getBasePrice(sport, packageType, nights);
+      return AppData.dateRestrictions.getEffectivePrice(competitionType, date, sport, packageType, basePrice);
+    },
+
+    // Calculate total package cost for a booking
+    calculatePackageCost: function(bookingData: {
+      selectedSport: string;
+      selectedPackage: string;
+      selectedLeague: string;
+      departureDate: string;
+      travelDuration: number;
+    }): number {
+      const sport = bookingData.selectedSport.toLowerCase() as 'football' | 'basketball';
+      const packageType = bookingData.selectedPackage.toLowerCase() as 'standard' | 'premium';
+      const competitionType = bookingData.selectedLeague.toLowerCase() as 'european' | 'national';
+      const date = new Date(bookingData.departureDate);
+      
+      return this.getEffectivePrice(competitionType, date, sport, packageType, bookingData.travelDuration);
+    },
+
+    // Get league surcharge
+    getLeagueSurcharge: function(league: string): number {
+      return league.toLowerCase() === 'european' ? 50 : 0;
+    },
+
+    // Calculate total booking cost
+    calculateTotalCost: function(bookingData: {
+      selectedSport: string;
+      selectedPackage: string;
+      selectedLeague: string;
+      departureDate: string;
+      travelDuration: number;
+      totalExtrasCost: number;
+    }): number {
+      const packageCost = this.calculatePackageCost(bookingData);
+      const leagueSurcharge = this.getLeagueSurcharge(bookingData.selectedLeague);
+      const extrasCost = bookingData.totalExtrasCost || 0;
+      
+      return packageCost + leagueSurcharge + extrasCost;
     }
   },
 
@@ -2837,6 +3388,7 @@ export const faqs = AppData.faqs.list;
 export const travelPackages = AppData.travelPackages.list;
 export const reviews = AppData.reviews.list;
 export const pricing = AppData.pricing;
+export const pricingData = AppData.pricingData;
 
 // Export new data structures
 export const heroData = AppData.hero;

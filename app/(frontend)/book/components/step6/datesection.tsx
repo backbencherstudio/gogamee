@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import { useFormContext } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
-import { pricing, AppData } from '../../../../lib/appdata'
+import AppData from '../../../../lib/appdata'
 
 // Types
 interface DurationOption {
@@ -14,6 +14,16 @@ interface DurationOption {
 interface DateRestrictions {
   enabledDates: string[] // Array of date strings in YYYY-MM-DD format
   blockedDates: string[]
+  customPrices: Record<string, {
+    football?: {
+      standard?: number;
+      premium?: number;
+    };
+    basketball?: {
+      standard?: number;
+      premium?: number;
+    };
+  }>
 }
 
 
@@ -69,16 +79,25 @@ export default function DateSection() {
   const formContext = useFormContext?.() || null
   const setValue = formContext?.setValue
 
-  // Calculate dynamic price based on sport, package, and nights
-  const calculatePrice = useCallback((nights: number): string => {
+  // Calculate dynamic price based on sport, package, nights, and selected date
+  const calculatePrice = useCallback((nights: number, selectedDate?: Date): string => {
     const sport = formData.selectedSport as 'football' | 'basketball'
     const packageType = formData.selectedPackage as 'standard' | 'premium'
+    const league = formData.selectedLeague as 'european' | 'national'
     
-    if (!sport || !packageType) return '€'
+    if (!sport || !packageType || !league) return '€'
     
-    const price = pricing.getPrice(sport, packageType, nights)
+    // Use the new AppData pricing system
+    const price = AppData.pricing.calculatePackageCost({
+      selectedSport: sport,
+      selectedPackage: packageType,
+      selectedLeague: league,
+      departureDate: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
+      travelDuration: nights
+    })
+    
     return `${price}€`
-  }, [formData.selectedSport, formData.selectedPackage])
+  }, [formData.selectedSport, formData.selectedPackage, formData.selectedLeague])
 
 
   
@@ -313,8 +332,9 @@ export default function DateSection() {
       }
     }
 
-    // Calculate price for the selected duration
-    const currentPrice = calculatePrice(DURATION_OPTIONS[selectedDuration].nights)
+    // Calculate price for the selected duration and this specific date
+    const currentPrice = calculatePrice(DURATION_OPTIONS[selectedDuration].nights, currentCheckDate)
+    
 
     if (isSelected) {
       const bgColor = isInRange ? 'bg-[#D5EBC5]' : 'bg-[#76C043]'
@@ -355,7 +375,7 @@ export default function DateSection() {
         )}
       </div>
     )
-  }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePrice, selectedDuration])
+  }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePrice, selectedDuration, selectedDateRange])
 
   const renderCalendarWeeks = useCallback((days: (number | null)[], monthIndex: number, year: number) => {
     const weeks: (number | null)[][] = []
@@ -433,10 +453,7 @@ export default function DateSection() {
             <div className="w-full p-4 bg-white rounded-lg border border-gray-200">
               <div className="flex flex-col gap-2">
                 <div className="text-sm text-gray-600 font-medium">
-                  {pricing.getPackageName(
-                    formData.selectedSport as 'football' | 'basketball',
-                    formData.selectedPackage as 'standard' | 'premium'
-                  )}
+                  {formData.selectedPackage.charAt(0).toUpperCase() + formData.selectedPackage.slice(1)} Package - {formData.selectedSport.charAt(0).toUpperCase() + formData.selectedSport.slice(1)}
                 </div>
                 <div className="text-lg font-bold text-lime-600">
                   From {calculatePrice(DURATION_OPTIONS[selectedDuration].nights)}

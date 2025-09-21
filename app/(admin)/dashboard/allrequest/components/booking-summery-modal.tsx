@@ -29,6 +29,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import AppData from '../../../../lib/appdata'
+import { useToast } from '../../../../../components/ui/toast'
 
 interface BookingData {
   id: number
@@ -109,6 +111,7 @@ interface BookingSummaryModalProps {
 }
 
 export default function BookingSummaryModal({ bookingData, onStatusUpdate }: BookingSummaryModalProps) {
+  const { addToast } = useToast()
   const [isOpen, setIsOpen] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [destinationCity, setDestinationCity] = useState(bookingData.destinationCity || "")
@@ -470,39 +473,16 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
             </CardHeader>
             <CardContent>
               {(() => {
-                // Calculate package price based on sport, package type, and travel duration
-                const getPackagePrice = (sport: string, packageType: string, nights: number): number => {
-                  const sportPrices: Record<string, Record<string, Record<number, number>>> = {
-                    "football": {
-                      "standard": { 1: 299, 2: 379, 3: 459, 4: 529 },
-                      "premium": { 1: 1299, 2: 1499, 3: 1699, 4: 1899 }
-                    },
-                    "basketball": {
-                      "standard": { 1: 279, 2: 359, 3: 439, 4: 509 },
-                      "premium": { 1: 1279, 2: 1479, 3: 1679, 4: 1859 }
-                    }
-                  };
-                  
-                  const sportData = sportPrices[sport.toLowerCase()];
-                  if (!sportData) return 0;
-                  
-                  const packageData = sportData[packageType.toLowerCase()];
-                  if (!packageData) return 0;
-                  
-                  // Get price for the number of nights, or use the highest available if nights exceed 4
-                  const maxNights = Math.max(...Object.keys(packageData).map(Number));
-                  const nightsToUse = Math.min(nights, maxNights);
-                  
-                  return packageData[nightsToUse] || 0;
-                };
-
-                // Calculate league surcharge
-                const getLeagueSurcharge = (league: string): number => {
-                  return league === 'european' ? 50 : 0;
-                };
-
-                const packagePrice = getPackagePrice(bookingData.selectedSport, bookingData.selectedPackage, bookingData.travelDuration);
-                const leagueSurcharge = getLeagueSurcharge(bookingData.selectedLeague);
+                // Use the new pricing system
+                const packagePrice = AppData.pricing.calculatePackageCost({
+                  selectedSport: bookingData.selectedSport,
+                  selectedPackage: bookingData.selectedPackage,
+                  selectedLeague: bookingData.selectedLeague,
+                  departureDate: bookingData.departureDate,
+                  travelDuration: bookingData.travelDuration
+                });
+                
+                const leagueSurcharge = AppData.pricing.getLeagueSurcharge(bookingData.selectedLeague);
                 const extrasCost = bookingData.totalExtrasCost;
                 const totalCost = packagePrice + leagueSurcharge + extrasCost;
 
@@ -744,7 +724,12 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                 <Button
                   onClick={async () => {
                     if (!destinationCity.trim() || !assignedMatch.trim()) {
-                      alert("Please fill in both destination city and assigned match fields")
+                      addToast({
+                        type: 'warning',
+                        title: 'Missing Information',
+                        description: 'Please fill in both destination city and assigned match fields',
+                        duration: 4000
+                      })
                       return
                     }
                     
@@ -768,7 +753,12 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                           assignedMatch: assignedMatch.trim()
                         })
                         console.log('✅ Destination and match details updated successfully')
-                        alert('✅ Destination and match details updated successfully!')
+                        addToast({
+                          type: 'success',
+                          title: 'Success!',
+                          description: 'Destination and match details updated successfully!',
+                          duration: 4000
+                        })
                         
                         // Update local state with the new values and disable button
                         setDestinationCity(destinationCity.trim())
@@ -791,11 +781,21 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                         }
                       } else {
                         console.error('❌ Could not find booking to update')
-                        alert('❌ Error: Could not find booking to update')
+                        addToast({
+                          type: 'error',
+                          title: 'Error',
+                          description: 'Could not find booking to update',
+                          duration: 5000
+                        })
                       }
                     } catch (error) {
                       console.error('❌ Error updating destination and match:', error)
-                      alert('❌ Error updating destination and match. Please try again.')
+                      addToast({
+                        type: 'error',
+                        title: 'Error',
+                        description: 'Error updating destination and match. Please try again.',
+                        duration: 5000
+                      })
                     } finally {
                       setIsUpdating(false)
                     }
@@ -877,7 +877,12 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                               }
                               
                               // Show success message
-                              alert('✅ Booking approved successfully! Status updated to completed and confirmation email sent.')
+                              addToast({
+                                type: 'success',
+                                title: 'Booking Approved!',
+                                description: 'Status updated to completed and confirmation email sent.',
+                                duration: 5000
+                              })
                               
                               // Refresh parent component to show updated data
                               if (onStatusUpdate) {
@@ -885,11 +890,21 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                               }
                             } else {
                               console.error('❌ Could not find booking to update')
-                              alert('❌ Error: Could not find booking to update')
+                              addToast({
+                                type: 'error',
+                                title: 'Error',
+                                description: 'Could not find booking to update',
+                                duration: 5000
+                              })
                             }
                           } catch (error) {
                             console.error('❌ Error approving booking:', error)
-                            alert('❌ Error approving booking. Please try again.')
+                            addToast({
+                              type: 'error',
+                              title: 'Error',
+                              description: 'Error approving booking. Please try again.',
+                              duration: 5000
+                            })
                           } finally {
                             setIsProcessing(false)
                             setIsOpen(false)
@@ -931,7 +946,12 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                               }
                               
                               // Show success message
-                              alert('✅ Booking rejected successfully! Status updated to cancelled and rejection email sent.')
+                              addToast({
+                                type: 'success',
+                                title: 'Booking Rejected',
+                                description: 'Status updated to cancelled and rejection email sent.',
+                                duration: 5000
+                              })
                               
                               // Refresh parent component to show updated data
                               if (onStatusUpdate) {
@@ -939,11 +959,21 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                               }
                             } else {
                               console.error('❌ Could not find booking to update')
-                              alert('❌ Error: Could not find booking to update')
+                              addToast({
+                                type: 'error',
+                                title: 'Error',
+                                description: 'Could not find booking to update',
+                                duration: 5000
+                              })
                             }
                           } catch (error) {
                             console.error('❌ Error rejecting booking:', error)
-                            alert('❌ Error rejecting booking. Please try again.')
+                            addToast({
+                              type: 'error',
+                              title: 'Error',
+                              description: 'Error rejecting booking. Please try again.',
+                              duration: 5000
+                            })
                           } finally {
                             setIsProcessing(false)
                             setIsOpen(false)

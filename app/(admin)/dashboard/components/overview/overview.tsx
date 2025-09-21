@@ -203,7 +203,7 @@ const RecentRequestsTable: React.FC = () => {
   useEffect(() => {
     const loadData = () => {
       const bookings = AppData.bookings.all;
-      const requests: RecentRequest[] = bookings.map((booking, index) => ({
+      const requests: RecentRequest[] = bookings.map((booking) => ({
         id: `REQ-${String(booking.id).padStart(3, '0')}`,
         customer: booking.fullName,
         package: `${booking.selectedSport} - ${booking.selectedPackage}`,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { HiMinus, HiPlus } from 'react-icons/hi2';
 import { useBooking } from '../../context/BookingContext';
@@ -122,7 +122,7 @@ export default function HowManyTotal() {
   const { formData, updateFormData, nextStep } = useBooking();
   
   // Calculate default values from existing data or defaults
-  const getDefaultValues = (): CounterFormData => {
+  const getDefaultValues = useCallback((): CounterFormData => {
     if (formData.peopleCount.adults || formData.peopleCount.kids || formData.peopleCount.babies) {
       return {
         adults: formData.peopleCount.adults,
@@ -131,9 +131,9 @@ export default function HowManyTotal() {
       }
     }
     return DEFAULT_VALUES;
-  }
+  }, [formData.peopleCount])
   
-  const { control, watch, setValue, handleSubmit, reset } = useForm<CounterFormData>({
+  const { control, watch, setValue, handleSubmit } = useForm<CounterFormData>({
     defaultValues: getDefaultValues(),
     mode: 'onChange',
   });
@@ -144,7 +144,7 @@ export default function HowManyTotal() {
     console.log('🎯 HowManyTotal initialized with values:', initialValues);
     console.log('🎯 FormData.peopleCount:', formData.peopleCount);
     console.log('🎯 FromHero:', formData.fromHero);
-  }, []); // Only run once on mount
+  }, [formData.fromHero, formData.peopleCount, getDefaultValues]); // Only run once on mount
 
   const watchedValues = watch();
 
@@ -164,7 +164,7 @@ export default function HowManyTotal() {
       setValue('babies', contextPeopleCount.babies);
       console.log('🎯 HowManyTotal - synced with hero context:', contextPeopleCount);
     }
-  }, [formData.peopleCount, formData.fromHero, setValue]); // Removed watchedValues to prevent loops
+  }, [watchedValues.adults, watchedValues.babies, watchedValues.kids, formData.peopleCount, formData.fromHero, setValue]); // Removed watchedValues to prevent loops
 
   // Calculate total count from watched values
   const totalCount = watchedValues.adults + watchedValues.kids + watchedValues.babies;

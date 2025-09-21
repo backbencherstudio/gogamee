@@ -5,7 +5,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
-import { personalInfoData, pricing, flightScheduleData, leaguePricingData, removeLeagueData } from '../../../../lib/appdata'
+import { personalInfoData, pricing, pricingData, flightScheduleData, leaguePricingData, removeLeagueData } from '../../../../lib/appdata'
 
 // Utility functions for dynamic data calculation
 const formatDate = (dateString: string): string => {
@@ -39,7 +39,7 @@ const calculateBasePrice = (sport: string, packageType: string, nights: number):
   const validSport = sport as 'football' | 'basketball'
   const validPackage = packageType as 'standard' | 'premium'
   
-  return pricing.getPrice(validSport, validPackage, nights)
+  return pricing.getBasePrice(validSport, validPackage, nights)
 }
 
 const calculateExtrasCost = (extras: Array<{
@@ -298,7 +298,7 @@ export default function Personalinfo() {
     // Debug calculation breakdown
     if (formData.extras && formData.extras.length > 0) {
       console.log('🔍 Extras Breakdown:')
-      formData.extras.forEach((extra, index) => {
+      formData.extras.forEach((extra) => {
         if (extra.isSelected && !extra.isIncluded) {
           console.log(`  - ${extra.name}: ${extra.price}€ × ${extra.quantity} = ${(extra.price * extra.quantity).toFixed(2)}€`)
         }
@@ -319,7 +319,7 @@ export default function Personalinfo() {
        console.log(`  Single Traveler Supplement: ${reservationData.singleTravelerSupplement.toFixed(2)}€`)
      }
      console.log(`  Grand Total: ${reservationData.grandTotal.toFixed(2)}€`)
-  }, [formData.peopleCount, hasMultipleTravelers, reservationData, formData.extras])
+  }, [formData.peopleCount, hasMultipleTravelers, reservationData, formData.extras, formData.removedLeagues])
   
   // Load initial data from localStorage or use defaults
   const getInitialValues = (): PersonalInfoFormData => {
@@ -836,7 +836,7 @@ export default function Personalinfo() {
                                                  {/* Package Row */}
                          <div className="flex justify-between items-center py-2 border-b border-gray-100">
                            <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                             {pricing.getPackageName(
+                              {pricingData.getPackageName(
                                formData.selectedSport as 'football' | 'basketball', 
                                formData.selectedPackage as 'standard' | 'premium'
                              ) || 'Package'}
@@ -852,7 +852,7 @@ export default function Personalinfo() {
                          </div>
                         
                                                  {/* Individual Extras Rows - Group costs, not per person */}
-                         {formData.extras && formData.extras.filter(extra => extra.isSelected && !extra.isIncluded).map((extra, index) => (
+                         {formData.extras && formData.extras.filter(extra => extra.isSelected && !extra.isIncluded).map((extra) => (
                            <div key={extra.id} className="flex justify-between items-center py-2 border-b border-gray-100">
                              <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
                                {extra.name} x{extra.quantity}
@@ -969,7 +969,7 @@ export default function Personalinfo() {
                                                  {/* Package Row */}
                          <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
                            <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                             {pricing.getPackageName(
+                              {pricingData.getPackageName(
                                formData.selectedSport as 'football' | 'basketball', 
                                formData.selectedPackage as 'standard' | 'premium'
                              ) || 'Package'}
@@ -986,7 +986,7 @@ export default function Personalinfo() {
                          </div>
                         
                                                  {/* Extras Rows - Group costs, not per person */}
-                         {formData.extras && formData.extras.filter(extra => extra.isSelected && !extra.isIncluded).map((extra, index) => (
+                         {formData.extras && formData.extras.filter(extra => extra.isSelected && !extra.isIncluded).map((extra) => (
                            <div key={extra.id} className="w-full grid grid-cols-4 gap-4 py-2 border-b border-gray-100">
                              <div className="text-left text-neutral-800 text-sm font-medium font-['Poppins'] leading-none">
                                {extra.name}

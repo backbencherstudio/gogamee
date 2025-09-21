@@ -4,12 +4,6 @@ import Image from 'next/image';
 import { IoIosArrowDown } from 'react-icons/io';
 import { faqs } from '../../../../lib/appdata';
 
-interface FAQItem {
-  id: number;
-  question: string;
-  answer: string;
-}
-
 export default function Questions() {
   const [expandedItems, setExpandedItems] = useState<number[]>([0]);
 

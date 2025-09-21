@@ -1,12 +1,23 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { Calendar, Save, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, Save, RefreshCw, ChevronLeft, ChevronRight, DollarSign, X } from 'lucide-react'
 import AppData from '../../../../lib/appdata'
+import { useToast } from '../../../../../components/ui/toast'
 
 // Date restriction interface for calendar-based system
 interface DateRestrictions {
   enabledDates: string[] // Array of date strings in YYYY-MM-DD format
   blockedDates: string[]
+  customPrices: Record<string, {
+    football?: {
+      standard?: number;
+      premium?: number;
+    };
+    basketball?: {
+      standard?: number;
+      premium?: number;
+    };
+  }>
 }
 
 // Competition type interface
@@ -16,13 +27,25 @@ interface CompetitionType {
   restrictions: DateRestrictions
 }
 
+// Price editing interface
+interface PriceEditData {
+  date: string
+  sport: 'football' | 'basketball'
+  standardPrice: number
+  premiumPrice: number
+}
+
 export default function DateManagement() {
+  const { addToast } = useToast()
   const [competitionTypes, setCompetitionTypes] = useState<CompetitionType[]>([])
   const [selectedCompetition, setSelectedCompetition] = useState<string>('european')
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [showPriceModal, setShowPriceModal] = useState(false)
+  const [priceEditData, setPriceEditData] = useState<PriceEditData | null>(null)
+  const [editingPrices, setEditingPrices] = useState(false)
 
   // Month names
   const MONTH_NAMES = [
@@ -140,33 +163,166 @@ export default function DateManagement() {
     setHasChanges(true)
   }
 
+  // Handle price editing
+  const handlePriceClick = (day: number, month: Date) => {
+    if (!editingPrices) return
+
+    const date = new Date(month.getFullYear(), month.getMonth(), day)
+    const dateString = date.toISOString().split('T')[0]
+    
+    // Check if date is enabled
+    const selectedComp = competitionTypes.find(comp => comp.id === selectedCompetition)
+    if (!selectedComp || !selectedComp.restrictions.enabledDates.includes(dateString)) {
+      addToast({
+        type: 'warning',
+        title: 'Date Not Enabled',
+        description: 'Please enable this date first before setting custom prices',
+        duration: 4000
+      })
+      return
+    }
+
+    // Check which sport has existing prices for this date
+    const footballStandardPrice = getCustomPrice(dateString, 'football', 'standard')
+    const footballPremiumPrice = getCustomPrice(dateString, 'football', 'premium')
+    const basketballStandardPrice = getCustomPrice(dateString, 'basketball', 'standard')
+    const basketballPremiumPrice = getCustomPrice(dateString, 'basketball', 'premium')
+    
+    // Determine which sport to show (prefer the one with existing prices)
+    let selectedSport: 'football' | 'basketball' = 'football'
+    let standardPrice = footballStandardPrice || 0
+    let premiumPrice = footballPremiumPrice || 0
+    
+    if ((basketballStandardPrice !== null) || (basketballPremiumPrice !== null)) {
+      selectedSport = 'basketball'
+      standardPrice = basketballStandardPrice || 0
+      premiumPrice = basketballPremiumPrice || 0
+    }
+    
+    setPriceEditData({
+      date: dateString,
+      sport: selectedSport,
+      standardPrice: standardPrice,
+      premiumPrice: premiumPrice
+    })
+    setShowPriceModal(true)
+  }
+
+  const handleSavePrice = () => {
+    if (!priceEditData) return
+
+    setCompetitionTypes(prev => prev.map(comp => {
+      if (comp.id === selectedCompetition) {
+        const newCustomPrices = { ...comp.restrictions.customPrices }
+        
+        if (!newCustomPrices[priceEditData.date]) {
+          newCustomPrices[priceEditData.date] = {}
+        }
+        if (!newCustomPrices[priceEditData.date][priceEditData.sport]) {
+          newCustomPrices[priceEditData.date][priceEditData.sport] = {}
+        }
+        
+        // Set both standard and premium prices
+        if (priceEditData.standardPrice > 0) {
+          newCustomPrices[priceEditData.date][priceEditData.sport]!.standard = priceEditData.standardPrice
+        } else {
+          delete newCustomPrices[priceEditData.date][priceEditData.sport]!.standard
+        }
+        
+        if (priceEditData.premiumPrice > 0) {
+          newCustomPrices[priceEditData.date][priceEditData.sport]!.premium = priceEditData.premiumPrice
+        } else {
+          delete newCustomPrices[priceEditData.date][priceEditData.sport]!.premium
+        }
+
+        // Clean up empty objects
+        if (Object.keys(newCustomPrices[priceEditData.date][priceEditData.sport]!).length === 0) {
+          delete newCustomPrices[priceEditData.date][priceEditData.sport]
+        }
+        if (Object.keys(newCustomPrices[priceEditData.date]).length === 0) {
+          delete newCustomPrices[priceEditData.date]
+        }
+
+        return {
+          ...comp,
+          restrictions: {
+            ...comp.restrictions,
+            customPrices: newCustomPrices
+          }
+        }
+      }
+      return comp
+    }))
+    
+    setShowPriceModal(false)
+    setPriceEditData(null)
+    setHasChanges(true)
+  }
+
+  const getCustomPrice = (date: string, sport: 'football' | 'basketball', packageType: 'standard' | 'premium'): number | null => {
+    const selectedComp = competitionTypes.find(comp => comp.id === selectedCompetition)
+    if (!selectedComp) return null
+    
+    return selectedComp.restrictions.customPrices[date]?.[sport]?.[packageType] || null
+  }
+
+  const getBasePrice = (sport: 'football' | 'basketball', packageType: 'standard' | 'premium'): number => {
+    // Get base price from AppData travel packages
+    const packages = AppData.travelPackages.getBySport(sport)
+    const startingPricePackage = packages.find(pkg => pkg.category === 'Starting Price')
+    
+    if (startingPricePackage) {
+      return packageType === 'standard' ? (startingPricePackage.standardPrice || 0) : (startingPricePackage.premiumPrice || 0)
+    }
+    
+    // Fallback prices if no package found
+    const fallbackPrices: Record<string, Record<string, number>> = {
+      "football": { "standard": 379, "premium": 1499 },
+      "basketball": { "standard": 359, "premium": 1479 }
+    }
+    
+    return fallbackPrices[sport]?.[packageType] || 0
+  }
+
 
   const handleSave = async () => {
     setIsSaving(true)
     
     try {
-      // Update AppData with new restrictions
+      // Update AppData with new restrictions and custom prices
       const selectedComp = competitionTypes.find(comp => comp.id === selectedCompetition)
       if (selectedComp) {
         const competitionType = selectedComp.id as 'european' | 'national'
         
         AppData.dateRestrictions.updateRestrictions(competitionType, {
           enabledDates: selectedComp.restrictions.enabledDates,
-          blockedDates: selectedComp.restrictions.blockedDates
+          blockedDates: selectedComp.restrictions.blockedDates,
+          customPrices: selectedComp.restrictions.customPrices
         })
         
-        console.log(`Updated ${competitionType} restrictions:`, selectedComp.restrictions)
+        console.log(`Updated ${competitionType} restrictions and prices:`, selectedComp.restrictions)
       }
       
       setIsEditing(false)
+      setEditingPrices(false)
       setHasChanges(false)
       
       // Show success message
-      alert('Date restrictions updated successfully!')
+      addToast({
+        type: 'success',
+        title: 'Success!',
+        description: 'Date restrictions and custom prices updated successfully!',
+        duration: 4000
+      })
       
     } catch (error) {
       console.error('Error saving date restrictions:', error)
-      alert('Error saving date restrictions. Please try again.')
+      addToast({
+        type: 'error',
+        title: 'Error',
+        description: 'Error saving date restrictions. Please try again.',
+        duration: 5000
+      })
     } finally {
       setIsSaving(false)
     }
@@ -174,12 +330,17 @@ export default function DateManagement() {
 
   const handleCancel = () => {
     setIsEditing(false)
+    setEditingPrices(false)
     setHasChanges(false)
     loadDateRestrictions() // Reload original data
   }
 
   const handleEdit = () => {
     setIsEditing(true)
+  }
+
+  const handleEditPrices = () => {
+    setEditingPrices(true)
   }
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -242,15 +403,25 @@ export default function DateManagement() {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row gap-2">
-                  {!isEditing ? (
-                    <button
-                      onClick={handleEdit}
-                      className="flex items-center justify-center gap-2 px-3 py-2 md:px-4 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 text-sm md:text-base"
-                    >
-                      <Calendar className="w-4 h-4" />
-                      <span className="hidden sm:inline">Edit Calendar</span>
-                      <span className="sm:hidden">Edit</span>
-                    </button>
+                  {!isEditing && !editingPrices ? (
+                    <>
+                      <button
+                        onClick={handleEdit}
+                        className="flex items-center justify-center gap-2 px-3 py-2 md:px-4 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 text-sm md:text-base"
+                      >
+                        <Calendar className="w-4 h-4" />
+                        <span className="hidden sm:inline">Edit Calendar</span>
+                        <span className="sm:hidden">Edit</span>
+                      </button>
+                      <button
+                        onClick={handleEditPrices}
+                        className="flex items-center justify-center gap-2 px-3 py-2 md:px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 text-sm md:text-base"
+                      >
+                        <DollarSign className="w-4 h-4" />
+                        <span className="hidden sm:inline">Edit Prices</span>
+                        <span className="sm:hidden">Prices</span>
+                      </button>
+                    </>
                   ) : (
                     <>
                       <button
@@ -332,25 +503,49 @@ export default function DateManagement() {
                       }
 
                       const status = getDateStatus(day, currentMonth)
-                      const isClickable = isEditing
+                      const isClickable = isEditing || editingPrices
+                      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
+                      const dateString = date.toISOString().split('T')[0]
+                      
+                      // Check for custom prices
+                      const footballStandardPrice = getCustomPrice(dateString, 'football', 'standard')
+                      const footballPremiumPrice = getCustomPrice(dateString, 'football', 'premium')
+                      const basketballStandardPrice = getCustomPrice(dateString, 'basketball', 'standard')
+                      const basketballPremiumPrice = getCustomPrice(dateString, 'basketball', 'premium')
+                      const hasCustomPrices = footballStandardPrice !== null || footballPremiumPrice !== null || 
+                                            basketballStandardPrice !== null || basketballPremiumPrice !== null
                       
                       return (
-                        <button
-                          key={index}
-                          onClick={() => isClickable && handleDateClick(day, currentMonth)}
-                          disabled={!isClickable}
-                          className={`h-8 md:h-12 rounded-lg border-2 font-medium font-['Poppins'] transition-all duration-200 ${
-                            isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
-                          } ${
-                            status === 'enabled'
-                              ? 'bg-green-100 border-green-500 text-green-700'
-                              : status === 'blocked'
-                              ? 'bg-red-100 border-red-500 text-red-700'
-                              : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                          }`}
-                        >
-                          <div className="text-xs md:text-sm">{day}</div>
-                        </button>
+                        <div key={index} className="relative">
+                          <button
+                            onClick={() => {
+                              if (isEditing) {
+                                handleDateClick(day, currentMonth)
+                              } else if (editingPrices) {
+                                handlePriceClick(day, currentMonth)
+                              }
+                            }}
+                            disabled={!isClickable}
+                            className={`h-8 md:h-12 w-full rounded-lg border-2 font-medium font-['Poppins'] transition-all duration-200 ${
+                              isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+                            } ${
+                              status === 'enabled'
+                                ? 'bg-green-100 border-green-500 text-green-700'
+                                : status === 'blocked'
+                                ? 'bg-red-100 border-red-500 text-red-700'
+                                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="text-xs md:text-sm">{day}</div>
+                          </button>
+                          
+                          {/* Custom price indicator */}
+                          {hasCustomPrices && (
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                              <DollarSign className="w-2 h-2 text-white" />
+                            </div>
+                          )}
+                        </div>
                       )
                     })}
                   </div>
@@ -369,6 +564,12 @@ export default function DateManagement() {
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 md:w-4 md:h-4 bg-white border-2 border-gray-300 rounded"></div>
                     <span className="text-gray-700">Neutral</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                      <DollarSign className="w-2 h-2 text-white" />
+                    </div>
+                    <span className="text-blue-700">Custom Price</span>
                   </div>
                 </div>
               </div>
@@ -407,6 +608,121 @@ export default function DateManagement() {
           </div>
         </div>
       </div>
+
+      {/* Price Editing Modal */}
+      {showPriceModal && priceEditData && (
+        <div 
+          className="fixed inset-0 bg-black/30 bg-opacity-20 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowPriceModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg max-w-lg w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">Set Custom Prices</h2>
+              <button
+                onClick={() => setShowPriceModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="text-sm text-gray-600 font-['Poppins']">
+                  <strong>Date:</strong> {new Date(priceEditData.date).toLocaleDateString()}
+                </p>
+                {(priceEditData.standardPrice > 0 || priceEditData.premiumPrice > 0) && (
+                  <p className="text-xs text-blue-600 font-medium mt-1">
+                    ✏️ Editing existing custom prices
+                  </p>
+                )}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+                  Sport *
+                </label>
+                <select
+                  value={priceEditData.sport}
+                  onChange={(e) => {
+                    const newSport = e.target.value as 'football' | 'basketball'
+                    const currentStandardPrice = getCustomPrice(priceEditData.date, newSport, 'standard')
+                    const currentPremiumPrice = getCustomPrice(priceEditData.date, newSport, 'premium')
+                    setPriceEditData(prev => prev ? {
+                      ...prev, 
+                      sport: newSport,
+                      standardPrice: currentStandardPrice || 0,
+                      premiumPrice: currentPremiumPrice || 0
+                    } : null)
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
+                >
+                  <option value="football">Football</option>
+                  <option value="basketball">Basketball</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+                    Standard Package Price (€)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={priceEditData.standardPrice}
+                    onChange={(e) => setPriceEditData(prev => prev ? {...prev, standardPrice: parseFloat(e.target.value) || 0} : null)}
+                    placeholder={`Base price: €${getBasePrice(priceEditData.sport, 'standard')}`}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave empty to use base price (€{getBasePrice(priceEditData.sport, 'standard')})
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+                    Premium Package Price (€)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={priceEditData.premiumPrice}
+                    onChange={(e) => setPriceEditData(prev => prev ? {...prev, premiumPrice: parseFloat(e.target.value) || 0} : null)}
+                    placeholder={`Base price: €${getBasePrice(priceEditData.sport, 'premium')}`}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Leave empty to use base price (€{getBasePrice(priceEditData.sport, 'premium')})
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => setShowPriceModal(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium font-['Poppins'] transition-all duration-200"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSavePrice}
+                  disabled={(!priceEditData.standardPrice || priceEditData.standardPrice <= 0) && (!priceEditData.premiumPrice || priceEditData.premiumPrice <= 0)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <DollarSign className="w-4 h-4" />
+                  Set Prices
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

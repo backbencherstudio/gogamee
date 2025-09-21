@@ -67,7 +67,7 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full pl-7 md:pl-8 lg:pl-9">
-                  {values.map((value, index) => (
+                  {values.map((value) => (
                     <div key={value.id} className="flex flex-col gap-2">
                       <div className="text-lime-900 text-base md:text-lg font-medium font-['Poppins']">
                         {value.title}
@@ -95,7 +95,7 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full pl-7 md:pl-8 lg:pl-9">
-                  {whyChooseUs.map((item, index) => (
+                  {whyChooseUs.map((item) => (
                     <div key={item.id} className="flex flex-col gap-2">
                       <div className="text-lime-900 text-base md:text-lg font-medium font-['Poppins']">
                         {item.title}

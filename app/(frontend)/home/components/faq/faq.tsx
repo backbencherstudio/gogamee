@@ -9,12 +9,6 @@ interface FaqProps {
   className?: string;
 }
 
-interface FAQItem {
-  id: number;
-  question: string;
-  answer: string;
-}
-
 export default function Faq({ className = "" }: FaqProps) {
   const [expandedItems, setExpandedItems] = useState<number[]>([0]);
 

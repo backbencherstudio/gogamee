@@ -65,7 +65,6 @@ export default function HeroSection() {
     setPeopleCount(prev => {
       const newCount = { ...prev }
       const currentValue = newCount[category]
-      const categoryData = heroData.peopleCategories.find(cat => cat.id === category)
       
       if (increment) {
         // Check if we can add more (max total people)
