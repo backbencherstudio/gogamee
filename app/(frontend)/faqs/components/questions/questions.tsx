@@ -1,11 +1,41 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { IoIosArrowDown } from 'react-icons/io';
-import { faqs } from '../../../../lib/appdata';
+import { getAllFaqs, FaqItem } from '../../../../../services/faqService';
 
 export default function Questions() {
   const [expandedItems, setExpandedItems] = useState<number[]>([0]);
+  const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch FAQs from API
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await getAllFaqs();
+        if (response.success) {
+          setFaqs(response.list);
+          // Auto-expand first item if available
+          if (response.list.length > 0) {
+            setExpandedItems([0]);
+          }
+        } else {
+          setError('Failed to fetch FAQs');
+        }
+      } catch (err) {
+        console.error('Error fetching FAQs:', err);
+        setError('Failed to load FAQs. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFaqs();
+  }, []);
 
   const toggleItem = (index: number) => {
     setExpandedItems(prev => {
@@ -35,8 +65,27 @@ export default function Questions() {
         {/* FAQ Items */}
         <div className="bg-white flex flex-col justify-start items-start gap-6 w-full">
           <div className="w-full p-5 md:p-8 lg:p-10 rounded-lg outline-[6px] outline-offset-[-6px] outline-green-50">
-            <div className="flex flex-col gap-5 w-full">
-              {faqs.map((item, index) => (
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-neutral-600 text-lg font-medium">Loading FAQs...</div>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col justify-center items-center py-12 gap-4">
+                <div className="text-red-600 text-lg font-medium">{error}</div>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : faqs.length === 0 ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-neutral-600 text-lg font-medium">No FAQs available at the moment.</div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-5 w-full">
+                {faqs.map((item, index) => (
                 <div key={item.id} className="flex flex-col gap-4 md:gap-5 w-full">
                   <div className="w-full">
                     <div 
@@ -84,8 +133,9 @@ export default function Questions() {
                     <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
                   )}
                 </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
