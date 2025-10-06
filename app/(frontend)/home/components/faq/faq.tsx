@@ -1,9 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { IoIosArrowDown } from "react-icons/io";
 import Link from "next/link";
-import { faqs } from "../../../../lib/appdata";
+import { getAllFaqs, type FaqItem } from "../../../../../services/faqService";
 
 interface FaqProps {
   className?: string;
@@ -11,6 +11,24 @@ interface FaqProps {
 
 export default function Faq({ className = "" }: FaqProps) {
   const [expandedItems, setExpandedItems] = useState<number[]>([0]);
+  const [faqs, setFaqs] = useState<FaqItem[]>([]);
+
+  useEffect(() => {
+    const fetchFaqs = async () => {
+      try {
+        const response = await getAllFaqs();
+        if (response.success) {
+          setFaqs(response.list);
+          if (response.list.length > 0) {
+            setExpandedItems([0]);
+          }
+        }
+      } catch {
+        // Intentionally silent on homepage; fallback is simply showing nothing
+      }
+    };
+    fetchFaqs();
+  }, []);
 
   const toggleItem = (index: number) => {
     setExpandedItems((prev) => {
