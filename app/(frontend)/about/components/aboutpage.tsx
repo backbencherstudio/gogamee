@@ -1,15 +1,40 @@
 'use client'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { AppData } from '@/app/lib/appdata'
+import { getAboutManagement, type MainSection, type OurValue, type WhyChooseUs } from '../../../../services/aboutService'
 
 export default function AboutPage() {
-  // Get data from AppData instead of LanguageContext
-  const aboutData = AppData.aboutPage
-  const content = aboutData.getContentData()
-  const sections = aboutData.getSections()
-  const values = aboutData.getValues()
-  const whyChooseUs = aboutData.getWhyChooseUs()
+  const [sections, setSections] = useState<MainSection[]>([])
+  const [values, setValues] = useState<OurValue[]>([])
+  const [whyChooseUs, setWhyChooseUs] = useState<WhyChooseUs[]>([])
+  const [headline, setHeadline] = useState('We turn sports into unforgettable surprise adventures.')
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchAboutData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await getAboutManagement();
+        if (response.success && response.content) {
+          setSections(response.content.sections || []);
+          setValues(response.content.values?.items || []);
+          setWhyChooseUs(response.content.whyChooseUs?.items || []);
+          setHeadline(response.content.headline || 'We turn sports into unforgettable surprise adventures.');
+        } else {
+          setError('Failed to fetch about page data');
+        }
+      } catch (err) {
+        console.error('Error fetching about page data:', err);
+        setError('Failed to load about page data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAboutData();
+  }, []);
 
   return (
     <div className="w-full bg-[#FCFEFB] py-12 md:py-16 lg:py-24">
@@ -18,7 +43,7 @@ export default function AboutPage() {
         <div className="flex flex-col justify-start items-center gap-6 lg:gap-12 mb-8 lg:mb-12">
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="text-center text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              {content.headline}
+              {headline}
             </div>
           </div>
         </div>
@@ -26,7 +51,22 @@ export default function AboutPage() {
         {/* Main Content */}
         <div className="bg-white flex flex-col justify-start items-start gap-6 w-full">
           <div className="w-full p-5 md:p-8 lg:p-10 rounded-lg outline-[6px] outline-offset-[-6px] outline-green-50">
-            <div className="flex flex-col gap-8 md:gap-10 w-full">
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="text-neutral-600 text-lg font-medium">Loading about page content...</div>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col justify-center items-center py-12 gap-4">
+                <div className="text-red-600 text-lg font-medium">{error}</div>
+                <button 
+                  onClick={() => window.location.reload()} 
+                  className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-8 md:gap-10 w-full">
               
               {/* Dynamic Sections */}
               {sections.map((section, index) => (
@@ -63,7 +103,7 @@ export default function AboutPage() {
                     </div>
                   </div>
                   <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9">
-                    {content.values.title}
+                    Our Values
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full pl-7 md:pl-8 lg:pl-9">
@@ -91,7 +131,7 @@ export default function AboutPage() {
                     </div>
                   </div>
                   <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9">
-                    {content.whyChooseUs.title}
+                    Why Choose Us
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full pl-7 md:pl-8 lg:pl-9">
@@ -127,7 +167,8 @@ export default function AboutPage() {
                 </div>
               </div>
 
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

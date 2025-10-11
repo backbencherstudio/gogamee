@@ -1,27 +1,20 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { AppData } from '@/app/lib/appdata'
-
-interface Section {
-  id: string
-  title: string
-  description: string
-  order: number
-}
-
-interface Value {
-  id: string
-  title: string
-  description: string
-  order: number
-}
-
-interface WhyChooseUs {
-  id: string
-  title: string
-  description: string
-  order: number
-}
+import { 
+  getAboutManagement,
+  addMainSection,
+  editMainSection,
+  addOurValue,
+  editOurValue,
+  addWhyChooseUs,
+  editWhyChooseUs,
+  type MainSection,
+  type OurValue,
+  type WhyChooseUs,
+  type MainSectionPayload,
+  type OurValuePayload,
+  type WhyChooseUsPayload
+} from '../../../../../services/aboutService'
 
 
 
@@ -32,10 +25,12 @@ export default function AboutManagement() {
   const [isEditing, setIsEditing] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [sections, setSections] = useState<Section[]>([])
-  const [values, setValues] = useState<Value[]>([])
+  const [sections, setSections] = useState<MainSection[]>([])
+  const [values, setValues] = useState<OurValue[]>([])
   const [whyChooseUs, setWhyChooseUs] = useState<WhyChooseUs[]>([])
   const [headline, setHeadline] = useState('')
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Form states for editing
   const [formData, setFormData] = useState({
@@ -52,12 +47,25 @@ export default function AboutManagement() {
     loadData()
   }, [])
 
-  const loadData = () => {
-    const aboutData = AppData.aboutPage
-    setSections(aboutData.getSections())
-    setValues(aboutData.getValues())
-    setWhyChooseUs(aboutData.getWhyChooseUs())
-    setHeadline(aboutData.getContentData().headline)
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getAboutManagement();
+      if (response.success && response.content) {
+        setSections(response.content.sections || []);
+        setValues(response.content.values?.items || []);
+        setWhyChooseUs(response.content.whyChooseUs?.items || []);
+        setHeadline(response.content.headline || '');
+      } else {
+        setError('Failed to fetch about management data');
+      }
+    } catch (err) {
+      console.error('Error fetching about management data:', err);
+      setError('Failed to load about management data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   const handleEdit = (type: string, id?: string) => {
@@ -112,62 +120,85 @@ export default function AboutManagement() {
     })
   }
 
-  const handleSave = () => {
-    if (editingId === 'headline') {
-      // Update headline - using the new updateContent method
-      AppData.aboutPage.updateContent({ headline: formData.text })
-      setHeadline(formData.text)
-    } else if (isAdding) {
-      // Adding new items
-      if (activeTab === 'sections') {
-        AppData.aboutPage.addSection({
+  const handleSave = async () => {
+    try {
+      if (editingId === 'headline') {
+        // Update headline - for now, we'll just update local state
+        // In a real implementation, you'd need an API endpoint for updating headline
+        setHeadline(formData.text)
+      } else if (isAdding) {
+        // Adding new items
+        if (activeTab === 'sections') {
+          const payload: MainSectionPayload = {
+            title: formData.title,
+            description: formData.description,
+            order: formData.order
+          }
+          const response = await addMainSection(payload)
+          if (response.success) {
+            await loadData() // Reload data to get updated list
+          }
+        } else if (activeTab === 'values') {
+          const payload: OurValuePayload = {
+            title: formData.title,
+            description: formData.description,
+            order: formData.order
+          }
+          const response = await addOurValue(payload)
+          if (response.success) {
+            await loadData() // Reload data to get updated list
+          }
+        } else if (activeTab === 'whyChooseUs') {
+          const payload: WhyChooseUsPayload = {
+            title: formData.title,
+            description: formData.description,
+            order: formData.order
+          }
+          const response = await addWhyChooseUs(payload)
+          if (response.success) {
+            await loadData() // Reload data to get updated list
+          }
+        }
+      } else if (activeTab === 'sections' && editingId) {
+        const payload: MainSectionPayload = {
           title: formData.title,
           description: formData.description,
           order: formData.order
-        })
-        setSections(AppData.aboutPage.getSections())
-      } else if (activeTab === 'values') {
-        AppData.aboutPage.addValue({
+        }
+        const response = await editMainSection(editingId, payload)
+        if (response.success) {
+          await loadData() // Reload data to get updated list
+        }
+      } else if (activeTab === 'values' && editingId) {
+        const payload: OurValuePayload = {
           title: formData.title,
           description: formData.description,
           order: formData.order
-        })
-        setValues(AppData.aboutPage.getValues())
-      } else if (activeTab === 'whyChooseUs') {
-        AppData.aboutPage.addWhyChooseUs({
+        }
+        const response = await editOurValue(editingId, payload)
+        if (response.success) {
+          await loadData() // Reload data to get updated list
+        }
+      } else if (activeTab === 'whyChooseUs' && editingId) {
+        const payload: WhyChooseUsPayload = {
           title: formData.title,
           description: formData.description,
           order: formData.order
-        })
-        setWhyChooseUs(AppData.aboutPage.getWhyChooseUs())
+        }
+        const response = await editWhyChooseUs(editingId, payload)
+        if (response.success) {
+          await loadData() // Reload data to get updated list
+        }
       }
-    } else if (activeTab === 'sections' && editingId) {
-      AppData.aboutPage.updateSection(editingId, {
-        title: formData.title,
-        description: formData.description,
-        order: formData.order
-      })
-      setSections(AppData.aboutPage.getSections())
-    } else if (activeTab === 'values' && editingId) {
-      AppData.aboutPage.updateValue(editingId, {
-        title: formData.title,
-        description: formData.description,
-        order: formData.order
-      })
-      setValues(AppData.aboutPage.getValues())
-    } else if (activeTab === 'whyChooseUs' && editingId) {
-      AppData.aboutPage.updateWhyChooseUs(editingId, {
-        title: formData.title,
-        description: formData.description,
-        order: formData.order
-      })
-      setWhyChooseUs(AppData.aboutPage.getWhyChooseUs())
-    }
 
-    setIsEditing(false)
-    setIsAdding(false)
-    setEditingId(null)
-    setFormData({ title: '', description: '', order: 1, text: '', buttonText: '', buttonLink: '', backgroundImage: '' })
+      setIsEditing(false)
+      setIsAdding(false)
+      setEditingId(null)
+      setFormData({ title: '', description: '', order: 1, text: '', buttonText: '', buttonLink: '', backgroundImage: '' })
+    } catch (err) {
+      console.error('Error saving data:', err)
+      setError('Failed to save changes. Please try again.')
+    }
   }
 
   const handleCancel = () => {
@@ -178,6 +209,28 @@ export default function AboutManagement() {
   }
 
   const renderTabContent = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center py-12">
+          <div className="text-gray-600 text-lg font-medium">Loading about management data...</div>
+        </div>
+      )
+    }
+
+    if (error) {
+      return (
+        <div className="flex flex-col justify-center items-center py-12 gap-4">
+          <div className="text-red-600 text-lg font-medium">{error}</div>
+          <button 
+            onClick={() => loadData()} 
+            className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      )
+    }
+
     if (isEditing || isAdding) {
       return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 ">
@@ -324,25 +377,31 @@ export default function AboutManagement() {
               </div>
             </div>
 
-            {sections.map((section) => (
-              <div key={section.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800">{section.title}</h3>
-                  <button
-                    onClick={() => handleEdit('sections', section.id)}
-                    className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
-                  >
-                    Edit
-                  </button>
-                </div>
-                <p className="text-gray-600 font-['Poppins'] leading-relaxed mb-3">{section.description}</p>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
-                    Order: {section.order}
-                  </span>
-                </div>
+            {sections.length === 0 ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="text-gray-500 text-lg font-medium">No sections available. Add your first section!</div>
               </div>
-            ))}
+            ) : (
+              sections.map((section) => (
+                <div key={section.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800">{section.title}</h3>
+                    <button
+                      onClick={() => handleEdit('sections', section.id)}
+                      className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  <p className="text-gray-600 font-['Poppins'] leading-relaxed mb-3">{section.description}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+                      Order: {section.order}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 
@@ -360,25 +419,31 @@ export default function AboutManagement() {
               </div>
             </div>
 
-            {values.map((value) => (
-              <div key={value.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800">{value.title}</h3>
-                  <button
-                    onClick={() => handleEdit('values', value.id)}
-                    className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
-                  >
-                    Edit
-                  </button>
-                </div>
-                <p className="text-gray-600 font-['Poppins'] leading-relaxed mb-3">{value.description}</p>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
-                    Order: {value.order}
-                  </span>
-                </div>
+            {values.length === 0 ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="text-gray-500 text-lg font-medium">No values available. Add your first value!</div>
               </div>
-            ))}
+            ) : (
+              values.map((value) => (
+                <div key={value.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800">{value.title}</h3>
+                    <button
+                      onClick={() => handleEdit('values', value.id)}
+                      className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  <p className="text-gray-600 font-['Poppins'] leading-relaxed mb-3">{value.description}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+                      Order: {value.order}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 
@@ -396,25 +461,31 @@ export default function AboutManagement() {
               </div>
             </div>
 
-            {whyChooseUs.map((item) => (
-              <div key={item.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800">{item.title}</h3>
-                  <button
-                    onClick={() => handleEdit('whyChooseUs', item.id)}
-                    className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
-                  >
-                    Edit
-                  </button>
-                </div>
-                <p className="text-gray-600 font-['Poppins'] leading-relaxed mb-3">{item.description}</p>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
-                    Order: {item.order}
-                  </span>
-                </div>
+            {whyChooseUs.length === 0 ? (
+              <div className="flex justify-center items-center py-8">
+                <div className="text-gray-500 text-lg font-medium">No why choose us items available. Add your first item!</div>
               </div>
-            ))}
+            ) : (
+              whyChooseUs.map((item) => (
+                <div key={item.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800">{item.title}</h3>
+                    <button
+                      onClick={() => handleEdit('whyChooseUs', item.id)}
+                      className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  <p className="text-gray-600 font-['Poppins'] leading-relaxed mb-3">{item.description}</p>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
+                      Order: {item.order}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
 

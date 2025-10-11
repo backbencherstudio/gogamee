@@ -82,7 +82,7 @@ export default function Faq({ className = "" }: FaqProps) {
                             </div>
                             <div 
                               onClick={() => toggleItem(index)}
-                              className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9 cursor-pointer flex-1"
+                              className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9 cursor-pointer flex-1 "
                             >
                               {item.question}
                             </div>
