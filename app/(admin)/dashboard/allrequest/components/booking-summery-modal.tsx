@@ -31,10 +31,11 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import AppData from '../../../../lib/appdata'
 import { useToast } from '../../../../../components/ui/toast'
+import { updateBooking } from '../../../../../services/bookingService'
 
 interface BookingData {
-  id: number
-  status: "pending" | "completed" | "cancelled"
+  id: string
+  status: "pending" | "completed" | "cancelled" | "approved"
   selectedSport: string
   selectedPackage: string
   selectedCity: string
@@ -735,59 +736,31 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                     
                     setIsUpdating(true)
                     try {
-                      // Import AppData dynamically to avoid SSR issues
-                      const { default: AppData } = await import('../../../../lib/appdata')
+                      // Update booking via API
+                      await updateBooking({
+                        id: bookingData.id,
+                        destinationCity: destinationCity.trim(),
+                        assignedMatch: assignedMatch.trim()
+                      })
                       
-                      // Find the booking by matching the data
-                      const bookingToUpdate = AppData.bookings.all.find(booking => 
-                        booking.fullName === bookingData.fullName &&
-                        booking.email === bookingData.email &&
-                        booking.phone === bookingData.phone &&
-                        Math.abs(new Date(booking.bookingTimestamp).getTime() - new Date(bookingData.bookingTimestamp).getTime()) < 60000
-                      )
+                      console.log('✅ Destination and match details updated successfully')
+                      addToast({
+                        type: 'success',
+                        title: 'Success!',
+                        description: 'Destination and match details updated successfully!',
+                        duration: 4000
+                      })
                       
-                      if (bookingToUpdate) {
-                        // Update booking with destination city and assigned match
-                        AppData.bookings.update(bookingToUpdate.id, { 
-                          destinationCity: destinationCity.trim(),
-                          assignedMatch: assignedMatch.trim()
-                        })
-                        console.log('✅ Destination and match details updated successfully')
-                        addToast({
-                          type: 'success',
-                          title: 'Success!',
-                          description: 'Destination and match details updated successfully!',
-                          duration: 4000
-                        })
-                        
-                        // Update local state with the new values and disable button
-                        setDestinationCity(destinationCity.trim())
-                        setAssignedMatch(assignedMatch.trim())
-                        setHasChanges(false) // Disable button after successful update
-                        
-                        // Refresh parent component to show updated data
-                        if (onStatusUpdate) {
-                          onStatusUpdate()
-                        }
-                        
-                        // Force refresh the booking data to ensure UI shows updated values
-                        const updatedBooking = AppData.bookings.getById(bookingToUpdate.id)
-                        if (updatedBooking) {
-                          // Update the bookingData prop by triggering a re-render
-                          // This ensures the display fields show the updated values
-                          setTimeout(() => {
-                            updateLocalState()
-                          }, 100)
-                        }
-                      } else {
-                        console.error('❌ Could not find booking to update')
-                        addToast({
-                          type: 'error',
-                          title: 'Error',
-                          description: 'Could not find booking to update',
-                          duration: 5000
-                        })
+                      // Update local state with the new values and disable button
+                      setDestinationCity(destinationCity.trim())
+                      setAssignedMatch(assignedMatch.trim())
+                      setHasChanges(false)
+                      
+                      // Refresh parent component to show updated data
+                      if (onStatusUpdate) {
+                        onStatusUpdate()
                       }
+                      
                     } catch (error) {
                       console.error('❌ Error updating destination and match:', error)
                       addToast({
@@ -852,51 +825,29 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                           
                           setIsProcessing(true)
                           try {
-                            // Import AppData dynamically to avoid SSR issues
-                            const { default: AppData } = await import('../../../../lib/appdata')
+                            // Update booking status via API
+                            await updateBooking({
+                              id: bookingData.id,
+                              status: "approved",
+                              approve_status: "approved"
+                            })
                             
-                            // Find the booking by matching the data (more robust matching)
-                            const bookingToUpdate = AppData.bookings.all.find(booking => 
-                              booking.fullName === bookingData.fullName &&
-                              booking.email === bookingData.email &&
-                              booking.phone === bookingData.phone &&
-                              Math.abs(new Date(booking.bookingTimestamp).getTime() - new Date(bookingData.bookingTimestamp).getTime()) < 60000 // Within 1 minute
-                            )
+                            console.log('✅ Booking approved')
                             
-                            if (bookingToUpdate) {
-                              // Update booking status to completed
-                              AppData.bookings.update(bookingToUpdate.id, { status: "completed" })
-                              console.log('✅ Booking approved and status updated to completed')
-                              
-                              // Send confirmation email automatically
-                              try {
-                                const result = await AppData.emailTemplates.sendConfirmationEmail(bookingToUpdate)
-                                console.log('✅ Confirmation email sent automatically:', result)
-                              } catch (emailError) {
-                                console.error('❌ Error sending automatic confirmation email:', emailError)
-                              }
-                              
-                              // Show success message
-                              addToast({
-                                type: 'success',
-                                title: 'Booking Approved!',
-                                description: 'Status updated to completed and confirmation email sent.',
-                                duration: 5000
-                              })
-                              
-                              // Refresh parent component to show updated data
-                              if (onStatusUpdate) {
-                                onStatusUpdate()
-                              }
-                            } else {
-                              console.error('❌ Could not find booking to update')
-                              addToast({
-                                type: 'error',
-                                title: 'Error',
-                                description: 'Could not find booking to update',
-                                duration: 5000
-                              })
+                            // Show success message
+                            addToast({
+                              type: 'success',
+                              title: 'Booking Approved!',
+                              description: 'Status updated to approved successfully.',
+                              duration: 5000
+                            })
+                            
+                            // Refresh parent component to show updated data
+                            if (onStatusUpdate) {
+                              onStatusUpdate()
                             }
+                            
+                            setIsOpen(false)
                           } catch (error) {
                             console.error('❌ Error approving booking:', error)
                             addToast({
@@ -907,7 +858,6 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                             })
                           } finally {
                             setIsProcessing(false)
-                            setIsOpen(false)
                           }
                         }} 
                         disabled={isProcessing || !destinationCity.trim() || !assignedMatch.trim()}
@@ -921,51 +871,29 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                           
                           setIsProcessing(true)
                           try {
-                            // Import AppData dynamically to avoid SSR issues
-                            const { default: AppData } = await import('../../../../lib/appdata')
+                            // Update booking status via API
+                            await updateBooking({
+                              id: bookingData.id,
+                              status: "cancelled",
+                              approve_status: "rejected"
+                            })
                             
-                            // Find the booking by matching the data (more robust matching)
-                            const bookingToUpdate = AppData.bookings.all.find(booking => 
-                              booking.fullName === bookingData.fullName &&
-                              booking.email === bookingData.email &&
-                              booking.phone === bookingData.phone &&
-                              Math.abs(new Date(booking.bookingTimestamp).getTime() - new Date(bookingData.bookingTimestamp).getTime()) < 60000 // Within 1 minute
-                            )
+                            console.log('✅ Booking rejected')
                             
-                            if (bookingToUpdate) {
-                              // Update booking status to cancelled
-                              AppData.bookings.update(bookingToUpdate.id, { status: "cancelled" })
-                              console.log('✅ Booking rejected and status updated to cancelled')
-                              
-                              // Send rejection email automatically
-                              try {
-                                const result = await AppData.emailTemplates.sendConfirmationEmail(bookingToUpdate)
-                                console.log('✅ Rejection email sent automatically:', result)
-                              } catch (emailError) {
-                                console.error('❌ Error sending automatic rejection email:', emailError)
-                              }
-                              
-                              // Show success message
-                              addToast({
-                                type: 'success',
-                                title: 'Booking Rejected',
-                                description: 'Status updated to cancelled and rejection email sent.',
-                                duration: 5000
-                              })
-                              
-                              // Refresh parent component to show updated data
-                              if (onStatusUpdate) {
-                                onStatusUpdate()
-                              }
-                            } else {
-                              console.error('❌ Could not find booking to update')
-                              addToast({
-                                type: 'error',
-                                title: 'Error',
-                                description: 'Could not find booking to update',
-                                duration: 5000
-                              })
+                            // Show success message
+                            addToast({
+                              type: 'success',
+                              title: 'Booking Rejected',
+                              description: 'Status updated to rejected successfully.',
+                              duration: 5000
+                            })
+                            
+                            // Refresh parent component to show updated data
+                            if (onStatusUpdate) {
+                              onStatusUpdate()
                             }
+                            
+                            setIsOpen(false)
                           } catch (error) {
                             console.error('❌ Error rejecting booking:', error)
                             addToast({
@@ -976,7 +904,6 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                             })
                           } finally {
                             setIsProcessing(false)
-                            setIsOpen(false)
                           }
                         }} 
                         disabled={isProcessing}

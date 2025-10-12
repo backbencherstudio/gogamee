@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
 import { paymentData } from '../../../../lib/appdata'
+import { createBooking, CreateBookingPayload } from '../../../../../services/bookingService'
 
 type PaymentMethod = 'credit' | 'google' | 'apple'
 
@@ -29,6 +30,7 @@ const PAYMENT_METHODS = {
 export default function Payment() {
   const { formData, updateFormData, clearBookingData } = useBooking()
   const [isProcessing, setIsProcessing] = useState(false)
+  const [error, setError] = useState('')
   
   // Storage key for payment form data
   const STORAGE_KEY = paymentData.storage.key
@@ -413,18 +415,14 @@ export default function Payment() {
       console.log('')
       
       // ========================================
-      // SAVE BOOKING DATA TO APPDATA BEFORE CLEANUP
+      // CREATE BOOKING VIA API AND REDIRECT TO STRIPE
       // ========================================
       
-      console.log('💾 Saving booking data to AppData...')
+      console.log('💾 Creating booking via API...')
       
       try {
-        // Import AppData dynamically to avoid SSR issues
-        const { default: AppData } = await import('../../../../lib/appdata')
-        
-        // Create booking object with status using the correct data structure
-        const newBooking = {
-          status: "pending" as const,
+        // Prepare booking payload for API
+        const bookingPayload: CreateBookingPayload = {
           selectedSport: singleFormDataObject.selectedSport,
           selectedPackage: singleFormDataObject.selectedPackage,
           selectedCity: singleFormDataObject.selectedCity,
@@ -447,15 +445,6 @@ export default function Payment() {
             singleFormDataObject.removedLeagues.map(league => league.id || league.name || "") : [],
           removedLeaguesCount: singleFormDataObject.removedLeaguesCount || 0,
           hasRemovedLeagues: singleFormDataObject.hasRemovedLeagues || false,
-          allExtras: singleFormDataObject.allExtras.map(extra => ({
-            ...extra,
-            currency: "EUR"
-          })),
-          selectedExtras: singleFormDataObject.selectedExtras.map(extra => ({
-            ...extra,
-            currency: "EUR"
-          })),
-          selectedExtrasNames: singleFormDataObject.selectedExtrasNames,
           totalExtrasCost: singleFormDataObject.totalExtrasCost,
           extrasCount: singleFormDataObject.extrasCount,
           firstName: singleFormDataObject.firstName,
@@ -463,27 +452,39 @@ export default function Payment() {
           fullName: singleFormDataObject.fullName,
           email: singleFormDataObject.email,
           phone: singleFormDataObject.phone,
-          previousTravelInfo: singleFormDataObject.previousTravelInfo,
-          paymentMethod: selectedPayment,
-          cardNumber: singleFormDataObject.cardNumber,
-          expiryDate: singleFormDataObject.expiryDate,
-          cvv: singleFormDataObject.cvv,
-          cardholderName: singleFormDataObject.cardholderName,
-          bookingTimestamp: new Date().toISOString(),
-          bookingDate: new Date().toLocaleDateString('en-US'),
-          bookingTime: new Date().toLocaleTimeString('en-US'),
-          isBookingComplete: true,
+          previousTravelInfo: singleFormDataObject.previousTravelInfo || "",
           travelDuration: singleFormDataObject.travelDuration || 0,
           hasFlightPreferences: singleFormDataObject.hasFlightPreferences || false,
-          requiresEuropeanLeagueHandling: singleFormDataObject.requiresEuropeanLeagueHandling || false
+          requiresEuropeanLeagueHandling: singleFormDataObject.requiresEuropeanLeagueHandling || false,
+          totalCost: String(formData.calculatedTotals?.totalCost || 0),
+          bookingExtras: singleFormDataObject.selectedExtras.map(extra => ({
+            ...extra,
+            currency: "EUR"
+          }))
         }
         
-        // Add to AppData
-        const savedBooking = AppData.bookings.add(newBooking)
-        console.log('✅ Booking saved to AppData:', savedBooking)
+        console.log('📤 Sending booking to API:', bookingPayload)
+        
+        // Call API to create booking and get Stripe session
+        const stripeSession = await createBooking(bookingPayload)
+        
+        console.log('✅ Stripe session created:', stripeSession)
+        console.log('🔗 Stripe checkout URL:', stripeSession.url)
+        
+        // Redirect to Stripe checkout
+        if (stripeSession.url) {
+          console.log('🚀 Redirecting to Stripe checkout...')
+          window.location.href = stripeSession.url
+          return // Don't clear data or show success message yet
+        } else {
+          throw new Error('No Stripe checkout URL received')
+        }
         
       } catch (error) {
-        console.error('❌ Error saving booking to AppData:', error)
+        console.error('❌ Error creating booking:', error)
+        setError('Failed to create booking. Please try again.')
+        setIsProcessing(false)
+        return
       }
       
       // ========================================
