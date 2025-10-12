@@ -54,12 +54,12 @@ export default function EventReqTable() {
   }
 
   const filteredData = useMemo(() => {
-    // First filter by status
+    // First filter by status - use status field as primary filter
     let filtered = bookings.filter((item) => {
       if (activeTab === "all") return true
-      if (activeTab === "approved") return item.status === "approved" || item.approve_status === "approved"
-      if (activeTab === "pending") return item.status === "pending" || item.approve_status === "pending"
-      if (activeTab === "rejected") return item.status === "cancelled" || item.approve_status === "rejected"
+      if (activeTab === "approved") return item.status === "approved"
+      if (activeTab === "pending") return item.status === "pending"
+      if (activeTab === "rejected") return item.status === "rejected" || item.status === "cancelled"
       return true
     })
 
@@ -91,23 +91,55 @@ export default function EventReqTable() {
 
   const getStatusStyle = (status: string) => {
     switch (status) {
+      case "approved":
       case "completed":
         return "bg-emerald-100 text-emerald-800 border border-emerald-200"
+      case "rejected":
       case "cancelled":
         return "bg-red-100 text-red-800 border border-red-200"
-      default:
+      case "pending":
         return "bg-amber-100 text-amber-800 border border-amber-200"
+      default:
+        return "bg-gray-100 text-gray-800 border border-gray-200"
     }
   }
 
   const getStatusText = (status: string) => {
     switch (status) {
+      case "approved":
+        return "Confirmed"
       case "completed":
         return "Confirmed"
+      case "rejected":
+        return "Rejected"
       case "cancelled":
         return "Cancelled"
-      default:
+      case "pending":
         return "Pending"
+      default:
+        return status
+    }
+  }
+
+  const getPaymentStatusStyle = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case "paid":
+        return "bg-green-100 text-green-800 border border-green-200"
+      case "unpaid":
+        return "bg-orange-100 text-orange-800 border border-orange-200"
+      default:
+        return "bg-gray-100 text-gray-800 border border-gray-200"
+    }
+  }
+
+  const getPaymentStatusText = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case "paid":
+        return "Paid"
+      case "unpaid":
+        return "Unpaid"
+      default:
+        return "Unknown"
     }
   }
 
@@ -276,9 +308,9 @@ export default function EventReqTable() {
           {/* Other tabs - 3 buttons in row */}
           <div className="grid grid-cols-3 gap-2">
             {[
-              { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "completed").length },
+              { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "approved").length },
               { key: "pending", label: "Pending", count: bookings.filter((d) => d.status === "pending").length },
-              { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "cancelled").length },
+              { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "rejected" || d.status === "cancelled").length },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -306,9 +338,9 @@ export default function EventReqTable() {
         <div className="hidden md:flex space-x-8">
           {[
             { key: "all", label: "All Bookings", count: bookings.length },
-            { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "completed").length },
+            { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "approved").length },
             { key: "pending", label: "Pending", count: bookings.filter((d) => d.status === "pending").length },
-            { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "cancelled").length },
+            { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "rejected" || d.status === "cancelled").length },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -350,7 +382,10 @@ export default function EventReqTable() {
                 Booking Info
               </th>
               <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Status
+                Booking Status
+              </th>
+              <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Payment Status
               </th>
               <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Actions
@@ -416,11 +451,18 @@ export default function EventReqTable() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusStyle(booking.payment_status)}`}
+                  >
+                    {getPaymentStatusText(booking.payment_status)}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-2">
                                                                  <BookingSummaryModal 
                           bookingData={{
                             id: booking.id,
-                            status: booking.approve_status || booking.status,
+                            status: booking.status,
                             selectedSport: booking.selectedSport,
                             selectedPackage: booking.selectedPackage,
                             selectedCity: booking.selectedCity,

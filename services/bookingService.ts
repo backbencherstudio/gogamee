@@ -154,8 +154,9 @@ export const createBooking = async (payload: CreateBookingPayload): Promise<Stri
 
 // PATCH update booking
 export const updateBooking = async (payload: UpdateBookingPayload): Promise<BookingItem> => {
-  console.log('Booking Service - Updating booking:', payload.id);
-  const response = await axiosClient.patch(`/api/admin/all-bookings/cmxtermds0000urco77mgyaaz/status`, payload);
+  console.log('Booking Service - Updating booking:', payload.id, 'with data:', payload);
+  const { id, ...updateData } = payload;
+  const response = await axiosClient.patch(`/api/admin/all-bookings/${id}/status`, updateData);
   console.log('Booking Service - Booking updated:', response.data);
   return response.data;
 };

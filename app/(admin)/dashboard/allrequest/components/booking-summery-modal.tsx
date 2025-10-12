@@ -35,7 +35,7 @@ import { updateBooking } from '../../../../../services/bookingService'
 
 interface BookingData {
   id: string
-  status: "pending" | "completed" | "cancelled" | "approved"
+  status: "pending" | "completed" | "cancelled" | "approved" | "rejected"
   selectedSport: string
   selectedPackage: string
   selectedCity: string
@@ -166,19 +166,19 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                 <Badge
                   variant="default"
                   className={
-                    bookingData.status === "completed" 
+                    bookingData.status === "completed" || bookingData.status === "approved"
                       ? "bg-green-100 text-green-800" 
-                      : bookingData.status === "cancelled"
+                      : bookingData.status === "cancelled" || bookingData.status === "rejected"
                       ? "bg-red-100 text-red-800"
                       : "bg-yellow-100 text-yellow-800"
                   }
                 >
-                  {bookingData.status === "completed" ? (
+                  {bookingData.status === "completed" || bookingData.status === "approved" ? (
                     <>
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Confirmed
                     </>
-                  ) : bookingData.status === "cancelled" ? (
+                  ) : bookingData.status === "cancelled" || bookingData.status === "rejected" ? (
                     <>
                       <XCircle className="h-3 w-3 mr-1" />
                       Rejected
@@ -195,38 +195,38 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
           
                       {/* Status Information Card */}
             <div className={`mt-4 p-4 rounded-lg border ${
-              bookingData.status === "completed" 
+              bookingData.status === "completed" || bookingData.status === "approved"
                 ? "bg-green-50 border-green-200" 
-                : bookingData.status === "cancelled"
+                : bookingData.status === "cancelled" || bookingData.status === "rejected"
                 ? "bg-red-50 border-red-200"
                 : "bg-yellow-50 border-yellow-200"
             }`}>
               <div className="flex items-center gap-3">
                 <div className={`w-4 h-4 rounded-full ${
-                  bookingData.status === "completed" 
+                  bookingData.status === "completed" || bookingData.status === "approved"
                     ? "bg-green-500" 
-                    : bookingData.status === "cancelled"
+                    : bookingData.status === "cancelled" || bookingData.status === "rejected"
                     ? "bg-red-500"
                     : "bg-yellow-500"
                 }`}></div>
                 <div className="text-sm">
                   <span className="font-medium">Current Status:</span>{" "}
                   <span className={`font-semibold ${
-                    bookingData.status === "completed" 
+                    bookingData.status === "completed" || bookingData.status === "approved"
                       ? "text-green-700" 
-                      : bookingData.status === "cancelled"
+                      : bookingData.status === "cancelled" || bookingData.status === "rejected"
                       ? "text-red-700"
                       : "text-yellow-700"
                   }`}>
-                    {bookingData.status === "completed" ? "✅ Confirmed" : 
-                     bookingData.status === "cancelled" ? "❌ Rejected" : "⏳ Pending"}
+                    {bookingData.status === "completed" || bookingData.status === "approved" ? "✅ Confirmed" : 
+                     bookingData.status === "cancelled" || bookingData.status === "rejected" ? "❌ Rejected" : "⏳ Pending"}
                   </span>
                 </div>
               </div>
               <div className="mt-2 text-xs text-gray-600">
                 {bookingData.status === "pending" 
                   ? "This booking is waiting for approval"
-                  : bookingData.status === "completed"
+                  : bookingData.status === "completed" || bookingData.status === "approved"
                   ? "This booking has been confirmed and is active"
                   : "This booking has been rejected and is no longer active"
                 }
@@ -794,14 +794,14 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                   {" | "}
                   Status:{" "}
                   <span className={`font-medium ${
-                    bookingData.status === "completed" 
+                    bookingData.status === "completed" || bookingData.status === "approved"
                       ? "text-green-600" 
-                      : bookingData.status === "cancelled"
+                      : bookingData.status === "cancelled" || bookingData.status === "rejected"
                       ? "text-red-600"
                       : "text-yellow-600"
                   }`}>
-                    {bookingData.status === "completed" ? "Confirmed" : 
-                     bookingData.status === "cancelled" ? "Rejected" : "Pending"}
+                    {bookingData.status === "completed" || bookingData.status === "approved" ? "Confirmed" : 
+                     bookingData.status === "cancelled" || bookingData.status === "rejected" ? "Rejected" : "Pending"}
                   </span>
                 </div>
                           <div className="flex flex-col gap-3">
@@ -810,7 +810,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                     ? (!destinationCity.trim() || !assignedMatch.trim()) 
                       ? "⚠️ Please fill in destination city and assigned match before approving"
                       : "Click Approve to confirm this booking, or Reject to cancel it"
-                    : bookingData.status === "completed"
+                    : bookingData.status === "completed" || bookingData.status === "approved"
                     ? "✅ This booking has been confirmed and cannot be modified"
                     : "❌ This booking has been rejected and cannot be modified"
                   }
@@ -825,11 +825,10 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                           
                           setIsProcessing(true)
                           try {
-                            // Update booking status via API
+                            // Update booking status via API - use status field only
                             await updateBooking({
                               id: bookingData.id,
-                              status: "approved",
-                              approve_status: "approved"
+                              status: "approved"
                             })
                             
                             console.log('✅ Booking approved')
@@ -871,11 +870,10 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                           
                           setIsProcessing(true)
                           try {
-                            // Update booking status via API
+                            // Update booking status via API - use status field only and set to "rejected"
                             await updateBooking({
                               id: bookingData.id,
-                              status: "cancelled",
-                              approve_status: "rejected"
+                              status: "rejected"
                             })
                             
                             console.log('✅ Booking rejected')
@@ -917,11 +915,11 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                   {/* Show status-specific message for non-pending bookings */}
                   {bookingData.status !== "pending" && (
                     <div className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                      bookingData.status === "completed" 
+                      bookingData.status === "completed" || bookingData.status === "approved"
                         ? "bg-green-100 text-green-800" 
                         : "bg-red-100 text-red-800"
                     }`}>
-                      {bookingData.status === "completed" 
+                      {bookingData.status === "completed" || bookingData.status === "approved"
                         ? "✅ This booking has been confirmed" 
                         : "❌ This booking has been rejected"}
                     </div>
