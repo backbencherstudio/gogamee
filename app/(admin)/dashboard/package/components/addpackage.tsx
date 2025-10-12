@@ -64,7 +64,29 @@ export default function AddPackage({ onSubmit, onCancel, initialData, submitLabe
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData);
+      // Prepare data - only include necessary fields
+      const dataToSubmit: any = {
+        sport: formData.sport,
+        category: formData.category,
+        standard: formData.standard,
+        premium: formData.premium
+      };
+      
+      // Only include price fields if category is "Starting Price" and values are valid
+      if (formData.category === 'Starting Price') {
+        if (formData.standardPrice && formData.standardPrice > 0) {
+          dataToSubmit.standardPrice = formData.standardPrice;
+        }
+        if (formData.premiumPrice && formData.premiumPrice > 0) {
+          dataToSubmit.premiumPrice = formData.premiumPrice;
+        }
+        if (formData.currency) {
+          dataToSubmit.currency = formData.currency;
+        }
+      }
+      
+      console.log('Submitting package data:', dataToSubmit);
+      onSubmit(dataToSubmit);
     }
   };
 
