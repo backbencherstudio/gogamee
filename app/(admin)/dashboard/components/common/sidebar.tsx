@@ -16,6 +16,7 @@ import {
   Calendar,
 } from "lucide-react"
 import { cn } from "@/app/lib/utils"
+import { logout } from "../../../../../services/authService"
 
 interface SidebarMenuItem {
   title: string
@@ -103,7 +104,10 @@ export function Sidebar() {
       <div className="mt-auto pt-4 border-t border-gray-200">
         <button
           onClick={() => {
-            // Clear admin login state
+            console.log('Logging out...')
+            // Call logout function to remove token
+            logout()
+            // Clear admin login state for backward compatibility
             localStorage.removeItem('adminLoggedIn')
             localStorage.removeItem('adminEmail')
             // Redirect to login page

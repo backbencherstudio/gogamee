@@ -82,9 +82,9 @@ export default function PackageManagement({
       } else {
         setError(response.message || 'Failed to delete package');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error deleting package:', err);
-      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to delete package. Please try again.';
+      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Failed to delete package. Please try again.';
       setError(errorMessage);
     }
     setDeleteConfirm(null);
@@ -109,10 +109,10 @@ export default function PackageManagement({
       } else {
         setError(response.message || 'Failed to add package');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error adding package:', err);
-      console.error('Error details:', err?.response?.data);
-      const errorMessage = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Failed to add package. Please try again.';
+      console.error('Error details:', (err as { response?: { data?: unknown } })?.response?.data);
+      const errorMessage = (err as { response?: { data?: { message?: string; error?: string } }; message?: string })?.response?.data?.message || (err as { response?: { data?: { error?: string } } })?.response?.data?.error || (err as Error)?.message || 'Failed to add package. Please try again.';
       setError(errorMessage);
     }
   };
@@ -131,9 +131,9 @@ export default function PackageManagement({
       } else {
         setError(response.message || 'Failed to update package');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating package:', err);
-      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to update package. Please try again.';
+      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Failed to update package. Please try again.';
       setError(errorMessage);
     }
   };
@@ -156,9 +156,9 @@ export default function PackageManagement({
       } else {
         setError(response.message || 'Failed to update prices');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating prices:', err);
-      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to update prices. Please try again.';
+      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Failed to update prices. Please try again.';
       setError(errorMessage);
     }
   };
