@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { Calendar, Save, RefreshCw, ChevronLeft, ChevronRight, DollarSign, X } from 'lucide-react'
 import AppData from '../../../../lib/appdata'
 import { useToast } from '../../../../../components/ui/toast'
+import { getStartingPrice } from '../../../../../services/packageService'
 
 // Date restriction interface for calendar-based system
 interface DateRestrictions {
@@ -46,6 +47,13 @@ export default function DateManagement() {
   const [showPriceModal, setShowPriceModal] = useState(false)
   const [priceEditData, setPriceEditData] = useState<PriceEditData | null>(null)
   const [editingPrices, setEditingPrices] = useState(false)
+  const [basePrices, setBasePrices] = useState<{
+    football: { standard: number; premium: number; currency: string } | null;
+    basketball: { standard: number; premium: number; currency: string } | null;
+  }>({
+    football: null,
+    basketball: null
+  })
 
   // Month names
   const MONTH_NAMES = [
@@ -55,9 +63,10 @@ export default function DateManagement() {
 
   const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-  // Load data from AppData
+  // Load data from AppData and base prices from package service
   useEffect(() => {
     loadDateRestrictions()
+    loadBasePrices()
   }, [])
 
   const loadDateRestrictions = () => {
@@ -78,6 +87,36 @@ export default function DateManagement() {
     ]
 
     setCompetitionTypes(competitionTypesData)
+  }
+
+  // Load base prices from package service
+  const loadBasePrices = async () => {
+    try {
+      const [footballPriceRes, basketballPriceRes] = await Promise.all([
+        getStartingPrice('football'),
+        getStartingPrice('basketball')
+      ])
+
+      if (footballPriceRes.success && basketballPriceRes.success) {
+        const footballPrice = footballPriceRes.data?.[0]
+        const basketballPrice = basketballPriceRes.data?.[0]
+        
+        setBasePrices({
+          football: footballPrice ? {
+            standard: footballPrice.currentStandardPrice,
+            premium: footballPrice.currentPremiumPrice,
+            currency: footballPrice.currency === 'euro' ? '€' : footballPrice.currency === 'usd' ? '$' : '£'
+          } : null,
+          basketball: basketballPrice ? {
+            standard: basketballPrice.currentStandardPrice,
+            premium: basketballPrice.currentPremiumPrice,
+            currency: basketballPrice.currency === 'euro' ? '€' : basketballPrice.currency === 'usd' ? '$' : '£'
+          } : null
+        })
+      }
+    } catch (error) {
+      console.error('Error loading base prices:', error)
+    }
   }
 
   // Calendar utility functions
@@ -182,28 +221,60 @@ export default function DateManagement() {
       return
     }
 
-    // Check which sport has existing prices for this date
+    // Check existing custom prices for both sports
     const footballStandardPrice = getCustomPrice(dateString, 'football', 'standard')
     const footballPremiumPrice = getCustomPrice(dateString, 'football', 'premium')
     const basketballStandardPrice = getCustomPrice(dateString, 'basketball', 'standard')
     const basketballPremiumPrice = getCustomPrice(dateString, 'basketball', 'premium')
     
-    // Determine which sport to show (prefer the one with existing prices)
+    // Determine which sport to show (prefer the one with existing custom prices)
     let selectedSport: 'football' | 'basketball' = 'football'
-    let standardPrice = footballStandardPrice || 0
-    let premiumPrice = footballPremiumPrice || 0
+    let standardPrice = footballStandardPrice
+    let premiumPrice = footballPremiumPrice
     
     if ((basketballStandardPrice !== null) || (basketballPremiumPrice !== null)) {
       selectedSport = 'basketball'
-      standardPrice = basketballStandardPrice || 0
-      premiumPrice = basketballPremiumPrice || 0
+      standardPrice = basketballStandardPrice
+      premiumPrice = basketballPremiumPrice
     }
+    
+    // If no custom prices exist, use base prices from package service
+    if (standardPrice === null || premiumPrice === null) {
+      const sportPrices = basePrices[selectedSport]
+      if (sportPrices) {
+        standardPrice = standardPrice || sportPrices.standard
+        premiumPrice = premiumPrice || sportPrices.premium
+      } else {
+        // Fallback to hardcoded values if package service data not available
+        standardPrice = standardPrice || (selectedSport === 'football' ? 379 : 359)
+        premiumPrice = premiumPrice || (selectedSport === 'football' ? 1499 : 1479)
+      }
+    }
+    
+    console.log('Price Edit Data:', {
+      date: dateString,
+      selectedSport,
+      footballPrices: {
+        standard: footballStandardPrice,
+        premium: footballPremiumPrice,
+        base: basePrices.football
+      },
+      basketballPrices: {
+        standard: basketballStandardPrice,
+        premium: basketballPremiumPrice,
+        base: basePrices.basketball
+      },
+      finalPrices: {
+        standard: standardPrice,
+        premium: premiumPrice
+      }
+    })
     
     setPriceEditData({
       date: dateString,
       sport: selectedSport,
-      standardPrice: standardPrice,
-      premiumPrice: premiumPrice
+      standardPrice: standardPrice || 0,
+      premiumPrice: premiumPrice || 0
     })
     setShowPriceModal(true)
   }
@@ -267,15 +338,13 @@ export default function DateManagement() {
   }
 
   const getBasePrice = (sport: 'football' | 'basketball', packageType: 'standard' | 'premium'): number => {
-    // Get base price from AppData travel packages
-    const packages = AppData.travelPackages.getBySport(sport)
-    const startingPricePackage = packages.find(pkg => pkg.category === 'Starting Price')
-    
-    if (startingPricePackage) {
-      return packageType === 'standard' ? (startingPricePackage.standardPrice || 0) : (startingPricePackage.premiumPrice || 0)
+    // Get base price from loaded package service data
+    const sportPrices = basePrices[sport]
+    if (sportPrices) {
+      return packageType === 'standard' ? sportPrices.standard : sportPrices.premium
     }
     
-    // Fallback prices if no package found
+    // Fallback prices if no package service data found
     const fallbackPrices: Record<string, Record<string, number>> = {
       "football": { "standard": 379, "premium": 1499 },
       "basketball": { "standard": 359, "premium": 1479 }
@@ -633,11 +702,29 @@ export default function DateManagement() {
                 <p className="text-sm text-gray-600 font-['Poppins']">
                   <strong>Date:</strong> {new Date(priceEditData.date).toLocaleDateString()}
                 </p>
-                {(priceEditData.standardPrice > 0 || priceEditData.premiumPrice > 0) && (
-                  <p className="text-xs text-blue-600 font-medium mt-1">
-                    ✏️ Editing existing custom prices
-                  </p>
-                )}
+                <p className="text-xs text-blue-600 font-medium mt-1">
+                  {(() => {
+                    const hasCustomPrices = getCustomPrice(priceEditData.date, priceEditData.sport, 'standard') !== null || 
+                                          getCustomPrice(priceEditData.date, priceEditData.sport, 'premium') !== null
+                    return hasCustomPrices ? '✏️ Editing existing custom prices' : '📦 Using base package prices (can be overridden)'
+                  })()}
+                </p>
+                
+                {/* Debug info for both sports */}
+                <div className="mt-3 text-xs text-gray-500 space-y-1">
+                  <div className="flex justify-between">
+                    <span>Football Base:</span>
+                    <span>{basePrices.football ? `${basePrices.football.currency}${basePrices.football.standard}/${basePrices.football.premium}` : 'Not loaded'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Basketball Base:</span>
+                    <span>{basePrices.basketball ? `${basePrices.basketball.currency}${basePrices.basketball.standard}/${basePrices.basketball.premium}` : 'Not loaded'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Selected Sport:</span>
+                    <span className="font-medium">{priceEditData.sport}</span>
+                  </div>
+                </div>
               </div>
               
               <div>
@@ -650,24 +737,44 @@ export default function DateManagement() {
                     const newSport = e.target.value as 'football' | 'basketball'
                     const currentStandardPrice = getCustomPrice(priceEditData.date, newSport, 'standard')
                     const currentPremiumPrice = getCustomPrice(priceEditData.date, newSport, 'premium')
+                    
+                    // Use custom prices if they exist, otherwise use base prices
+                    let standardPrice = currentStandardPrice
+                    let premiumPrice = currentPremiumPrice
+                    
+                    if (standardPrice === null || premiumPrice === null) {
+                      const sportPrices = basePrices[newSport]
+                      if (sportPrices) {
+                        standardPrice = standardPrice || sportPrices.standard
+                        premiumPrice = premiumPrice || sportPrices.premium
+                      } else {
+                        standardPrice = standardPrice || (newSport === 'football' ? 379 : 359)
+                        premiumPrice = premiumPrice || (newSport === 'football' ? 1499 : 1479)
+                      }
+                    }
+                    
                     setPriceEditData(prev => prev ? {
                       ...prev, 
                       sport: newSport,
-                      standardPrice: currentStandardPrice || 0,
-                      premiumPrice: currentPremiumPrice || 0
+                      standardPrice: standardPrice || 0,
+                      premiumPrice: premiumPrice || 0
                     } : null)
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
                 >
-                  <option value="football">Football</option>
-                  <option value="basketball">Basketball</option>
+                  <option value="football">
+                    Football {basePrices.football ? `(${basePrices.football.currency}${basePrices.football.standard}/${basePrices.football.premium})` : ''}
+                  </option>
+                  <option value="basketball">
+                    Basketball {basePrices.basketball ? `(${basePrices.basketball.currency}${basePrices.basketball.standard}/${basePrices.basketball.premium})` : ''}
+                  </option>
                 </select>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-                    Standard Package Price (€)
+                    Standard Package Price ({basePrices[priceEditData.sport]?.currency || '€'})
                   </label>
                   <input
                     type="number"
@@ -675,17 +782,17 @@ export default function DateManagement() {
                     step="0.01"
                     value={priceEditData.standardPrice}
                     onChange={(e) => setPriceEditData(prev => prev ? {...prev, standardPrice: parseFloat(e.target.value) || 0} : null)}
-                    placeholder={`Base price: €${getBasePrice(priceEditData.sport, 'standard')}`}
+                    placeholder={`Current: ${basePrices[priceEditData.sport]?.currency || '€'}${getBasePrice(priceEditData.sport, 'standard')}`}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Leave empty to use base price (€{getBasePrice(priceEditData.sport, 'standard')})
+                    Base package price: {basePrices[priceEditData.sport]?.currency || '€'}{getBasePrice(priceEditData.sport, 'standard')} | Set custom price to override for this date only
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-                    Premium Package Price (€)
+                    Premium Package Price ({basePrices[priceEditData.sport]?.currency || '€'})
                   </label>
                   <input
                     type="number"
@@ -693,11 +800,11 @@ export default function DateManagement() {
                     step="0.01"
                     value={priceEditData.premiumPrice}
                     onChange={(e) => setPriceEditData(prev => prev ? {...prev, premiumPrice: parseFloat(e.target.value) || 0} : null)}
-                    placeholder={`Base price: €${getBasePrice(priceEditData.sport, 'premium')}`}
+                    placeholder={`Current: ${basePrices[priceEditData.sport]?.currency || '€'}${getBasePrice(priceEditData.sport, 'premium')}`}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Leave empty to use base price (€{getBasePrice(priceEditData.sport, 'premium')})
+                    Base package price: {basePrices[priceEditData.sport]?.currency || '€'}{getBasePrice(priceEditData.sport, 'premium')} | Set custom price to override for this date only
                   </p>
                 </div>
               </div>
