@@ -1,34 +1,61 @@
 'use client'
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { getAllPackages, getAvailableSports, PackageItem } from "../../../../../services/packageService";
+import { getAllPackages, getStartingPrice, PackageItem } from "../../../../../services/packageService";
 
 export default function PackageTable() {
   const [selectedSport, setSelectedSport] = useState<'football' | 'basketball'>('football');
   const [packages, setPackages] = useState<PackageItem[]>([]);
-  const [availableSports, setAvailableSports] = useState<string[]>([]);
+  const [startingPrices, setStartingPrices] = useState<{
+    football: { standardPrice: number; premiumPrice: number; currency: string } | null;
+    basketball: { standardPrice: number; premiumPrice: number; currency: string } | null;
+  }>({
+    football: null,
+    basketball: null
+  });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch packages and sports from API
+  // Fetch packages, sports, and starting prices from API
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Fetch available sports
-        const sportsResponse = await getAvailableSports();
-        if (sportsResponse.success) {
-          setAvailableSports(sportsResponse.data);
-        }
 
-        // Fetch packages for selected sport
+        // Fetch packages for selected sport (excluding Starting Price packages)
         const packagesResponse = await getAllPackages(selectedSport);
         if (packagesResponse.success && packagesResponse.list) {
-          setPackages(packagesResponse.list);
+          // Filter out Starting Price packages as we'll get them separately
+          const filteredPackages = packagesResponse.list.filter(pkg => pkg.category !== 'Starting Price');
+          setPackages(filteredPackages);
         } else {
           setError('Failed to fetch packages');
+        }
+
+        // Fetch starting prices for both sports
+        const [footballPriceRes, basketballPriceRes] = await Promise.all([
+          getStartingPrice('football'),
+          getStartingPrice('basketball')
+        ]);
+
+        if (footballPriceRes.success && basketballPriceRes.success) {
+          const footballPrice = footballPriceRes.data?.[0];
+          const basketballPrice = basketballPriceRes.data?.[0];
+          
+          setStartingPrices({
+            football: footballPrice ? {
+              standardPrice: footballPrice.currentStandardPrice,
+              premiumPrice: footballPrice.currentPremiumPrice,
+              currency: footballPrice.currency === 'euro' ? '€' : footballPrice.currency === 'usd' ? '$' : '£'
+            } : null,
+            basketball: basketballPrice ? {
+              standardPrice: basketballPrice.currentStandardPrice,
+              premiumPrice: basketballPrice.currentPremiumPrice,
+              currency: basketballPrice.currency === 'euro' ? '€' : basketballPrice.currency === 'usd' ? '$' : '£'
+            } : null
+          });
         }
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -44,11 +71,19 @@ export default function PackageTable() {
   // Filter packages by selected sport
   const filteredPackages = packages.filter(pkg => pkg.sport === selectedSport);
 
-  // Extract features (row labels) from the filtered packages
-  const features = filteredPackages.map((item) => item.category);
+  // Extract features (row labels) from the filtered packages, with Starting Price last
+  const features = [...filteredPackages.map((item) => item.category), 'Starting Price'];
 
   // Helper to get value for a feature and type
   const getValue = (feature: string, type: 'standard' | 'premium') => {
+    if (feature === 'Starting Price') {
+      const currentPrices = startingPrices[selectedSport];
+      if (!currentPrices) return '';
+      
+      const price = type === 'standard' ? currentPrices.standardPrice : currentPrices.premiumPrice;
+      return `From ${price}${currentPrices.currency}`;
+    }
+    
     const found = filteredPackages.find((item) => item.category === feature);
     return found ? found[type] : '';
   };

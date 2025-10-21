@@ -88,3 +88,46 @@ export const getAvailableSports = async (): Promise<SportsResponse> => {
   const response = await axiosClient.get("/api/package/sports");
   return response.data;
 };
+
+// ========== Starting Price API (Single Source of Truth) ==========
+
+export interface StartingPriceItem {
+  id: string;
+  type: 'football' | 'basketball';
+  category?: string;
+  standardDescription?: string;
+  premiumDescription?: string;
+  currency: string; // e.g. 'euro' from API
+  currentStandardPrice: number;
+  currentPremiumPrice: number;
+}
+
+export interface StartingPriceResponse {
+  success: boolean;
+  message: string;
+  data: StartingPriceItem[];
+}
+
+export interface UpdateStartingPricePayload {
+  category?: string;
+  standardDescription?: string;
+  premiumDescription?: string;
+  currency: string; // API expects text like 'euro'
+  currentStandardPrice: number;
+  currentPremiumPrice: number;
+}
+
+export const getStartingPrice = async (
+  sport: 'football' | 'basketball'
+): Promise<StartingPriceResponse> => {
+  const response = await axiosClient.get(`/api/package/${sport}-starting-price`);
+  return response.data;
+};
+
+export const updateStartingPrice = async (
+  sport: 'football' | 'basketball',
+  payload: UpdateStartingPricePayload
+): Promise<PackageResponse> => {
+  const response = await axiosClient.patch(`/api/package/${sport}-starting-price`, payload);
+  return response.data;
+};

@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Package as PackageIcon, Trash2, X, Edit, DollarSign } from 'lucide-react'
 import AddPackage from './addpackage'
-import { getAllPackages, addPackage, editPackage, deletePackage, PackageItem } from '../../../../../services/packageService'
+import FixedPriceCard from './FixedPriceCard'
+import { getAllPackages, addPackage, editPackage, deletePackage } from '../../../../../services/packageService'
 import DeleteConfirmationModal from '../../../../../components/ui/delete-confirmation-modal'
 
 // Package interface matching the frontend structure
@@ -163,6 +164,17 @@ export default function PackageManagement({
     }
   };
 
+  // Handle price updates from FixedPriceCard
+  const handlePriceUpdate = async (sport: 'football' | 'basketball', prices: { standardPrice: number; premiumPrice: number; currency: string }) => {
+    try {
+      // Refresh all packages from API to ensure consistency
+        await refreshPackages();
+      console.log(`Price updated for ${sport}:`, prices);
+    } catch (err) {
+      console.error('Error refreshing packages after price update:', err);
+    }
+  };
+
   return (
     <div className="py-4 pl-10 min-h-screen mb-4 pr-8 ">
       <div className="flex flex-col gap-6">
@@ -210,6 +222,9 @@ export default function PackageManagement({
             </div>
           </div>
         </div>
+
+        {/* Fixed Price Card - Always Visible */}
+        <FixedPriceCard onPriceUpdate={handlePriceUpdate} />
 
         {/* Error Message */}
         {error && (
