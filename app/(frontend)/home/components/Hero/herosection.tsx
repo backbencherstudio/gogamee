@@ -80,12 +80,12 @@ export default function HeroSection() {
         const p = startingPrices.basketball
         return p ? { standard: p.standard, premium: p.premium, currency: p.currency } : defaults.Basketball
       }
-      // Both → choose the lower of the two sports, prefer football currency if available
+      // Both → show combined totals of both sports
       const f = startingPrices.football ?? defaults.Football
       const b = startingPrices.basketball ?? defaults.Basketball
       return {
-        standard: Math.min(f.standard, b.standard),
-        premium: Math.min(f.premium, b.premium),
+        standard: f.standard + b.standard,
+        premium: f.premium + b.premium,
         currency: f.currency || b.currency || '€'
       }
     }

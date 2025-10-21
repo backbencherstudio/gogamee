@@ -5,7 +5,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
-import { personalInfoData, pricing, pricingData, flightScheduleData, leaguePricingData, removeLeagueData } from '../../../../lib/appdata'
+import { personalInfoData, pricing, pricingData, flightScheduleData, leaguePricingData, removeLeagueData, AppData } from '../../../../lib/appdata'
 
 // Utility functions for dynamic data calculation
 const formatDate = (dateString: string): string => {
@@ -36,10 +36,15 @@ const calculateDuration = (departureDate: string, returnDate: string): number =>
 const calculateBasePrice = (sport: string, packageType: string, nights: number): number => {
   if (!sport || !packageType || !nights) return 0
   
-  const validSport = sport as 'football' | 'basketball'
-  const validPackage = packageType as 'standard' | 'premium'
-  
-  return pricing.getBasePrice(validSport, validPackage, nights)
+  // Use AppData pricing system for consistent calculations
+  // This now handles "both" sport option by calculating combined costs
+  return AppData.pricing.calculatePackageCost({
+    selectedSport: sport,
+    selectedPackage: packageType,
+    selectedLeague: 'national', // Default league for base calculation
+    departureDate: new Date().toISOString(),
+    travelDuration: nights
+  })
 }
 
 const calculateExtrasCost = (extras: Array<{

@@ -3119,12 +3119,21 @@ export const AppData = {
       departureDate: string;
       travelDuration: number;
     }): number {
-      const sport = bookingData.selectedSport.toLowerCase() as 'football' | 'basketball';
+      const sport = bookingData.selectedSport.toLowerCase();
       const packageType = bookingData.selectedPackage.toLowerCase() as 'standard' | 'premium';
       const competitionType = bookingData.selectedLeague.toLowerCase() as 'european' | 'national';
       const date = new Date(bookingData.departureDate);
       
-      return this.getEffectivePrice(competitionType, date, sport, packageType, bookingData.travelDuration);
+      // Handle "Both" sport option - calculate combined cost
+      if (sport === 'both') {
+        const footballCost = this.getEffectivePrice(competitionType, date, 'football', packageType, bookingData.travelDuration);
+        const basketballCost = this.getEffectivePrice(competitionType, date, 'basketball', packageType, bookingData.travelDuration);
+        return footballCost + basketballCost;
+      }
+      
+      // Handle individual sports
+      const sportType = sport as 'football' | 'basketball';
+      return this.getEffectivePrice(competitionType, date, sportType, packageType, bookingData.travelDuration);
     },
 
     // Get league surcharge

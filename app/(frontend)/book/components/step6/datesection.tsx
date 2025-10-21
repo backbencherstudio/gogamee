@@ -81,13 +81,14 @@ export default function DateSection() {
 
   // Calculate dynamic price based on sport, package, nights, and selected date
   const calculatePrice = useCallback((nights: number, selectedDate?: Date): string => {
-    const sport = formData.selectedSport as 'football' | 'basketball'
-    const packageType = formData.selectedPackage as 'standard' | 'premium'
+    const sport = formData.selectedSport
+    const packageType = formData.selectedPackage
     const league = formData.selectedLeague as 'european' | 'national'
     
     if (!sport || !packageType || !league) return '€'
     
     // Use the new AppData pricing system
+    // This now handles "both" sport option by calculating combined costs
     const price = AppData.pricing.calculatePackageCost({
       selectedSport: sport,
       selectedPackage: packageType,

@@ -31,6 +31,7 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
   // currency helpers
   const toApiCurrency = (ui: string) => (ui === 'EUR' ? 'euro' : ui === 'USD' ? 'usd' : 'gbp')
   const fromApiCurrency = (api: string | undefined) => (api === 'usd' ? 'USD' : api === 'gbp' ? 'GBP' : 'EUR')
+  const getCurrencySymbol = (currency: string) => (currency === 'USD' ? '$' : currency === 'GBP' ? '£' : '€')
 
   // Load price data from starting-price endpoints
   useEffect(() => {
@@ -167,7 +168,7 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">⚽</span>
+                <span className="text-white font-bold text-lg">{getCurrencySymbol(priceData.football?.currency || 'EUR')}</span>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">Football</h3>
@@ -222,7 +223,7 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">🏀</span>
+                <span className="text-white font-bold text-lg">{getCurrencySymbol(priceData.basketball?.currency || 'EUR')}</span>
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">Basketball</h3>
@@ -270,6 +271,50 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
               </div>
             </div>
           )}
+        </div>
+
+      </div>
+
+      {/* Both Sports Preview Row */}
+      <div className="mt-6 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200 p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">{getCurrencySymbol(priceData.football?.currency || priceData.basketball?.currency || 'EUR')}</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">Both Sports Combined</h3>
+              <span className="text-sm text-purple-600 font-medium">Preview Total Pricing</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-8">
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-600 font-['Poppins']">Standard Total</div>
+              <div className="text-xl font-bold text-green-600 font-['Poppins']">
+                {(() => {
+                  const footballStandard = priceData.football?.standardPrice || 0
+                  const basketballStandard = priceData.basketball?.standardPrice || 0
+                  const total = footballStandard + basketballStandard
+                  const currency = priceData.football?.currency || priceData.basketball?.currency || 'EUR'
+                  return `${total}${getCurrencySymbol(currency)}`
+                })()}
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-600 font-['Poppins']">Premium Total</div>
+              <div className="text-xl font-bold text-blue-600 font-['Poppins']">
+                {(() => {
+                  const footballPremium = priceData.football?.premiumPrice || 0
+                  const basketballPremium = priceData.basketball?.premiumPrice || 0
+                  const total = footballPremium + basketballPremium
+                  const currency = priceData.football?.currency || priceData.basketball?.currency || 'EUR'
+                  return `${total}${getCurrencySymbol(currency)}`
+                })()}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
