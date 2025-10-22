@@ -5,7 +5,7 @@ import React, { useEffect, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
-import { personalInfoData, pricing, pricingData, flightScheduleData, leaguePricingData, removeLeagueData } from '../../../../lib/appdata'
+import { personalInfoData, pricing, pricingData, flightScheduleData, leaguePricingData, removeLeagueData, AppData } from '../../../../lib/appdata'
 
 // Utility functions for dynamic data calculation
 const formatDate = (dateString: string): string => {
@@ -36,10 +36,15 @@ const calculateDuration = (departureDate: string, returnDate: string): number =>
 const calculateBasePrice = (sport: string, packageType: string, nights: number): number => {
   if (!sport || !packageType || !nights) return 0
   
-  const validSport = sport as 'football' | 'basketball'
-  const validPackage = packageType as 'standard' | 'premium'
-  
-  return pricing.getBasePrice(validSport, validPackage, nights)
+  // Use AppData pricing system for consistent calculations
+  // This now handles "both" sport option by calculating combined costs
+  return AppData.pricing.calculatePackageCost({
+    selectedSport: sport,
+    selectedPackage: packageType,
+    selectedLeague: 'national', // Default league for base calculation
+    departureDate: new Date().toISOString(),
+    travelDuration: nights
+  })
 }
 
 const calculateExtrasCost = (extras: Array<{
@@ -938,11 +943,11 @@ export default function Personalinfo() {
 
                                                  {/* Subtotal Row */}
                          <div className="flex justify-between items-center py-4 border-t-2 border-lime-400 bg-lime-50 rounded-lg px-3">
-                           <span className="text-neutral-800 text-lg font-bold font-['Poppins'] text-gray-800">
+                           <span className="text-lg font-bold font-['Poppins'] text-gray-800">
                              {personalInfoData.text.totalCost}
                            </span>
                            <div className="text-right">
-                             <div className="text-neutral-800 text-xl font-bold font-['Poppins'] text-lime-700">
+                             <div className="text-xl font-bold font-['Poppins'] text-lime-700">
                                {reservationData.grandTotal.toFixed(2)}€
                              </div>
                            </div>
@@ -952,16 +957,16 @@ export default function Personalinfo() {
                                             {/* Desktop View */}
                       <div className="hidden md:block w-full">
                         <div className="w-full grid grid-cols-4 gap-4 border-b-2 border-gray-300 pb-4 mb-2">
-                          <div className="text-center text-neutral-800 text-base font-bold font-['Poppins'] leading-none text-gray-700">
+                          <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
                             Concept
                           </div>
-                          <div className="text-center text-neutral-800 text-base font-bold font-['Poppins'] leading-none text-gray-700">
+                          <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
                             Price
                           </div>
-                          <div className="text-center text-neutral-800 text-base font-bold font-['Poppins'] leading-none text-gray-700">
+                          <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
                             Qty
                           </div>
-                          <div className="text-right text-neutral-800 text-base font-bold font-['Poppins'] leading-none text-gray-700">
+                          <div className="text-right text-base font-bold font-['Poppins'] leading-none text-gray-700">
                             Total
                           </div>
                         </div>
@@ -1169,10 +1174,10 @@ export default function Personalinfo() {
                         
                          <div className="border-t-2 border-lime-400 pt-4 mt-4">
                            <div className="flex justify-between items-center">
-                             <span className="text-neutral-800 text-xl font-bold font-['Poppins'] text-gray-800">
+                             <span className=" text-xl font-bold font-['Poppins'] text-gray-800">
                                {personalInfoData.text.totalCost}
                              </span>
-                             <span className="text-neutral-800 text-2xl font-bold font-['Poppins'] text-lime-700">
+                             <span className=" text-2xl font-bold font-['Poppins'] text-lime-700">
                                {reservationData.grandTotal.toFixed(2)}€
                              </span>
                            </div>

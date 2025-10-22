@@ -1,21 +1,106 @@
 'use client'
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { travelPackages } from "../../../../lib/appdata";
+import { getAllPackages, getStartingPrice, PackageItem } from "../../../../../services/packageService";
 
 export default function PackageTable() {
   const [selectedSport, setSelectedSport] = useState<'football' | 'basketball'>('football');
+  const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [startingPrices, setStartingPrices] = useState<{
+    football: { standardPrice: number; premiumPrice: number; currency: string } | null;
+    basketball: { standardPrice: number; premiumPrice: number; currency: string } | null;
+  }>({
+    football: null,
+    basketball: null
+  });
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch packages, sports, and starting prices from API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+
+        // Fetch packages for selected sport (excluding Starting Price packages)
+        const packagesResponse = await getAllPackages(selectedSport);
+        if (packagesResponse.success && packagesResponse.list) {
+          // Filter out Starting Price packages as we'll get them separately
+          const filteredPackages = packagesResponse.list.filter(pkg => pkg.category !== 'Starting Price');
+          setPackages(filteredPackages);
+        } else {
+          setError('Failed to fetch packages');
+        }
+
+        // Fetch starting prices for both sports
+        const [footballPriceRes, basketballPriceRes] = await Promise.all([
+          getStartingPrice('football'),
+          getStartingPrice('basketball')
+        ]);
+
+        if (footballPriceRes.success && basketballPriceRes.success) {
+          const footballPrice = footballPriceRes.data?.[0];
+          const basketballPrice = basketballPriceRes.data?.[0];
+          
+          setStartingPrices({
+            football: footballPrice ? {
+              standardPrice: footballPrice.currentStandardPrice,
+              premiumPrice: footballPrice.currentPremiumPrice,
+              currency: footballPrice.currency === 'euro' ? '€' : footballPrice.currency === 'usd' ? '$' : '£'
+            } : null,
+            basketball: basketballPrice ? {
+              standardPrice: basketballPrice.currentStandardPrice,
+              premiumPrice: basketballPrice.currentPremiumPrice,
+              currency: basketballPrice.currency === 'euro' ? '€' : basketballPrice.currency === 'usd' ? '$' : '£'
+            } : null
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to load packages. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedSport]);
 
   // Filter packages by selected sport
-  const filteredPackages = travelPackages.filter(pkg => pkg.sport === selectedSport);
+  const filteredPackages = packages.filter(pkg => pkg.sport === selectedSport);
 
-  // Extract features (row labels) from the filtered packages
-  const features = filteredPackages.map((item) => item.category);
+  // Extract features (row labels) from the filtered packages, with Starting Price last
+  const features = [...filteredPackages.map((item) => item.category), 'Starting Price'];
 
   // Helper to get value for a feature and type
   const getValue = (feature: string, type: 'standard' | 'premium') => {
+    if (feature === 'Starting Price') {
+      const currentPrices = startingPrices[selectedSport];
+      if (!currentPrices) return '';
+      
+      const price = type === 'standard' ? currentPrices.standardPrice : currentPrices.premiumPrice;
+      return `From ${price}${currentPrices.currency}`;
+    }
+    
     const found = filteredPackages.find((item) => item.category === feature);
     return found ? found[type] : '';
+  };
+
+  // Helper to format text with bold numbers
+  const formatWithBoldNumbers = (text: string) => {
+    if (!text) return text;
+    
+    // Split text by numbers and format them as bold
+    const parts = text.split(/(\d+)/g);
+    return parts.map((part, index) => {
+      // Check if the part is a number
+      if (/^\d+$/.test(part)) {
+        return <span key={index} className="font-bold">{part}</span>;
+      }
+      return part;
+    });
   };
 
   return (
@@ -34,6 +119,7 @@ export default function PackageTable() {
             className={`justify-start text-base md:text-lg font-['Poppins'] leading-loose focus:outline-none transition-colors duration-150 cursor-pointer ${selectedSport === 'football' ? 'text-neutral-800 font-medium' : 'text-zinc-500 font-normal'}`}
             onClick={() => setSelectedSport('football')}
             aria-pressed={selectedSport === 'football'}
+            disabled={loading}
           >
             Football
           </button>
@@ -43,8 +129,9 @@ export default function PackageTable() {
             data-pressed={selectedSport === 'basketball'}
             data-size="lg"
             data-state="Default"
-            className={`w-11 h-6 p-0.5 bg-[#76C043] rounded-xl flex ${selectedSport === 'basketball' ? 'justify-end' : 'justify-start'} items-center overflow-hidden cursor-pointer focus:outline-none transition-all duration-150`}
+            className={`w-11 h-6 p-0.5 bg-[#76C043] rounded-xl flex ${selectedSport === 'basketball' ? 'justify-end' : 'justify-start'} items-center overflow-hidden cursor-pointer focus:outline-none transition-all duration-150 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={() => setSelectedSport(selectedSport === 'football' ? 'basketball' : 'football')}
+            disabled={loading}
           >
             <span className="w-5 h-5 bg-white rounded-full shadow-[0px_1px_2px_0px_rgba(16,24,40,0.06)] block transition-transform duration-150" />
           </button>
@@ -53,6 +140,7 @@ export default function PackageTable() {
             className={`justify-start text-base md:text-lg font-['Poppins'] leading-loose focus:outline-none transition-colors duration-150 cursor-pointer ${selectedSport === 'basketball' ? 'text-neutral-800 font-medium' : 'text-zinc-500 font-normal'}`}
             onClick={() => setSelectedSport('basketball')}
             aria-pressed={selectedSport === 'basketball'}
+            disabled={loading}
           >
             Basketball
           </button>
@@ -60,9 +148,30 @@ export default function PackageTable() {
       </div>
       <div className="self-stretch flex flex-col justify-start items-start gap-6">
         <div className="self-stretch">
-          {/* Mobile cards (only on small screens) */}
-          <div className="md:hidden w-full max-w-[1200px] mx-auto my-6 space-y-6 px-4">
-            {["Standard", "Premium"].map((type) => (
+          {/* Loading State */}
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="text-neutral-600 text-lg font-medium">Loading packages...</div>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col justify-center items-center py-12 gap-4">
+              <div className="text-red-600 text-lg font-medium">{error}</div>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : filteredPackages.length === 0 ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="text-neutral-600 text-lg font-medium">No packages available for {selectedSport}.</div>
+            </div>
+          ) : (
+            <>
+              {/* Mobile cards (only on small screens) */}
+              <div className="md:hidden w-full max-w-[1200px] mx-auto my-6 space-y-6 px-4">
+                {["Standard", "Premium"].map((type) => (
               <div key={type} className="w-full rounded-2xl bg-white outline-[6px] outline-offset-[-6px] outline-green-50">
                 <div className="p-4 border-b border-slate-200">
                   <div className="inline-flex px-2 py-1.5 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mb-1">
@@ -80,10 +189,10 @@ export default function PackageTable() {
                         {feature === 'Starting Price' ? (
                           <>
                             <span className="font-normal">From </span>
-                            <span className="font-semibold">{getValue(feature, (type.toLowerCase() as 'standard' | 'premium')).replace('From ', '')}</span>
+                            <span className="font-bold">{getValue(feature, (type.toLowerCase() as 'standard' | 'premium')).replace('From ', '')}</span>
                           </>
                         ) : (
-                          getValue(feature, (type.toLowerCase() as 'standard' | 'premium'))
+                          formatWithBoldNumbers(getValue(feature, (type.toLowerCase() as 'standard' | 'premium')))
                         )}
                       </div>
                     </div>
@@ -138,10 +247,10 @@ export default function PackageTable() {
                           {feature === 'Starting Price' ? (
                             <>
                               <span className="font-normal">From </span>
-                              <span className="font-semibold">{getValue(feature, type as 'standard' | 'premium').replace('From ', '')}</span>
+                              <span className="font-bold">{getValue(feature, type as 'standard' | 'premium').replace('From ', '')}</span>
                             </>
                           ) : (
-                            getValue(feature, type as 'standard' | 'premium')
+                            formatWithBoldNumbers(getValue(feature, type as 'standard' | 'premium'))
                           )}
                         </td>
                       ))}
@@ -151,7 +260,9 @@ export default function PackageTable() {
               </table>
             </div>
           </div>
-          {/* --- Table ends here, do not edit above this line --- */}
+              {/* --- Table ends here, do not edit above this line --- */}
+            </>
+          )}
         </div>
       </div>
       <Link href="/book">

@@ -1,10 +1,11 @@
 "use client"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { IoChevronDown } from "react-icons/io5"
 import { gsap } from "gsap"
 import { useRouter } from "next/navigation"
 import { useLanguage, formatPeopleCount } from "../../../_components/common/LanguageContext"
 import { heroData } from "../../../../lib/appdata"
+import { getStartingPrice } from "../../../../../services/packageService"
 
 // People categories for the counter interface
 interface PeopleCount {
@@ -22,8 +23,79 @@ export default function HeroSection() {
   // Sport selection state
   const [selectedSport, setSelectedSport] = useState<"Football" | "Basketball" | "Both">("Football")
 
-  // Get dynamic pack types based on selected sport
-  const packTypes = heroData.getPackTypesBySport(selectedSport, t.common.from)
+  // Starting prices loaded from API (single source of truth)
+  const [startingPrices, setStartingPrices] = useState<{
+    football: { standard: number; premium: number; currency: string } | null
+    basketball: { standard: number; premium: number; currency: string } | null
+  }>({ football: null, basketball: null })
+
+  // Load starting prices once
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [fb, bb] = await Promise.all([
+          getStartingPrice('football'),
+          getStartingPrice('basketball')
+        ])
+
+        const euro = (c?: string) => (c === 'usd' ? '$' : c === 'gbp' ? '£' : '€')
+
+        setStartingPrices({
+          football: fb.success && fb.data?.[0]
+            ? {
+                standard: fb.data[0].currentStandardPrice,
+                premium: fb.data[0].currentPremiumPrice,
+                currency: euro(fb.data[0].currency)
+              }
+            : null,
+          basketball: bb.success && bb.data?.[0]
+            ? {
+                standard: bb.data[0].currentStandardPrice,
+                premium: bb.data[0].currentPremiumPrice,
+                currency: euro(bb.data[0].currency)
+              }
+            : null
+        })
+      } catch (e) {
+        // silent fallback to defaults
+      }
+    }
+    load()
+  }, [])
+
+  // Compute pack types using live prices when available
+  const packTypes = useMemo(() => {
+    const fromText = t.common.from
+    const defaults = {
+      Football: { standard: 299, premium: 1399, currency: '€' },
+      Basketball: { standard: 279, premium: 1279, currency: '€' }
+    }
+
+    const priceBySport = (sport: "Football" | "Basketball" | "Both") => {
+      if (sport === 'Football') {
+        const p = startingPrices.football
+        return p ? { standard: p.standard, premium: p.premium, currency: p.currency } : defaults.Football
+      }
+      if (sport === 'Basketball') {
+        const p = startingPrices.basketball
+        return p ? { standard: p.standard, premium: p.premium, currency: p.currency } : defaults.Basketball
+      }
+      // Both → show combined totals of both sports
+      const f = startingPrices.football ?? defaults.Football
+      const b = startingPrices.basketball ?? defaults.Basketball
+      return {
+        standard: f.standard + b.standard,
+        premium: f.premium + b.premium,
+        currency: f.currency || b.currency || '€'
+      }
+    }
+
+    const chosen = priceBySport(selectedSport)
+    return heroData.packTypes.map((pack) => ({
+      ...pack,
+      price: `${fromText} ${pack.name === 'Standard' ? chosen.standard : chosen.premium}${chosen.currency}`
+    }))
+  }, [selectedSport, t.common.from, startingPrices])
 
   // Dropdown states
   const [selectedPack, setSelectedPack] = useState(packTypes[0])
@@ -44,16 +116,10 @@ export default function HeroSection() {
 
   // Update selected pack when sport changes to maintain consistency
   useEffect(() => {
-    const newPackTypes = heroData.getPackTypesBySport(selectedSport, t.common.from)
-    // Find the same pack type (Standard/Premium) in the new list
-    const matchingPack = newPackTypes.find(pack => pack.name === selectedPack.name)
-    if (matchingPack) {
-      setSelectedPack(matchingPack)
-    } else {
-      // Fallback to first option if not found
-      setSelectedPack(newPackTypes[0])
-    }
-  }, [selectedSport, t.common.from, selectedPack.name])
+    // When sport/prices/localization change, keep the same pack selection
+    const matchingPack = packTypes.find((p) => p.name === selectedPack.name)
+    setSelectedPack(matchingPack ?? packTypes[0])
+  }, [packTypes, selectedPack.name])
 
   // Handle dropdown toggle
   const toggleDropdown = (dropdown: "pack" | "city" | "people") => {

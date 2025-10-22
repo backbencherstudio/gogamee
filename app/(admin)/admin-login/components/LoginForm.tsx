@@ -2,6 +2,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, LogIn, GalleryVerticalEnd, AlertCircle } from 'lucide-react'
+import { login } from '../../../../services/authService'
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
@@ -34,6 +35,7 @@ export default function LoginForm() {
       // Simple validation
       if (!formData.email || !formData.password) {
         setError('Please fill in all fields')
+        setIsLoading(false)
         return
       }
 
@@ -41,26 +43,37 @@ export default function LoginForm() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(formData.email)) {
         setError('Please enter a valid email address')
+        setIsLoading(false)
         return
       }
 
-      // Simulate login process (replace with actual authentication)
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      console.log('Attempting login with:', { email: formData.email })
 
-      // For demo purposes, accept any email/password combination
-      // In production, you would validate against your authentication system
-      if (formData.email && formData.password) {
-        // Store login state (you might want to use a proper auth solution)
+      // Call login API
+      const response = await login({
+        email: formData.email,
+        password: formData.password
+      })
+
+      console.log('Login response:', response)
+
+      if (response.success && response.authorization?.access_token) {
+        // Token is already stored in authService
+        // Store additional login state for backward compatibility
         localStorage.setItem('adminLoggedIn', 'true')
         localStorage.setItem('adminEmail', formData.email)
+        
+        console.log('Login successful, redirecting to dashboard...')
         
         // Redirect to dashboard
         router.push('/dashboard')
       } else {
-        setError('Invalid credentials')
+        setError(response.message || 'Invalid credentials')
       }
-    } catch {
-      setError('Login failed. Please try again.')
+    } catch (err) {
+      console.error('Login error:', err)
+      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Login failed. Please try again.'
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -192,15 +205,6 @@ export default function LoginForm() {
           </div>
         </div>
 
-        {/* Demo Credentialss */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-800 mb-2 font-['Poppins']">Demo Credentials</h3>
-          <div className="text-xs text-blue-700 font-['Poppins'] space-y-1">
-            <p><strong>Email:</strong> admin@gogame.com</p>
-            <p><strong>Password:</strong> admin123</p>
-            <p className="text-blue-600 mt-2">* Any valid email and password combination will work for demo purposes</p>
-          </div>
-        </div>
       </form>
 
       {/* Footer */}

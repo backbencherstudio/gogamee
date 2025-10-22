@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Package as PackageIcon, Trash2, X, Edit, DollarSign } from 'lucide-react'
 import AddPackage from './addpackage'
-import AppData from '../../../../lib/appdata'
+import FixedPriceCard from './FixedPriceCard'
+import { getAllPackages, addPackage, editPackage, deletePackage } from '../../../../../services/packageService'
 import DeleteConfirmationModal from '../../../../../components/ui/delete-confirmation-modal'
 
 // Package interface matching the frontend structure
@@ -34,10 +35,31 @@ export default function PackageManagement({
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load package data from AppData
+  // Refresh packages from API
+  const refreshPackages = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await getAllPackages();
+      if (response.success && response.list) {
+        setPackages(response.list as PackageData[]);
+      } else {
+        setError('Failed to fetch packages');
+      }
+    } catch (err) {
+      console.error('Error fetching packages:', err);
+      setError('Failed to load packages. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load package data from API
   useEffect(() => {
-    setPackages(AppData.travelPackages.getAll() as PackageData[]);
+    refreshPackages();
   }, []);
 
   // Filter packages by sport
@@ -46,51 +68,111 @@ export default function PackageManagement({
     : packages.filter(pkg => pkg.sport === selectedSport);
 
   // Delete package function
-  const handleDeletePackage = (id: string) => {
-    const success = AppData.travelPackages.delete(id);
-    if (success) {
-      setPackages(AppData.travelPackages.getAll() as PackageData[]);
+  const handleDeletePackage = async (id: string) => {
+    try {
+      const response = await deletePackage(id);
+      console.log('Delete package response:', response);
+      
+      if (response.success) {
+        // Refresh all packages from API
+        await refreshPackages();
+        
+        if (onPackageDelete) {
+          onPackageDelete(id);
+        }
+      } else {
+        setError(response.message || 'Failed to delete package');
+      }
+    } catch (err) {
+      console.error('Error deleting package:', err);
+      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Failed to delete package. Please try again.';
+      setError(errorMessage);
     }
     setDeleteConfirm(null);
-    if (onPackageDelete) {
-      onPackageDelete(id);
-    }
   };
 
   // Add new package function
-  const handleAddPackage = (newPackage: Omit<PackageData, 'id'>) => {
-    const addedPackage = AppData.travelPackages.add(newPackage);
-    if (addedPackage) {
-      setPackages(AppData.travelPackages.getAll() as PackageData[]);
-      setShowAddForm(false);
-      if (onPackageAdd) {
-        onPackageAdd(addedPackage as PackageData);
+  const handleAddPackage = async (newPackage: Omit<PackageData, 'id'>) => {
+    try {
+      console.log('Sending package data:', newPackage);
+      
+      const response = await addPackage(newPackage);
+      console.log('Add package response:', response);
+      
+      if (response.success) {
+        // Refresh all packages from API to get the latest data
+        await refreshPackages();
+        setShowAddForm(false);
+        
+        if (response.data && onPackageAdd) {
+          onPackageAdd(response.data as PackageData);
+        }
+      } else {
+        setError(response.message || 'Failed to add package');
       }
+    } catch (err) {
+      console.error('Error adding package:', err);
+      console.error('Error details:', (err as { response?: { data?: unknown } })?.response?.data);
+      const errorMessage = (err as { response?: { data?: { message?: string; error?: string } }; message?: string })?.response?.data?.message || (err as { response?: { data?: { error?: string } } })?.response?.data?.error || (err as Error)?.message || 'Failed to add package. Please try again.';
+      setError(errorMessage);
     }
   };
 
   // Update existing package
-  const handleUpdatePackage = (updated: Omit<PackageData, 'id'>) => {
+  const handleUpdatePackage = async (updated: Omit<PackageData, 'id'>) => {
     if (!editingPackageId) return;
-    const saved = AppData.travelPackages.update(editingPackageId, updated);
-    if (saved) {
-      setPackages(AppData.travelPackages.getAll() as PackageData[]);
+    try {
+      const response = await editPackage(editingPackageId, updated);
+      console.log('Update package response:', response);
+      
+      if (response.success) {
+        // Refresh all packages from API
+        await refreshPackages();
+        setEditingPackageId(null);
+      } else {
+        setError(response.message || 'Failed to update package');
+      }
+    } catch (err) {
+      console.error('Error updating package:', err);
+      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Failed to update package. Please try again.';
+      setError(errorMessage);
     }
-    setEditingPackageId(null);
   };
 
   // Update package prices
-  const handleUpdatePrices = (priceData: { standardPrice: number; premiumPrice: number; currency: string }) => {
+  const handleUpdatePrices = async (priceData: { standardPrice: number; premiumPrice: number; currency: string }) => {
     if (!editingPriceId) return;
-    const saved = AppData.travelPackages.update(editingPriceId, {
-      standardPrice: priceData.standardPrice,
-      premiumPrice: priceData.premiumPrice,
-      currency: priceData.currency
-    });
-    if (saved) {
-      setPackages(AppData.travelPackages.getAll() as PackageData[]);
+    try {
+      const response = await editPackage(editingPriceId, {
+        standardPrice: priceData.standardPrice,
+        premiumPrice: priceData.premiumPrice,
+        currency: priceData.currency
+      });
+      console.log('Update prices response:', response);
+      
+      if (response.success) {
+        // Refresh all packages from API
+        await refreshPackages();
+        setEditingPriceId(null);
+      } else {
+        setError(response.message || 'Failed to update prices');
+      }
+    } catch (err) {
+      console.error('Error updating prices:', err);
+      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Failed to update prices. Please try again.';
+      setError(errorMessage);
     }
-    setEditingPriceId(null);
+  };
+
+  // Handle price updates from FixedPriceCard
+  const handlePriceUpdate = async (sport: 'football' | 'basketball', prices: { standardPrice: number; premiumPrice: number; currency: string }) => {
+    try {
+      // Refresh all packages from API to ensure consistency
+        await refreshPackages();
+      console.log(`Price updated for ${sport}:`, prices);
+    } catch (err) {
+      console.error('Error refreshing packages after price update:', err);
+    }
   };
 
   return (
@@ -141,9 +223,32 @@ export default function PackageManagement({
           </div>
         </div>
 
-        {/* Packages Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredPackages.map((pkg) => (
+        {/* Fixed Price Card - Always Visible */}
+        <FixedPriceCard onPriceUpdate={handlePriceUpdate} />
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="text-red-800 font-medium">{error}</div>
+            <button 
+              onClick={() => setError(null)}
+              className="mt-2 text-red-600 hover:text-red-800 underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="text-gray-600 text-lg font-medium">Loading packages...</div>
+          </div>
+        ) : (
+          <>
+            {/* Packages Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredPackages.map((pkg) => (
             <div key={pkg.id} className="bg-white rounded-lg border border-gray-200 hover:border-[#76C043]/30 hover:shadow-lg transition-all duration-300 overflow-hidden">
               {/* Package Header */}
               <div className="p-6 border-b border-gray-100">
@@ -228,12 +333,14 @@ export default function PackageManagement({
           ))}
         </div>
 
-        {filteredPackages.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-            <PackageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-500 font-['Poppins']">No packages found</h3>
-            <p className="text-gray-400 font-['Poppins']">Try adjusting your filter or add a new package</p>
-          </div>
+            {filteredPackages.length === 0 && (
+              <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+                <PackageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-500 font-['Poppins']">No packages found</h3>
+                <p className="text-gray-400 font-['Poppins']">Try adjusting your filter or add a new package</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

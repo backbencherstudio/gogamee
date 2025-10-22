@@ -3,27 +3,43 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { Plus, Edit, Trash2, Save, X } from "lucide-react";
-import AppData from "../../../../lib/appdata";
+import { getAllFaqs, addFaq, editFaq, deleteFaq, type FaqItem as ApiFaqItem } from "../../../../../services/faqService";
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 
-interface FAQItem {
-  id: number;
-  question: string;
-  answer: string;
-}
+// Local type aligned with API
+type FAQItem = ApiFaqItem;
 
 export default function FaqAdd() {
   const [faqData, setFaqData] = useState<FAQItem[]>([]);
   const [expandedItems, setExpandedItems] = useState<number[]>([]);
-  const [editingItem, setEditingItem] = useState<number | null>(null);
+  const [editingItem, setEditingItem] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editForm, setEditForm] = useState({ question: "", answer: "" });
   const [newFaqForm, setNewFaqForm] = useState({ question: "", answer: "" });
-  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load FAQ data from AppData
+  // Load FAQ data from API
   useEffect(() => {
-    setFaqData(AppData.faqs.getAll());
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await getAllFaqs();
+        if (res.success) {
+          setFaqData(res.list);
+        } else {
+          setError("Failed to load FAQs");
+        }
+      } catch (e) {
+        setError("Failed to load FAQs");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, []);
 
   const toggleItem = (index: number) => {
@@ -41,18 +57,21 @@ export default function FaqAdd() {
     setEditForm({ question: item.question, answer: item.answer });
   };
 
-  const handleSaveEdit = (id: number) => {
-    const updatedFaq = AppData.faqs.update(id, {
-      question: editForm.question,
-      answer: editForm.answer
-    });
-    
-    if (updatedFaq) {
-      setFaqData(AppData.faqs.getAll());
+  const handleSaveEdit = async (id: string) => {
+    try {
+      setSaving(true);
+      await editFaq(id, {
+        question: editForm.question,
+        answer: editForm.answer,
+      });
+      // refresh list
+      const res = await getAllFaqs();
+      if (res.success) setFaqData(res.list);
+    } finally {
+      setSaving(false);
+      setEditingItem(null);
+      setEditForm({ question: "", answer: "" });
     }
-    
-    setEditingItem(null);
-    setEditForm({ question: "", answer: "" });
   };
 
   const handleCancelEdit = () => {
@@ -60,31 +79,36 @@ export default function FaqAdd() {
     setEditForm({ question: "", answer: "" });
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setDeleteConfirm(id);
   };
 
-  const handleConfirmDelete = (id: number) => {
-    const success = AppData.faqs.delete(id);
-    if (success) {
-      setFaqData(AppData.faqs.getAll());
+  const handleConfirmDelete = async (id: string) => {
+    try {
+      setSaving(true);
+      await deleteFaq(id);
+      const res = await getAllFaqs();
+      if (res.success) setFaqData(res.list);
+    } finally {
+      setSaving(false);
+      setDeleteConfirm(null);
     }
-    setDeleteConfirm(null);
   };
 
-  const handleAddNew = () => {
-    if (newFaqForm.question.trim() && newFaqForm.answer.trim()) {
-      const newFaq = AppData.faqs.add({
+  const handleAddNew = async () => {
+    if (!newFaqForm.question.trim() || !newFaqForm.answer.trim()) return;
+    try {
+      setSaving(true);
+      await addFaq({
         question: newFaqForm.question.trim(),
         answer: newFaqForm.answer.trim(),
       });
-      
-      if (newFaq) {
-        // Add the new FAQ to the beginning of the local state for immediate display
-        setFaqData([newFaq, ...faqData]);
-        setNewFaqForm({ question: "", answer: "" });
-        setShowAddForm(false);
-      }
+      const res = await getAllFaqs();
+      if (res.success) setFaqData(res.list);
+      setNewFaqForm({ question: "", answer: "" });
+      setShowAddForm(false);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -171,6 +195,11 @@ export default function FaqAdd() {
         {/* FAQ Items List */}
         <div className="bg-white flex flex-col justify-start items-start gap-6 w-full">
           <div className="w-full p-5 md:p-8 lg:p-10 rounded-lg border border-gray-200 shadow-sm">
+            {loading ? (
+              <div className="py-6 text-gray-600">Loading FAQs...</div>
+            ) : error ? (
+              <div className="py-6 text-red-600">{error}</div>
+            ) : (
             <div className="flex flex-col gap-5 w-full">
               {faqData.map((item, index) => (
                 <div
@@ -209,6 +238,7 @@ export default function FaqAdd() {
                       <div className="flex gap-3">
                         <button
                           onClick={() => handleSaveEdit(item.id)}
+                          disabled={saving}
                           className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg flex items-center gap-2 transition-colors"
                         >
                           <Save className="w-4 h-4" />
@@ -285,6 +315,7 @@ export default function FaqAdd() {
                 </div>
               ))}
             </div>
+            )}
           </div>
         </div>
 

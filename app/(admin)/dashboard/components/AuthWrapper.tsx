@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { isAuthenticated as checkAuthToken } from '../../../../services/authService'
 
 interface AuthWrapperProps {
   children: React.ReactNode
@@ -12,12 +13,15 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
   const router = useRouter()
 
   useEffect(() => {
-    // Check if user is logged in
+    // Check if user is logged in by checking token
     const checkAuth = () => {
-      const isLoggedIn = localStorage.getItem('adminLoggedIn')
-      if (isLoggedIn === 'true') {
+      const hasToken = checkAuthToken()
+      console.log('AuthWrapper - Checking authentication, has token:', hasToken)
+      
+      if (hasToken) {
         setIsAuthenticated(true)
       } else {
+        console.log('AuthWrapper - No token found, redirecting to login')
         router.push('/admin-login')
       }
       setIsLoading(false)

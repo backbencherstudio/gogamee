@@ -31,10 +31,11 @@ import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import AppData from '../../../../lib/appdata'
 import { useToast } from '../../../../../components/ui/toast'
+import { updateBooking } from '../../../../../services/bookingService'
 
 interface BookingData {
-  id: number
-  status: "pending" | "completed" | "cancelled"
+  id: string
+  status: "pending" | "completed" | "cancelled" | "approved" | "rejected"
   selectedSport: string
   selectedPackage: string
   selectedCity: string
@@ -165,19 +166,19 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                 <Badge
                   variant="default"
                   className={
-                    bookingData.status === "completed" 
+                    bookingData.status === "completed" || bookingData.status === "approved"
                       ? "bg-green-100 text-green-800" 
-                      : bookingData.status === "cancelled"
+                      : bookingData.status === "cancelled" || bookingData.status === "rejected"
                       ? "bg-red-100 text-red-800"
                       : "bg-yellow-100 text-yellow-800"
                   }
                 >
-                  {bookingData.status === "completed" ? (
+                  {bookingData.status === "completed" || bookingData.status === "approved" ? (
                     <>
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                       Confirmed
                     </>
-                  ) : bookingData.status === "cancelled" ? (
+                  ) : bookingData.status === "cancelled" || bookingData.status === "rejected" ? (
                     <>
                       <XCircle className="h-3 w-3 mr-1" />
                       Rejected
@@ -194,38 +195,38 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
           
                       {/* Status Information Card */}
             <div className={`mt-4 p-4 rounded-lg border ${
-              bookingData.status === "completed" 
+              bookingData.status === "completed" || bookingData.status === "approved"
                 ? "bg-green-50 border-green-200" 
-                : bookingData.status === "cancelled"
+                : bookingData.status === "cancelled" || bookingData.status === "rejected"
                 ? "bg-red-50 border-red-200"
                 : "bg-yellow-50 border-yellow-200"
             }`}>
               <div className="flex items-center gap-3">
                 <div className={`w-4 h-4 rounded-full ${
-                  bookingData.status === "completed" 
+                  bookingData.status === "completed" || bookingData.status === "approved"
                     ? "bg-green-500" 
-                    : bookingData.status === "cancelled"
+                    : bookingData.status === "cancelled" || bookingData.status === "rejected"
                     ? "bg-red-500"
                     : "bg-yellow-500"
                 }`}></div>
                 <div className="text-sm">
                   <span className="font-medium">Current Status:</span>{" "}
                   <span className={`font-semibold ${
-                    bookingData.status === "completed" 
+                    bookingData.status === "completed" || bookingData.status === "approved"
                       ? "text-green-700" 
-                      : bookingData.status === "cancelled"
+                      : bookingData.status === "cancelled" || bookingData.status === "rejected"
                       ? "text-red-700"
                       : "text-yellow-700"
                   }`}>
-                    {bookingData.status === "completed" ? "✅ Confirmed" : 
-                     bookingData.status === "cancelled" ? "❌ Rejected" : "⏳ Pending"}
+                    {bookingData.status === "completed" || bookingData.status === "approved" ? "✅ Confirmed" : 
+                     bookingData.status === "cancelled" || bookingData.status === "rejected" ? "❌ Rejected" : "⏳ Pending"}
                   </span>
                 </div>
               </div>
               <div className="mt-2 text-xs text-gray-600">
                 {bookingData.status === "pending" 
                   ? "This booking is waiting for approval"
-                  : bookingData.status === "completed"
+                  : bookingData.status === "completed" || bookingData.status === "approved"
                   ? "This booking has been confirmed and is active"
                   : "This booking has been rejected and is no longer active"
                 }
@@ -735,59 +736,31 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                     
                     setIsUpdating(true)
                     try {
-                      // Import AppData dynamically to avoid SSR issues
-                      const { default: AppData } = await import('../../../../lib/appdata')
+                      // Update booking via API
+                      await updateBooking({
+                        id: bookingData.id,
+                        destinationCity: destinationCity.trim(),
+                        assignedMatch: assignedMatch.trim()
+                      })
                       
-                      // Find the booking by matching the data
-                      const bookingToUpdate = AppData.bookings.all.find(booking => 
-                        booking.fullName === bookingData.fullName &&
-                        booking.email === bookingData.email &&
-                        booking.phone === bookingData.phone &&
-                        Math.abs(new Date(booking.bookingTimestamp).getTime() - new Date(bookingData.bookingTimestamp).getTime()) < 60000
-                      )
+                      console.log('✅ Destination and match details updated successfully')
+                      addToast({
+                        type: 'success',
+                        title: 'Success!',
+                        description: 'Destination and match details updated successfully!',
+                        duration: 4000
+                      })
                       
-                      if (bookingToUpdate) {
-                        // Update booking with destination city and assigned match
-                        AppData.bookings.update(bookingToUpdate.id, { 
-                          destinationCity: destinationCity.trim(),
-                          assignedMatch: assignedMatch.trim()
-                        })
-                        console.log('✅ Destination and match details updated successfully')
-                        addToast({
-                          type: 'success',
-                          title: 'Success!',
-                          description: 'Destination and match details updated successfully!',
-                          duration: 4000
-                        })
-                        
-                        // Update local state with the new values and disable button
-                        setDestinationCity(destinationCity.trim())
-                        setAssignedMatch(assignedMatch.trim())
-                        setHasChanges(false) // Disable button after successful update
-                        
-                        // Refresh parent component to show updated data
-                        if (onStatusUpdate) {
-                          onStatusUpdate()
-                        }
-                        
-                        // Force refresh the booking data to ensure UI shows updated values
-                        const updatedBooking = AppData.bookings.getById(bookingToUpdate.id)
-                        if (updatedBooking) {
-                          // Update the bookingData prop by triggering a re-render
-                          // This ensures the display fields show the updated values
-                          setTimeout(() => {
-                            updateLocalState()
-                          }, 100)
-                        }
-                      } else {
-                        console.error('❌ Could not find booking to update')
-                        addToast({
-                          type: 'error',
-                          title: 'Error',
-                          description: 'Could not find booking to update',
-                          duration: 5000
-                        })
+                      // Update local state with the new values and disable button
+                      setDestinationCity(destinationCity.trim())
+                      setAssignedMatch(assignedMatch.trim())
+                      setHasChanges(false)
+                      
+                      // Refresh parent component to show updated data
+                      if (onStatusUpdate) {
+                        onStatusUpdate()
                       }
+                      
                     } catch (error) {
                       console.error('❌ Error updating destination and match:', error)
                       addToast({
@@ -821,14 +794,14 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                   {" | "}
                   Status:{" "}
                   <span className={`font-medium ${
-                    bookingData.status === "completed" 
+                    bookingData.status === "completed" || bookingData.status === "approved"
                       ? "text-green-600" 
-                      : bookingData.status === "cancelled"
+                      : bookingData.status === "cancelled" || bookingData.status === "rejected"
                       ? "text-red-600"
                       : "text-yellow-600"
                   }`}>
-                    {bookingData.status === "completed" ? "Confirmed" : 
-                     bookingData.status === "cancelled" ? "Rejected" : "Pending"}
+                    {bookingData.status === "completed" || bookingData.status === "approved" ? "Confirmed" : 
+                     bookingData.status === "cancelled" || bookingData.status === "rejected" ? "Rejected" : "Pending"}
                   </span>
                 </div>
                           <div className="flex flex-col gap-3">
@@ -837,7 +810,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                     ? (!destinationCity.trim() || !assignedMatch.trim()) 
                       ? "⚠️ Please fill in destination city and assigned match before approving"
                       : "Click Approve to confirm this booking, or Reject to cancel it"
-                    : bookingData.status === "completed"
+                    : bookingData.status === "completed" || bookingData.status === "approved"
                     ? "✅ This booking has been confirmed and cannot be modified"
                     : "❌ This booking has been rejected and cannot be modified"
                   }
@@ -852,51 +825,28 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                           
                           setIsProcessing(true)
                           try {
-                            // Import AppData dynamically to avoid SSR issues
-                            const { default: AppData } = await import('../../../../lib/appdata')
+                            // Update booking status via API - use status field only
+                            await updateBooking({
+                              id: bookingData.id,
+                              status: "approved"
+                            })
                             
-                            // Find the booking by matching the data (more robust matching)
-                            const bookingToUpdate = AppData.bookings.all.find(booking => 
-                              booking.fullName === bookingData.fullName &&
-                              booking.email === bookingData.email &&
-                              booking.phone === bookingData.phone &&
-                              Math.abs(new Date(booking.bookingTimestamp).getTime() - new Date(bookingData.bookingTimestamp).getTime()) < 60000 // Within 1 minute
-                            )
+                            console.log('✅ Booking approved')
                             
-                            if (bookingToUpdate) {
-                              // Update booking status to completed
-                              AppData.bookings.update(bookingToUpdate.id, { status: "completed" })
-                              console.log('✅ Booking approved and status updated to completed')
-                              
-                              // Send confirmation email automatically
-                              try {
-                                const result = await AppData.emailTemplates.sendConfirmationEmail(bookingToUpdate)
-                                console.log('✅ Confirmation email sent automatically:', result)
-                              } catch (emailError) {
-                                console.error('❌ Error sending automatic confirmation email:', emailError)
-                              }
-                              
-                              // Show success message
-                              addToast({
-                                type: 'success',
-                                title: 'Booking Approved!',
-                                description: 'Status updated to completed and confirmation email sent.',
-                                duration: 5000
-                              })
-                              
-                              // Refresh parent component to show updated data
-                              if (onStatusUpdate) {
-                                onStatusUpdate()
-                              }
-                            } else {
-                              console.error('❌ Could not find booking to update')
-                              addToast({
-                                type: 'error',
-                                title: 'Error',
-                                description: 'Could not find booking to update',
-                                duration: 5000
-                              })
+                            // Show success message
+                            addToast({
+                              type: 'success',
+                              title: 'Booking Approved!',
+                              description: 'Status updated to approved successfully.',
+                              duration: 5000
+                            })
+                            
+                            // Refresh parent component to show updated data
+                            if (onStatusUpdate) {
+                              onStatusUpdate()
                             }
+                            
+                            setIsOpen(false)
                           } catch (error) {
                             console.error('❌ Error approving booking:', error)
                             addToast({
@@ -907,7 +857,6 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                             })
                           } finally {
                             setIsProcessing(false)
-                            setIsOpen(false)
                           }
                         }} 
                         disabled={isProcessing || !destinationCity.trim() || !assignedMatch.trim()}
@@ -921,51 +870,28 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                           
                           setIsProcessing(true)
                           try {
-                            // Import AppData dynamically to avoid SSR issues
-                            const { default: AppData } = await import('../../../../lib/appdata')
+                            // Update booking status via API - use status field only and set to "rejected"
+                            await updateBooking({
+                              id: bookingData.id,
+                              status: "rejected"
+                            })
                             
-                            // Find the booking by matching the data (more robust matching)
-                            const bookingToUpdate = AppData.bookings.all.find(booking => 
-                              booking.fullName === bookingData.fullName &&
-                              booking.email === bookingData.email &&
-                              booking.phone === bookingData.phone &&
-                              Math.abs(new Date(booking.bookingTimestamp).getTime() - new Date(bookingData.bookingTimestamp).getTime()) < 60000 // Within 1 minute
-                            )
+                            console.log('✅ Booking rejected')
                             
-                            if (bookingToUpdate) {
-                              // Update booking status to cancelled
-                              AppData.bookings.update(bookingToUpdate.id, { status: "cancelled" })
-                              console.log('✅ Booking rejected and status updated to cancelled')
-                              
-                              // Send rejection email automatically
-                              try {
-                                const result = await AppData.emailTemplates.sendConfirmationEmail(bookingToUpdate)
-                                console.log('✅ Rejection email sent automatically:', result)
-                              } catch (emailError) {
-                                console.error('❌ Error sending automatic rejection email:', emailError)
-                              }
-                              
-                              // Show success message
-                              addToast({
-                                type: 'success',
-                                title: 'Booking Rejected',
-                                description: 'Status updated to cancelled and rejection email sent.',
-                                duration: 5000
-                              })
-                              
-                              // Refresh parent component to show updated data
-                              if (onStatusUpdate) {
-                                onStatusUpdate()
-                              }
-                            } else {
-                              console.error('❌ Could not find booking to update')
-                              addToast({
-                                type: 'error',
-                                title: 'Error',
-                                description: 'Could not find booking to update',
-                                duration: 5000
-                              })
+                            // Show success message
+                            addToast({
+                              type: 'success',
+                              title: 'Booking Rejected',
+                              description: 'Status updated to rejected successfully.',
+                              duration: 5000
+                            })
+                            
+                            // Refresh parent component to show updated data
+                            if (onStatusUpdate) {
+                              onStatusUpdate()
                             }
+                            
+                            setIsOpen(false)
                           } catch (error) {
                             console.error('❌ Error rejecting booking:', error)
                             addToast({
@@ -976,7 +902,6 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                             })
                           } finally {
                             setIsProcessing(false)
-                            setIsOpen(false)
                           }
                         }} 
                         disabled={isProcessing}
@@ -990,11 +915,11 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                   {/* Show status-specific message for non-pending bookings */}
                   {bookingData.status !== "pending" && (
                     <div className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                      bookingData.status === "completed" 
+                      bookingData.status === "completed" || bookingData.status === "approved"
                         ? "bg-green-100 text-green-800" 
                         : "bg-red-100 text-red-800"
                     }`}>
-                      {bookingData.status === "completed" 
+                      {bookingData.status === "completed" || bookingData.status === "approved"
                         ? "✅ This booking has been confirmed" 
                         : "❌ This booking has been rejected"}
                     </div>

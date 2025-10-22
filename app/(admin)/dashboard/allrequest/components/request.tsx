@@ -1,5 +1,5 @@
 "use client"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { FaTrash, FaCalendarAlt, FaUsers, FaDollarSign, FaPlane, FaMapMarkerAlt } from "react-icons/fa"
 import { MdKeyboardArrowDown } from "react-icons/md"
  
@@ -7,14 +7,37 @@ import { subDays, parseISO, isWithinInterval, format, startOfDay, endOfDay } fro
 import AppData from "@/app/lib/appdata"
 import BookingSummaryModal from "./booking-summery-modal"
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal"
+import { getAllBookings, deleteBooking, BookingItem } from "../../../../../services/bookingService"
 
 export default function EventReqTable() {
   
   const [activeTab, setActiveTab] = useState("all")
   const [timeFilter, setTimeFilter] = useState("alltime")
   const [showDateDropdown, setShowDateDropdown] = useState(false)
-  const [bookings, setBookings] = useState(AppData.bookings.all)
-  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
+  const [bookings, setBookings] = useState<BookingItem[]>([])
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch bookings from API
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        setLoading(true)
+        const response = await getAllBookings()
+        console.log('📥 Bookings fetched from API:', response)
+        setBookings(response.all || [])
+        setError(null)
+      } catch (err) {
+        console.error('❌ Error fetching bookings:', err)
+        setError('Failed to load bookings')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBookings()
+  }, [])
 
   const dateRangeOptions = [
     { value: "alltime", label: "All Time" },
@@ -31,12 +54,12 @@ export default function EventReqTable() {
   }
 
   const filteredData = useMemo(() => {
-    // First filter by status
+    // First filter by status - use status field as primary filter
     let filtered = bookings.filter((item) => {
       if (activeTab === "all") return true
-      if (activeTab === "approved") return item.status === "completed"
+      if (activeTab === "approved") return item.status === "approved"
       if (activeTab === "pending") return item.status === "pending"
-      if (activeTab === "rejected") return item.status === "cancelled"
+      if (activeTab === "rejected") return item.status === "rejected" || item.status === "cancelled"
       return true
     })
 
@@ -47,7 +70,9 @@ export default function EventReqTable() {
 
       filtered = filtered.filter((item) => {
         try {
-          const submittedDate = parseISO(item.bookingTimestamp)
+          const dateToCheck = item.bookingTimestamp || item.created_at
+          if (!dateToCheck) return false
+          const submittedDate = parseISO(dateToCheck)
           return isWithinInterval(submittedDate, { start: startDate, end: endDate })
         } catch (error) {
           console.error("Date parsing error for item:", item.id, error)
@@ -66,23 +91,55 @@ export default function EventReqTable() {
 
   const getStatusStyle = (status: string) => {
     switch (status) {
+      case "approved":
       case "completed":
         return "bg-emerald-100 text-emerald-800 border border-emerald-200"
+      case "rejected":
       case "cancelled":
         return "bg-red-100 text-red-800 border border-red-200"
-      default:
+      case "pending":
         return "bg-amber-100 text-amber-800 border border-amber-200"
+      default:
+        return "bg-gray-100 text-gray-800 border border-gray-200"
     }
   }
 
   const getStatusText = (status: string) => {
     switch (status) {
+      case "approved":
+        return "Confirmed"
       case "completed":
         return "Confirmed"
+      case "rejected":
+        return "Rejected"
       case "cancelled":
         return "Cancelled"
-      default:
+      case "pending":
         return "Pending"
+      default:
+        return status
+    }
+  }
+
+  const getPaymentStatusStyle = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case "paid":
+        return "bg-green-100 text-green-800 border border-green-200"
+      case "unpaid":
+        return "bg-orange-100 text-orange-800 border border-orange-200"
+      default:
+        return "bg-gray-100 text-gray-800 border border-gray-200"
+    }
+  }
+
+  const getPaymentStatusText = (paymentStatus: string) => {
+    switch (paymentStatus) {
+      case "paid":
+        return "Paid"
+      case "unpaid":
+        return "Unpaid"
+      default:
+        return "Unknown"
     }
   }
 
@@ -101,18 +158,26 @@ export default function EventReqTable() {
   }
 
 
-
+  
   // Delete booking
-  const handleDeleteBooking = (id: number) => {
-    AppData.bookings.delete(id);
-    setDeleteConfirm(null);
-    // Update local state immediately
-    setBookings([...AppData.bookings.all]);
+  const handleDeleteBooking = async (id: string) => {
+    try {
+      await deleteBooking(id)
+      console.log('✅ Booking deleted:', id)
+      // Refresh bookings after delete
+      const response = await getAllBookings()
+      setBookings(response.all || [])
+      setDeleteConfirm(null)
+    } catch (err) {
+      console.error('❌ Error deleting booking:', err)
+      alert('Failed to delete booking')
+    }
   };
 
 
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A'
     try {
       return format(parseISO(dateString), "MMM dd, yyyy")
     } catch {
@@ -120,7 +185,8 @@ export default function EventReqTable() {
     }
   }
 
-  const formatTime = (dateString: string) => {
+  const formatTime = (dateString: string | null) => {
+    if (!dateString) return ''
     try {
       return format(parseISO(dateString), "h:mm a")
     } catch {
@@ -148,8 +214,31 @@ export default function EventReqTable() {
     <div className="w-full px-4 py-4">
       <div className="pt-4 pb-8 min-h-screen">
 
+    {/* Loading State */}
+    {loading && (
+      <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+        <p className="mt-4 text-gray-600">Loading bookings...</p>
+      </div>
+    )}
 
+    {/* Error State */}
+    {error && (
+      <div className="w-full bg-white rounded-xl shadow-sm border border-red-200 p-6">
+        <div className="text-center text-red-600">
+          <p className="font-semibold">Error loading bookings</p>
+          <p className="text-sm mt-2">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )}
     
+    {!loading && !error && (
     <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible">
       {/* Header Section */}
       <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-slate-50 to-gray-50">
@@ -219,9 +308,9 @@ export default function EventReqTable() {
           {/* Other tabs - 3 buttons in row */}
           <div className="grid grid-cols-3 gap-2">
             {[
-              { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "completed").length },
+              { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "approved").length },
               { key: "pending", label: "Pending", count: bookings.filter((d) => d.status === "pending").length },
-              { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "cancelled").length },
+              { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "rejected" || d.status === "cancelled").length },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -249,9 +338,9 @@ export default function EventReqTable() {
         <div className="hidden md:flex space-x-8">
           {[
             { key: "all", label: "All Bookings", count: bookings.length },
-            { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "completed").length },
+            { key: "approved", label: "Confirmed", count: bookings.filter((d) => d.status === "approved").length },
             { key: "pending", label: "Pending", count: bookings.filter((d) => d.status === "pending").length },
-            { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "cancelled").length },
+            { key: "rejected", label: "Cancelled", count: bookings.filter((d) => d.status === "rejected" || d.status === "cancelled").length },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -293,7 +382,10 @@ export default function EventReqTable() {
                 Booking Info
               </th>
               <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                Status
+                Booking Status
+              </th>
+              <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                Payment Status
               </th>
               <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Actions
@@ -304,8 +396,8 @@ export default function EventReqTable() {
             {filteredData.map((booking) => (
               <tr key={booking.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">{formatDate(booking.bookingTimestamp)}</div>
-                  <div className="text-xs text-gray-500">{formatTime(booking.bookingTimestamp)}</div>
+                  <div className="text-sm font-medium text-gray-900">{formatDate(booking.bookingTimestamp || booking.created_at)}</div>
+                  <div className="text-xs text-gray-500">{formatTime(booking.bookingTimestamp || booking.created_at)}</div>
                 </td>
                 <td className="px-6 py-4">
                   <div>
@@ -359,6 +451,13 @@ export default function EventReqTable() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getPaymentStatusStyle(booking.payment_status)}`}
+                  >
+                    {getPaymentStatusText(booking.payment_status)}
+                  </span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center gap-2">
                                                                  <BookingSummaryModal 
                           bookingData={{
@@ -382,17 +481,27 @@ export default function EventReqTable() {
                             arrivalTimeEnd: booking.arrivalTimeEnd,
                             departureTimeRange: booking.departureTimeRange,
                             arrivalTimeRange: booking.arrivalTimeRange,
-                            removedLeagues: Array.isArray(booking.removedLeagues) ? 
-                              booking.removedLeagues.map(league => ({ 
-                                id: typeof league === 'string' ? league : (league as { id?: string; name?: string }).id || '', 
-                                name: typeof league === 'string' ? league : (league as { id?: string; name?: string }).name || '', 
-                                country: 'Spain' 
-                              })) : [],
+                            removedLeagues: (() => {
+                              try {
+                                const leagues = typeof booking.removedLeagues === 'string' 
+                                  ? JSON.parse(booking.removedLeagues) 
+                                  : booking.removedLeagues
+                                return Array.isArray(leagues) ? leagues.map((league: string | { id?: string; name?: string }) => ({ 
+                                  id: typeof league === 'string' ? league : league.id || '', 
+                                  name: typeof league === 'string' ? league : league.name || '', 
+                                  country: 'Spain' 
+                                })) : []
+                              } catch {
+                                return []
+                              }
+                            })(),
                             removedLeaguesCount: booking.removedLeaguesCount,
                             hasRemovedLeagues: booking.hasRemovedLeagues,
-                            allExtras: booking.allExtras,
-                            selectedExtras: booking.selectedExtras,
-                            selectedExtrasNames: booking.selectedExtrasNames,
+                            allExtras: booking.bookingExtras || [],
+                            selectedExtras: booking.bookingExtras || [],
+                            selectedExtrasNames: Array.isArray(booking.selectedExtrasNames) 
+                              ? booking.selectedExtrasNames 
+                              : [],
                             totalExtrasCost: booking.totalExtrasCost,
                             extrasCount: booking.extrasCount,
                             firstName: booking.firstName,
@@ -406,9 +515,9 @@ export default function EventReqTable() {
                             expiryDate: booking.expiryDate,
                             cvv: booking.cvv,
                             cardholderName: booking.cardholderName,
-                            bookingTimestamp: booking.bookingTimestamp,
-                            bookingDate: booking.bookingDate,
-                            bookingTime: booking.bookingTime,
+                            bookingTimestamp: booking.bookingTimestamp || booking.created_at,
+                            bookingDate: booking.bookingDate || formatDate(booking.created_at),
+                            bookingTime: booking.bookingTime || formatTime(booking.created_at),
                             isBookingComplete: booking.isBookingComplete,
                             travelDuration: booking.travelDuration,
                             hasFlightPreferences: booking.hasFlightPreferences,
@@ -416,9 +525,14 @@ export default function EventReqTable() {
                             destinationCity: booking.destinationCity,
                             assignedMatch: booking.assignedMatch
                           }}
-                       onStatusUpdate={() => {
-                         // Refresh the bookings data to show updated status and internal management fields
-                         setBookings([...AppData.bookings.all])
+                       onStatusUpdate={async () => {
+                         // Refresh the bookings data from API
+                         try {
+                           const response = await getAllBookings()
+                           setBookings(response.all || [])
+                         } catch (err) {
+                           console.error('Error refreshing bookings:', err)
+                         }
                        }}
                      />
                     
@@ -452,6 +566,7 @@ export default function EventReqTable() {
         </div>
       )}
     </div>
+    )}
 
 
 

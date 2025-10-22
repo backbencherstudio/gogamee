@@ -15,7 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import AppData from "@/app/lib/appdata";
+import { getAllBookings, BookingItem } from "../../../../../services/bookingService";
 
 // ============================================
 // TYPE DEFINITIONS - ডেটা টাইপ সংজ্ঞা
@@ -37,7 +37,7 @@ interface RecentRequest {
   customer: string;
   package: string;
   date: string;
-  status: "pending" | "completed" | "rejected";
+  status: "pending" | "completed" | "rejected" | "approved";
   amount: string;
 }
 
@@ -198,26 +198,41 @@ const RecentRequestsTable: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20; // প্রতি পেজে ২০টি আইটেম
   const [allRequests, setAllRequests] = useState<RecentRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-    // Load real-time data from AppData
+  // Load data from API
   useEffect(() => {
-    const loadData = () => {
-      const bookings = AppData.bookings.all;
-      const requests: RecentRequest[] = bookings.map((booking) => ({
-        id: `REQ-${String(booking.id).padStart(3, '0')}`,
-        customer: booking.fullName,
-        package: `${booking.selectedSport} - ${booking.selectedPackage}`,
-        date: booking.bookingDate,
-        status: booking.status === "completed" ? "completed" : 
-                booking.status === "cancelled" ? "rejected" : "pending",
-        amount: `€${booking.totalExtrasCost}`,
-      }));
-      setAllRequests(requests);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllBookings();
+        console.log('📥 Dashboard - Bookings fetched from API:', response);
+        
+        const bookings = response.all || [];
+        const requests: RecentRequest[] = bookings.map((booking) => ({
+          id: `REQ-${String(booking.id).slice(0, 8)}`,
+          customer: booking.fullName,
+          package: `${booking.selectedSport} - ${booking.selectedPackage}`,
+          date: booking.bookingDate || booking.created_at,
+          status: booking.status === "approved" ? "approved" : 
+                  booking.status === "rejected" || booking.status === "cancelled" ? "rejected" : 
+                  booking.status === "completed" ? "completed" : "pending",
+          amount: `€${booking.totalCost || booking.totalExtrasCost}`,
+        }));
+        setAllRequests(requests);
+        setError(null);
+      } catch (err) {
+        console.error('❌ Dashboard - Error fetching bookings:', err);
+        setError('Failed to load bookings');
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadData();
-    // Refresh data every 5 seconds for real-time updates
-    const interval = setInterval(loadData, 5000);
+    // Refresh data every 10 seconds for real-time updates
+    const interval = setInterval(loadData, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -234,6 +249,7 @@ const RecentRequestsTable: React.FC = () => {
   // স্ট্যাটাস অনুযায়ী আইকন রিটার্ন করা
   const getStatusIcon = (status: string) => {
     switch (status) {
+      case "approved":
       case "completed":
         return <CheckCircle className="w-4 h-4 text-green-600" />;
       case "pending":
@@ -250,6 +266,7 @@ const RecentRequestsTable: React.FC = () => {
     const baseClasses =
       "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
     switch (status) {
+      case "approved":
       case "completed":
         return `${baseClasses} bg-green-100 text-green-800`;
       case "pending":
@@ -275,7 +292,24 @@ const RecentRequestsTable: React.FC = () => {
         </h2>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="p-12 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-t-transparent"></div>
+          <p className="mt-4 text-gray-600">Loading bookings...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="p-6 text-center text-red-600">
+          <p className="font-semibold">Error loading bookings</p>
+          <p className="text-sm mt-2">{error}</p>
+        </div>
+      )}
+
       {/* টেবিল সেকশন */}
+      {!loading && !error && (
       <div className="p-6 pt-0">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -345,13 +379,16 @@ const RecentRequestsTable: React.FC = () => {
           </table>
         </div>
       </div>
+      )}
 
       {/* পেজিনেশন কম্পোনেন্ট */}
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+      {!loading && !error && totalPages > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
+      )}
     </div>
   );
 };
@@ -395,54 +432,60 @@ export function SalesOverview() {
     },
   ]);
 
-  // Load real-time metrics from AppData
+  // Load real-time metrics from API
   useEffect(() => {
-    const loadMetrics = () => {
-      const bookings = AppData.bookings.all;
-      const total = bookings.length;
-      const completed = bookings.filter(b => b.status === "completed").length;
-      const pending = bookings.filter(b => b.status === "pending").length;
-      const cancelled = bookings.filter(b => b.status === "cancelled").length;
+    const loadMetrics = async () => {
+      try {
+        const response = await getAllBookings();
+        const bookings = response.all || [];
+        
+        const total = bookings.length;
+        const completed = bookings.filter(b => b.status === "approved" || b.status === "completed").length;
+        const pending = bookings.filter(b => b.status === "pending").length;
+        const rejected = bookings.filter(b => b.status === "rejected" || b.status === "cancelled").length;
 
-      setMetrics([
-        {
-          title: "Total Request",
-          value: total.toString(),
-          change: "0%",
-          changeType: "increase" as const,
-          lastMonth: total.toString(),
-          icon: Package,
-        },
-        {
-          title: "Completed",
-          value: completed.toString(),
-          change: "0%",
-          changeType: "increase" as const,
-          lastMonth: completed.toString(),
-          icon: CheckCircle,
-        },
-        {
-          title: "Pending",
-          value: pending.toString(),
-          change: "0%",
-          changeType: "decrease" as const,
-          lastMonth: pending.toString(),
-          icon: Clock,
-        },
-        {
-          title: "Rejected",
-          value: cancelled.toString(),
-          change: "0%",
-          changeType: "increase" as const,
-          lastMonth: cancelled.toString(),
-          icon: XCircle,
-        },
-      ]);
+        setMetrics([
+          {
+            title: "Total Request",
+            value: total.toString(),
+            change: "0%",
+            changeType: "increase" as const,
+            lastMonth: total.toString(),
+            icon: Package,
+          },
+          {
+            title: "Completed",
+            value: completed.toString(),
+            change: "0%",
+            changeType: "increase" as const,
+            lastMonth: completed.toString(),
+            icon: CheckCircle,
+          },
+          {
+            title: "Pending",
+            value: pending.toString(),
+            change: "0%",
+            changeType: "decrease" as const,
+            lastMonth: pending.toString(),
+            icon: Clock,
+          },
+          {
+            title: "Rejected",
+            value: rejected.toString(),
+            change: "0%",
+            changeType: "increase" as const,
+            lastMonth: rejected.toString(),
+            icon: XCircle,
+          },
+        ]);
+      } catch (err) {
+        console.error('❌ Dashboard - Error loading metrics:', err);
+      }
     };
 
     loadMetrics();
-    // Refresh metrics every 5 seconds for real-time updates
-    const interval = setInterval(loadMetrics, 5000);
+    // Refresh metrics every 10 seconds for real-time updates
+    const interval = setInterval(loadMetrics, 10000);
     return () => clearInterval(interval);
   }, []);
 

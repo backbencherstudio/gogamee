@@ -1,21 +1,29 @@
 "use client";
 import React, { useEffect, useState } from 'react'
 import { SalesOverview } from './components/overview/overview'
-import AppData from '@/app/lib/appdata'
+import { getAllBookings } from '../../../services/bookingService'
 
 const Dashboard = () => {
   const [totalBookings, setTotalBookings] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // Load real-time data
+  // Load real-time data from API
   useEffect(() => {
-    const loadData = () => {
-      const bookings = AppData.bookings.all;
-      setTotalBookings(bookings.length);
+    const loadData = async () => {
+      try {
+        const response = await getAllBookings();
+        const bookings = response.all || [];
+        setTotalBookings(bookings.length);
+      } catch (err) {
+        console.error('Error loading bookings:', err);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadData();
-    // Refresh data every 5 seconds
-    const interval = setInterval(loadData, 5000);
+    // Refresh data every 10 seconds
+    const interval = setInterval(loadData, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -26,7 +34,11 @@ const Dashboard = () => {
           Quick Overview
         </h1>
         <div className="text-sm text-gray-600 mb-4">
-          Real-time data from AppData • Total Bookings: {totalBookings}
+          {loading ? (
+            <span>Loading bookings data...</span>
+          ) : (
+            <span>Real-time data from API • Total Bookings: {totalBookings}</span>
+          )}
         </div>
       </div>
       <SalesOverview />
