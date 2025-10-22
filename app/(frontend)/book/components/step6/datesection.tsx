@@ -4,6 +4,7 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import { useFormContext } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
 import AppData from '../../../../lib/appdata'
+import { getStartingPrice, StartingPriceItem } from '../../../../../services/packageService'
 
 // Types
 interface DurationOption {
@@ -79,26 +80,59 @@ export default function DateSection() {
   const formContext = useFormContext?.() || null
   const setValue = formContext?.setValue
 
-  // Calculate dynamic price based on sport, package, nights, and selected date
-  const calculatePrice = useCallback((nights: number, selectedDate?: Date): string => {
+  // State for static pricing data
+  const [startingPrices, setStartingPrices] = useState<{
+    football: StartingPriceItem | null;
+    basketball: StartingPriceItem | null;
+  }>({
+    football: null,
+    basketball: null
+  })
+
+  // Fetch starting prices on component mount
+  useEffect(() => {
+    const fetchStartingPrices = async () => {
+      try {
+        const [footballRes, basketballRes] = await Promise.all([
+          getStartingPrice('football'),
+          getStartingPrice('basketball')
+        ])
+
+        if (footballRes.success && basketballRes.success) {
+          setStartingPrices({
+            football: footballRes.data?.[0] || null,
+            basketball: basketballRes.data?.[0] || null
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching starting prices:', error)
+      }
+    }
+
+    fetchStartingPrices()
+  }, [])
+
+  // Calculate static price based on sport and package type
+  const calculatePrice = useCallback((): string => {
     const sport = formData.selectedSport
     const packageType = formData.selectedPackage
-    const league = formData.selectedLeague as 'european' | 'national'
     
-    if (!sport || !packageType || !league) return '€'
+    if (!sport || !packageType) return '€'
     
-    // Use the new AppData pricing system
-    // This now handles "both" sport option by calculating combined costs
-    const price = AppData.pricing.calculatePackageCost({
-      selectedSport: sport,
-      selectedPackage: packageType,
-      selectedLeague: league,
-      departureDate: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
-      travelDuration: nights
-    })
+    const currentPrices = startingPrices[sport as 'football' | 'basketball']
+    if (!currentPrices) return '€'
     
-    return `${price}€`
-  }, [formData.selectedSport, formData.selectedPackage, formData.selectedLeague])
+    // Get the price based on package type
+    const price = packageType === 'standard' 
+      ? currentPrices.currentStandardPrice 
+      : currentPrices.currentPremiumPrice
+    
+    // Format currency symbol
+    const currencySymbol = currentPrices.currency === 'euro' ? '€' : 
+                          currentPrices.currency === 'usd' ? '$' : '£'
+    
+    return `${price}${currencySymbol}`
+  }, [formData.selectedSport, formData.selectedPackage, startingPrices])
 
 
   
@@ -334,7 +368,7 @@ export default function DateSection() {
     }
 
     // Calculate price for the selected duration and this specific date
-    const currentPrice = calculatePrice(DURATION_OPTIONS[selectedDuration].nights, currentCheckDate)
+    const currentPrice = calculatePrice()
     
 
     if (isSelected) {
@@ -376,7 +410,7 @@ export default function DateSection() {
         )}
       </div>
     )
-  }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePrice, selectedDuration, selectedDateRange])
+  }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePrice, selectedDateRange])
 
   const renderCalendarWeeks = useCallback((days: (number | null)[], monthIndex: number, year: number) => {
     const weeks: (number | null)[][] = []
@@ -457,7 +491,7 @@ export default function DateSection() {
                   {formData.selectedPackage.charAt(0).toUpperCase() + formData.selectedPackage.slice(1)} Package - {formData.selectedSport.charAt(0).toUpperCase() + formData.selectedSport.slice(1)}
                 </div>
                 <div className="text-lg font-bold text-lime-600">
-                  From {calculatePrice(DURATION_OPTIONS[selectedDuration].nights)}
+                  From {calculatePrice()}
                 </div>
                 <div className="text-xs text-gray-500">
                   {DURATION_OPTIONS[selectedDuration].days} days, {DURATION_OPTIONS[selectedDuration].nights} nights
