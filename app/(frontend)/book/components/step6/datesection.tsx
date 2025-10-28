@@ -3,8 +3,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import { useFormContext } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
-import AppData from '../../../../lib/appdata'
 import { getAllDates } from '../../../../../services/dateManagementService'
+import { getStartingPrice, StartingPriceItem } from '../../../../../services/packageService'
 
 // Types
 interface DurationOption {
@@ -118,6 +118,16 @@ export default function DateSection() {
   const [isHydrated, setIsHydrated] = useState(false)
   const [apiDateData, setApiDateData] = useState<ApiDateData[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  
+  // Package pricing state (from package API)
+  const [packagePrices, setPackagePrices] = useState<{
+    football: StartingPriceItem | null;
+    basketball: StartingPriceItem | null;
+  }>({
+    football: null,
+    basketball: null
+  })
+  const [isLoadingPrices, setIsLoadingPrices] = useState(true)
 
   // Get date restrictions based on API data and competition type
   const getDateRestrictions = useCallback((): DateRestrictions => {
@@ -178,60 +188,31 @@ export default function DateSection() {
     }
   }, [formData.selectedLeague, formData.selectedSport, apiDateData])
 
-  // Calculate dynamic price based on sport, package, nights, and selected date using API data
-  const calculatePrice = useCallback((nights: number, selectedDate?: Date): string => {
+  // Calculate dynamic price based on sport, package, nights using package API data
+  const calculatePrice = useCallback((nights: number): string => {
     const sport = formData.selectedSport
     const packageType = formData.selectedPackage
-    const league = formData.selectedLeague as 'european' | 'national'
     
-    if (!sport || !packageType || !league) return '€'
+    if (!sport || !packageType) return '€'
     
-    // If we have a selected date, try to get price from API data
-    if (selectedDate) {
-      // Format date as YYYY-MM-DD without timezone conversion
-      const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
-      const restrictions = getDateRestrictions()
-      
-      if (restrictions.customPrices[dateString]) {
-        const customPrice = restrictions.customPrices[dateString]
-        let price = 0
-        
-        if (sport === 'football') {
-          price = packageType === 'standard' 
-            ? customPrice.football?.standard || 0
-            : customPrice.football?.premium || 0
-        } else if (sport === 'basketball') {
-          price = packageType === 'standard'
-            ? customPrice.basketball?.standard || 0
-            : customPrice.basketball?.premium || 0
-        } else if (sport === 'both') {
-          // For 'both' sport, calculate combined cost
-          const footballPrice = packageType === 'standard' 
-            ? customPrice.football?.standard || 0
-            : customPrice.football?.premium || 0
-          const basketballPrice = packageType === 'standard'
-            ? customPrice.basketball?.standard || 0
-            : customPrice.basketball?.premium || 0
-          price = footballPrice + basketballPrice
-        }
-        
-        if (price > 0) {
-          return `${price}€`
-        }
-      }
-    }
+    // Get pricing from package API data
+    const currentPrices = packagePrices[sport as 'football' | 'basketball']
+    if (!currentPrices) return '€'
     
-    // Fallback to AppData pricing system if no custom price found
-    const price = AppData.pricing.calculatePackageCost({
-      selectedSport: sport,
-      selectedPackage: packageType,
-      selectedLeague: league,
-      departureDate: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
-      travelDuration: nights
-    })
+    // Get base price based on package type
+    const basePrice = packageType === 'standard' 
+      ? currentPrices.currentStandardPrice 
+      : currentPrices.currentPremiumPrice
     
-    return `${price}€`
-  }, [formData.selectedSport, formData.selectedPackage, formData.selectedLeague, getDateRestrictions])
+    // Calculate total price by multiplying by nights
+    const totalPrice = basePrice * nights
+    
+    // Format currency
+    const currency = currentPrices.currency === 'euro' ? '€' : 
+                    currentPrices.currency === 'usd' ? '$' : '£'
+    
+    return `${totalPrice}${currency}`
+  }, [formData.selectedSport, formData.selectedPackage, packagePrices])
 
   // Fetch API data
   useEffect(() => {
@@ -248,6 +229,32 @@ export default function DateSection() {
     }
 
     fetchDateData()
+  }, [])
+
+  // Fetch package pricing data
+  useEffect(() => {
+    const fetchPackagePrices = async () => {
+      try {
+        setIsLoadingPrices(true)
+        const [footballRes, basketballRes] = await Promise.all([
+          getStartingPrice('football'),
+          getStartingPrice('basketball')
+        ])
+        
+        if (footballRes.success && basketballRes.success) {
+          setPackagePrices({
+            football: footballRes.data?.[0] || null,
+            basketball: basketballRes.data?.[0] || null
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching package prices:', error)
+      } finally {
+        setIsLoadingPrices(false)
+      }
+    }
+    
+    fetchPackagePrices()
   }, [])
 
   // Set proper current date after hydration
@@ -449,7 +456,7 @@ export default function DateSection() {
     }
 
     // Calculate price for the selected duration and this specific date
-    const currentPrice = calculatePrice(DURATION_OPTIONS[selectedDuration].nights, currentCheckDate)
+    const currentPrice = calculatePrice(DURATION_OPTIONS[selectedDuration].nights)
     
 
     if (isSelected) {
@@ -557,7 +564,7 @@ export default function DateSection() {
   const nextMonthDays = useMemo(() => generateCalendarDays(nextMonth), [generateCalendarDays, nextMonth])
 
   // Show loading state
-  if (isLoading) {
+  if (isLoading || isLoadingPrices) {
     return (
       <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-center items-center gap-6 min-h-[600px]">
         <div className="text-center text-neutral-800 text-xl font-medium font-['Poppins']">
@@ -657,6 +664,99 @@ export default function DateSection() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Package Pricing Debugger */}
+        <div className="self-stretch flex flex-col justify-start items-start gap-4">
+          <div className="w-full p-4 bg-gray-100 rounded-lg border border-gray-300">
+            <div className="flex flex-col gap-3">
+              <div className="text-lg font-semibold text-gray-800 font-['Poppins']">
+                Package Pricing Data (From Package API)
+              </div>
+              <div className="text-sm text-gray-600 font-['Poppins']">
+                Dynamic pricing data from package service - same as package table
+              </div>
+              
+              {/* Package Pricing Content */}
+              <div className="w-full border border-gray-200 rounded-lg bg-white p-4">
+                {isLoadingPrices ? (
+                  <div className="text-center text-gray-500 font-['Poppins']">
+                    Loading package prices...
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Football Pricing */}
+                    <div className="flex flex-col gap-2">
+                      <div className="font-medium text-gray-700 font-['Poppins']">Football</div>
+                      {packagePrices.football ? (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-600 font-['Poppins']">Standard:</span>
+                            <span className="font-semibold text-lime-600 font-['Poppins']">
+                              {packagePrices.football.currentStandardPrice}
+                              {packagePrices.football.currency === 'euro' ? '€' : 
+                               packagePrices.football.currency === 'usd' ? '$' : '£'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-600 font-['Poppins']">Premium:</span>
+                            <span className="font-semibold text-lime-600 font-['Poppins']">
+                              {packagePrices.football.currentPremiumPrice}
+                              {packagePrices.football.currency === 'euro' ? '€' : 
+                               packagePrices.football.currency === 'usd' ? '$' : '£'}
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-gray-500 text-sm">No football pricing data</div>
+                      )}
+                    </div>
+                    
+                    {/* Basketball Pricing */}
+                    <div className="flex flex-col gap-2">
+                      <div className="font-medium text-gray-700 font-['Poppins']">Basketball</div>
+                      {packagePrices.basketball ? (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-600 font-['Poppins']">Standard:</span>
+                            <span className="font-semibold text-lime-600 font-['Poppins']">
+                              {packagePrices.basketball.currentStandardPrice}
+                              {packagePrices.basketball.currency === 'euro' ? '€' : 
+                               packagePrices.basketball.currency === 'usd' ? '$' : '£'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-600 font-['Poppins']">Premium:</span>
+                            <span className="font-semibold text-lime-600 font-['Poppins']">
+                              {packagePrices.basketball.currentPremiumPrice}
+                              {packagePrices.basketball.currency === 'euro' ? '€' : 
+                               packagePrices.basketball.currency === 'usd' ? '$' : '£'}
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-gray-500 text-sm">No basketball pricing data</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Current Selection Info */}
+              <div className="text-sm text-gray-600 font-['Poppins']">
+                Current selection: {formData.selectedSport} - {formData.selectedPackage} package
+                {formData.selectedSport && formData.selectedPackage && packagePrices[formData.selectedSport as 'football' | 'basketball'] && (
+                  <span className="ml-2 font-semibold text-lime-600">
+                    (Base price: {formData.selectedPackage === 'standard' 
+                      ? packagePrices[formData.selectedSport as 'football' | 'basketball']?.currentStandardPrice
+                      : packagePrices[formData.selectedSport as 'football' | 'basketball']?.currentPremiumPrice}
+                    {packagePrices[formData.selectedSport as 'football' | 'basketball']?.currency === 'euro' ? '€' : 
+                     packagePrices[formData.selectedSport as 'football' | 'basketball']?.currency === 'usd' ? '$' : '£'})
+                  </span>
+                )}
               </div>
             </div>
           </div>
