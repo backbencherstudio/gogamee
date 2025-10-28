@@ -5,11 +5,17 @@ export interface DateManagementItem {
   id: string;
   date: string;
   status: string;
-  standard_package_price: number | null;
-  premium_package_price: number | null;
+  football_standard_package_price: number;
+  football_premium_package_price: number;
+  baskatball_standard_package_price: number;
+  baskatball_premium_package_price: number;
+  updated_football_standard_package_price: number | null;
+  updated_football_premium_package_price: number | null;
+  updated_baskatball_standard_package_price: number | null;
+  updated_baskatball_premium_package_price: number | null;
   package: string | null;
-  sportname: string | null;
-  league: string | null;
+  sportname: string;
+  league: string;
   notes: string | null;
   destinationCity: string | null;
   assignedMatch: string | null;
@@ -22,8 +28,14 @@ export interface DateManagementItem {
 export interface CreateDatePayload {
   date: string;
   status?: string;
-  standard_package_price?: number;
-  premium_package_price?: number;
+  football_standard_package_price?: number;
+  football_premium_package_price?: number;
+  baskatball_standard_package_price?: number;
+  baskatball_premium_package_price?: number;
+  updated_football_standard_package_price?: number;
+  updated_football_premium_package_price?: number;
+  updated_baskatball_standard_package_price?: number;
+  updated_baskatball_premium_package_price?: number;
   package?: string;
   sportname?: string;
   league?: string;
@@ -35,8 +47,14 @@ export interface CreateDatePayload {
 
 export interface UpdateDatePayload {
   sportname?: string;
-  standard_package_price?: number;
-  premium_package_price?: number;
+  football_standard_package_price?: number;
+  football_premium_package_price?: number;
+  baskatball_standard_package_price?: number;
+  baskatball_premium_package_price?: number;
+  updated_football_standard_package_price?: number;
+  updated_football_premium_package_price?: number;
+  updated_baskatball_standard_package_price?: number;
+  updated_baskatball_premium_package_price?: number;
   package?: string;
   league?: string;
   notes?: string;

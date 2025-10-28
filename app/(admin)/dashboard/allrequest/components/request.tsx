@@ -462,7 +462,7 @@ export default function EventReqTable() {
                                                                  <BookingSummaryModal 
                           bookingData={{
                             id: booking.id,
-                            status: booking.status,
+                            status: booking.status as "pending" | "completed" | "cancelled" | "approved" | "rejected",
                             selectedSport: booking.selectedSport,
                             selectedPackage: booking.selectedPackage,
                             selectedCity: booking.selectedCity,
@@ -499,9 +499,7 @@ export default function EventReqTable() {
                             hasRemovedLeagues: booking.hasRemovedLeagues,
                             allExtras: booking.bookingExtras || [],
                             selectedExtras: booking.bookingExtras || [],
-                            selectedExtrasNames: Array.isArray(booking.selectedExtrasNames) 
-                              ? booking.selectedExtrasNames 
-                              : [],
+                            selectedExtrasNames: [],
                             totalExtrasCost: booking.totalExtrasCost,
                             extrasCount: booking.extrasCount,
                             firstName: booking.firstName,
@@ -510,7 +508,7 @@ export default function EventReqTable() {
                             email: booking.email,
                             phone: booking.phone,
                             previousTravelInfo: booking.previousTravelInfo,
-                            paymentMethod: booking.paymentMethod,
+                            paymentMethod: booking.paymentMethod || '',
                             cardNumber: booking.cardNumber,
                             expiryDate: booking.expiryDate,
                             cvv: booking.cvv,

@@ -4,6 +4,7 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
 import { useFormContext } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
 import AppData from '../../../../lib/appdata'
+import { getAllDates } from '../../../../../services/dateManagementService'
 
 // Types
 interface DurationOption {
@@ -24,6 +25,21 @@ interface DateRestrictions {
       premium?: number;
     };
   }>
+}
+
+interface ApiDateData {
+  date: string
+  status: string
+  football_standard_package_price: number
+  football_premium_package_price: number
+  baskatball_standard_package_price: number
+  baskatball_premium_package_price: number
+  updated_football_standard_package_price: number | null
+  updated_football_premium_package_price: number | null
+  updated_baskatball_standard_package_price: number | null
+  updated_baskatball_premium_package_price: number | null
+  sportname: string
+  league: string
 }
 
 
@@ -61,7 +77,8 @@ const isDateInPast = (date: Date): boolean => {
 }
 
 const isDateAllowedForCompetition = (date: Date, restrictions: DateRestrictions): boolean => {
-  const dateString = date.toISOString().split('T')[0] // Format: YYYY-MM-DD
+  // Format date as YYYY-MM-DD without timezone conversion
+  const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
   
   // Check if date is explicitly blocked
   if (restrictions.blockedDates.includes(dateString)) {
@@ -78,27 +95,6 @@ export default function DateSection() {
   // Optional React Hook Form integration
   const formContext = useFormContext?.() || null
   const setValue = formContext?.setValue
-
-  // Calculate dynamic price based on sport, package, nights, and selected date
-  const calculatePrice = useCallback((nights: number, selectedDate?: Date): string => {
-    const sport = formData.selectedSport
-    const packageType = formData.selectedPackage
-    const league = formData.selectedLeague as 'european' | 'national'
-    
-    if (!sport || !packageType || !league) return '€'
-    
-    // Use the new AppData pricing system
-    // This now handles "both" sport option by calculating combined costs
-    const price = AppData.pricing.calculatePackageCost({
-      selectedSport: sport,
-      selectedPackage: packageType,
-      selectedLeague: league,
-      departureDate: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
-      travelDuration: nights
-    })
-    
-    return `${price}€`
-  }, [formData.selectedSport, formData.selectedPackage, formData.selectedLeague])
 
 
   
@@ -120,20 +116,139 @@ export default function DateSection() {
   const [selectedYear, setSelectedYear] = useState<number | null>(defaultValues.selectedYear)
   const [currentDate, setCurrentDate] = useState(defaultValues.currentDate)
   const [isHydrated, setIsHydrated] = useState(false)
+  const [apiDateData, setApiDateData] = useState<ApiDateData[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Get date restrictions based on competition type
+  // Get date restrictions based on API data and competition type
   const getDateRestrictions = useCallback((): DateRestrictions => {
     const selectedLeague = formData.selectedLeague
+    const enabledDates: string[] = []
+    const blockedDates: string[] = []
+    const customPrices: Record<string, {
+      football?: {
+        standard?: number;
+        premium?: number;
+      };
+      basketball?: {
+        standard?: number;
+        premium?: number;
+      };
+    }> = {}
+
+    // Filter API data based on selected league and sport
+    const filteredApiData = apiDateData.filter(item => {
+      const matchesLeague = !selectedLeague || item.league === selectedLeague
+      const matchesSport = !formData.selectedSport || 
+        (formData.selectedSport === 'football' && item.sportname === 'football') ||
+        (formData.selectedSport === 'basketball' && item.sportname === 'basketball') ||
+        (formData.selectedSport === 'both')
+      return matchesLeague && matchesSport
+    })
+
+    // Process API data
+    filteredApiData.forEach(item => {
+      // Parse the date string and create a date object in local timezone
+      const apiDate = new Date(item.date)
+      // Get the date string in YYYY-MM-DD format without timezone conversion
+      const dateString = `${apiDate.getFullYear()}-${String(apiDate.getMonth() + 1).padStart(2, '0')}-${String(apiDate.getDate()).padStart(2, '0')}`
+      
+      if (item.status === 'enabled') {
+        enabledDates.push(dateString)
+        
+        // Store custom prices for this date
+        customPrices[dateString] = {
+          football: {
+            standard: item.updated_football_standard_package_price ?? item.football_standard_package_price,
+            premium: item.updated_football_premium_package_price ?? item.football_premium_package_price
+          },
+          basketball: {
+            standard: item.updated_baskatball_standard_package_price ?? item.baskatball_standard_package_price,
+            premium: item.updated_baskatball_premium_package_price ?? item.baskatball_premium_package_price
+          }
+        }
+      } else {
+        blockedDates.push(dateString)
+      }
+    })
+
+    return {
+      enabledDates,
+      blockedDates,
+      customPrices
+    }
+  }, [formData.selectedLeague, formData.selectedSport, apiDateData])
+
+  // Calculate dynamic price based on sport, package, nights, and selected date using API data
+  const calculatePrice = useCallback((nights: number, selectedDate?: Date): string => {
+    const sport = formData.selectedSport
+    const packageType = formData.selectedPackage
+    const league = formData.selectedLeague as 'european' | 'national'
     
-    if (selectedLeague === 'european') {
-      return AppData.dateRestrictions.getRestrictions('european')
-    } else if (selectedLeague === 'national') {
-      return AppData.dateRestrictions.getRestrictions('national')
+    if (!sport || !packageType || !league) return '€'
+    
+    // If we have a selected date, try to get price from API data
+    if (selectedDate) {
+      // Format date as YYYY-MM-DD without timezone conversion
+      const dateString = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+      const restrictions = getDateRestrictions()
+      
+      if (restrictions.customPrices[dateString]) {
+        const customPrice = restrictions.customPrices[dateString]
+        let price = 0
+        
+        if (sport === 'football') {
+          price = packageType === 'standard' 
+            ? customPrice.football?.standard || 0
+            : customPrice.football?.premium || 0
+        } else if (sport === 'basketball') {
+          price = packageType === 'standard'
+            ? customPrice.basketball?.standard || 0
+            : customPrice.basketball?.premium || 0
+        } else if (sport === 'both') {
+          // For 'both' sport, calculate combined cost
+          const footballPrice = packageType === 'standard' 
+            ? customPrice.football?.standard || 0
+            : customPrice.football?.premium || 0
+          const basketballPrice = packageType === 'standard'
+            ? customPrice.basketball?.standard || 0
+            : customPrice.basketball?.premium || 0
+          price = footballPrice + basketballPrice
+        }
+        
+        if (price > 0) {
+          return `${price}€`
+        }
+      }
     }
     
-    // Default to European restrictions if no league is selected
-    return AppData.dateRestrictions.getRestrictions('european')
-  }, [formData.selectedLeague])
+    // Fallback to AppData pricing system if no custom price found
+    const price = AppData.pricing.calculatePackageCost({
+      selectedSport: sport,
+      selectedPackage: packageType,
+      selectedLeague: league,
+      departureDate: selectedDate ? selectedDate.toISOString() : new Date().toISOString(),
+      travelDuration: nights
+    })
+    
+    return `${price}€`
+  }, [formData.selectedSport, formData.selectedPackage, formData.selectedLeague, getDateRestrictions])
+
+  // Fetch API data
+  useEffect(() => {
+    const fetchDateData = async () => {
+      try {
+        setIsLoading(true)
+        const data = await getAllDates()
+        setApiDateData(data)
+      } catch (error) {
+        console.error('Error fetching date data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDateData()
+  }, [])
 
   // Set proper current date after hydration
   useEffect(() => {
@@ -440,6 +555,17 @@ export default function DateSection() {
   // Memoized calendar data
   const currentMonthDays = useMemo(() => generateCalendarDays(currentDate), [generateCalendarDays, currentDate])
   const nextMonthDays = useMemo(() => generateCalendarDays(nextMonth), [generateCalendarDays, nextMonth])
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-center items-center gap-6 min-h-[600px]">
+        <div className="text-center text-neutral-800 text-xl font-medium font-['Poppins']">
+          Loading available dates...
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-start items-start gap-6 min-h-[600px]">

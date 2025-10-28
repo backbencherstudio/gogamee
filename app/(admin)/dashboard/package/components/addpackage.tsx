@@ -65,7 +65,7 @@ export default function AddPackage({ onSubmit, onCancel, initialData, submitLabe
     e.preventDefault();
     if (validateForm()) {
       // Prepare data - only include necessary fields
-      const dataToSubmit: any = {
+      const dataToSubmit: Partial<PackageData> = {
         sport: formData.sport,
         category: formData.category,
         standard: formData.standard,
@@ -86,7 +86,7 @@ export default function AddPackage({ onSubmit, onCancel, initialData, submitLabe
       }
       
       console.log('Submitting package data:', dataToSubmit);
-      onSubmit(dataToSubmit);
+      onSubmit(dataToSubmit as PackageData);
     }
   };
 
