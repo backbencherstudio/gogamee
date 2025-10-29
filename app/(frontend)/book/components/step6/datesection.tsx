@@ -195,21 +195,44 @@ export default function DateSection() {
     
     if (!sport || !packageType) return '€'
     
-    // Get pricing from package API data
-    const currentPrices = packagePrices[sport as 'football' | 'basketball']
-    if (!currentPrices) return '€'
+    let totalPrice = 0
+    let currency = '€'
     
-    // Get base price based on package type
-    const basePrice = packageType === 'standard' 
-      ? currentPrices.currentStandardPrice 
-      : currentPrices.currentPremiumPrice
-    
-    // Calculate total price by multiplying by nights
-    const totalPrice = basePrice * nights
-    
-    // Format currency
-    const currency = currentPrices.currency === 'euro' ? '€' : 
-                    currentPrices.currency === 'usd' ? '$' : '£'
+    if (sport === 'both') {
+      // For 'both' sport, calculate combined cost from both football and basketball
+      const footballPrices = packagePrices.football
+      const basketballPrices = packagePrices.basketball
+      
+      if (!footballPrices || !basketballPrices) return '€'
+      
+      const footballPrice = packageType === 'standard' 
+        ? footballPrices.currentStandardPrice 
+        : footballPrices.currentPremiumPrice
+      
+      const basketballPrice = packageType === 'standard'
+        ? basketballPrices.currentStandardPrice
+        : basketballPrices.currentPremiumPrice
+      
+      totalPrice = (footballPrice + basketballPrice) * nights
+      currency = footballPrices.currency === 'euro' ? '€' : 
+                footballPrices.currency === 'usd' ? '$' : '£'
+    } else {
+      // For individual sports
+      const currentPrices = packagePrices[sport as 'football' | 'basketball']
+      if (!currentPrices) return '€'
+      
+      // Get base price based on package type
+      const basePrice = packageType === 'standard' 
+        ? currentPrices.currentStandardPrice 
+        : currentPrices.currentPremiumPrice
+      
+      // Calculate total price by multiplying by nights
+      totalPrice = basePrice * nights
+      
+      // Format currency
+      currency = currentPrices.currency === 'euro' ? '€' : 
+                currentPrices.currency === 'usd' ? '$' : '£'
+    }
     
     return `${totalPrice}${currency}`
   }, [formData.selectedSport, formData.selectedPackage, packagePrices])
@@ -745,19 +768,38 @@ export default function DateSection() {
                 )}
               </div>
               
-              {/* Current Selection Info */}
-              <div className="text-sm text-gray-600 font-['Poppins']">
-                Current selection: {formData.selectedSport} - {formData.selectedPackage} package
-                {formData.selectedSport && formData.selectedPackage && packagePrices[formData.selectedSport as 'football' | 'basketball'] && (
-                  <span className="ml-2 font-semibold text-lime-600">
-                    (Base price: {formData.selectedPackage === 'standard' 
-                      ? packagePrices[formData.selectedSport as 'football' | 'basketball']?.currentStandardPrice
-                      : packagePrices[formData.selectedSport as 'football' | 'basketball']?.currentPremiumPrice}
-                    {packagePrices[formData.selectedSport as 'football' | 'basketball']?.currency === 'euro' ? '€' : 
-                     packagePrices[formData.selectedSport as 'football' | 'basketball']?.currency === 'usd' ? '$' : '£'})
-                  </span>
-                )}
-              </div>
+               {/* Current Selection Info */}
+               <div className="text-sm text-gray-600 font-['Poppins']">
+                 Current selection: {formData.selectedSport} - {formData.selectedPackage} package
+                 {formData.selectedSport && formData.selectedPackage && (
+                   <span className="ml-2 font-semibold text-lime-600">
+                     {formData.selectedSport === 'both' ? (
+                       <>
+                         (Combined base price: {
+                           packagePrices.football && packagePrices.basketball ? (
+                             (formData.selectedPackage === 'standard' 
+                               ? packagePrices.football.currentStandardPrice + packagePrices.basketball.currentStandardPrice
+                               : packagePrices.football.currentPremiumPrice + packagePrices.basketball.currentPremiumPrice
+                             )
+                           ) : 'Loading...'
+                         }
+                         {packagePrices.football?.currency === 'euro' ? '€' : 
+                          packagePrices.football?.currency === 'usd' ? '$' : '£'})
+                       </>
+                     ) : (
+                       packagePrices[formData.selectedSport as 'football' | 'basketball'] && (
+                         <>
+                           (Base price: {formData.selectedPackage === 'standard' 
+                             ? packagePrices[formData.selectedSport as 'football' | 'basketball']?.currentStandardPrice
+                             : packagePrices[formData.selectedSport as 'football' | 'basketball']?.currentPremiumPrice}
+                           {packagePrices[formData.selectedSport as 'football' | 'basketball']?.currency === 'euro' ? '€' : 
+                            packagePrices[formData.selectedSport as 'football' | 'basketball']?.currency === 'usd' ? '$' : '£'})
+                         </>
+                       )
+                     )}
+                   </span>
+                 )}
+               </div>
             </div>
           </div>
         </div>
