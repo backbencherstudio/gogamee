@@ -5,6 +5,7 @@ import { useFormContext } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
 import { getAllDates } from '../../../../../services/dateManagementService'
 import { getStartingPrice, StartingPriceItem } from '../../../../../services/packageService'
+import { formatDateForAPI, formatApiDateForComparison } from '../../../../../lib/dateUtils'
 
 // Types
 interface DurationOption {
@@ -77,8 +78,8 @@ const isDateInPast = (date: Date): boolean => {
 }
 
 const isDateAllowedForCompetition = (date: Date, restrictions: DateRestrictions): boolean => {
-  // Format date as YYYY-MM-DD without timezone conversion
-  const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+  // Use consistent date formatting
+  const dateString = formatDateForAPI(date)
   
   // Check if date is explicitly blocked
   if (restrictions.blockedDates.includes(dateString)) {
@@ -157,10 +158,8 @@ export default function DateSection() {
 
     // Process API data
     filteredApiData.forEach(item => {
-      // Parse the date string and create a date object in local timezone
-      const apiDate = new Date(item.date)
-      // Get the date string in YYYY-MM-DD format without timezone conversion
-      const dateString = `${apiDate.getFullYear()}-${String(apiDate.getMonth() + 1).padStart(2, '0')}-${String(apiDate.getDate()).padStart(2, '0')}`
+      // Use consistent date formatting
+      const dateString = formatApiDateForComparison(item.date)
       
       if (item.status === 'enabled') {
         enabledDates.push(dateString)
@@ -236,6 +235,52 @@ export default function DateSection() {
     
     return `${totalPrice}${currency}`
   }, [formData.selectedSport, formData.selectedPackage, packagePrices])
+
+  // Calculate price for a specific date (using custom prices if available)
+  const calculatePriceForDate = useCallback((date: Date, nights: number): string => {
+    const sport = formData.selectedSport
+    const packageType = formData.selectedPackage
+    
+    if (!sport || !packageType) return '€'
+    
+    // Format date for comparison
+    const dateString = formatDateForAPI(date)
+    const restrictions = getDateRestrictions()
+    
+    // Check if there are custom prices for this date
+    if (restrictions.customPrices[dateString]) {
+      const customPrice = restrictions.customPrices[dateString]
+      let price = 0
+      
+      if (sport === 'football') {
+        price = packageType === 'standard' 
+          ? customPrice.football?.standard || 0
+          : customPrice.football?.premium || 0
+      } else if (sport === 'basketball') {
+        price = packageType === 'standard'
+          ? customPrice.basketball?.standard || 0
+          : customPrice.basketball?.premium || 0
+      } else if (sport === 'both') {
+        // For 'both' sport, calculate combined cost
+        const footballPrice = packageType === 'standard' 
+          ? customPrice.football?.standard || 0
+          : customPrice.football?.premium || 0
+        const basketballPrice = packageType === 'standard'
+          ? customPrice.basketball?.standard || 0
+          : customPrice.basketball?.premium || 0
+        price = footballPrice + basketballPrice
+      }
+      
+      if (price > 0) {
+        // Calculate total price by multiplying by nights
+        const totalPrice = price * nights
+        return `${totalPrice}€`
+      }
+    }
+    
+    // Fallback to base price calculation if no custom price
+    return calculatePrice(nights)
+  }, [formData.selectedSport, formData.selectedPackage, getDateRestrictions, calculatePrice])
 
   // Fetch API data
   useEffect(() => {
@@ -479,7 +524,7 @@ export default function DateSection() {
     }
 
     // Calculate price for the selected duration and this specific date
-    const currentPrice = calculatePrice(DURATION_OPTIONS[selectedDuration].nights)
+    const currentPrice = calculatePriceForDate(currentCheckDate, DURATION_OPTIONS[selectedDuration].nights)
     
 
     if (isSelected) {
@@ -521,7 +566,7 @@ export default function DateSection() {
         )}
       </div>
     )
-  }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePrice, selectedDuration, selectedDateRange])
+  }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePriceForDate, selectedDuration, selectedDateRange])
 
   const renderCalendarWeeks = useCallback((days: (number | null)[], monthIndex: number, year: number) => {
     const weeks: (number | null)[][] = []

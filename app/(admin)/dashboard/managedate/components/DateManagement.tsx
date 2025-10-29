@@ -1,9 +1,11 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Calendar, Save, RefreshCw, ChevronLeft, ChevronRight, DollarSign, X } from 'lucide-react'
 import AppData from '../../../../lib/appdata'
 import { useToast } from '../../../../../components/ui/toast'
 import { getStartingPrice } from '../../../../../services/packageService'
+import { getAllDates, updateDate, createDate, DateManagementItem } from '../../../../../services/dateManagementService'
+import { formatDateForAPI, formatApiDateForComparison, createCalendarDate } from '../../../../../lib/dateUtils'
 
 // Date restriction interface for calendar-based system
 interface DateRestrictions {
@@ -34,6 +36,7 @@ interface PriceEditData {
   sport: 'football' | 'basketball'
   standardPrice: number
   premiumPrice: number
+  apiItemId?: string
 }
 
 export default function DateManagement() {
@@ -54,6 +57,11 @@ export default function DateManagement() {
     football: null,
     basketball: null
   })
+  
+  // API data state
+  const [apiDateData, setApiDateData] = useState<DateManagementItem[]>([])
+  const [isLoadingApiData, setIsLoadingApiData] = useState(true)
+  const [isSavingApiData, setIsSavingApiData] = useState(false)
 
   // Month names
   const MONTH_NAMES = [
@@ -63,11 +71,31 @@ export default function DateManagement() {
 
   const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-  // Load data from AppData and base prices from package service
+  // Load API date data
+  const loadApiDateData = useCallback(async () => {
+    try {
+      setIsLoadingApiData(true)
+      const data = await getAllDates()
+      setApiDateData(data)
+    } catch (error) {
+      console.error('Error loading API date data:', error)
+      addToast({
+        type: 'error',
+        title: 'Error',
+        description: 'Failed to load date data from API',
+        duration: 5000
+      })
+    } finally {
+      setIsLoadingApiData(false)
+    }
+  }, [addToast])
+
+  // Load data from AppData, base prices from package service, and API data
   useEffect(() => {
     loadDateRestrictions()
     loadBasePrices()
-  }, [])
+    loadApiDateData()
+  }, [loadApiDateData])
 
   const loadDateRestrictions = () => {
     // Load from AppData
@@ -149,11 +177,22 @@ export default function DateManagement() {
   const getDateStatus = (day: number | null, month: Date): 'enabled' | 'blocked' | 'neutral' => {
     if (!day) return 'neutral'
 
+    const date = createCalendarDate(month.getFullYear(), month.getMonth(), day)
+    const dateString = formatDateForAPI(date)
+
+    // Find API data for this date and selected competition
+    const apiDateItem = apiDateData.find(item => {
+      const itemDateString = formatApiDateForComparison(item.date)
+      return itemDateString === dateString && item.league === selectedCompetition
+    })
+
+    if (apiDateItem) {
+      return apiDateItem.status === 'enabled' ? 'enabled' : 'blocked'
+    }
+
+    // Fallback to AppData if no API data found
     const selectedComp = competitionTypes.find(comp => comp.id === selectedCompetition)
     if (!selectedComp) return 'neutral'
-
-    const date = new Date(month.getFullYear(), month.getMonth(), day)
-    const dateString = date.toISOString().split('T')[0]
 
     if (selectedComp.restrictions.enabledDates.includes(dateString)) {
       return 'enabled'
@@ -164,54 +203,98 @@ export default function DateManagement() {
     }
   }
 
-  const handleDateClick = (day: number, month: Date) => {
+  const handleDateClick = async (day: number, month: Date) => {
     if (!isEditing) return
 
-    const date = new Date(month.getFullYear(), month.getMonth(), day)
-    const dateString = date.toISOString().split('T')[0]
+    const date = createCalendarDate(month.getFullYear(), month.getMonth(), day)
+    const dateString = formatDateForAPI(date)
     
-    setCompetitionTypes(prev => prev.map(comp => {
-      if (comp.id === selectedCompetition) {
-        const newEnabledDates = [...comp.restrictions.enabledDates]
-        const newBlockedDates = [...comp.restrictions.blockedDates]
-        
-        // Toggle date status: neutral -> enabled -> blocked -> neutral
-        if (newEnabledDates.includes(dateString)) {
-          // Currently enabled, move to blocked
-          newEnabledDates.splice(newEnabledDates.indexOf(dateString), 1)
-          newBlockedDates.push(dateString)
-        } else if (newBlockedDates.includes(dateString)) {
-          // Currently blocked, move to neutral
-          newBlockedDates.splice(newBlockedDates.indexOf(dateString), 1)
-        } else {
-          // Currently neutral, move to enabled
-          newEnabledDates.push(dateString)
-        }
+    // Find existing API data for this date and competition
+    const existingItem = apiDateData.find(item => {
+      const itemDateString = formatApiDateForComparison(item.date)
+      return itemDateString === dateString && item.league === selectedCompetition
+    })
 
-        return {
-          ...comp,
-          restrictions: {
-            ...comp.restrictions,
-            enabledDates: newEnabledDates.sort(),
-            blockedDates: newBlockedDates.sort()
+    try {
+      setIsSavingApiData(true)
+      
+      if (existingItem) {
+        // Update existing item
+        const newStatus = existingItem.status === 'enabled' ? 'blocked' : 'enabled'
+        await updateDate(existingItem.id, { status: newStatus })
+        
+        // Update local state
+        setApiDateData(prev => prev.map(item => 
+          item.id === existingItem.id 
+            ? { ...item, status: newStatus }
+            : item
+        ))
+      } else {
+        // Create new item via API
+        try {
+          const newDateData = {
+            date: date.toISOString(),
+            status: 'enabled',
+            league: selectedCompetition,
+            sportname: 'football', // Default sport
+            football_standard_package_price: basePrices.football?.standard || 0,
+            football_premium_package_price: basePrices.football?.premium || 0,
+            baskatball_standard_package_price: basePrices.basketball?.standard || 0,
+            baskatball_premium_package_price: basePrices.basketball?.premium || 0,
+            approve_status: 'pending'
           }
+          
+          const createdItem = await createDate(newDateData)
+          
+          // Update local state with the created item
+          setApiDateData(prev => [...prev, createdItem])
+          
+          addToast({
+            type: 'success',
+            title: 'Date Created',
+            description: 'New date has been created successfully',
+            duration: 3000
+          })
+        } catch (createError) {
+          console.error('Error creating new date:', createError)
+          addToast({
+            type: 'error',
+            title: 'Error',
+            description: 'Failed to create new date',
+            duration: 5000
+          })
         }
       }
-      return comp
-    }))
-    setHasChanges(true)
+      
+      setHasChanges(true)
+    } catch (error) {
+      console.error('Error updating date status:', error)
+      addToast({
+        type: 'error',
+        title: 'Error',
+        description: 'Failed to update date status',
+        duration: 5000
+      })
+    } finally {
+      setIsSavingApiData(false)
+    }
   }
 
   // Handle price editing
   const handlePriceClick = (day: number, month: Date) => {
     if (!editingPrices) return
 
-    const date = new Date(month.getFullYear(), month.getMonth(), day)
-    const dateString = date.toISOString().split('T')[0]
+    const date = createCalendarDate(month.getFullYear(), month.getMonth(), day)
+    const dateString = formatDateForAPI(date)
+    
+    // Find API data for this date and competition
+    const apiDateItem = apiDateData.find(item => {
+      const itemDateString = formatApiDateForComparison(item.date)
+      return itemDateString === dateString && item.league === selectedCompetition
+    })
     
     // Check if date is enabled
-    const selectedComp = competitionTypes.find(comp => comp.id === selectedCompetition)
-    if (!selectedComp || !selectedComp.restrictions.enabledDates.includes(dateString)) {
+    if (!apiDateItem || apiDateItem.status !== 'enabled') {
       addToast({
         type: 'warning',
         title: 'Date Not Enabled',
@@ -221,18 +304,18 @@ export default function DateManagement() {
       return
     }
 
-    // Check existing custom prices for both sports
-    const footballStandardPrice = getCustomPrice(dateString, 'football', 'standard')
-    const footballPremiumPrice = getCustomPrice(dateString, 'football', 'premium')
-    const basketballStandardPrice = getCustomPrice(dateString, 'basketball', 'standard')
-    const basketballPremiumPrice = getCustomPrice(dateString, 'basketball', 'premium')
+    // Get existing prices from API data
+    const footballStandardPrice = apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price
+    const footballPremiumPrice = apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price
+    const basketballStandardPrice = apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price
+    const basketballPremiumPrice = apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price
     
     // Determine which sport to show (prefer the one with existing custom prices)
     let selectedSport: 'football' | 'basketball' = 'football'
     let standardPrice = footballStandardPrice
     let premiumPrice = footballPremiumPrice
     
-    if ((basketballStandardPrice !== null) || (basketballPremiumPrice !== null)) {
+    if ((apiDateItem.updated_baskatball_standard_package_price !== null) || (apiDateItem.updated_baskatball_premium_package_price !== null)) {
       selectedSport = 'basketball'
       standardPrice = basketballStandardPrice
       premiumPrice = basketballPremiumPrice
@@ -254,6 +337,7 @@ export default function DateManagement() {
     console.log('Price Edit Data:', {
       date: dateString,
       selectedSport,
+      apiItem: apiDateItem,
       footballPrices: {
         standard: footballStandardPrice,
         premium: footballPremiumPrice,
@@ -274,63 +358,98 @@ export default function DateManagement() {
       date: dateString,
       sport: selectedSport,
       standardPrice: standardPrice || 0,
-      premiumPrice: premiumPrice || 0
+      premiumPrice: premiumPrice || 0,
+      apiItemId: apiDateItem.id // Store API item ID for updates
     })
     setShowPriceModal(true)
   }
 
-  const handleSavePrice = () => {
-    if (!priceEditData) return
+  const handleSavePrice = async () => {
+    if (!priceEditData || !priceEditData.apiItemId) return
 
-    setCompetitionTypes(prev => prev.map(comp => {
-      if (comp.id === selectedCompetition) {
-        const newCustomPrices = { ...comp.restrictions.customPrices }
-        
-        if (!newCustomPrices[priceEditData.date]) {
-          newCustomPrices[priceEditData.date] = {}
-        }
-        if (!newCustomPrices[priceEditData.date][priceEditData.sport]) {
-          newCustomPrices[priceEditData.date][priceEditData.sport] = {}
-        }
-        
-        // Set both standard and premium prices
-        if (priceEditData.standardPrice > 0) {
-          newCustomPrices[priceEditData.date][priceEditData.sport]!.standard = priceEditData.standardPrice
-        } else {
-          delete newCustomPrices[priceEditData.date][priceEditData.sport]!.standard
-        }
-        
-        if (priceEditData.premiumPrice > 0) {
-          newCustomPrices[priceEditData.date][priceEditData.sport]!.premium = priceEditData.premiumPrice
-        } else {
-          delete newCustomPrices[priceEditData.date][priceEditData.sport]!.premium
-        }
-
-        // Clean up empty objects
-        if (Object.keys(newCustomPrices[priceEditData.date][priceEditData.sport]!).length === 0) {
-          delete newCustomPrices[priceEditData.date][priceEditData.sport]
-        }
-        if (Object.keys(newCustomPrices[priceEditData.date]).length === 0) {
-          delete newCustomPrices[priceEditData.date]
-        }
-
-        return {
-          ...comp,
-          restrictions: {
-            ...comp.restrictions,
-            customPrices: newCustomPrices
-          }
-        }
+    try {
+      setIsSavingApiData(true)
+      
+      // Prepare update data based on sport
+      const updateData: {
+        sportname: string;
+        updated_football_standard_package_price?: number;
+        updated_football_premium_package_price?: number;
+        updated_baskatball_standard_package_price?: number;
+        updated_baskatball_premium_package_price?: number;
+      } = {
+        sportname: priceEditData.sport
       }
-      return comp
-    }))
-    
-    setShowPriceModal(false)
-    setPriceEditData(null)
-    setHasChanges(true)
+      
+      if (priceEditData.sport === 'football') {
+        updateData.updated_football_standard_package_price = priceEditData.standardPrice
+        updateData.updated_football_premium_package_price = priceEditData.premiumPrice
+      } else {
+        updateData.updated_baskatball_standard_package_price = priceEditData.standardPrice
+        updateData.updated_baskatball_premium_package_price = priceEditData.premiumPrice
+      }
+      
+      // Update via API
+      await updateDate(priceEditData.apiItemId, updateData)
+      
+      // Update local state
+      setApiDateData(prev => prev.map(item => 
+        item.id === priceEditData.apiItemId 
+          ? {
+              ...item,
+              sportname: priceEditData.sport,
+              updated_football_standard_package_price: priceEditData.sport === 'football' ? priceEditData.standardPrice : item.updated_football_standard_package_price,
+              updated_football_premium_package_price: priceEditData.sport === 'football' ? priceEditData.premiumPrice : item.updated_football_premium_package_price,
+              updated_baskatball_standard_package_price: priceEditData.sport === 'basketball' ? priceEditData.standardPrice : item.updated_baskatball_standard_package_price,
+              updated_baskatball_premium_package_price: priceEditData.sport === 'basketball' ? priceEditData.premiumPrice : item.updated_baskatball_premium_package_price
+            }
+          : item
+      ))
+      
+      setShowPriceModal(false)
+      setPriceEditData(null)
+      setHasChanges(true)
+      
+      addToast({
+        type: 'success',
+        title: 'Success!',
+        description: 'Prices updated successfully',
+        duration: 4000
+      })
+      
+    } catch (error) {
+      console.error('Error saving prices:', error)
+      addToast({
+        type: 'error',
+        title: 'Error',
+        description: 'Failed to update prices',
+        duration: 5000
+      })
+    } finally {
+      setIsSavingApiData(false)
+    }
   }
 
   const getCustomPrice = (date: string, sport: 'football' | 'basketball', packageType: 'standard' | 'premium'): number | null => {
+    // Find API data for this date and competition
+    const apiDateItem = apiDateData.find(item => {
+      const itemDateString = formatApiDateForComparison(item.date)
+      return itemDateString === date && item.league === selectedCompetition
+    })
+    
+    if (apiDateItem) {
+      if (sport === 'football') {
+        return packageType === 'standard' 
+          ? (apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price)
+          : (apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price)
+      } else {
+        return packageType === 'standard'
+          ? (apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price)
+          : (apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price)
+      }
+    }
+    
+    // Fallback to AppData if no API data found
     const selectedComp = competitionTypes.find(comp => comp.id === selectedCompetition)
     if (!selectedComp) return null
     
@@ -501,14 +620,14 @@ export default function DateManagement() {
                       </button>
                       <button
                         onClick={handleSave}
-                        disabled={isSaving || !hasChanges}
+                        disabled={isSaving || isSavingApiData || !hasChanges}
                         className={`flex items-center justify-center gap-2 px-3 py-2 md:px-4 rounded-lg font-medium font-['Poppins'] transition-all duration-200 text-sm md:text-base ${
-                          hasChanges && !isSaving
+                          hasChanges && !isSaving && !isSavingApiData
                             ? 'bg-[#76C043] hover:bg-lime-600 text-white'
                             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                       >
-                        {isSaving ? (
+                        {(isSaving || isSavingApiData) ? (
                           <>
                             <RefreshCw className="w-4 h-4 animate-spin" />
                             <span className="hidden sm:inline">Saving...</span>
@@ -533,6 +652,11 @@ export default function DateManagement() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <h3 className="text-base md:text-lg font-medium text-gray-900 font-['Poppins']">
                     Calendar Management
+                    {isLoadingApiData && (
+                      <span className="ml-2 text-sm text-blue-600 font-normal">
+                        (Loading API data...)
+                      </span>
+                    )}
                   </h3>
                   <div className="flex items-center justify-center gap-2">
                     <button
@@ -571,18 +695,23 @@ export default function DateManagement() {
                         return <div key={index} className="h-8 md:h-12"></div>
                       }
 
-                      const status = getDateStatus(day, currentMonth)
-                      const isClickable = isEditing || editingPrices
-                      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day)
-                      const dateString = date.toISOString().split('T')[0]
+                       const status = getDateStatus(day, currentMonth)
+                       const isClickable = isEditing || editingPrices
+                       const date = createCalendarDate(currentMonth.getFullYear(), currentMonth.getMonth(), day)
+                       const dateString = formatDateForAPI(date)
+                       
+                       // Check for custom prices from API data
+                       const apiDateItem = apiDateData.find(item => {
+                         const itemDateString = formatApiDateForComparison(item.date)
+                         return itemDateString === dateString && item.league === selectedCompetition
+                       })
                       
-                      // Check for custom prices
-                      const footballStandardPrice = getCustomPrice(dateString, 'football', 'standard')
-                      const footballPremiumPrice = getCustomPrice(dateString, 'football', 'premium')
-                      const basketballStandardPrice = getCustomPrice(dateString, 'basketball', 'standard')
-                      const basketballPremiumPrice = getCustomPrice(dateString, 'basketball', 'premium')
-                      const hasCustomPrices = footballStandardPrice !== null || footballPremiumPrice !== null || 
-                                            basketballStandardPrice !== null || basketballPremiumPrice !== null
+                      const hasCustomPrices = apiDateItem ? (
+                        apiDateItem.updated_football_standard_package_price !== null ||
+                        apiDateItem.updated_football_premium_package_price !== null ||
+                        apiDateItem.updated_baskatball_standard_package_price !== null ||
+                        apiDateItem.updated_baskatball_premium_package_price !== null
+                      ) : false
                       
                       return (
                         <div key={index} className="relative">
@@ -647,9 +776,17 @@ export default function DateManagement() {
               <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
                 <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-2 font-['Poppins']">Current Configuration</h3>
                 <div className="text-xs md:text-sm text-gray-600 font-['Poppins'] space-y-1">
-                  <p><strong>Enabled Dates:</strong> {selectedCompetitionData.restrictions.enabledDates.length} dates</p>
-                  <p><strong>Blocked Dates:</strong> {selectedCompetitionData.restrictions.blockedDates.length} dates</p>
-                  <p><strong>Neutral Dates:</strong> All other dates</p>
+                  <p><strong>API Data:</strong> {apiDateData.filter(item => item.league === selectedCompetition).length} dates loaded</p>
+                  <p><strong>Enabled Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.status === 'enabled').length} dates</p>
+                  <p><strong>Blocked Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.status === 'blocked').length} dates</p>
+                  <p><strong>Custom Prices:</strong> {apiDateData.filter(item => 
+                    item.league === selectedCompetition && (
+                      item.updated_football_standard_package_price !== null ||
+                      item.updated_football_premium_package_price !== null ||
+                      item.updated_baskatball_standard_package_price !== null ||
+                      item.updated_baskatball_premium_package_price !== null
+                    )
+                  ).length} dates</p>
                 </div>
               </div>
             </div>
