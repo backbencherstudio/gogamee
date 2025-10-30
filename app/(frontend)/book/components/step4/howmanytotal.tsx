@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { HiMinus, HiPlus } from 'react-icons/hi2';
 import { useBooking } from '../../context/BookingContext';
@@ -86,7 +86,7 @@ const CounterItem: React.FC<CounterItemProps> = ({
             onDecrement();
           }}
           disabled={isMinimumReached}
-          className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           <HiMinus 
             className={`w-4 h-4 xl:w-3.5 xl:h-3.5 ${!isMinimumReached ? 'text-zinc-950' : 'text-neutral-300'}`} 
@@ -108,7 +108,7 @@ const CounterItem: React.FC<CounterItemProps> = ({
             onIncrement();
           }}
           disabled={!canIncrement}
-          className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           <HiPlus className={`w-4 h-4 xl:w-3.5 xl:h-3.5 ${canIncrement ? 'text-zinc-950' : 'text-neutral-300'}`} />
         </button>
@@ -148,26 +148,21 @@ export default function HowManyTotal() {
 
   const watchedValues = watch();
 
-  // Sync with context when context data changes (especially for hero data)
-  // Only sync on mount and when fromHero flag is true
+  // One-time sync with hero context to avoid overwriting user interactions
+  const hasSyncedFromHeroRef = useRef(false);
   useEffect(() => {
-    const contextPeopleCount = formData.peopleCount;
-    
-    // Only sync if we have hero data and the values are different
-    if (formData.fromHero && 
-        (contextPeopleCount.adults !== watchedValues.adults ||
-         contextPeopleCount.kids !== watchedValues.kids ||
-         contextPeopleCount.babies !== watchedValues.babies)) {
-      
+    if (formData.fromHero && !hasSyncedFromHeroRef.current) {
+      const contextPeopleCount = formData.peopleCount;
       setValue('adults', contextPeopleCount.adults);
       setValue('kids', contextPeopleCount.kids);
       setValue('babies', contextPeopleCount.babies);
-      console.log('🎯 HowManyTotal - synced with hero context:', contextPeopleCount);
+      hasSyncedFromHeroRef.current = true;
+      console.log('🎯 HowManyTotal - one-time sync from hero:', contextPeopleCount);
     }
-  }, [watchedValues.adults, watchedValues.babies, watchedValues.kids, formData.peopleCount, formData.fromHero, setValue]); // Removed watchedValues to prevent loops
+  }, [formData.fromHero, formData.peopleCount, setValue]);
 
   // Calculate total count from watched values
-  const totalCount = watchedValues.adults + watchedValues.kids + watchedValues.babies;
+  const totalCount = (watchedValues.adults ?? 0) + (watchedValues.kids ?? 0) + (watchedValues.babies ?? 0);
   console.log('🎯 Current total count:', totalCount, 'Values:', watchedValues);
   const canAddMore = totalCount < MAX_TOTAL_PEOPLE;
 

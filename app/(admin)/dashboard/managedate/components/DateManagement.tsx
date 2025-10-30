@@ -42,7 +42,7 @@ interface PriceEditData {
 export default function DateManagement() {
   const { addToast } = useToast()
   const [competitionTypes, setCompetitionTypes] = useState<CompetitionType[]>([])
-  const [selectedCompetition, setSelectedCompetition] = useState<string>('european')
+  const [selectedCompetition, setSelectedCompetition] = useState<string>('national')
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
@@ -103,14 +103,14 @@ export default function DateManagement() {
     
     const competitionTypesData = [
       {
-        id: 'european',
-        name: 'European Leagues',
-        restrictions: allRestrictions.european
-      },
-      {
         id: 'national',
         name: 'National Leagues',
         restrictions: allRestrictions.national
+      },
+      {
+        id: 'european',
+        name: 'European Leagues',
+        restrictions: allRestrictions.european
       }
     ]
 
@@ -232,8 +232,10 @@ export default function DateManagement() {
       } else {
         // Create new item via API
         try {
+          // Set time to 12:00 UTC to avoid timezone shifting the calendar day
+          const utcNoon = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0))
           const newDateData = {
-            date: date.toISOString(),
+            date: utcNoon.toISOString(),
             status: 'enabled',
             league: selectedCompetition,
             sportname: 'football', // Default sport
