@@ -236,51 +236,62 @@ export default function DateSection() {
     return `${totalPrice}${currency}`
   }, [formData.selectedSport, formData.selectedPackage, packagePrices])
 
-  // Calculate price for a specific date (using custom prices if available)
-  const calculatePriceForDate = useCallback((date: Date, nights: number): string => {
+  // Helper: get base nightly price for a sport/package
+  const getBaseNightPrice = useCallback((sport: 'football' | 'basketball', pkg: 'standard' | 'premium'): number => {
+    const prices = packagePrices[sport]
+    if (!prices) return 0
+    return pkg === 'standard' ? prices.currentStandardPrice : prices.currentPremiumPrice
+  }, [packagePrices])
+
+  // Calculate price for a start date by summing per-night prices
+  const calculatePriceForDate = useCallback((startDate: Date, nights: number): string => {
     const sport = formData.selectedSport
     const packageType = formData.selectedPackage
-    
     if (!sport || !packageType) return '€'
-    
-    // Format date for comparison
-    const dateString = formatDateForAPI(date)
+
     const restrictions = getDateRestrictions()
-    
-    // Check if there are custom prices for this date
-    if (restrictions.customPrices[dateString]) {
-      const customPrice = restrictions.customPrices[dateString]
-      let price = 0
-      
-      if (sport === 'football') {
-        price = packageType === 'standard' 
-          ? customPrice.football?.standard || 0
-          : customPrice.football?.premium || 0
-      } else if (sport === 'basketball') {
-        price = packageType === 'standard'
-          ? customPrice.basketball?.standard || 0
-          : customPrice.basketball?.premium || 0
-      } else if (sport === 'both') {
-        // For 'both' sport, calculate combined cost
-        const footballPrice = packageType === 'standard' 
-          ? customPrice.football?.standard || 0
-          : customPrice.football?.premium || 0
-        const basketballPrice = packageType === 'standard'
-          ? customPrice.basketball?.standard || 0
-          : customPrice.basketball?.premium || 0
-        price = footballPrice + basketballPrice
-      }
-      
-      if (price > 0) {
-        // Calculate total price by multiplying by nights
-        const totalPrice = price * nights
-        return `${totalPrice}€`
+
+    let totalPrice = 0
+
+    for (let i = 0; i < nights; i++) {
+      const nightDate = new Date(startDate)
+      nightDate.setDate(startDate.getDate() + i)
+      const dateKey = formatDateForAPI(nightDate)
+      const custom = restrictions.customPrices[dateKey]
+
+      if (sport === 'both') {
+        // Sum football + basketball for each night, using custom if available; fallback to base
+        let footballNightPrice: number | undefined
+        let basketballNightPrice: number | undefined
+        if (custom?.football) {
+          footballNightPrice = (packageType === 'standard') ? (custom.football.standard ?? undefined) : (custom.football.premium ?? undefined)
+        }
+        if (custom?.basketball) {
+          basketballNightPrice = (packageType === 'standard') ? (custom.basketball.standard ?? undefined) : (custom.basketball.premium ?? undefined)
+        }
+
+        const footballPrice = (footballNightPrice ?? getBaseNightPrice('football', packageType as 'standard' | 'premium'))
+        const basketballPrice = (basketballNightPrice ?? getBaseNightPrice('basketball', packageType as 'standard' | 'premium'))
+        totalPrice += footballPrice + basketballPrice
+      } else if (sport === 'football' || sport === 'basketball') {
+        let nightPrice: number | undefined
+        if (sport === 'football') {
+          nightPrice = packageType === 'standard' ? custom?.football?.standard : custom?.football?.premium
+        } else {
+          nightPrice = packageType === 'standard' ? custom?.basketball?.standard : custom?.basketball?.premium
+        }
+        if (typeof nightPrice !== 'number') {
+          nightPrice = getBaseNightPrice(sport, packageType as 'standard' | 'premium')
+        }
+        totalPrice += nightPrice
       }
     }
-    
-    // Fallback to base price calculation if no custom price
-    return calculatePrice(nights)
-  }, [formData.selectedSport, formData.selectedPackage, getDateRestrictions, calculatePrice])
+
+    // Determine currency (prefer football if available)
+    const currencySource = sport === 'basketball' ? packagePrices.basketball : packagePrices.football || packagePrices.basketball
+    const currency = currencySource?.currency === 'usd' ? '$' : currencySource?.currency === 'euro' ? '€' : '£'
+    return `${totalPrice}${currency || '€'}`
+  }, [formData.selectedSport, formData.selectedPackage, getDateRestrictions, getBaseNightPrice, packagePrices])
 
   // Fetch API data
   useEffect(() => {
