@@ -1,11 +1,14 @@
 'use client'
 
 import Image from 'next/image'
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { FaPlane } from 'react-icons/fa'
 import { useBooking } from '../../context/BookingContext'
-import { personalInfoData, pricing, pricingData, flightScheduleData, leaguePricingData, removeLeagueData, AppData } from '../../../../lib/appdata'
+import { personalInfoData, pricingData, flightScheduleData, leaguePricingData, removeLeagueData } from '../../../../lib/appdata'
+import { getAllDates } from '../../../../../services/dateManagementService'
+import { getStartingPrice, StartingPriceItem } from '../../../../../services/packageService'
+import { formatDateForAPI, formatApiDateForComparison } from '../../../../../lib/dateUtils'
 
 // Utility functions for dynamic data calculation
 const formatDate = (dateString: string): string => {
@@ -33,18 +36,127 @@ const calculateDuration = (departureDate: string, returnDate: string): number =>
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
 }
 
-const calculateBasePrice = (sport: string, packageType: string, nights: number): number => {
-  if (!sport || !packageType || !nights) return 0
-  
-  // Use AppData pricing system for consistent calculations
-  // This now handles "both" sport option by calculating combined costs
-  return AppData.pricing.calculatePackageCost({
-    selectedSport: sport,
-    selectedPackage: packageType,
-    selectedLeague: 'national', // Default league for base calculation
-    departureDate: new Date().toISOString(),
-    travelDuration: nights
-  })
+type DateRestrictions = {
+  enabledDates: string[]
+  blockedDates: string[]
+  customPrices: Record<string, {
+    football?: { standard?: number; premium?: number }
+    basketball?: { standard?: number; premium?: number }
+  }>
+}
+
+// Local pricing helpers (mirror Date step logic)
+const usePerNightPricing = () => {
+  interface ApiDateData {
+    date: string
+    status: string
+    football_standard_package_price: number
+    football_premium_package_price: number
+    baskatball_standard_package_price: number
+    baskatball_premium_package_price: number
+    updated_football_standard_package_price: number | null
+    updated_football_premium_package_price: number | null
+    updated_baskatball_standard_package_price: number | null
+    updated_baskatball_premium_package_price: number | null
+    sportname: string
+    league: string
+  }
+  const [apiDateData, setApiDateData] = useState<ApiDateData[]>([])
+  const [packagePrices, setPackagePrices] = useState<{ football: StartingPriceItem | null; basketball: StartingPriceItem | null }>({ football: null, basketball: null })
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const [datesRes, footballRes, basketballRes] = await Promise.all([
+          getAllDates(),
+          getStartingPrice('football'),
+          getStartingPrice('basketball')
+        ])
+        setApiDateData(datesRes || [])
+        if (footballRes.success && basketballRes.success) {
+          setPackagePrices({
+            football: footballRes.data?.[0] || null,
+            basketball: basketballRes.data?.[0] || null
+          })
+        }
+      } catch (e) {
+        console.error('Pricing bootstrap failed:', e)
+      }
+    }
+    fetchAll()
+  }, [])
+
+  const getDateRestrictions = useCallback((): DateRestrictions => {
+    const enabledDates: string[] = []
+    const blockedDates: string[] = []
+    const customPrices: DateRestrictions['customPrices'] = {}
+
+    apiDateData.forEach((item) => {
+      const dateString = formatApiDateForComparison(item.date)
+      if (item.status === 'enabled') {
+        enabledDates.push(dateString)
+        customPrices[dateString] = {
+          football: {
+            standard: item.updated_football_standard_package_price ?? item.football_standard_package_price,
+            premium: item.updated_football_premium_package_price ?? item.football_premium_package_price
+          },
+          basketball: {
+            standard: item.updated_baskatball_standard_package_price ?? item.baskatball_standard_package_price,
+            premium: item.updated_baskatball_premium_package_price ?? item.baskatball_premium_package_price
+          }
+        }
+      } else {
+        blockedDates.push(dateString)
+      }
+    })
+
+    return { enabledDates, blockedDates, customPrices }
+  }, [apiDateData])
+
+  const getBaseNightPrice = useCallback((sport: 'football' | 'basketball', pkg: 'standard' | 'premium'): number => {
+    const prices = packagePrices[sport]
+    if (!prices) return 0
+    return pkg === 'standard' ? prices.currentStandardPrice : prices.currentPremiumPrice
+  }, [packagePrices])
+
+  const sumPerNight = useCallback((params: {
+    startISO: string | null
+    endISO: string | null
+    selectedSport: 'football' | 'basketball' | 'both' | ''
+    selectedPackage: 'standard' | 'premium' | ''
+  }): number => {
+    const { startISO, endISO, selectedSport, selectedPackage } = params
+    if (!startISO || !endISO || !selectedSport || !selectedPackage) return 0
+
+    const start = new Date(startISO)
+    const end = new Date(endISO)
+    // nights = days - 1; iterate over nights from start to day before end
+    const restrictions = getDateRestrictions()
+    let total = 0
+
+    const nights = Math.max(0, Math.ceil((end.getTime() - start.getTime()) / (1000*60*60*24)))
+    for (let i = 0; i < nights; i++) {
+      const d = new Date(start)
+      d.setDate(start.getDate() + i)
+      const dateKey = formatDateForAPI(d)
+      const custom = restrictions.customPrices[dateKey]
+
+      if (selectedSport === 'both') {
+        const f = custom?.football ? (selectedPackage === 'standard' ? custom.football.standard : custom.football.premium) : undefined
+        const b = custom?.basketball ? (selectedPackage === 'standard' ? custom.basketball.standard : custom.basketball.premium) : undefined
+        total += (typeof f === 'number' ? f : getBaseNightPrice('football', selectedPackage))
+              + (typeof b === 'number' ? b : getBaseNightPrice('basketball', selectedPackage))
+      } else if (selectedSport === 'football' || selectedSport === 'basketball') {
+        const night = selectedSport === 'football'
+          ? (selectedPackage === 'standard' ? custom?.football?.standard : custom?.football?.premium)
+          : (selectedPackage === 'standard' ? custom?.basketball?.standard : custom?.basketball?.premium)
+        total += typeof night === 'number' ? night : getBaseNightPrice(selectedSport, selectedPackage)
+      }
+    }
+    return total
+  }, [getDateRestrictions, getBaseNightPrice])
+
+  return { sumPerNight }
 }
 
 const calculateExtrasCost = (extras: Array<{
@@ -223,6 +335,7 @@ const loadFromStorage = (): PersonalInfoFormData | null => {
 
 export default function Personalinfo() {
   const { updateFormData, nextStep, formData } = useBooking()
+  const { sumPerNight } = usePerNightPricing()
   
   // Check if we have people count data from howmanytotal page
   const hasMultipleTravelers = formData.peopleCount && 
@@ -236,19 +349,23 @@ export default function Personalinfo() {
     const duration = calculateDuration(formData.departureDate || '', formData.returnDate || '')
     const nights = Math.max(0, duration - 1)
     
-    const basePrice = calculateBasePrice(
-      formData.selectedSport || '', 
-      formData.selectedPackage || '', 
-      nights
-    )
+    // Per-night package price for one person (handles custom prices)
+    const basePrice = sumPerNight({
+      startISO: formData.departureDate || null,
+      endISO: formData.returnDate || null,
+      selectedSport: (formData.selectedSport as 'football' | 'basketball' | 'both' | '') || '',
+      selectedPackage: (formData.selectedPackage as 'standard' | 'premium' | '') || ''
+    })
     
     const extrasCost = calculateExtrasCost(formData.extras || [])
     const flightScheduleCost = calculateFlightScheduleCost(formData.flightSchedule)
     const leagueCost = calculateLeagueCost(formData.selectedLeague || '')
     
-    // League removal cost: first removal free, subsequent removals 20€ each per person
+    // League removal cost: ignore when European Competition is selected
     const removedLeaguesCount = Array.isArray(formData.removedLeagues) ? formData.removedLeagues.length : 0
-    const removalCostPerPerson = removeLeagueData.calculateTotalCost(removedLeaguesCount)
+    const isEuropeanCompetition = (formData.selectedLeague === 'european' || formData.selectedLeague === 'European Competition')
+    const effectiveRemovedLeaguesCount = isEuropeanCompetition ? 0 : removedLeaguesCount
+    const removalCostPerPerson = removeLeagueData.calculateTotalCost(effectiveRemovedLeaguesCount)
     const removalTotal = removalCostPerPerson * totalPeople
     
     // Calculate package total (base price × total people)
@@ -292,7 +409,7 @@ export default function Personalinfo() {
       arrivalTimeRange: formData.flightSchedule ? 
         `${formatTime(formData.flightSchedule.arrival.start)} - ${formatTime(formData.flightSchedule.arrival.end)}` : ''
     }
-  }, [formData])
+  }, [formData, sumPerNight])
   
   // Debug: Log the reservation data
   useEffect(() => {
