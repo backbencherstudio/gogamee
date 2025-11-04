@@ -3,12 +3,18 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Plus, Star, Edit, Trash2, Save, X, User } from "lucide-react";
 import { AiFillStar } from "react-icons/ai";
-import AppData from "../../../../lib/appdata";
+import {
+  getAllTestimonials,
+  addTestimonial,
+  updateTestimonial,
+  deleteTestimonial,
+  TestimonialItem,
+} from "../../../../../services/testimonialService";
 import { uploadImage } from "../../../../lib/utils";
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 
 interface ReviewItem {
-  id: number;
+  id: string;
   name: string;
   role: string;
   image: string;
@@ -19,8 +25,8 @@ interface ReviewItem {
 export default function TestimonialPage() {
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingReview, setEditingReview] = useState<number | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [editingReview, setEditingReview] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [newReviewForm, setNewReviewForm] = useState({
     name: "",
@@ -39,9 +45,23 @@ export default function TestimonialPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
 
-  // Load review data from AppData
+  // Load review data from API
   useEffect(() => {
-    setReviews(AppData.reviews.getAll());
+    const load = async () => {
+      const res = await getAllTestimonials();
+      if (res.success) {
+        const mapped: ReviewItem[] = res.list.map((r) => ({
+          id: r.id,
+          name: r.name,
+          role: r.role,
+          image: r.image,
+          rating: r.rating,
+          review: r.review,
+        }));
+        setReviews(mapped);
+      }
+    };
+    load();
   }, []);
 
   const handleImageError = (imagePath: string, e: React.SyntheticEvent<HTMLImageElement, Event>) => {
@@ -101,25 +121,34 @@ export default function TestimonialPage() {
   };
 
   // Add new review
-  const handleAddReview = () => {
+  const handleAddReview = async () => {
     if (newReviewForm.name && newReviewForm.role && newReviewForm.review) {
-      const newReview = AppData.reviews.add({
+      const res = await addTestimonial({
         name: newReviewForm.name.trim(),
         role: newReviewForm.role.trim(),
         image: newReviewForm.image,
         rating: newReviewForm.rating,
-        review: newReviewForm.review.trim()
+        review: newReviewForm.review.trim(),
       });
-      
-      if (newReview) {
-        // Add the new review to the beginning of the local state for immediate display
-        setReviews([newReview, ...reviews]);
+      if (res.success) {
+        const r = res.data;
+        setReviews([
+          {
+            id: r.id,
+            name: r.name,
+            role: r.role,
+            image: r.image,
+            rating: r.rating,
+            review: r.review,
+          },
+          ...reviews,
+        ]);
         setNewReviewForm({
           name: "",
           role: "",
           image: "/homepage/image/avatar1.png",
           rating: 5,
-          review: ""
+          review: "",
         });
         setImagePreview(null);
         setShowAddForm(false);
@@ -128,10 +157,19 @@ export default function TestimonialPage() {
   };
 
   // Delete review
-  const handleDeleteReview = (id: number) => {
-    const success = AppData.reviews.delete(id);
-    if (success) {
-      setReviews(AppData.reviews.getAll());
+  const handleDeleteReview = async (id: string) => {
+    await deleteTestimonial(id);
+    const res = await getAllTestimonials();
+    if (res.success) {
+      const mapped: ReviewItem[] = res.list.map((r) => ({
+        id: r.id,
+        name: r.name,
+        role: r.role,
+        image: r.image,
+        rating: r.rating,
+        review: r.review,
+      }));
+      setReviews(mapped);
     }
     setDeleteConfirm(null);
   };
@@ -150,11 +188,20 @@ export default function TestimonialPage() {
   };
 
   // Save edit
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (editingReview) {
-      const updatedReview = AppData.reviews.update(editingReview, editForm);
-      if (updatedReview) {
-        setReviews(AppData.reviews.getAll());
+      await updateTestimonial(editingReview, editForm);
+      const res = await getAllTestimonials();
+      if (res.success) {
+        const mapped: ReviewItem[] = res.list.map((r) => ({
+          id: r.id,
+          name: r.name,
+          role: r.role,
+          image: r.image,
+          rating: r.rating,
+          review: r.review,
+        }));
+        setReviews(mapped);
       }
       setEditingReview(null);
       setEditImagePreview(null);
@@ -365,8 +412,8 @@ export default function TestimonialPage() {
 
         {/* Reviews List */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {reviews.map((review) => (
-            <div key={review.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+              {reviews.map((review) => (
+              <div key={review.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
               {editingReview === review.id ? (
                 /* Edit Form */
                 <div className="p-6">

@@ -43,6 +43,7 @@ export default function DateManagement() {
   const { addToast } = useToast()
   const [competitionTypes, setCompetitionTypes] = useState<CompetitionType[]>([])
   const [selectedCompetition, setSelectedCompetition] = useState<string>('national')
+  const [selectedSport, setSelectedSport] = useState<'football' | 'basketball'>('football')
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
@@ -180,10 +181,12 @@ export default function DateManagement() {
     const date = createCalendarDate(month.getFullYear(), month.getMonth(), day)
     const dateString = formatDateForAPI(date)
 
-    // Find API data for this date and selected competition
+    // Find API data for this date, selected competition, and selected sport
     const apiDateItem = apiDateData.find(item => {
       const itemDateString = formatApiDateForComparison(item.date)
-      return itemDateString === dateString && item.league === selectedCompetition
+      return itemDateString === dateString && 
+             item.league === selectedCompetition &&
+             item.sportname === selectedSport
     })
 
     if (apiDateItem) {
@@ -209,10 +212,12 @@ export default function DateManagement() {
     const date = createCalendarDate(month.getFullYear(), month.getMonth(), day)
     const dateString = formatDateForAPI(date)
     
-    // Find existing API data for this date and competition
+    // Find existing API data for this date, competition, and sport
     const existingItem = apiDateData.find(item => {
       const itemDateString = formatApiDateForComparison(item.date)
-      return itemDateString === dateString && item.league === selectedCompetition
+      return itemDateString === dateString && 
+             item.league === selectedCompetition &&
+             item.sportname === selectedSport
     })
 
     try {
@@ -238,7 +243,7 @@ export default function DateManagement() {
             date: utcNoon.toISOString(),
             status: 'enabled',
             league: selectedCompetition,
-            sportname: 'football', // Default sport
+            sportname: selectedSport,
             football_standard_package_price: basePrices.football?.standard || 0,
             football_premium_package_price: basePrices.football?.premium || 0,
             baskatball_standard_package_price: basePrices.basketball?.standard || 0,
@@ -289,10 +294,12 @@ export default function DateManagement() {
     const date = createCalendarDate(month.getFullYear(), month.getMonth(), day)
     const dateString = formatDateForAPI(date)
     
-    // Find API data for this date and competition
+    // Find API data for this date, competition, and sport
     const apiDateItem = apiDateData.find(item => {
       const itemDateString = formatApiDateForComparison(item.date)
-      return itemDateString === dateString && item.league === selectedCompetition
+      return itemDateString === dateString && 
+             item.league === selectedCompetition &&
+             item.sportname === selectedSport
     })
     
     // Check if date is enabled
@@ -306,21 +313,16 @@ export default function DateManagement() {
       return
     }
 
-    // Get existing prices from API data
-    const footballStandardPrice = apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price
-    const footballPremiumPrice = apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price
-    const basketballStandardPrice = apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price
-    const basketballPremiumPrice = apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price
+    // Get existing prices from API data based on selected sport
+    let standardPrice: number | null = null
+    let premiumPrice: number | null = null
     
-    // Determine which sport to show (prefer the one with existing custom prices)
-    let selectedSport: 'football' | 'basketball' = 'football'
-    let standardPrice = footballStandardPrice
-    let premiumPrice = footballPremiumPrice
-    
-    if ((apiDateItem.updated_baskatball_standard_package_price !== null) || (apiDateItem.updated_baskatball_premium_package_price !== null)) {
-      selectedSport = 'basketball'
-      standardPrice = basketballStandardPrice
-      premiumPrice = basketballPremiumPrice
+    if (selectedSport === 'football') {
+      standardPrice = apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price
+      premiumPrice = apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price
+    } else {
+      standardPrice = apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price
+      premiumPrice = apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price
     }
     
     // If no custom prices exist, use base prices from package service
@@ -340,19 +342,10 @@ export default function DateManagement() {
       date: dateString,
       selectedSport,
       apiItem: apiDateItem,
-      footballPrices: {
-        standard: footballStandardPrice,
-        premium: footballPremiumPrice,
-        base: basePrices.football
-      },
-      basketballPrices: {
-        standard: basketballStandardPrice,
-        premium: basketballPremiumPrice,
-        base: basePrices.basketball
-      },
-      finalPrices: {
+      prices: {
         standard: standardPrice,
-        premium: premiumPrice
+        premium: premiumPrice,
+        base: basePrices[selectedSport]
       }
     })
     
@@ -433,10 +426,12 @@ export default function DateManagement() {
   }
 
   const getCustomPrice = (date: string, sport: 'football' | 'basketball', packageType: 'standard' | 'premium'): number | null => {
-    // Find API data for this date and competition
+    // Find API data for this date, competition, and sport
     const apiDateItem = apiDateData.find(item => {
       const itemDateString = formatApiDateForComparison(item.date)
-      return itemDateString === date && item.league === selectedCompetition
+      return itemDateString === date && 
+             item.league === selectedCompetition &&
+             item.sportname === sport
     })
     
     if (apiDateItem) {
@@ -648,6 +643,36 @@ export default function DateManagement() {
                 </div>
               </div>
 
+              {/* Sport Selection */}
+              <div className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200">
+                <div className="flex flex-col gap-3">
+                  <span className="text-gray-700 font-medium font-['Poppins'] text-sm md:text-base">Select Sport</span>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      onClick={() => setSelectedSport('football')}
+                      className={`px-4 py-2 md:px-6 text-sm md:text-base rounded-lg font-medium font-['Poppins'] transition-all duration-200 flex items-center justify-center gap-2 ${
+                        selectedSport === 'football'
+                          ? 'bg-[#76C043] text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
+                    >
+                      <span>⚽</span>
+                      <span>Football</span>
+                    </button>
+                    <button
+                      onClick={() => setSelectedSport('basketball')}
+                      className={`px-4 py-2 md:px-6 text-sm md:text-base rounded-lg font-medium font-['Poppins'] transition-all duration-200 flex items-center justify-center gap-2 ${
+                        selectedSport === 'basketball'
+                          ? 'bg-[#76C043] text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
+                    >
+                      <span>🏀</span>
+                      <span>Basketball</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
 
               {/* Calendar Display */}
               <div className="flex flex-col gap-3 md:gap-4">
@@ -702,18 +727,39 @@ export default function DateManagement() {
                        const date = createCalendarDate(currentMonth.getFullYear(), currentMonth.getMonth(), day)
                        const dateString = formatDateForAPI(date)
                        
-                       // Check for custom prices from API data
+                       // Check for custom prices from API data for selected sport
                        const apiDateItem = apiDateData.find(item => {
                          const itemDateString = formatApiDateForComparison(item.date)
-                         return itemDateString === dateString && item.league === selectedCompetition
+                         return itemDateString === dateString && 
+                                item.league === selectedCompetition &&
+                                item.sportname === selectedSport
                        })
                       
+                      // Check if this date has custom prices for the selected sport
                       const hasCustomPrices = apiDateItem ? (
-                        apiDateItem.updated_football_standard_package_price !== null ||
-                        apiDateItem.updated_football_premium_package_price !== null ||
-                        apiDateItem.updated_baskatball_standard_package_price !== null ||
-                        apiDateItem.updated_baskatball_premium_package_price !== null
+                        selectedSport === 'football' 
+                          ? (apiDateItem.updated_football_standard_package_price !== null ||
+                             apiDateItem.updated_football_premium_package_price !== null)
+                          : (apiDateItem.updated_baskatball_standard_package_price !== null ||
+                             apiDateItem.updated_baskatball_premium_package_price !== null)
                       ) : false
+                      
+                      // Get currency symbol
+                      const currency = basePrices[selectedSport]?.currency || basePrices.football?.currency || basePrices.basketball?.currency || '€'
+                      
+                      // Get prices for selected sport
+                      let displayStandard: number | null = null
+                      let displayPremium: number | null = null
+                      
+                      if (apiDateItem) {
+                        if (selectedSport === 'football') {
+                          displayStandard = apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price
+                          displayPremium = apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price
+                        } else {
+                          displayStandard = apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price
+                          displayPremium = apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price
+                        }
+                      }
                       
                       return (
                         <div key={index} className="relative">
@@ -726,7 +772,7 @@ export default function DateManagement() {
                               }
                             }}
                             disabled={!isClickable}
-                            className={`h-8 md:h-12 w-full rounded-lg border-2 font-medium font-['Poppins'] transition-all duration-200 ${
+                            className={`h-auto min-h-[2rem] md:min-h-[3rem] w-full rounded-lg border-2 font-medium font-['Poppins'] transition-all duration-200 flex flex-col items-center justify-center p-1 ${
                               isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
                             } ${
                               status === 'enabled'
@@ -736,7 +782,17 @@ export default function DateManagement() {
                                 : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                             }`}
                           >
-                            <div className="text-xs md:text-sm">{day}</div>
+                            <div className="text-xs md:text-sm font-semibold">{day}</div>
+                            {/* Display custom prices */}
+                            {hasCustomPrices && displayStandard !== null && displayPremium !== null && (
+                              <div className="flex items-center justify-center gap-1 mt-0.5 w-full px-0.5">
+                                <span className="text-[10px] md:text-[11px]">{selectedSport === 'football' ? '⚽' : '🏀'}</span>
+                                <span className="text-[10px] md:text-[11px] font-medium">
+                                  {currency}{Math.round(displayStandard)}
+                                  <span className="text-[9px] md:text-[10px] opacity-75">/{currency}{Math.round(displayPremium)}</span>
+                                </span>
+                              </div>
+                            )}
                           </button>
                           
                           {/* Custom price indicator */}
@@ -776,17 +832,22 @@ export default function DateManagement() {
 
               {/* Summary */}
               <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
-                <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-2 font-['Poppins']">Current Configuration</h3>
+                <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-2 font-['Poppins']">Current Configuration ({selectedSport === 'football' ? '⚽ Football' : '🏀 Basketball'})</h3>
                 <div className="text-xs md:text-sm text-gray-600 font-['Poppins'] space-y-1">
-                  <p><strong>API Data:</strong> {apiDateData.filter(item => item.league === selectedCompetition).length} dates loaded</p>
-                  <p><strong>Enabled Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.status === 'enabled').length} dates</p>
-                  <p><strong>Blocked Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.status === 'blocked').length} dates</p>
+                  <p><strong>API Data:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport).length} dates loaded</p>
+                  <p><strong>Enabled Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport && item.status === 'enabled').length} dates</p>
+                  <p><strong>Blocked Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport && item.status === 'blocked').length} dates</p>
                   <p><strong>Custom Prices:</strong> {apiDateData.filter(item => 
-                    item.league === selectedCompetition && (
-                      item.updated_football_standard_package_price !== null ||
-                      item.updated_football_premium_package_price !== null ||
-                      item.updated_baskatball_standard_package_price !== null ||
-                      item.updated_baskatball_premium_package_price !== null
+                    item.league === selectedCompetition && 
+                    item.sportname === selectedSport && (
+                      (selectedSport === 'football' && (
+                        item.updated_football_standard_package_price !== null ||
+                        item.updated_football_premium_package_price !== null
+                      )) ||
+                      (selectedSport === 'basketball' && (
+                        item.updated_baskatball_standard_package_price !== null ||
+                        item.updated_baskatball_premium_package_price !== null
+                      ))
                     )
                   ).length} dates</p>
                 </div>

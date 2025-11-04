@@ -7,7 +7,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper/modules';
 import Image from 'next/image';
 import Link from 'next/link';
-import { reviews } from '../../../../lib/appdata';
+import { getAllTestimonials, TestimonialItem } from '../../../../../services/testimonialService';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -18,6 +18,7 @@ export default function Reviews() {
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [apiReviews, setApiReviews] = useState<TestimonialItem[]>([]);
 
   useEffect(() => {
     if (swiper && prevRef.current && nextRef.current) {
@@ -25,6 +26,14 @@ export default function Reviews() {
       swiper.navigation.update();
     }
   }, [swiper]);
+
+  useEffect(() => {
+    const load = async () => {
+      const res = await getAllTestimonials();
+      if (res.success) setApiReviews(res.list);
+    };
+    load();
+  }, []);
 
   const handleImageError = (imagePath: string, e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     // Only set fallback if we haven't already tried for this image
@@ -88,7 +97,7 @@ export default function Reviews() {
           }}
           className="pb-12"
         >
-          {reviews.map((review) => (
+          {apiReviews.map((review) => (
             <SwiperSlide key={review.id} className="h-auto">
               <div className="h-[298px] p-4 bg-white rounded-lg border border-gray-200 flex flex-col gap-4">
                 {/* Review Header */}
