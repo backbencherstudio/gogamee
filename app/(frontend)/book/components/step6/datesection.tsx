@@ -232,20 +232,20 @@ export default function DateSection() {
     if (sport === 'both') {
       const combinedBase = getBaseNightPrice('combined', packageType as 'standard' | 'premium', nights)
       if (combinedBase > 0) {
-        totalPrice = combinedBase * nights
+        totalPrice = combinedBase
         currencySymbol = getItemCurrencySymbol(packagePrices.combined)
       } else {
         const footballBase = getBaseNightPrice('football', packageType as 'standard' | 'premium', nights)
         const basketballBase = getBaseNightPrice('basketball', packageType as 'standard' | 'premium', nights)
-        totalPrice = (footballBase + basketballBase) * nights
+        totalPrice = footballBase + basketballBase
         currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
       }
     } else {
-      const base = getBaseNightPrice(sport as BaseSportKey, packageType as 'standard' | 'premium', nights)
-      totalPrice = base * nights
+      totalPrice = getBaseNightPrice(sport as BaseSportKey, packageType as 'standard' | 'premium', nights)
       currencySymbol = getItemCurrencySymbol(packagePrices[sport as BaseSportKey])
     }
 
+    if (totalPrice <= 0) return currencySymbol
     return `${totalPrice}${currencySymbol}`
   }, [formData.selectedSport, formData.selectedPackage, packagePrices, getBaseNightPrice, getItemCurrencySymbol])
 
@@ -255,48 +255,44 @@ export default function DateSection() {
     if (!sport || !packageType) return '€'
 
     const restrictions = getDateRestrictions()
+    const dateKey = formatDateForAPI(startDate)
+    const custom = restrictions.customPrices[dateKey]
+
     let totalPrice = 0
 
-    for (let i = 0; i < nights; i++) {
-      const nightDate = new Date(startDate)
-      nightDate.setDate(startDate.getDate() + i)
-      const dateKey = formatDateForAPI(nightDate)
-      const custom = restrictions.customPrices[dateKey]
+    const resolveSportPrice = (sportKey: BaseSportKey): number => {
+      const value =
+        sportKey === 'football'
+          ? packageType === 'standard'
+            ? custom?.football?.standard
+            : custom?.football?.premium
+          : packageType === 'standard'
+            ? custom?.basketball?.standard
+            : custom?.basketball?.premium
 
-      if (sport === 'both') {
-        let footballNightPrice: number | undefined
-        let basketballNightPrice: number | undefined
-        if (custom?.football) {
-          footballNightPrice =
-            packageType === 'standard'
-              ? custom.football.standard ?? undefined
-              : custom.football.premium ?? undefined
-        }
-        if (custom?.basketball) {
-          basketballNightPrice =
-            packageType === 'standard'
-              ? custom.basketball.standard ?? undefined
-              : custom.basketball.premium ?? undefined
-        }
-
-        const footballPrice = typeof footballNightPrice === 'number' ? footballNightPrice : 0
-        const basketballPrice = typeof basketballNightPrice === 'number' ? basketballNightPrice : 0
-        totalPrice += footballPrice + basketballPrice
-      } else if (sport === 'football' || sport === 'basketball') {
-        let nightPrice: number | undefined
-        if (sport === 'football') {
-          nightPrice =
-            packageType === 'standard'
-              ? custom?.football?.standard
-              : custom?.football?.premium
-        } else {
-          nightPrice =
-            packageType === 'standard'
-              ? custom?.basketball?.standard
-              : custom?.basketball?.premium
-        }
-        totalPrice += typeof nightPrice === 'number' ? nightPrice : 0
+      if (typeof value === 'number') {
+        return value
       }
+
+      return getBaseNightPrice(sportKey, packageType as 'standard' | 'premium', nights)
+    }
+
+    if (sport === 'both') {
+      const hasCustomFootball = typeof (packageType === 'standard' ? custom?.football?.standard : custom?.football?.premium) === 'number'
+      const hasCustomBasketball = typeof (packageType === 'standard' ? custom?.basketball?.standard : custom?.basketball?.premium) === 'number'
+
+      if (!hasCustomFootball && !hasCustomBasketball) {
+        const combinedBase = getBaseNightPrice('combined', packageType as 'standard' | 'premium', nights)
+        if (combinedBase > 0) {
+          totalPrice = combinedBase
+        } else {
+          totalPrice = resolveSportPrice('football') + resolveSportPrice('basketball')
+        }
+      } else {
+        totalPrice = resolveSportPrice('football') + resolveSportPrice('basketball')
+      }
+    } else if (sport === 'football' || sport === 'basketball') {
+      totalPrice = resolveSportPrice(sport as BaseSportKey)
     }
 
     let currencyItem: StartingPriceItem | null | undefined
@@ -313,7 +309,7 @@ export default function DateSection() {
       return currency
     }
     return `${totalPrice}${currency}`
-  }, [formData.selectedSport, formData.selectedPackage, getDateRestrictions, packagePrices, getItemCurrencySymbol])
+  }, [formData.selectedSport, formData.selectedPackage, getDateRestrictions, getBaseNightPrice, packagePrices, getItemCurrencySymbol])
 
   // Fetch API data
   useEffect(() => {

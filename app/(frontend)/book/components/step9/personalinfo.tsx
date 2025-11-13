@@ -131,29 +131,43 @@ const usePerNightPricing = () => {
     const start = new Date(startISO)
     const end = new Date(endISO)
     // nights = days - 1; iterate over nights from start to day before end
-    let total = 0
-
     const nights = Math.max(0, Math.ceil((end.getTime() - start.getTime()) / (1000*60*60*24)))
     const durationKey = getDurationKey(nights)
     const restrictions = getDateRestrictionsForDuration(durationKey)
-    for (let i = 0; i < nights; i++) {
-      const d = new Date(start)
-      d.setDate(start.getDate() + i)
-      const dateKey = formatDateForAPI(d)
-      const custom = restrictions.customPrices[dateKey]
 
-      if (selectedSport === 'both') {
-        const f = custom?.football ? (selectedPackage === 'standard' ? custom.football.standard : custom.football.premium) : undefined
-        const b = custom?.basketball ? (selectedPackage === 'standard' ? custom.basketball.standard : custom.basketball.premium) : undefined
-        total += (typeof f === 'number' ? f : 0) + (typeof b === 'number' ? b : 0)
-      } else if (selectedSport === 'football' || selectedSport === 'basketball') {
-        const night = selectedSport === 'football'
-          ? (selectedPackage === 'standard' ? custom?.football?.standard : custom?.football?.premium)
-          : (selectedPackage === 'standard' ? custom?.basketball?.standard : custom?.basketball?.premium)
-        total += typeof night === 'number' ? night : 0
-      }
+    const dateKey = formatDateForAPI(start)
+    const custom = restrictions.customPrices[dateKey]
+
+    if (!custom) {
+      return 0
     }
-    return total
+
+    if (selectedSport === 'both') {
+      const footballPrice =
+        custom.football && (selectedPackage === 'standard' ? custom.football.standard : custom.football.premium)
+      const basketballPrice =
+        custom.basketball && (selectedPackage === 'standard' ? custom.basketball.standard : custom.basketball.premium)
+
+      const footballTotal = typeof footballPrice === 'number' ? footballPrice : 0
+      const basketballTotal = typeof basketballPrice === 'number' ? basketballPrice : 0
+
+      if (footballTotal === 0 && basketballTotal === 0) {
+        return 0
+      }
+      return footballTotal + basketballTotal
+    }
+
+    if (selectedSport === 'football') {
+      const price = selectedPackage === 'standard' ? custom.football?.standard : custom.football?.premium
+      return typeof price === 'number' ? price : 0
+    }
+
+    if (selectedSport === 'basketball') {
+      const price = selectedPackage === 'standard' ? custom.basketball?.standard : custom.basketball?.premium
+      return typeof price === 'number' ? price : 0
+    }
+
+    return 0
   }, [getDateRestrictionsForDuration])
 
   return { sumPerNight }
