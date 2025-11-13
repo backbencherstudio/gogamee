@@ -228,6 +228,52 @@ export default function DateSection() {
     let totalPrice = 0
     let currencySymbol = '€'
 
+    // Check for custom price if a date is selected
+    // Calculate selectedDateRange inline to avoid dependency issue
+    let currentSelectedDateRange: { startDate: Date; endDate: Date } | null = null
+    if (selectedStartDate && selectedMonth !== null && selectedYear !== null) {
+      const startDate = new Date(selectedYear, selectedMonth, selectedStartDate)
+      const duration = DURATION_OPTIONS[selectedDuration].days
+      const endDate = new Date(startDate)
+      endDate.setDate(startDate.getDate() + duration - 1)
+      currentSelectedDateRange = { startDate, endDate }
+    }
+
+    if (currentSelectedDateRange) {
+      const restrictions = getDateRestrictions()
+      const dateString = formatDateForAPI(currentSelectedDateRange.startDate)
+      const customPrice = restrictions.customPrices[dateString]
+
+      if (customPrice) {
+        if (sport === 'both') {
+          const footballPrice = packageType === 'standard' 
+            ? (customPrice.football?.standard ?? 0)
+            : (customPrice.football?.premium ?? 0)
+          const basketballPrice = packageType === 'standard'
+            ? (customPrice.basketball?.standard ?? 0)
+            : (customPrice.basketball?.premium ?? 0)
+          totalPrice = footballPrice + basketballPrice
+          currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
+        } else if (sport === 'football') {
+          totalPrice = packageType === 'standard'
+            ? (customPrice.football?.standard ?? 0)
+            : (customPrice.football?.premium ?? 0)
+          currencySymbol = getItemCurrencySymbol(packagePrices.football)
+        } else if (sport === 'basketball') {
+          totalPrice = packageType === 'standard'
+            ? (customPrice.basketball?.standard ?? 0)
+            : (customPrice.basketball?.premium ?? 0)
+          currencySymbol = getItemCurrencySymbol(packagePrices.basketball)
+        }
+
+        // If custom price found and valid, return it
+        if (totalPrice > 0) {
+          return `${totalPrice}${currencySymbol}`
+        }
+      }
+    }
+
+    // Fallback to base price if no custom price found
     if (sport === 'both') {
       const combinedBase = getBaseNightPrice('combined', packageType as 'standard' | 'premium', nights)
       if (combinedBase > 0) {
@@ -246,7 +292,7 @@ export default function DateSection() {
 
     if (totalPrice <= 0) return currencySymbol
     return `${totalPrice}${currencySymbol}`
-  }, [formData.selectedSport, formData.selectedPackage, packagePrices, getBaseNightPrice, getItemCurrencySymbol])
+  }, [formData.selectedSport, formData.selectedPackage, packagePrices, getBaseNightPrice, getItemCurrencySymbol, selectedStartDate, selectedMonth, selectedYear, selectedDuration, getDateRestrictions])
 
 
   // Fetch API data
