@@ -18,17 +18,40 @@ async function getId(context: RouteContext) {
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const payload = await request.json();
   try {
+    const payload = await request.json();
     const id = await getId(context);
+    
+    console.log("PATCH /api/admin/date-management/[id] - Request:", {
+      id,
+      payload,
+      payloadKeys: Object.keys(payload)
+    });
+    
     const updated = await updateDate(id, payload);
+    
+    console.log("PATCH /api/admin/date-management/[id] - Success:", {
+      id,
+      updatedId: updated.id
+    });
+    
     return NextResponse.json(updated, {
       headers: { "Cache-Control": "no-store" },
     });
   } catch (error: unknown) {
-    console.error("Update date error", error);
+    console.error("PATCH /api/admin/date-management/[id] - Error:", error);
+    console.error("Error details:", {
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    });
+    
     return NextResponse.json(
-      { message: toErrorMessage(error, "Failed to update date") },
+      { 
+        success: false,
+        message: toErrorMessage(error, "Failed to update date"),
+        error: error instanceof Error ? error.message : "Unknown error"
+      },
       { status: 500 }
     );
   }

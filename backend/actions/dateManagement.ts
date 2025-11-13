@@ -153,35 +153,67 @@ export async function updateDate(
 ): Promise<DateManagementItem> {
   let updated: DateManagementItem | null = null;
 
-  await updateStore(DATE_STORE_FILE, (current) => {
-    const parsed = dateStoreSchema.parse(current);
-    const dates = parsed.dates.map((item) => {
-      if (item.id !== id) {
-        return item;
-      }
+  try {
+    await updateStore(DATE_STORE_FILE, (current) => {
+      const parsed = dateStoreSchema.parse(current);
+      const dates = parsed.dates.map((item) => {
+        if (item.id !== id) {
+          return item;
+        }
 
-      updated = dateManagementItemSchema.parse({
-        ...item,
-        ...payload,
-        updated_at: new Date().toISOString(),
-        duration: payload.duration ?? item.duration ?? "1",
+        // Merge item with payload, ensuring all required fields are preserved
+        const mergedData = {
+          ...item,
+          ...payload,
+          updated_at: new Date().toISOString(),
+          duration: payload.duration ?? item.duration ?? "1",
+          // Ensure base prices are preserved if not in payload
+          football_standard_package_price: payload.football_standard_package_price ?? item.football_standard_package_price,
+          football_premium_package_price: payload.football_premium_package_price ?? item.football_premium_package_price,
+          baskatball_standard_package_price: payload.baskatball_standard_package_price ?? item.baskatball_standard_package_price,
+          baskatball_premium_package_price: payload.baskatball_premium_package_price ?? item.baskatball_premium_package_price,
+          // Handle updated prices - allow null to clear custom prices
+          updated_football_standard_package_price: payload.updated_football_standard_package_price !== undefined 
+            ? payload.updated_football_standard_package_price 
+            : item.updated_football_standard_package_price,
+          updated_football_premium_package_price: payload.updated_football_premium_package_price !== undefined 
+            ? payload.updated_football_premium_package_price 
+            : item.updated_football_premium_package_price,
+          updated_baskatball_standard_package_price: payload.updated_baskatball_standard_package_price !== undefined 
+            ? payload.updated_baskatball_standard_package_price 
+            : item.updated_baskatball_standard_package_price,
+          updated_baskatball_premium_package_price: payload.updated_baskatball_premium_package_price !== undefined 
+            ? payload.updated_baskatball_premium_package_price 
+            : item.updated_baskatball_premium_package_price,
+        };
+
+        try {
+          updated = dateManagementItemSchema.parse(mergedData);
+        } catch (parseError) {
+          console.error('Schema validation error:', parseError);
+          console.error('Merged data:', JSON.stringify(mergedData, null, 2));
+          throw new Error(`Schema validation failed: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+        }
+
+        return updated;
       });
 
-      return updated;
+      if (!updated) {
+        throw new Error(`Date not found: ${id}`);
+      }
+
+      return {
+        dates,
+        meta: {
+          ...parsed.meta,
+          updatedAt: new Date().toISOString(),
+        },
+      };
     });
-
-    if (!updated) {
-      throw new Error(`Date not found: ${id}`);
-    }
-
-    return {
-      dates,
-      meta: {
-        ...parsed.meta,
-        updatedAt: new Date().toISOString(),
-      },
-    };
-  });
+  } catch (error) {
+    console.error('Error updating date:', error);
+    throw error;
+  }
 
   if (!updated) {
     throw new Error(`Failed to update date: ${id}`);

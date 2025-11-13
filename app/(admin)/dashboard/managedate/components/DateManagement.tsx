@@ -425,6 +425,26 @@ export default function DateManagement() {
     try {
       setIsSavingApiData(true)
       
+      // Ensure prices are valid numbers
+      const standardPrice = typeof priceEditData.standardPrice === 'number' && !isNaN(priceEditData.standardPrice) 
+        ? priceEditData.standardPrice 
+        : null
+      const premiumPrice = typeof priceEditData.premiumPrice === 'number' && !isNaN(priceEditData.premiumPrice)
+        ? priceEditData.premiumPrice
+        : null
+      
+      // Validate that at least one price is set
+      if ((!standardPrice || standardPrice <= 0) && (!premiumPrice || premiumPrice <= 0)) {
+        addToast({
+          type: 'error',
+          title: 'Invalid Prices',
+          description: 'Please enter at least one valid price greater than 0',
+          duration: 4000
+        })
+        setIsSavingApiData(false)
+        return
+      }
+      
       // Prepare update data based on sport
       const updateData: {
         sportname: string;
@@ -437,15 +457,32 @@ export default function DateManagement() {
       }
       
       if (priceEditData.sport === 'football') {
-        updateData.updated_football_standard_package_price = priceEditData.standardPrice
-        updateData.updated_football_premium_package_price = priceEditData.premiumPrice
+        if (standardPrice && standardPrice > 0) {
+          updateData.updated_football_standard_package_price = standardPrice
+        }
+        if (premiumPrice && premiumPrice > 0) {
+          updateData.updated_football_premium_package_price = premiumPrice
+        }
       } else {
-        updateData.updated_baskatball_standard_package_price = priceEditData.standardPrice
-        updateData.updated_baskatball_premium_package_price = priceEditData.premiumPrice
+        if (standardPrice && standardPrice > 0) {
+          updateData.updated_baskatball_standard_package_price = standardPrice
+        }
+        if (premiumPrice && premiumPrice > 0) {
+          updateData.updated_baskatball_premium_package_price = premiumPrice
+        }
       }
       
+      console.log('Saving price update:', {
+        id: priceEditData.apiItemId,
+        updateData,
+        standardPrice,
+        premiumPrice
+      })
+      
       // Update via API
-      await updateDate(priceEditData.apiItemId, updateData)
+      const updated = await updateDate(priceEditData.apiItemId, updateData)
+      
+      console.log('Price update successful:', updated)
       
       // Update local state
       setApiDateData(prev => {
@@ -1138,8 +1175,12 @@ export default function DateManagement() {
                     type="number"
                     min="0"
                     step="0.01"
-                    value={priceEditData.standardPrice}
-                    onChange={(e) => setPriceEditData(prev => prev ? {...prev, standardPrice: parseFloat(e.target.value) || 0} : null)}
+                    value={priceEditData.standardPrice || ''}
+                    onChange={(e) => {
+                      const value = e.target.value.trim()
+                      const numValue = value === '' ? 0 : Number(value)
+                      setPriceEditData(prev => prev ? {...prev, standardPrice: isNaN(numValue) ? 0 : numValue} : null)
+                    }}
                     placeholder={`Current: ${getCurrencySymbol(basePrices[priceEditData.sport]?.currency ?? 'euro')}${getBasePrice(priceEditData.sport, 'standard')}`}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
                   />
@@ -1156,8 +1197,12 @@ export default function DateManagement() {
                     type="number"
                     min="0"
                     step="0.01"
-                    value={priceEditData.premiumPrice}
-                    onChange={(e) => setPriceEditData(prev => prev ? {...prev, premiumPrice: parseFloat(e.target.value) || 0} : null)}
+                    value={priceEditData.premiumPrice || ''}
+                    onChange={(e) => {
+                      const value = e.target.value.trim()
+                      const numValue = value === '' ? 0 : Number(value)
+                      setPriceEditData(prev => prev ? {...prev, premiumPrice: isNaN(numValue) ? 0 : numValue} : null)
+                    }}
                     placeholder={`Current: ${getCurrencySymbol(basePrices[priceEditData.sport]?.currency ?? 'euro')}${getBasePrice(priceEditData.sport, 'premium')}`}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
                   />
