@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { DollarSign, Save, RefreshCw, Edit, X } from 'lucide-react'
 import { getAllPackages, editPackage, addPackage } from '../../../../../services/packageService'
 import { useToast } from '../../../../../components/ui/toast'
@@ -30,12 +30,7 @@ export default function PriceManagement({ onPriceUpdate }: PriceManagementProps)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Load price data from packages
-  useEffect(() => {
-    loadPriceData()
-  }, [])
-
-  const loadPriceData = async () => {
+  const loadPriceData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -97,7 +92,12 @@ export default function PriceManagement({ onPriceUpdate }: PriceManagementProps)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  // Load price data from packages
+  useEffect(() => {
+    loadPriceData()
+  }, [loadPriceData])
 
   // Create Starting Price package for a sport
   const createStartingPricePackage = async (sport: 'football' | 'basketball') => {

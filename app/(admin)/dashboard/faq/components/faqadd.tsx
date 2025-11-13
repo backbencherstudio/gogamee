@@ -33,7 +33,7 @@ export default function FaqAdd() {
         } else {
           setError("Failed to load FAQs");
         }
-      } catch (e) {
+      } catch {
         setError("Failed to load FAQs");
       } finally {
         setLoading(false);

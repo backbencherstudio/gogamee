@@ -2477,7 +2477,7 @@ export const AppData = {
     },
     
     // Update specific section
-    updateSection: async function(section: string, _data: unknown) {
+    updateSection: async function(section: string) {
       // TODO: Replace with actual API call
       // const response = await fetch(`/api/${section}`, {
       //   method: 'PUT',

@@ -30,7 +30,6 @@ const PAYMENT_METHODS = {
 export default function Payment() {
   const { formData, updateFormData, clearBookingData } = useBooking()
   const [isProcessing, setIsProcessing] = useState(false)
-  const [error, setError] = useState('')
   
   // Storage key for payment form data
   const STORAGE_KEY = paymentData.storage.key
@@ -482,7 +481,6 @@ export default function Payment() {
         
       } catch (error) {
         console.error('❌ Error creating booking:', error)
-        setError('Failed to create booking. Please try again.')
         setIsProcessing(false)
         return
       }
