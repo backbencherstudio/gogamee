@@ -119,6 +119,14 @@ export default function DateManagement() {
     try {
       setIsLoadingApiData(true)
       const data = await getAllDates()
+      
+      // Ensure data is an array
+      if (!Array.isArray(data)) {
+        console.warn('Date Management - API returned non-array data, using empty array');
+        setApiDateData([])
+        return
+      }
+      
       setApiDateData(
         data.map((item) => ({
           ...item,
@@ -127,6 +135,7 @@ export default function DateManagement() {
       )
     } catch (error) {
       console.error('Error loading API date data:', error)
+      setApiDateData([]) // Set empty array on error
       addToast({
         type: 'error',
         title: 'Error',
@@ -237,12 +246,16 @@ export default function DateManagement() {
 
     // Fallback to AppData only for legacy 1-night defaults if available
     const selectedComp = competitionTypes.find(comp => comp.id === selectedCompetition)
-    if (!selectedComp) return 'neutral'
+    if (!selectedComp || !selectedComp.restrictions) return 'neutral'
 
-    if (selectedComp.restrictions.enabledDates.includes(dateString)) {
+    // Ensure arrays exist before calling includes
+    const enabledDates = selectedComp.restrictions.enabledDates || []
+    const blockedDates = selectedComp.restrictions.blockedDates || []
+
+    if (Array.isArray(enabledDates) && enabledDates.includes(dateString)) {
       return 'enabled'
     }
-    if (selectedComp.restrictions.blockedDates.includes(dateString)) {
+    if (Array.isArray(blockedDates) && blockedDates.includes(dateString)) {
       return 'blocked'
     }
     return 'neutral'
@@ -256,13 +269,15 @@ export default function DateManagement() {
     
     // Find existing API data for this date, competition, sport, AND duration
     // Each duration has completely independent date entries - same date can exist for multiple durations
-    const existingItem = apiDateData.find(item => {
-      const itemDateString = formatApiDateForComparison(item.date)
-      return itemDateString === dateString && 
-             item.league === selectedCompetition &&
-             item.sportname === selectedSport &&
-             item.duration === selectedDuration // Critical: filter by duration to allow same date for different durations
-    })
+    const existingItem = Array.isArray(apiDateData) 
+      ? apiDateData.find(item => {
+          const itemDateString = formatApiDateForComparison(item.date)
+          return itemDateString === dateString && 
+                 item.league === selectedCompetition &&
+                 item.sportname === selectedSport &&
+                 item.duration === selectedDuration // Critical: filter by duration to allow same date for different durations
+        })
+      : undefined
 
     try {
       setIsSavingApiData(true)
@@ -273,11 +288,14 @@ export default function DateManagement() {
         await updateDate(existingItem.id, { status: newStatus })
         
         // Update local state
-        setApiDateData(prev => prev.map(item => 
-          item.id === existingItem.id 
-            ? { ...item, status: newStatus }
-            : item
-        ))
+        setApiDateData(prev => {
+          if (!Array.isArray(prev)) return []
+          return prev.map(item => 
+            item.id === existingItem.id 
+              ? { ...item, status: newStatus }
+              : item
+          )
+        })
       } else {
         // Create new item via API - this creates a completely independent entry for the selected duration
         // Even if the same date exists for other durations, this creates a new entry for this specific duration
@@ -430,18 +448,21 @@ export default function DateManagement() {
       await updateDate(priceEditData.apiItemId, updateData)
       
       // Update local state
-      setApiDateData(prev => prev.map(item => 
-        item.id === priceEditData.apiItemId 
-          ? {
-              ...item,
-              sportname: priceEditData.sport,
-              updated_football_standard_package_price: priceEditData.sport === 'football' ? priceEditData.standardPrice : item.updated_football_standard_package_price,
+      setApiDateData(prev => {
+        if (!Array.isArray(prev)) return []
+        return prev.map(item => 
+          item.id === priceEditData.apiItemId 
+            ? {
+                ...item,
+                sportname: priceEditData.sport,
+                updated_football_standard_package_price: priceEditData.sport === 'football' ? priceEditData.standardPrice : item.updated_football_standard_package_price,
               updated_football_premium_package_price: priceEditData.sport === 'football' ? priceEditData.premiumPrice : item.updated_football_premium_package_price,
               updated_baskatball_standard_package_price: priceEditData.sport === 'basketball' ? priceEditData.standardPrice : item.updated_baskatball_standard_package_price,
               updated_baskatball_premium_package_price: priceEditData.sport === 'basketball' ? priceEditData.premiumPrice : item.updated_baskatball_premium_package_price
             }
           : item
-      ))
+        )
+      })
       
       setShowPriceModal(false)
       setPriceEditData(null)
@@ -566,14 +587,18 @@ export default function DateManagement() {
       setIsSavingApiData(true)
       
       // Find all dates for this duration, competition, and sport
-      const datesToDelete = apiDateData.filter(item => 
-        item.league === selectedCompetition &&
-        item.sportname === selectedSport &&
-        item.duration === duration
-      )
+      const datesToDelete = Array.isArray(apiDateData) 
+        ? apiDateData.filter(item => 
+            item.league === selectedCompetition &&
+            item.sportname === selectedSport &&
+            item.duration === duration
+          )
+        : []
 
       // Delete all matching dates
-      await Promise.all(datesToDelete.map(item => deleteDate(item.id)))
+      if (datesToDelete.length > 0) {
+        await Promise.all(datesToDelete.map(item => deleteDate(item.id)))
+      }
 
       // Reload data to refresh the UI
       await loadApiDateData()

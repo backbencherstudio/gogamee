@@ -74,7 +74,23 @@ export const getAllDates = async (): Promise<DateManagementItem[]> => {
   console.log('Date Management Service - Fetching all dates');
   const response = await axiosClient.get("/admin/date-management");
   console.log('Date Management Service - Dates received:', response.data);
-  return response.data;
+  
+  // Handle different response structures
+  if (response.data && Array.isArray(response.data)) {
+    return response.data;
+  }
+  
+  if (response.data && response.data.data && Array.isArray(response.data.data)) {
+    return response.data.data;
+  }
+  
+  if (response.data && response.data.success && Array.isArray(response.data.data)) {
+    return response.data.data;
+  }
+  
+  // Return empty array if no valid data found
+  console.warn('Date Management Service - No valid array data found, returning empty array');
+  return [];
 };
 
 // POST create new date
