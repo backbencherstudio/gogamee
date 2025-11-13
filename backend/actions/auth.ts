@@ -2,16 +2,15 @@
 
 import { randomBytes, randomUUID, timingSafeEqual } from "crypto";
 import { cookies, headers } from "next/headers";
-import { readStore, updateStore, JsonStoreError } from "../lib/jsonStore";
+import { readStore, JsonStoreError } from "../lib/jsonStore";
 import {
   adminStoreSchema,
-  sessionStoreSchema,
   type Admin,
   type Session,
 } from "../schemas";
+import { appendSession, removeSession, findSessionByToken } from "../lib/sessionStore";
 
 const ADMIN_STORE_FILE = "admins.json";
-const SESSION_STORE_FILE = "sessions.json";
 const SESSION_COOKIE = "gogame_admin_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
@@ -86,52 +85,7 @@ async function readAdmins(): Promise<Admin[]> {
   return parsed.admins;
 }
 
-async function appendSession(session: Session): Promise<void> {
-  await updateStore(SESSION_STORE_FILE, (current) => {
-    const parsed = sessionStoreSchema.parse(current);
-    const sessions = parsed.sessions.filter(
-      (existing) => existing.token !== session.token
-    );
-    sessions.push(session);
-    return {
-      sessions,
-      meta: {
-        ...parsed.meta,
-        updatedAt: new Date().toISOString(),
-      },
-    };
-  });
-}
-
-async function removeSession(token: string): Promise<void> {
-  await updateStore(SESSION_STORE_FILE, (current) => {
-    const parsed = sessionStoreSchema.parse(current);
-    const sessions = parsed.sessions.filter(
-      (existing) => existing.token !== token
-    );
-    return {
-      sessions,
-      meta: {
-        ...parsed.meta,
-        updatedAt: new Date().toISOString(),
-      },
-    };
-  });
-}
-
-async function findSessionByToken(token: string): Promise<Session | null> {
-  try {
-    const raw = await readStore(SESSION_STORE_FILE);
-    const parsed = sessionStoreSchema.parse(raw);
-    const session = parsed.sessions.find((entry) => entry.token === token);
-    return session ?? null;
-  } catch (error) {
-    if (error instanceof JsonStoreError) {
-      return null;
-    }
-    throw error;
-  }
-}
+// Session management functions are now imported from sessionStore.ts
 
 export async function login(payload: LoginPayload): Promise<LoginResponse> {
   const admins = await readAdmins();
