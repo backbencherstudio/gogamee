@@ -4,7 +4,7 @@ import { Calendar, Save, RefreshCw, ChevronLeft, ChevronRight, DollarSign, X } f
 import AppData from '../../../../lib/appdata'
 import { useToast } from '../../../../../components/ui/toast'
 import { getStartingPrice, type StartingPriceItem } from '../../../../../services/packageService'
-import { getAllDates, updateDate, createDate, DateManagementItem } from '../../../../../services/dateManagementService'
+import { getAllDates, updateDate, createDate, deleteDate, DateManagementItem } from '../../../../../services/dateManagementService'
 import { formatDateForAPI, formatApiDateForComparison, createCalendarDate } from '../../../../../lib/dateUtils'
 
 // Date restriction interface for calendar-based system
@@ -215,13 +215,15 @@ export default function DateManagement() {
     const date = createCalendarDate(month.getFullYear(), month.getMonth(), day)
     const dateString = formatDateForAPI(date)
 
-    // Find API data for this date, selected competition, and selected sport
+    // Find API data for this date, selected competition, sport, AND duration
+    // Each duration has independent date entries - filtering by duration ensures
+    // that dates enabled for one duration don't affect other durations
     const apiDateItem = apiDateData.find(item => {
       const itemDateString = formatApiDateForComparison(item.date)
       return itemDateString === dateString && 
              item.league === selectedCompetition &&
              item.sportname === selectedSport &&
-             item.duration === selectedDuration
+             item.duration === selectedDuration // Critical: each duration has its own date entries
     })
 
     if (apiDateItem) {
@@ -252,13 +254,14 @@ export default function DateManagement() {
     const date = createCalendarDate(month.getFullYear(), month.getMonth(), day)
     const dateString = formatDateForAPI(date)
     
-    // Find existing API data for this date, competition, and sport
+    // Find existing API data for this date, competition, sport, AND duration
+    // Each duration has completely independent date entries - same date can exist for multiple durations
     const existingItem = apiDateData.find(item => {
       const itemDateString = formatApiDateForComparison(item.date)
       return itemDateString === dateString && 
              item.league === selectedCompetition &&
              item.sportname === selectedSport &&
-             item.duration === selectedDuration
+             item.duration === selectedDuration // Critical: filter by duration to allow same date for different durations
     })
 
     try {
@@ -276,7 +279,8 @@ export default function DateManagement() {
             : item
         ))
       } else {
-        // Create new item via API
+        // Create new item via API - this creates a completely independent entry for the selected duration
+        // Even if the same date exists for other durations, this creates a new entry for this specific duration
         try {
           // Set time to 12:00 UTC to avoid timezone shifting the calendar day
           const utcNoon = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0))
@@ -289,9 +293,8 @@ export default function DateManagement() {
             football_premium_package_price: getBasePrice('football', 'premium'),
             baskatball_standard_package_price: getBasePrice('basketball', 'standard'),
             baskatball_premium_package_price: getBasePrice('basketball', 'premium'),
-            approve_status: 'pending'
-            ,
-            duration: selectedDuration
+            approve_status: 'pending',
+            duration: selectedDuration // This ensures each duration has its own independent data
           }
           
           const createdItem = await createDate(newDateData)
@@ -551,6 +554,51 @@ export default function DateManagement() {
     setEditingPrices(true)
   }
 
+  const handleResetDuration = async (duration: '1' | '2' | '3' | '4') => {
+    // Confirm before resetting
+    const confirmMessage = `Are you sure you want to reset all data for ${duration} Night${duration === '1' ? '' : 's'} package?\n\nThis will delete all enabled dates, blocked dates, and custom prices for:\n- ${selectedCompetition === 'national' ? 'National' : 'European'} Leagues\n- ${selectedSport === 'football' ? 'Football' : 'Basketball'}\n- ${duration} Night${duration === '1' ? '' : 's'} duration\n\nThis action cannot be undone.`
+    
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      setIsSavingApiData(true)
+      
+      // Find all dates for this duration, competition, and sport
+      const datesToDelete = apiDateData.filter(item => 
+        item.league === selectedCompetition &&
+        item.sportname === selectedSport &&
+        item.duration === duration
+      )
+
+      // Delete all matching dates
+      await Promise.all(datesToDelete.map(item => deleteDate(item.id)))
+
+      // Reload data to refresh the UI
+      await loadApiDateData()
+
+      addToast({
+        type: 'success',
+        title: 'Reset Complete',
+        description: `All data for ${duration} Night${duration === '1' ? '' : 's'} package has been reset successfully`,
+        duration: 4000
+      })
+
+      setHasChanges(true)
+    } catch (error) {
+      console.error('Error resetting duration data:', error)
+      addToast({
+        type: 'error',
+        title: 'Error',
+        description: 'Failed to reset duration data. Please try again.',
+        duration: 5000
+      })
+    } finally {
+      setIsSavingApiData(false)
+    }
+  }
+
   const navigateMonth = (direction: 'prev' | 'next') => {
     setCurrentMonth(prevMonth => {
       const newMonth = new Date(prevMonth)
@@ -701,21 +749,36 @@ export default function DateManagement() {
           <div className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200">
             <div className="flex flex-col gap-3">
               <span className="text-gray-700 font-medium font-['Poppins'] text-sm md:text-base">Select Package Duration</span>
-              <div className="flex flex-col sm:flex-row gap-2">
-                {(['1', '2', '3', '4'] as const).map((duration) => (
-                  <button
-                    key={duration}
-                    onClick={() => setSelectedDuration(duration)}
-                    className={`px-4 py-2 md:px-6 text-sm md:text-base rounded-lg font-medium font-['Poppins'] transition-all duration-200 flex items-center justify-center gap-2 ${
-                      selectedDuration === duration
-                        ? 'bg-[#76C043] text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
-                    }`}
-                  >
-                    <span>{duration}</span>
-                    <span>Night{duration === '1' ? '' : 's'}</span>
-                  </button>
-                ))}
+              <div className="flex flex-col sm:flex-row gap-2 items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {(['1', '2', '3', '4'] as const).map((duration) => (
+                    <button
+                      key={duration}
+                      onClick={() => setSelectedDuration(duration)}
+                      className={`px-4 py-2 md:px-6 text-sm md:text-base rounded-lg font-medium font-['Poppins'] transition-all duration-200 flex items-center justify-center gap-2 ${
+                        selectedDuration === duration
+                          ? 'bg-[#76C043] text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
+                    >
+                      <span>{duration}</span>
+                      <span>Night{duration === '1' ? '' : 's'}</span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => handleResetDuration(selectedDuration)}
+                  disabled={isSavingApiData}
+                  className={`px-3 py-2 text-sm md:text-base rounded-lg font-medium font-['Poppins'] transition-all duration-200 flex items-center justify-center gap-2 ${
+                    isSavingApiData
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
+                  }`}
+                  title={`Reset all data for ${selectedDuration} Night${selectedDuration === '1' ? '' : 's'} package`}
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span className="hidden sm:inline">Reset</span>
+                </button>
               </div>
             </div>
           </div>

@@ -14,8 +14,18 @@ export const formatDateForAPI = (date: Date): string => {
 /**
  * Converts an API date string to YYYY-MM-DD format consistently
  * This handles both ISO strings and other date formats from API
+ * For ISO strings, extracts the date part directly to avoid timezone shifts
  */
 export const formatApiDateForComparison = (apiDateString: string): string => {
+  // If it's an ISO string (contains 'T'), extract the date part directly
+  if (apiDateString.includes('T')) {
+    const datePart = apiDateString.split('T')[0]
+    // Validate it's in YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) {
+      return datePart
+    }
+  }
+  // For other formats, parse as Date and format
   const date = new Date(apiDateString)
   return formatDateForAPI(date)
 }
