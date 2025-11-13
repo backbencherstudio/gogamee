@@ -773,15 +773,16 @@ export default function DateManagement() {
                        const date = createCalendarDate(currentMonth.getFullYear(), currentMonth.getMonth(), day)
                        const dateString = formatDateForAPI(date)
                        
-                       // Check for custom prices from API data for selected sport
+                       // Check for custom prices from API data for selected sport and duration
                        const apiDateItem = apiDateData.find(item => {
                          const itemDateString = formatApiDateForComparison(item.date)
                          return itemDateString === dateString && 
                                 item.league === selectedCompetition &&
-                                item.sportname === selectedSport
+                                item.sportname === selectedSport &&
+                                item.duration === selectedDuration
                        })
                       
-                      // Check if this date has custom prices for the selected sport
+                      // Check if this date has custom prices for the selected sport and duration
                       const hasCustomPrices = apiDateItem ? (
                         selectedSport === 'football' 
                           ? (apiDateItem.updated_football_standard_package_price !== null ||
