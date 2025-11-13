@@ -247,6 +247,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Save formData to localStorage whenever it changes (only after hydration)

@@ -15,7 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import { getAllBookings, BookingItem } from "../../../../../services/bookingService";
+import { getAllBookings } from "../../../../../services/bookingService";
 
 // ============================================
 // TYPE DEFINITIONS - ডেটা টাইপ সংজ্ঞা

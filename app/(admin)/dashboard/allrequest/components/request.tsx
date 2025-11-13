@@ -4,7 +4,6 @@ import { FaTrash, FaCalendarAlt, FaUsers, FaDollarSign, FaPlane, FaMapMarkerAlt 
 import { MdKeyboardArrowDown } from "react-icons/md"
  
 import { subDays, parseISO, isWithinInterval, format, startOfDay, endOfDay } from "date-fns"
-import AppData from "@/app/lib/appdata"
 import BookingSummaryModal from "./booking-summery-modal"
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal"
 import { getAllBookings, deleteBooking, BookingItem } from "../../../../../services/bookingService"

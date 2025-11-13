@@ -8,7 +8,6 @@ import {
   addTestimonial,
   updateTestimonial,
   deleteTestimonial,
-  TestimonialItem,
 } from "../../../../../services/testimonialService";
 import { uploadImage } from "../../../../lib/utils";
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";

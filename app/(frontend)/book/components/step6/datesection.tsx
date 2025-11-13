@@ -248,67 +248,6 @@ export default function DateSection() {
     return `${totalPrice}${currencySymbol}`
   }, [formData.selectedSport, formData.selectedPackage, packagePrices, getBaseNightPrice, getItemCurrencySymbol])
 
-  const calculatePriceForDate = useCallback((startDate: Date, nights: number): string => {
-    const sport = formData.selectedSport
-    const packageType = formData.selectedPackage
-    if (!sport || !packageType) return '€'
-
-    const restrictions = getDateRestrictions()
-    const dateKey = formatDateForAPI(startDate)
-    const custom = restrictions.customPrices[dateKey]
-
-    let totalPrice = 0
-
-    const resolveSportPrice = (sportKey: BaseSportKey): number => {
-      const value =
-        sportKey === 'football'
-          ? packageType === 'standard'
-            ? custom?.football?.standard
-            : custom?.football?.premium
-          : packageType === 'standard'
-            ? custom?.basketball?.standard
-            : custom?.basketball?.premium
-
-      if (typeof value === 'number') {
-        return value
-      }
-
-      return getBaseNightPrice(sportKey, packageType as 'standard' | 'premium', nights)
-    }
-
-    if (sport === 'both') {
-      const hasCustomFootball = typeof (packageType === 'standard' ? custom?.football?.standard : custom?.football?.premium) === 'number'
-      const hasCustomBasketball = typeof (packageType === 'standard' ? custom?.basketball?.standard : custom?.basketball?.premium) === 'number'
-
-      if (!hasCustomFootball && !hasCustomBasketball) {
-        const combinedBase = getBaseNightPrice('combined', packageType as 'standard' | 'premium', nights)
-        if (combinedBase > 0) {
-          totalPrice = combinedBase
-        } else {
-          totalPrice = resolveSportPrice('football') + resolveSportPrice('basketball')
-        }
-      } else {
-        totalPrice = resolveSportPrice('football') + resolveSportPrice('basketball')
-      }
-    } else if (sport === 'football' || sport === 'basketball') {
-      totalPrice = resolveSportPrice(sport as BaseSportKey)
-    }
-
-    let currencyItem: StartingPriceItem | null | undefined
-    if (sport === 'football') {
-      currencyItem = packagePrices.football
-    } else if (sport === 'basketball') {
-      currencyItem = packagePrices.basketball
-    } else {
-      currencyItem = packagePrices.combined ?? packagePrices.football ?? packagePrices.basketball
-    }
-
-    const currency = getItemCurrencySymbol(currencyItem)
-    if (totalPrice <= 0) {
-      return currency
-    }
-    return `${totalPrice}${currency}`
-  }, [formData.selectedSport, formData.selectedPackage, getDateRestrictions, getBaseNightPrice, packagePrices, getItemCurrencySymbol])
 
   // Fetch API data
   useEffect(() => {
