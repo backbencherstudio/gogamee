@@ -41,6 +41,7 @@ interface ApiDateData {
   updated_baskatball_premium_package_price: number | null
   sportname: string
   league: string
+  duration?: '1' | '2' | '3' | '4'
 }
 
 type BaseSportKey = 'football' | 'basketball'
@@ -133,6 +134,16 @@ export default function DateSection() {
   })
   const [isLoadingPrices, setIsLoadingPrices] = useState(true)
 
+  const getDurationKey = (nights: number): '1' | '2' | '3' | '4' => {
+    if (nights <= 1) return '1'
+    if (nights === 2) return '2'
+    if (nights === 3) return '3'
+    return '4'
+  }
+
+  const selectedDurationOption = DURATION_OPTIONS[selectedDuration]
+  const selectedDurationKey = getDurationKey(selectedDurationOption.nights)
+
   // Get date restrictions based on API data and competition type
   const getDateRestrictions = useCallback((): DateRestrictions => {
     const selectedLeague = formData.selectedLeague
@@ -156,7 +167,8 @@ export default function DateSection() {
         (formData.selectedSport === 'football' && item.sportname === 'football') ||
         (formData.selectedSport === 'basketball' && item.sportname === 'basketball') ||
         (formData.selectedSport === 'both')
-      return matchesLeague && matchesSport
+      const matchesDuration = (item.duration ?? '1') === selectedDurationKey
+      return matchesLeague && matchesSport && matchesDuration
     })
 
     // Process API data
@@ -165,7 +177,9 @@ export default function DateSection() {
       const dateString = formatApiDateForComparison(item.date)
       
       if (item.status === 'enabled') {
-        enabledDates.push(dateString)
+        if (!enabledDates.includes(dateString)) {
+          enabledDates.push(dateString)
+        }
         
         // Store custom prices for this date
         customPrices[dateString] = {
@@ -188,15 +202,8 @@ export default function DateSection() {
       blockedDates,
       customPrices
     }
-  }, [formData.selectedLeague, formData.selectedSport, apiDateData])
-
-  const getDurationKey = (nights: number): '1' | '2' | '3' | '4' => {
-    if (nights <= 1) return '1'
-    if (nights === 2) return '2'
-    if (nights === 3) return '3'
-    return '4'
-  }
-
+  }, [formData.selectedLeague, formData.selectedSport, apiDateData, selectedDurationKey])
+  
   const getCurrencySymbolFromCode = (currency?: string | null): string => {
     if (currency === 'usd') return '$'
     if (currency === 'gbp') return '£'
@@ -204,9 +211,6 @@ export default function DateSection() {
   }
 
   const getItemCurrencySymbol = useCallback((item?: StartingPriceItem | null): string => getCurrencySymbolFromCode(item?.currency), [])
-
-  const selectedDurationOption = DURATION_OPTIONS[selectedDuration]
-  const selectedDurationKey = getDurationKey(selectedDurationOption.nights)
 
   const getBaseNightPrice = useCallback((sport: SportKey, pkg: 'standard' | 'premium', nights: number): number => {
     const item = packagePrices[sport]
@@ -263,35 +267,35 @@ export default function DateSection() {
         let footballNightPrice: number | undefined
         let basketballNightPrice: number | undefined
         if (custom?.football) {
-          footballNightPrice = packageType === 'standard' ? (custom.football.standard ?? undefined) : (custom.football.premium ?? undefined)
+          footballNightPrice =
+            packageType === 'standard'
+              ? custom.football.standard ?? undefined
+              : custom.football.premium ?? undefined
         }
         if (custom?.basketball) {
-          basketballNightPrice = packageType === 'standard' ? (custom.basketball.standard ?? undefined) : (custom.basketball.premium ?? undefined)
+          basketballNightPrice =
+            packageType === 'standard'
+              ? custom.basketball.standard ?? undefined
+              : custom.basketball.premium ?? undefined
         }
 
-        const hasCustomOverride = typeof footballNightPrice === 'number' || typeof basketballNightPrice === 'number'
-        if (!hasCustomOverride) {
-          const combinedNightPrice = getBaseNightPrice('combined', packageType as 'standard' | 'premium', nights)
-          if (combinedNightPrice > 0) {
-            totalPrice += combinedNightPrice
-            continue
-          }
-        }
-
-        const footballPrice = footballNightPrice ?? getBaseNightPrice('football', packageType as 'standard' | 'premium', nights)
-        const basketballPrice = basketballNightPrice ?? getBaseNightPrice('basketball', packageType as 'standard' | 'premium', nights)
+        const footballPrice = typeof footballNightPrice === 'number' ? footballNightPrice : 0
+        const basketballPrice = typeof basketballNightPrice === 'number' ? basketballNightPrice : 0
         totalPrice += footballPrice + basketballPrice
       } else if (sport === 'football' || sport === 'basketball') {
         let nightPrice: number | undefined
         if (sport === 'football') {
-          nightPrice = packageType === 'standard' ? custom?.football?.standard : custom?.football?.premium
+          nightPrice =
+            packageType === 'standard'
+              ? custom?.football?.standard
+              : custom?.football?.premium
         } else {
-          nightPrice = packageType === 'standard' ? custom?.basketball?.standard : custom?.basketball?.premium
+          nightPrice =
+            packageType === 'standard'
+              ? custom?.basketball?.standard
+              : custom?.basketball?.premium
         }
-        if (typeof nightPrice !== 'number') {
-          nightPrice = getBaseNightPrice(sport, packageType as 'standard' | 'premium', nights)
-        }
-        totalPrice += nightPrice
+        totalPrice += typeof nightPrice === 'number' ? nightPrice : 0
       }
     }
 
@@ -305,8 +309,11 @@ export default function DateSection() {
     }
 
     const currency = getItemCurrencySymbol(currencyItem)
+    if (totalPrice <= 0) {
+      return currency
+    }
     return `${totalPrice}${currency}`
-  }, [formData.selectedSport, formData.selectedPackage, getDateRestrictions, getBaseNightPrice, packagePrices, getItemCurrencySymbol])
+  }, [formData.selectedSport, formData.selectedPackage, getDateRestrictions, packagePrices, getItemCurrencySymbol])
 
   // Fetch API data
   useEffect(() => {
@@ -314,7 +321,12 @@ export default function DateSection() {
       try {
         setIsLoading(true)
         const data = await getAllDates()
-        setApiDateData(data)
+        setApiDateData(
+          data.map((item) => ({
+            ...item,
+            duration: (item.duration ?? '1') as '1' | '2' | '3' | '4'
+          }))
+        )
       } catch (error) {
         console.error('Error fetching date data:', error)
       } finally {

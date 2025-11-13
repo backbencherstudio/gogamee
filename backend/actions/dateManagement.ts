@@ -7,6 +7,7 @@ import {
   dateManagementItemSchema,
   startingPriceStoreSchema,
   type DateManagementItem,
+  type DateDuration,
 } from "../schemas";
 
 const DATE_STORE_FILE = "dates.json";
@@ -30,6 +31,7 @@ export interface CreateDatePayload {
   destinationCity?: string;
   assignedMatch?: string;
   approve_status?: string;
+  duration?: DateDuration;
 }
 
 export interface UpdateDatePayload {
@@ -49,6 +51,7 @@ export interface UpdateDatePayload {
   assignedMatch?: string;
   status?: string;
   approve_status?: string;
+  duration?: DateDuration;
 }
 
 async function readDates() {
@@ -56,7 +59,7 @@ async function readDates() {
   return dateStoreSchema.parse(raw);
 }
 
-async function getBasePrices() {
+async function getBasePrices(duration: DateDuration) {
   const raw = await readStore(STARTING_PRICE_FILE);
   const parsed = startingPriceStoreSchema.parse(raw);
 
@@ -67,11 +70,19 @@ async function getBasePrices() {
     (item) => item.type === "basketball"
   );
 
+  const resolvedDuration = duration ?? "1";
+  const footballDuration =
+    football?.pricesByDuration?.[resolvedDuration] ??
+    football?.pricesByDuration?.["1"];
+  const basketballDuration =
+    basketball?.pricesByDuration?.[resolvedDuration] ??
+    basketball?.pricesByDuration?.["1"];
+
   return {
-    football_standard: football?.pricesByDuration?.['1']?.standard ?? 379,
-    football_premium: football?.pricesByDuration?.['1']?.premium ?? 1499,
-    basketball_standard: basketball?.pricesByDuration?.['1']?.standard ?? 359,
-    basketball_premium: basketball?.pricesByDuration?.['1']?.premium ?? 1479,
+    football_standard: footballDuration?.standard ?? 379,
+    football_premium: footballDuration?.premium ?? 1499,
+    basketball_standard: basketballDuration?.standard ?? 359,
+    basketball_premium: basketballDuration?.premium ?? 1479,
   };
 }
 
@@ -85,7 +96,8 @@ export async function createDate(
 ): Promise<DateManagementItem> {
   const now = new Date();
   const id = `date-${randomUUID()}`;
-  const basePrices = await getBasePrices();
+  const duration: DateDuration = payload.duration ?? "1";
+  const basePrices = await getBasePrices(duration);
 
   const entry: DateManagementItem = dateManagementItemSchema.parse({
     id,
@@ -118,6 +130,7 @@ export async function createDate(
     created_at: now.toISOString(),
     updated_at: now.toISOString(),
     deleted_at: null,
+    duration,
   });
 
   await updateStore(DATE_STORE_FILE, (current) => {
@@ -151,6 +164,7 @@ export async function updateDate(
         ...item,
         ...payload,
         updated_at: new Date().toISOString(),
+        duration: payload.duration ?? item.duration ?? "1",
       });
 
       return updated;

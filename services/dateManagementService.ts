@@ -23,6 +23,7 @@ export interface DateManagementItem {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  duration?: '1' | '2' | '3' | '4';
 }
 
 export interface CreateDatePayload {
@@ -43,6 +44,7 @@ export interface CreateDatePayload {
   destinationCity?: string;
   assignedMatch?: string;
   approve_status?: string;
+  duration?: '1' | '2' | '3' | '4';
 }
 
 export interface UpdateDatePayload {
@@ -62,6 +64,7 @@ export interface UpdateDatePayload {
   assignedMatch?: string;
   status?: string;
   approve_status?: string;
+  duration?: '1' | '2' | '3' | '4';
 }
 
 // ========== Date Management API Functions ==========

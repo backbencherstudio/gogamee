@@ -102,7 +102,7 @@ export default function DateManagement() {
   }, [basePrices, selectedDuration])
   
   // API data state
-  const [apiDateData, setApiDateData] = useState<DateManagementItem[]>([])
+  const [apiDateData, setApiDateData] = useState<(DateManagementItem & { duration: '1' | '2' | '3' | '4' })[]>([])
   const [isLoadingApiData, setIsLoadingApiData] = useState(true)
   const [isSavingApiData, setIsSavingApiData] = useState(false)
 
@@ -119,7 +119,12 @@ export default function DateManagement() {
     try {
       setIsLoadingApiData(true)
       const data = await getAllDates()
-      setApiDateData(data)
+      setApiDateData(
+        data.map((item) => ({
+          ...item,
+          duration: (item.duration ?? '1') as '1' | '2' | '3' | '4',
+        }))
+      )
     } catch (error) {
       console.error('Error loading API date data:', error)
       addToast({
@@ -215,24 +220,30 @@ export default function DateManagement() {
       const itemDateString = formatApiDateForComparison(item.date)
       return itemDateString === dateString && 
              item.league === selectedCompetition &&
-             item.sportname === selectedSport
+             item.sportname === selectedSport &&
+             item.duration === selectedDuration
     })
 
     if (apiDateItem) {
       return apiDateItem.status === 'enabled' ? 'enabled' : 'blocked'
     }
 
-    // Fallback to AppData if no API data found
+    // For durations beyond 1-night, do not fallback to static data
+    if (selectedDuration !== '1') {
+      return 'neutral'
+    }
+
+    // Fallback to AppData only for legacy 1-night defaults if available
     const selectedComp = competitionTypes.find(comp => comp.id === selectedCompetition)
     if (!selectedComp) return 'neutral'
 
     if (selectedComp.restrictions.enabledDates.includes(dateString)) {
       return 'enabled'
-    } else if (selectedComp.restrictions.blockedDates.includes(dateString)) {
-      return 'blocked'
-    } else {
-      return 'neutral'
     }
+    if (selectedComp.restrictions.blockedDates.includes(dateString)) {
+      return 'blocked'
+    }
+    return 'neutral'
   }
 
   const handleDateClick = async (day: number, month: Date) => {
@@ -246,7 +257,8 @@ export default function DateManagement() {
       const itemDateString = formatApiDateForComparison(item.date)
       return itemDateString === dateString && 
              item.league === selectedCompetition &&
-             item.sportname === selectedSport
+             item.sportname === selectedSport &&
+             item.duration === selectedDuration
     })
 
     try {
@@ -278,12 +290,14 @@ export default function DateManagement() {
             baskatball_standard_package_price: getBasePrice('basketball', 'standard'),
             baskatball_premium_package_price: getBasePrice('basketball', 'premium'),
             approve_status: 'pending'
+            ,
+            duration: selectedDuration
           }
           
           const createdItem = await createDate(newDateData)
           
           // Update local state with the created item
-          setApiDateData(prev => [...prev, createdItem])
+          setApiDateData(prev => [...prev, { ...createdItem, duration: createdItem.duration ?? selectedDuration }])
           
           addToast({
             type: 'success',
@@ -328,7 +342,8 @@ export default function DateManagement() {
       const itemDateString = formatApiDateForComparison(item.date)
       return itemDateString === dateString && 
              item.league === selectedCompetition &&
-             item.sportname === selectedSport
+             item.sportname === selectedSport &&
+             item.duration === selectedDuration
     })
     
     // Check if date is enabled
@@ -449,13 +464,14 @@ export default function DateManagement() {
     }
   }
 
-  const getCustomPrice = (date: string, sport: 'football' | 'basketball', packageType: 'standard' | 'premium'): number | null => {
+  const getCustomPrice = (date: string, sport: 'football' | 'basketball', packageType: 'standard' | 'premium', duration: '1' | '2' | '3' | '4'): number | null => {
     // Find API data for this date, competition, and sport
     const apiDateItem = apiDateData.find(item => {
       const itemDateString = formatApiDateForComparison(item.date)
       return itemDateString === date && 
              item.league === selectedCompetition &&
-             item.sportname === sport
+             item.sportname === sport &&
+             item.duration === duration
     })
     
     if (apiDateItem) {
@@ -889,12 +905,13 @@ export default function DateManagement() {
               <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
                 <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-2 font-['Poppins']">Current Configuration ({selectedSport === 'football' ? '⚽ Football' : '🏀 Basketball'})</h3>
                 <div className="text-xs md:text-sm text-gray-600 font-['Poppins'] space-y-1">
-                  <p><strong>API Data:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport).length} dates loaded</p>
-                  <p><strong>Enabled Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport && item.status === 'enabled').length} dates</p>
-                  <p><strong>Blocked Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport && item.status === 'blocked').length} dates</p>
+                  <p><strong>API Data:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport && item.duration === selectedDuration).length} dates loaded</p>
+                  <p><strong>Enabled Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport && item.duration === selectedDuration && item.status === 'enabled').length} dates</p>
+                  <p><strong>Blocked Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport && item.duration === selectedDuration && item.status === 'blocked').length} dates</p>
                   <p><strong>Custom Prices:</strong> {apiDateData.filter(item => 
                     item.league === selectedCompetition && 
-                    item.sportname === selectedSport && (
+                    item.sportname === selectedSport && 
+                    item.duration === selectedDuration && (
                       (selectedSport === 'football' && (
                         item.updated_football_standard_package_price !== null ||
                         item.updated_football_premium_package_price !== null
@@ -959,8 +976,8 @@ export default function DateManagement() {
                 </p>
                 <p className="text-xs text-blue-600 font-medium mt-1">
                   {(() => {
-                    const hasCustomPrices = getCustomPrice(priceEditData.date, priceEditData.sport, 'standard') !== null || 
-                                          getCustomPrice(priceEditData.date, priceEditData.sport, 'premium') !== null
+                    const hasCustomPrices = getCustomPrice(priceEditData.date, priceEditData.sport, 'standard', selectedDuration) !== null || 
+                                          getCustomPrice(priceEditData.date, priceEditData.sport, 'premium', selectedDuration) !== null
                     return hasCustomPrices ? '✏️ Editing existing custom prices' : '📦 Using base package prices (can be overridden)'
                   })()}
                 </p>
@@ -998,8 +1015,8 @@ export default function DateManagement() {
                   value={priceEditData.sport}
                   onChange={(e) => {
                     const newSport = e.target.value as 'football' | 'basketball'
-                    const currentStandardPrice = getCustomPrice(priceEditData.date, newSport, 'standard')
-                    const currentPremiumPrice = getCustomPrice(priceEditData.date, newSport, 'premium')
+                    const currentStandardPrice = getCustomPrice(priceEditData.date, newSport, 'standard', selectedDuration)
+                    const currentPremiumPrice = getCustomPrice(priceEditData.date, newSport, 'premium', selectedDuration)
                     
                     // Use custom prices if they exist, otherwise use base prices
                     const standardPrice = currentStandardPrice ?? getBasePrice(newSport, 'standard')

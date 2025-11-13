@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { metaSchema } from "./common";
 
+const durationEnum = z.enum(["1", "2", "3", "4"]);
+
 export const dateManagementItemSchema = z.object({
   id: z.string(),
   date: z.string(),
@@ -23,6 +25,7 @@ export const dateManagementItemSchema = z.object({
   created_at: z.string(),
   updated_at: z.string(),
   deleted_at: z.string().nullable(),
+  duration: durationEnum.default("1"),
 });
 
 export const dateStoreSchema = z.object({
@@ -32,4 +35,6 @@ export const dateStoreSchema = z.object({
 
 export type DateManagementItem = z.infer<typeof dateManagementItemSchema>;
 export type DateStore = z.infer<typeof dateStoreSchema>;
+
+export type DateDuration = z.infer<typeof durationEnum>;
 
