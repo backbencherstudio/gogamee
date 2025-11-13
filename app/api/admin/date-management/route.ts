@@ -20,7 +20,7 @@ type DateManagementEntry = {
   deleted_at: string | null
 }
 
-let dateManagementData: DateManagementEntry[] = []
+const dateManagementData: DateManagementEntry[] = []
 
 const buildEntryKey = (data: Partial<DateManagementEntry>) => {
   const date = data.date ?? ''
