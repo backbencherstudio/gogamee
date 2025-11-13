@@ -5,7 +5,7 @@ import { gsap } from "gsap"
 import { useRouter } from "next/navigation"
 import { useLanguage, formatPeopleCount } from "../../../_components/common/LanguageContext"
 import { heroData } from "../../../../lib/appdata"
-import { getStartingPrice } from "../../../../../services/packageService"
+import { getStartingPrice, StartingPriceItem } from "../../../../../services/packageService"
 
 // People categories for the counter interface
 interface PeopleCount {
@@ -25,38 +25,29 @@ export default function HeroSection() {
 
   // Starting prices loaded from API (single source of truth)
   const [startingPrices, setStartingPrices] = useState<{
-    football: { standard: number; premium: number; currency: string } | null
-    basketball: { standard: number; premium: number; currency: string } | null
-  }>({ football: null, basketball: null })
+    football: StartingPriceItem | null;
+    basketball: StartingPriceItem | null;
+    combined: StartingPriceItem | null;
+  }>({ football: null, basketball: null, combined: null })
+
+  const toCurrencySymbol = (currency?: string | null) => (currency === 'usd' ? '$' : currency === 'gbp' ? '£' : '€')
 
   // Load starting prices once
   useEffect(() => {
     const load = async () => {
       try {
-        const [fb, bb] = await Promise.all([
+        const [fb, bb, combined] = await Promise.all([
           getStartingPrice('football'),
-          getStartingPrice('basketball')
+          getStartingPrice('basketball'),
+          getStartingPrice('combined')
         ])
 
-        const euro = (c?: string) => (c === 'usd' ? '$' : c === 'gbp' ? '£' : '€')
-
         setStartingPrices({
-          football: fb.success && fb.data?.[0]
-            ? {
-                standard: fb.data[0].currentStandardPrice,
-                premium: fb.data[0].currentPremiumPrice,
-                currency: euro(fb.data[0].currency)
-              }
-            : null,
-          basketball: bb.success && bb.data?.[0]
-            ? {
-                standard: bb.data[0].currentStandardPrice,
-                premium: bb.data[0].currentPremiumPrice,
-                currency: euro(bb.data[0].currency)
-              }
-            : null
+          football: fb.success ? fb.data?.[0] ?? null : null,
+          basketball: bb.success ? bb.data?.[0] ?? null : null,
+          combined: combined.success ? combined.data?.[0] ?? null : null
         })
-      } catch (e) {
+      } catch {
         // silent fallback to defaults
       }
     }
@@ -73,16 +64,30 @@ export default function HeroSection() {
 
     const priceBySport = (sport: "Football" | "Basketball" | "Both") => {
       if (sport === 'Football') {
-        const p = startingPrices.football
-        return p ? { standard: p.standard, premium: p.premium, currency: p.currency } : defaults.Football
+        const p = startingPrices.football?.pricesByDuration?.['1']
+        return startingPrices.football && p
+          ? { standard: p.standard, premium: p.premium, currency: toCurrencySymbol(startingPrices.football?.currency) }
+          : defaults.Football
       }
       if (sport === 'Basketball') {
-        const p = startingPrices.basketball
-        return p ? { standard: p.standard, premium: p.premium, currency: p.currency } : defaults.Basketball
+        const p = startingPrices.basketball?.pricesByDuration?.['1']
+        return startingPrices.basketball && p
+          ? { standard: p.standard, premium: p.premium, currency: toCurrencySymbol(startingPrices.basketball?.currency) }
+          : defaults.Basketball
       }
       // Both → show combined totals of both sports
-      const f = startingPrices.football ?? defaults.Football
-      const b = startingPrices.basketball ?? defaults.Basketball
+      const combined = startingPrices.combined?.pricesByDuration?.['1']
+      if (startingPrices.combined && combined) {
+        return {
+          standard: combined.standard,
+          premium: combined.premium,
+          currency: toCurrencySymbol(startingPrices.combined.currency)
+        }
+      }
+      const fEntry = startingPrices.football?.pricesByDuration?.['1']
+      const bEntry = startingPrices.basketball?.pricesByDuration?.['1']
+      const f = fEntry ? { standard: fEntry.standard, premium: fEntry.premium, currency: toCurrencySymbol(startingPrices.football?.currency) } : defaults.Football
+      const b = bEntry ? { standard: bEntry.standard, premium: bEntry.premium, currency: toCurrencySymbol(startingPrices.basketball?.currency) } : defaults.Basketball
       return {
         standard: f.standard + b.standard,
         premium: f.premium + b.premium,
@@ -253,7 +258,7 @@ export default function HeroSection() {
                     e.stopPropagation()
                     toggleDropdown("pack")
                   }}
-                  className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
+                  className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
                 >
                   <span className="text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed">
                     {selectedPack.name === "Standard" ? t.hero.standard : t.hero.premium} - {selectedPack.price}
@@ -290,7 +295,7 @@ export default function HeroSection() {
                     e.stopPropagation()
                     toggleDropdown("city")
                   }}
-                  className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
+                  className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
                 >
                   <span className="text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed">
                     {selectedCity.name}

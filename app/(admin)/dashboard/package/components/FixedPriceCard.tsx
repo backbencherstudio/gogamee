@@ -1,46 +1,34 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { DollarSign, Edit, Save, X, RefreshCw, Calendar } from 'lucide-react'
 import { getStartingPrice, updateStartingPrice } from '../../../../../services/packageService'
 
 // Duration options matching the booking system
 const DURATION_OPTIONS = [
-  { value: 1, label: '1 Night' },
-  { value: 2, label: '2 Nights' },
-  { value: 3, label: '3 Nights' },
-  { value: 4, label: '4 Nights' }
+  { value: 1 as const, label: '1 Night' },
+  { value: 2 as const, label: '2 Nights' },
+  { value: 3 as const, label: '3 Nights' },
+  { value: 4 as const, label: '4 Nights' }
 ]
 
-interface PriceData {
-  id: string
-  sport: 'football' | 'basketball'
-  standardPrice: number
-  premiumPrice: number
-  currency: string
-}
+type DurationValue = (typeof DURATION_OPTIONS)[number]['value']
+type SportKey = 'football' | 'basketball' | 'combined'
 
 interface DurationPriceData {
   standardPrice: number
   premiumPrice: number
 }
 
-interface SportPriceData {
-  [duration: number]: DurationPriceData // duration as key (1, 2, 3, 4)
+type SportPriceData = {
   currency: string
-}
-
-interface CombinedPriceData {
-  standardPrice: number
-  premiumPrice: number
-  currency: string
-}
+} & Record<DurationValue, DurationPriceData>
 
 interface FixedPriceCardProps {
   onPriceUpdate?: (sport: 'football' | 'basketball', prices: { standardPrice: number; premiumPrice: number; currency: string }) => void
 }
 
 export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
-  const [selectedDuration, setSelectedDuration] = useState<number>(1)
+  const [selectedDuration, setSelectedDuration] = useState<DurationValue>(1)
   const [isEditing, setIsEditing] = useState<boolean>(false)
   const [isSaving, setIsSaving] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -50,7 +38,7 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
   const [priceData, setPriceData] = useState<{
     football: SportPriceData
     basketball: SportPriceData
-    combined: CombinedPriceData
+    combined: SportPriceData
   }>({
     football: {
       1: { standardPrice: 379, premiumPrice: 1499 },
@@ -67,8 +55,10 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
       currency: 'EUR'
     },
     combined: {
-      standardPrice: 0,
-      premiumPrice: 0,
+      1: { standardPrice: 0, premiumPrice: 0 },
+      2: { standardPrice: 0, premiumPrice: 0 },
+      3: { standardPrice: 0, premiumPrice: 0 },
+      4: { standardPrice: 0, premiumPrice: 0 },
       currency: 'EUR'
     }
   })
@@ -79,53 +69,60 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
   const getCurrencySymbol = (currency: string) => (currency === 'USD' ? '$' : currency === 'GBP' ? '£' : '€')
 
   // Load price data from starting-price endpoints
-  useEffect(() => {
-    loadPriceData()
-  }, [])
-
-  const loadPriceData = async () => {
+  const loadPriceData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
       
-      const [fbRes, bbRes] = await Promise.all([
+      const [fbRes, bbRes, combinedRes] = await Promise.all([
         getStartingPrice('football'),
-        getStartingPrice('basketball')
+        getStartingPrice('basketball'),
+        getStartingPrice('combined')
       ])
 
-      if (!fbRes.success || !bbRes.success) {
+      if (!fbRes.success || !bbRes.success || !combinedRes.success) {
         setError('Failed to load price data')
       }
 
       const fb = fbRes.data?.[0]
       const bb = bbRes.data?.[0]
+      const combined = combinedRes.data?.[0]
 
       const footballCurrency = fromApiCurrency(fb?.currency)
       const basketballCurrency = fromApiCurrency(bb?.currency)
-      const defaultCurrency = footballCurrency || basketballCurrency || 'EUR'
+      const combinedCurrency = fromApiCurrency(combined?.currency)
+      const defaultCurrency =
+        combinedCurrency || footballCurrency || basketballCurrency || 'EUR'
 
-      // Initialize with loaded data (using current price for all durations)
-      // In a real scenario, you might load duration-specific prices from API
+      const mapPrices = (
+        source: typeof fb,
+        fallbackStandard: number,
+        fallbackPremium: number,
+        fallbackCurrency: string
+      ): SportPriceData => ({
+        1: {
+          standardPrice: source?.pricesByDuration?.['1']?.standard ?? fallbackStandard,
+          premiumPrice: source?.pricesByDuration?.['1']?.premium ?? fallbackPremium
+        },
+        2: {
+          standardPrice: source?.pricesByDuration?.['2']?.standard ?? fallbackStandard,
+          premiumPrice: source?.pricesByDuration?.['2']?.premium ?? fallbackPremium
+        },
+        3: {
+          standardPrice: source?.pricesByDuration?.['3']?.standard ?? fallbackStandard,
+          premiumPrice: source?.pricesByDuration?.['3']?.premium ?? fallbackPremium
+        },
+        4: {
+          standardPrice: source?.pricesByDuration?.['4']?.standard ?? fallbackStandard,
+          premiumPrice: source?.pricesByDuration?.['4']?.premium ?? fallbackPremium
+        },
+        currency: fromApiCurrency(source?.currency) || fallbackCurrency
+      })
+
       setPriceData({
-        football: {
-          1: { standardPrice: fb?.currentStandardPrice || 379, premiumPrice: fb?.currentPremiumPrice || 1499 },
-          2: { standardPrice: fb?.currentStandardPrice || 379, premiumPrice: fb?.currentPremiumPrice || 1499 },
-          3: { standardPrice: fb?.currentStandardPrice || 379, premiumPrice: fb?.currentPremiumPrice || 1499 },
-          4: { standardPrice: fb?.currentStandardPrice || 379, premiumPrice: fb?.currentPremiumPrice || 1499 },
-          currency: footballCurrency || 'EUR'
-        },
-        basketball: {
-          1: { standardPrice: bb?.currentStandardPrice || 359, premiumPrice: bb?.currentPremiumPrice || 1479 },
-          2: { standardPrice: bb?.currentStandardPrice || 359, premiumPrice: bb?.currentPremiumPrice || 1479 },
-          3: { standardPrice: bb?.currentStandardPrice || 359, premiumPrice: bb?.currentPremiumPrice || 1479 },
-          4: { standardPrice: bb?.currentStandardPrice || 359, premiumPrice: bb?.currentPremiumPrice || 1479 },
-          currency: basketballCurrency || 'EUR'
-        },
-        combined: {
-          standardPrice: 0,
-          premiumPrice: 0,
-          currency: defaultCurrency
-        }
+        football: mapPrices(fb, 379, 1499, footballCurrency || 'EUR'),
+        basketball: mapPrices(bb, 359, 1479, basketballCurrency || 'EUR'),
+        combined: mapPrices(combined, 0, 0, combinedCurrency || defaultCurrency)
       })
     } catch (err) {
       console.error('Error loading price data:', err)
@@ -133,7 +130,11 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    loadPriceData()
+  }, [loadPriceData])
 
   const handleEditPrices = () => {
     setIsEditing(true)
@@ -142,31 +143,39 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
   const handleSavePrices = async () => {
     setIsSaving(true)
     try {
-      // Save prices for the selected duration
-      // Note: API currently supports single price per sport, so we save the selected duration's price
       const footballPrices = priceData.football[selectedDuration]
-      const basketballPrices = priceData.basketball[selectedDuration]
+      const toApiPrices = (data: SportPriceData) => ({
+        '1': { standard: data[1].standardPrice, premium: data[1].premiumPrice },
+        '2': { standard: data[2].standardPrice, premium: data[2].premiumPrice },
+        '3': { standard: data[3].standardPrice, premium: data[3].premiumPrice },
+        '4': { standard: data[4].standardPrice, premium: data[4].premiumPrice }
+      })
 
-      const [fbResponse, bbResponse] = await Promise.all([
+      const [fbResponse, bbResponse, combinedResponse] = await Promise.all([
         updateStartingPrice('football', {
-          category: 'working',
-          standardDescription: 'description',
-          premiumDescription: 'description',
+          category: 'football',
+          standardDescription: 'Football standard package baseline',
+          premiumDescription: 'Football premium package baseline',
           currency: toApiCurrency(priceData.football.currency),
-          currentStandardPrice: footballPrices.standardPrice,
-          currentPremiumPrice: footballPrices.premiumPrice
+          pricesByDuration: toApiPrices(priceData.football)
         }),
         updateStartingPrice('basketball', {
-          category: 'working',
-          standardDescription: 'description',
-          premiumDescription: 'description',
+          category: 'basketball',
+          standardDescription: 'Basketball standard package baseline',
+          premiumDescription: 'Basketball premium package baseline',
           currency: toApiCurrency(priceData.basketball.currency),
-          currentStandardPrice: basketballPrices.standardPrice,
-          currentPremiumPrice: basketballPrices.premiumPrice
+          pricesByDuration: toApiPrices(priceData.basketball)
+        }),
+        updateStartingPrice('combined', {
+          category: 'combined',
+          standardDescription: 'Combined standard package baseline',
+          premiumDescription: 'Combined premium package baseline',
+          currency: toApiCurrency(priceData.combined.currency || priceData.football.currency),
+          pricesByDuration: toApiPrices(priceData.combined)
         })
       ])
 
-      if (fbResponse.success && bbResponse.success) {
+      if (fbResponse.success && bbResponse.success && combinedResponse.success) {
         setIsEditing(false)
         setError(null)
         
@@ -198,7 +207,7 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
   }
 
   const handlePriceChange = (
-    sport: 'football' | 'basketball',
+    sport: SportKey,
     packageType: 'standard' | 'premium',
     value: number
   ) => {
@@ -220,16 +229,6 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
       [sport]: {
         ...prev[sport],
         currency: value
-      }
-    }))
-  }
-
-  const handleCombinedPriceChange = (packageType: 'standard' | 'premium', value: number) => {
-    setPriceData(prev => ({
-      ...prev,
-      combined: {
-        ...prev.combined,
-        [packageType === 'standard' ? 'standardPrice' : 'premiumPrice']: value
       }
     }))
   }
@@ -320,7 +319,6 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
 
           {isEditing ? (
             <SportPriceEditForm
-              sport="football"
               duration={selectedDuration}
               priceData={priceData.football}
               onPriceChange={(packageType, value) => handlePriceChange('football', packageType, value)}
@@ -365,7 +363,6 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
 
           {isEditing ? (
             <SportPriceEditForm
-              sport="basketball"
               duration={selectedDuration}
               priceData={priceData.basketball}
               onPriceChange={(packageType, value) => handlePriceChange('basketball', packageType, value)}
@@ -413,8 +410,9 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
 
         {isEditing ? (
           <CombinedPriceEditForm
+            duration={selectedDuration}
             priceData={priceData.combined}
-            onPriceChange={handleCombinedPriceChange}
+            onPriceChange={(packageType, value) => handlePriceChange('combined', packageType, value)}
             onCurrencyChange={(value) => handleCurrencyChange('combined', value)}
             defaultCurrency={priceData.football.currency || priceData.basketball.currency || 'EUR'}
           />
@@ -423,7 +421,7 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
             <div className="text-center">
               <div className="text-sm font-medium text-gray-600 font-['Poppins'] mb-2">Standard Total</div>
               <div className="text-xl font-bold text-green-600 font-['Poppins']">
-                {priceData.combined.standardPrice || 0}
+                {priceData.combined[selectedDuration].standardPrice || 0}
                 {getCurrencySymbol(priceData.combined.currency || priceData.football.currency || 'EUR')}
               </div>
             </div>
@@ -431,7 +429,7 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
             <div className="text-center">
               <div className="text-sm font-medium text-gray-600 font-['Poppins'] mb-2">Premium Total</div>
               <div className="text-xl font-bold text-blue-600 font-['Poppins']">
-                {priceData.combined.premiumPrice || 0}
+                {priceData.combined[selectedDuration].premiumPrice || 0}
                 {getCurrencySymbol(priceData.combined.currency || priceData.football.currency || 'EUR')}
               </div>
             </div>
@@ -484,14 +482,13 @@ export default function FixedPriceCard({ onPriceUpdate }: FixedPriceCardProps) {
 
 // Sport Price Edit Form Component
 interface SportPriceEditFormProps {
-  sport: 'football' | 'basketball'
-  duration: number
+  duration: DurationValue
   priceData: SportPriceData
   onPriceChange: (packageType: 'standard' | 'premium', value: number) => void
   onCurrencyChange: (value: string) => void
 }
 
-function SportPriceEditForm({ sport, duration, priceData, onPriceChange, onCurrencyChange }: SportPriceEditFormProps) {
+function SportPriceEditForm({ duration, priceData, onPriceChange, onCurrencyChange }: SportPriceEditFormProps) {
   const getCurrencySymbol = (currency: string) => (currency === 'USD' ? '$' : currency === 'GBP' ? '£' : '€')
   const currentPrices = priceData[duration]
 
@@ -560,15 +557,17 @@ function SportPriceEditForm({ sport, duration, priceData, onPriceChange, onCurre
 
 // Combined Price Edit Form Component
 interface CombinedPriceEditFormProps {
-  priceData: CombinedPriceData
+  duration: DurationValue
+  priceData: SportPriceData
   onPriceChange: (packageType: 'standard' | 'premium', value: number) => void
   onCurrencyChange: (value: string) => void
   defaultCurrency: string
 }
 
-function CombinedPriceEditForm({ priceData, onPriceChange, onCurrencyChange, defaultCurrency }: CombinedPriceEditFormProps) {
+function CombinedPriceEditForm({ duration, priceData, onPriceChange, onCurrencyChange, defaultCurrency }: CombinedPriceEditFormProps) {
   const getCurrencySymbol = (currency: string) => (currency === 'USD' ? '$' : currency === 'GBP' ? '£' : '€')
   const currency = priceData.currency || defaultCurrency
+  const currentPrices = priceData[duration]
 
   return (
     <div className="space-y-4">
@@ -591,14 +590,14 @@ function CombinedPriceEditForm({ priceData, onPriceChange, onCurrencyChange, def
       {/* Standard Combined Price */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-          Standard Combined Price *
+          Standard Combined Price ({duration} {duration === 1 ? 'Night' : 'Nights'}) *
         </label>
         <div className="relative">
           <input
             type="number"
             min="0"
             step="0.01"
-            value={priceData.standardPrice || 0}
+            value={currentPrices.standardPrice || 0}
             onChange={(e) => onPriceChange('standard', parseFloat(e.target.value) || 0)}
             placeholder="Enter combined standard price"
             className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors"
@@ -615,14 +614,14 @@ function CombinedPriceEditForm({ priceData, onPriceChange, onCurrencyChange, def
       {/* Premium Combined Price */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-          Premium Combined Price *
+          Premium Combined Price ({duration} {duration === 1 ? 'Night' : 'Nights'}) *
         </label>
         <div className="relative">
           <input
             type="number"
             min="0"
             step="0.01"
-            value={priceData.premiumPrice || 0}
+            value={currentPrices.premiumPrice || 0}
             onChange={(e) => onPriceChange('premium', parseFloat(e.target.value) || 0)}
             placeholder="Enter combined premium price"
             className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors"

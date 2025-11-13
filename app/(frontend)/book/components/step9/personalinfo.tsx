@@ -62,21 +62,23 @@ const usePerNightPricing = () => {
     league: string
   }
   const [apiDateData, setApiDateData] = useState<ApiDateData[]>([])
-  const [packagePrices, setPackagePrices] = useState<{ football: StartingPriceItem | null; basketball: StartingPriceItem | null }>({ football: null, basketball: null })
+  const [packagePrices, setPackagePrices] = useState<{ football: StartingPriceItem | null; basketball: StartingPriceItem | null; combined: StartingPriceItem | null }>({ football: null, basketball: null, combined: null })
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [datesRes, footballRes, basketballRes] = await Promise.all([
+        const [datesRes, footballRes, basketballRes, combinedRes] = await Promise.all([
           getAllDates(),
           getStartingPrice('football'),
-          getStartingPrice('basketball')
+          getStartingPrice('basketball'),
+          getStartingPrice('combined')
         ])
         setApiDateData(datesRes || [])
-        if (footballRes.success && basketballRes.success) {
+        if (footballRes.success && basketballRes.success && combinedRes.success) {
           setPackagePrices({
             football: footballRes.data?.[0] || null,
-            basketball: basketballRes.data?.[0] || null
+            basketball: basketballRes.data?.[0] || null,
+            combined: combinedRes.data?.[0] || null
           })
         }
       } catch (e) {
@@ -113,10 +115,20 @@ const usePerNightPricing = () => {
     return { enabledDates, blockedDates, customPrices }
   }, [apiDateData])
 
-  const getBaseNightPrice = useCallback((sport: 'football' | 'basketball', pkg: 'standard' | 'premium'): number => {
-    const prices = packagePrices[sport]
-    if (!prices) return 0
-    return pkg === 'standard' ? prices.currentStandardPrice : prices.currentPremiumPrice
+  const getDurationKey = (nights: number): '1' | '2' | '3' | '4' => {
+    if (nights <= 1) return '1'
+    if (nights === 2) return '2'
+    if (nights === 3) return '3'
+    return '4'
+  }
+
+  const getBaseNightPrice = useCallback((sport: 'football' | 'basketball' | 'combined', pkg: 'standard' | 'premium', nights: number): number => {
+    const item = packagePrices[sport]
+    if (!item) return 0
+    const durationKey = getDurationKey(nights)
+    const entry = item.pricesByDuration?.[durationKey]
+    if (!entry) return 0
+    return pkg === 'standard' ? entry.standard : entry.premium
   }, [packagePrices])
 
   const sumPerNight = useCallback((params: {
@@ -144,13 +156,21 @@ const usePerNightPricing = () => {
       if (selectedSport === 'both') {
         const f = custom?.football ? (selectedPackage === 'standard' ? custom.football.standard : custom.football.premium) : undefined
         const b = custom?.basketball ? (selectedPackage === 'standard' ? custom.basketball.standard : custom.basketball.premium) : undefined
-        total += (typeof f === 'number' ? f : getBaseNightPrice('football', selectedPackage))
-              + (typeof b === 'number' ? b : getBaseNightPrice('basketball', selectedPackage))
+        const hasCustom = typeof f === 'number' || typeof b === 'number'
+        if (!hasCustom) {
+          const combinedNight = getBaseNightPrice('combined', selectedPackage, nights)
+          if (combinedNight > 0) {
+            total += combinedNight
+            continue
+          }
+        }
+        total += (typeof f === 'number' ? f : getBaseNightPrice('football', selectedPackage, nights))
+              + (typeof b === 'number' ? b : getBaseNightPrice('basketball', selectedPackage, nights))
       } else if (selectedSport === 'football' || selectedSport === 'basketball') {
         const night = selectedSport === 'football'
           ? (selectedPackage === 'standard' ? custom?.football?.standard : custom?.football?.premium)
           : (selectedPackage === 'standard' ? custom?.basketball?.standard : custom?.basketball?.premium)
-        total += typeof night === 'number' ? night : getBaseNightPrice(selectedSport, selectedPackage)
+        total += typeof night === 'number' ? night : getBaseNightPrice(selectedSport, selectedPackage, nights)
       }
     }
     return total

@@ -1,0 +1,26 @@
+{
+  "faqs": [
+    {
+      "id": "faq-395e9381-d9c2-4c8c-9120-5afda78a5cfd",
+      "question": "Consequatur quia tem",
+      "answer": "Dolores minima molli",
+      "sort_order": 1
+    },
+    {
+      "id": "faq-c41fa0e8-9b47-46d9-a73f-5306d59da554",
+      "question": "Dolor tempore vel p",
+      "answer": "Voluptatem id irure",
+      "sort_order": 1
+    },
+    {
+      "id": "faq-d2eba4c1-7ac9-4d51-9acd-9218010457c2",
+      "question": "Et iure possimus nu",
+      "answer": "Adipisicing repellen",
+      "sort_order": 1
+    }
+  ],
+  "meta": {
+    "version": 1,
+    "updatedAt": "2025-11-13T09:52:22.612Z"
+  }
+}

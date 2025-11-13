@@ -1,14 +1,14 @@
 'use client'
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { getAllPackages, getStartingPrice, PackageItem } from "../../../../../services/packageService";
+import { getAllPackages, getStartingPrice, PackageItem, StartingPriceItem } from "../../../../../services/packageService";
 
 export default function PackageTable() {
   const [selectedSport, setSelectedSport] = useState<'football' | 'basketball'>('football');
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [startingPrices, setStartingPrices] = useState<{
-    football: { standardPrice: number; premiumPrice: number; currency: string } | null;
-    basketball: { standardPrice: number; premiumPrice: number; currency: string } | null;
+    football: StartingPriceItem | null;
+    basketball: StartingPriceItem | null;
   }>({
     football: null,
     basketball: null
@@ -41,20 +41,11 @@ export default function PackageTable() {
         ]);
 
         if (footballPriceRes.success && basketballPriceRes.success) {
-          const footballPrice = footballPriceRes.data?.[0];
-          const basketballPrice = basketballPriceRes.data?.[0];
-          
+          const footballPrice = footballPriceRes.data?.[0] || null;
+          const basketballPrice = basketballPriceRes.data?.[0] || null;
           setStartingPrices({
-            football: footballPrice ? {
-              standardPrice: footballPrice.currentStandardPrice,
-              premiumPrice: footballPrice.currentPremiumPrice,
-              currency: footballPrice.currency === 'euro' ? '€' : footballPrice.currency === 'usd' ? '$' : '£'
-            } : null,
-            basketball: basketballPrice ? {
-              standardPrice: basketballPrice.currentStandardPrice,
-              premiumPrice: basketballPrice.currentPremiumPrice,
-              currency: basketballPrice.currency === 'euro' ? '€' : basketballPrice.currency === 'usd' ? '$' : '£'
-            } : null
+            football: footballPrice,
+            basketball: basketballPrice
           });
         }
       } catch (err) {
@@ -79,9 +70,13 @@ export default function PackageTable() {
     if (feature === 'Starting Price') {
       const currentPrices = startingPrices[selectedSport];
       if (!currentPrices) return '';
-      
-      const price = type === 'standard' ? currentPrices.standardPrice : currentPrices.premiumPrice;
-      return `From ${price}${currentPrices.currency}`;
+
+      const durationKey: '1' | '2' | '3' | '4' = '1';
+      const priceEntry = currentPrices.pricesByDuration?.[durationKey];
+      if (!priceEntry) return '';
+
+      const price = type === 'standard' ? priceEntry.standard : priceEntry.premium;
+      return `From ${price}${getCurrencySymbol(currentPrices.currency)}`;
     }
     
     const found = filteredPackages.find((item) => item.category === feature);
@@ -101,6 +96,12 @@ export default function PackageTable() {
       }
       return part;
     });
+  };
+
+  const getCurrencySymbol = (currency?: string) => {
+    if (currency === 'usd') return '$';
+    if (currency === 'gbp') return '£';
+    return '€';
   };
 
   return (

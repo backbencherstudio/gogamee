@@ -1,0 +1,36 @@
+{
+  "packages": [
+    {
+      "id": "package-bdb485fd-901a-4e8e-bae1-a102ebcdc6ba",
+      "sport": "football",
+      "category": "newwwwwwwwwww",
+      "standard": "fcgyujfh",
+      "premium": "dfhgmjfgcyjm"
+    },
+    {
+      "id": "package-03cba9df-4450-4c85-b094-53dc0814c326",
+      "sport": "football",
+      "category": "gyfcjkfgj",
+      "standard": "dfxyhccxtfgh",
+      "premium": "xfgycmhxcgf"
+    },
+    {
+      "id": "package-221cdd46-3337-423c-af6d-df32647c0aac",
+      "sport": "basketball",
+      "category": "newwwwwwwwwww",
+      "standard": " vnxnc",
+      "premium": "xgbn"
+    },
+    {
+      "id": "package-9026fceb-f168-488e-9bd2-88610a0ea00a",
+      "sport": "basketball",
+      "category": "test2",
+      "standard": "xfghfgth",
+      "premium": "xfghfxghfgxh"
+    }
+  ],
+  "meta": {
+    "version": 1,
+    "updatedAt": "2025-11-13T11:00:13.210Z"
+  }
+}

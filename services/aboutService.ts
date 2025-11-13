@@ -96,7 +96,7 @@ export interface WhyChooseUsUpdatePayload {
 
 // GET all about management data
 export const getAboutManagement = async (): Promise<AboutResponse> => {
-  const response = await axiosClient.get("/api/admin/about-management/main_sections");
+  const response = await axiosClient.get("/admin/about-management/main_sections");
   return response.data;
 };
 
@@ -104,19 +104,19 @@ export const getAboutManagement = async (): Promise<AboutResponse> => {
 
 // GET main sections
 export const getMainSections = async (): Promise<AboutResponse> => {
-  const response = await axiosClient.get("/api/admin/about-management/main_sections");
+  const response = await axiosClient.get("/admin/about-management/main_sections");
   return response.data;
 };
 
 // POST add new main section
 export const addMainSection = async (payload: MainSectionPayload): Promise<AboutResponse> => {
-  const response = await axiosClient.post("/api/admin/about-management/main_sections", payload);
+  const response = await axiosClient.post("/admin/about-management/main_sections", payload);
   return response.data;
 };
 
 // PUT edit main section
 export const editMainSection = async (id: string, payload: MainSectionUpdatePayload): Promise<AboutResponse> => {
-  const response = await axiosClient.put(`/api/admin/about-management/main_sections/${id}`, payload);
+  const response = await axiosClient.put(`/admin/about-management/main_sections/${id}`, payload);
   return response.data;
 };
 
@@ -124,13 +124,13 @@ export const editMainSection = async (id: string, payload: MainSectionUpdatePayl
 
 // POST add new our value
 export const addOurValue = async (payload: OurValuePayload): Promise<AboutResponse> => {
-  const response = await axiosClient.post("/api/admin/about-management/our_values", payload);
+  const response = await axiosClient.post("/admin/about-management/our_values", payload);
   return response.data;
 };
 
 // PUT edit our value
 export const editOurValue = async (id: string, payload: OurValueUpdatePayload): Promise<AboutResponse> => {
-  const response = await axiosClient.put(`/api/admin/about-management/our_values/${id}`, payload);
+  const response = await axiosClient.put(`/admin/about-management/our_values/${id}`, payload);
   return response.data;
 };
 
@@ -138,12 +138,12 @@ export const editOurValue = async (id: string, payload: OurValueUpdatePayload): 
 
 // POST add new why choose us
 export const addWhyChooseUs = async (payload: WhyChooseUsPayload): Promise<AboutResponse> => {
-  const response = await axiosClient.post("/api/admin/about-management/why_choose_us", payload);
+  const response = await axiosClient.post("/admin/about-management/why_choose_us", payload);
   return response.data;
 };
 
 // PUT edit why choose us
 export const editWhyChooseUs = async (id: string, payload: WhyChooseUsUpdatePayload): Promise<AboutResponse> => {
-  const response = await axiosClient.put(`/api/admin/about-management/why_choose_us/${id}`, payload);
+  const response = await axiosClient.put(`/admin/about-management/why_choose_us/${id}`, payload);
   return response.data;
 };

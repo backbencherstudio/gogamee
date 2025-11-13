@@ -1,0 +1,80 @@
+import { z } from "zod";
+import { metaSchema } from "./common";
+
+export const bookingExtraSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  price: z.number(),
+  icon: z.string(),
+  isSelected: z.boolean(),
+  quantity: z.number().int().nonnegative(),
+  maxQuantity: z.number().int().positive().optional(),
+  isIncluded: z.boolean().optional(),
+  currency: z.string(),
+});
+
+export const bookingSchema = z.object({
+  id: z.string(),
+  status: z.string(),
+  payment_status: z.string(),
+  stripe_payment_intent_id: z.string().nullable(),
+  selectedSport: z.string(),
+  selectedPackage: z.string(),
+  selectedCity: z.string(),
+  selectedLeague: z.string(),
+  adults: z.number().int().nonnegative(),
+  kids: z.number().int().nonnegative(),
+  babies: z.number().int().nonnegative(),
+  totalPeople: z.number().int().nonnegative(),
+  departureDate: z.string(),
+  returnDate: z.string(),
+  departureDateFormatted: z.string(),
+  returnDateFormatted: z.string(),
+  departureTimeStart: z.number().int(),
+  departureTimeEnd: z.number().int(),
+  arrivalTimeStart: z.number().int(),
+  arrivalTimeEnd: z.number().int(),
+  departureTimeRange: z.string(),
+  arrivalTimeRange: z.string(),
+  removedLeagues: z.union([z.string(), z.array(z.record(z.string(), z.any()))]),
+  removedLeaguesCount: z.number().int().nonnegative(),
+  hasRemovedLeagues: z.boolean(),
+  totalExtrasCost: z.number(),
+  extrasCount: z.number().int().nonnegative(),
+  firstName: z.string(),
+  lastName: z.string(),
+  fullName: z.string(),
+  email: z.string().email(),
+  phone: z.string(),
+  paymentMethod: z.string().nullable(),
+  cardNumber: z.string().nullable(),
+  expiryDate: z.string().nullable(),
+  cvv: z.string().nullable(),
+  cardholderName: z.string().nullable(),
+  bookingTimestamp: z.string().nullable(),
+  bookingDate: z.string(),
+  bookingTime: z.string(),
+  isBookingComplete: z.boolean(),
+  travelDuration: z.number().int().nonnegative(),
+  hasFlightPreferences: z.boolean(),
+  requiresEuropeanLeagueHandling: z.boolean(),
+  destinationCity: z.string().nullable().optional(),
+  assignedMatch: z.string().nullable().optional(),
+  previousTravelInfo: z.string().optional(),
+  totalCost: z.union([z.number(), z.string()]),
+  approve_status: z.string().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
+  deleted_at: z.string().nullable().optional(),
+  bookingExtras: z.array(bookingExtraSchema).optional(),
+});
+
+export const bookingStoreSchema = z.object({
+  bookings: z.array(bookingSchema),
+  meta: metaSchema,
+});
+
+export type Booking = z.infer<typeof bookingSchema>;
+export type BookingStore = z.infer<typeof bookingStoreSchema>;
+

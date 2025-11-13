@@ -24,7 +24,7 @@ export interface LoginResponse {
 // POST login
 export const login = async (payload: LoginPayload): Promise<LoginResponse> => {
   console.log('Auth Service - Sending login payload:', { email: payload.email });
-  const response = await axiosClient.post("/api/auth/login", payload);
+  const response = await axiosClient.post("/auth/login", payload);
   console.log('Auth Service - Login response received:', response.data);
   
   // Store token in localStorage if login successful

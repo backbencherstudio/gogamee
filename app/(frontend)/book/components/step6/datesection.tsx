@@ -43,7 +43,8 @@ interface ApiDateData {
   league: string
 }
 
-
+type BaseSportKey = 'football' | 'basketball'
+type SportKey = BaseSportKey | 'combined'
 
 // Constants
 const DURATION_OPTIONS: DurationOption[] = [
@@ -124,9 +125,11 @@ export default function DateSection() {
   const [packagePrices, setPackagePrices] = useState<{
     football: StartingPriceItem | null;
     basketball: StartingPriceItem | null;
+    combined: StartingPriceItem | null;
   }>({
     football: null,
-    basketball: null
+    basketball: null,
+    combined: null
   })
   const [isLoadingPrices, setIsLoadingPrices] = useState(true)
 
@@ -187,70 +190,67 @@ export default function DateSection() {
     }
   }, [formData.selectedLeague, formData.selectedSport, apiDateData])
 
-  // Calculate dynamic price based on sport, package, nights using package API data
+  const getDurationKey = (nights: number): '1' | '2' | '3' | '4' => {
+    if (nights <= 1) return '1'
+    if (nights === 2) return '2'
+    if (nights === 3) return '3'
+    return '4'
+  }
+
+  const getCurrencySymbolFromCode = (currency?: string | null): string => {
+    if (currency === 'usd') return '$'
+    if (currency === 'gbp') return '£'
+    return '€'
+  }
+
+  const getItemCurrencySymbol = useCallback((item?: StartingPriceItem | null): string => getCurrencySymbolFromCode(item?.currency), [])
+
+  const selectedDurationOption = DURATION_OPTIONS[selectedDuration]
+  const selectedDurationKey = getDurationKey(selectedDurationOption.nights)
+
+  const getBaseNightPrice = useCallback((sport: SportKey, pkg: 'standard' | 'premium', nights: number): number => {
+    const item = packagePrices[sport]
+    if (!item) return 0
+    const durationKey = getDurationKey(nights)
+    const entry = item.pricesByDuration?.[durationKey]
+    if (!entry) return 0
+    return pkg === 'standard' ? entry.standard : entry.premium
+  }, [packagePrices])
+
   const calculatePrice = useCallback((nights: number): string => {
     const sport = formData.selectedSport
     const packageType = formData.selectedPackage
-    
-    if (!sport || !packageType) return '€'
-    
+    if (!packageType) return '€'
+
     let totalPrice = 0
-    let currency = '€'
-    
+    let currencySymbol = '€'
+
     if (sport === 'both') {
-      // For 'both' sport, calculate combined cost from both football and basketball
-      const footballPrices = packagePrices.football
-      const basketballPrices = packagePrices.basketball
-      
-      if (!footballPrices || !basketballPrices) return '€'
-      
-      const footballPrice = packageType === 'standard' 
-        ? footballPrices.currentStandardPrice 
-        : footballPrices.currentPremiumPrice
-      
-      const basketballPrice = packageType === 'standard'
-        ? basketballPrices.currentStandardPrice
-        : basketballPrices.currentPremiumPrice
-      
-      totalPrice = (footballPrice + basketballPrice) * nights
-      currency = footballPrices.currency === 'euro' ? '€' : 
-                footballPrices.currency === 'usd' ? '$' : '£'
+      const combinedBase = getBaseNightPrice('combined', packageType as 'standard' | 'premium', nights)
+      if (combinedBase > 0) {
+        totalPrice = combinedBase * nights
+        currencySymbol = getItemCurrencySymbol(packagePrices.combined)
+      } else {
+        const footballBase = getBaseNightPrice('football', packageType as 'standard' | 'premium', nights)
+        const basketballBase = getBaseNightPrice('basketball', packageType as 'standard' | 'premium', nights)
+        totalPrice = (footballBase + basketballBase) * nights
+        currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
+      }
     } else {
-      // For individual sports
-      const currentPrices = packagePrices[sport as 'football' | 'basketball']
-      if (!currentPrices) return '€'
-      
-      // Get base price based on package type
-      const basePrice = packageType === 'standard' 
-        ? currentPrices.currentStandardPrice 
-        : currentPrices.currentPremiumPrice
-      
-      // Calculate total price by multiplying by nights
-      totalPrice = basePrice * nights
-      
-      // Format currency
-      currency = currentPrices.currency === 'euro' ? '€' : 
-                currentPrices.currency === 'usd' ? '$' : '£'
+      const base = getBaseNightPrice(sport as BaseSportKey, packageType as 'standard' | 'premium', nights)
+      totalPrice = base * nights
+      currencySymbol = getItemCurrencySymbol(packagePrices[sport as BaseSportKey])
     }
-    
-    return `${totalPrice}${currency}`
-  }, [formData.selectedSport, formData.selectedPackage, packagePrices])
 
-  // Helper: get base nightly price for a sport/package
-  const getBaseNightPrice = useCallback((sport: 'football' | 'basketball', pkg: 'standard' | 'premium'): number => {
-    const prices = packagePrices[sport]
-    if (!prices) return 0
-    return pkg === 'standard' ? prices.currentStandardPrice : prices.currentPremiumPrice
-  }, [packagePrices])
+    return `${totalPrice}${currencySymbol}`
+  }, [formData.selectedSport, formData.selectedPackage, packagePrices, getBaseNightPrice, getItemCurrencySymbol])
 
-  // Calculate price for a start date by summing per-night prices
   const calculatePriceForDate = useCallback((startDate: Date, nights: number): string => {
     const sport = formData.selectedSport
     const packageType = formData.selectedPackage
     if (!sport || !packageType) return '€'
 
     const restrictions = getDateRestrictions()
-
     let totalPrice = 0
 
     for (let i = 0; i < nights; i++) {
@@ -260,18 +260,26 @@ export default function DateSection() {
       const custom = restrictions.customPrices[dateKey]
 
       if (sport === 'both') {
-        // Sum football + basketball for each night, using custom if available; fallback to base
         let footballNightPrice: number | undefined
         let basketballNightPrice: number | undefined
         if (custom?.football) {
-          footballNightPrice = (packageType === 'standard') ? (custom.football.standard ?? undefined) : (custom.football.premium ?? undefined)
+          footballNightPrice = packageType === 'standard' ? (custom.football.standard ?? undefined) : (custom.football.premium ?? undefined)
         }
         if (custom?.basketball) {
-          basketballNightPrice = (packageType === 'standard') ? (custom.basketball.standard ?? undefined) : (custom.basketball.premium ?? undefined)
+          basketballNightPrice = packageType === 'standard' ? (custom.basketball.standard ?? undefined) : (custom.basketball.premium ?? undefined)
         }
 
-        const footballPrice = (footballNightPrice ?? getBaseNightPrice('football', packageType as 'standard' | 'premium'))
-        const basketballPrice = (basketballNightPrice ?? getBaseNightPrice('basketball', packageType as 'standard' | 'premium'))
+        const hasCustomOverride = typeof footballNightPrice === 'number' || typeof basketballNightPrice === 'number'
+        if (!hasCustomOverride) {
+          const combinedNightPrice = getBaseNightPrice('combined', packageType as 'standard' | 'premium', nights)
+          if (combinedNightPrice > 0) {
+            totalPrice += combinedNightPrice
+            continue
+          }
+        }
+
+        const footballPrice = footballNightPrice ?? getBaseNightPrice('football', packageType as 'standard' | 'premium', nights)
+        const basketballPrice = basketballNightPrice ?? getBaseNightPrice('basketball', packageType as 'standard' | 'premium', nights)
         totalPrice += footballPrice + basketballPrice
       } else if (sport === 'football' || sport === 'basketball') {
         let nightPrice: number | undefined
@@ -281,17 +289,24 @@ export default function DateSection() {
           nightPrice = packageType === 'standard' ? custom?.basketball?.standard : custom?.basketball?.premium
         }
         if (typeof nightPrice !== 'number') {
-          nightPrice = getBaseNightPrice(sport, packageType as 'standard' | 'premium')
+          nightPrice = getBaseNightPrice(sport, packageType as 'standard' | 'premium', nights)
         }
         totalPrice += nightPrice
       }
     }
 
-    // Determine currency (prefer football if available)
-    const currencySource = sport === 'basketball' ? packagePrices.basketball : packagePrices.football || packagePrices.basketball
-    const currency = currencySource?.currency === 'usd' ? '$' : currencySource?.currency === 'euro' ? '€' : '£'
-    return `${totalPrice}${currency || '€'}`
-  }, [formData.selectedSport, formData.selectedPackage, getDateRestrictions, getBaseNightPrice, packagePrices])
+    let currencyItem: StartingPriceItem | null | undefined
+    if (sport === 'football') {
+      currencyItem = packagePrices.football
+    } else if (sport === 'basketball') {
+      currencyItem = packagePrices.basketball
+    } else {
+      currencyItem = packagePrices.combined ?? packagePrices.football ?? packagePrices.basketball
+    }
+
+    const currency = getItemCurrencySymbol(currencyItem)
+    return `${totalPrice}${currency}`
+  }, [formData.selectedSport, formData.selectedPackage, getDateRestrictions, getBaseNightPrice, packagePrices, getItemCurrencySymbol])
 
   // Fetch API data
   useEffect(() => {
@@ -315,15 +330,17 @@ export default function DateSection() {
     const fetchPackagePrices = async () => {
       try {
         setIsLoadingPrices(true)
-        const [footballRes, basketballRes] = await Promise.all([
+        const [footballRes, basketballRes, combinedRes] = await Promise.all([
           getStartingPrice('football'),
-          getStartingPrice('basketball')
+          getStartingPrice('basketball'),
+          getStartingPrice('combined')
         ])
         
-        if (footballRes.success && basketballRes.success) {
+        if (footballRes.success && basketballRes.success && combinedRes.success) {
           setPackagePrices({
             football: footballRes.data?.[0] || null,
-            basketball: basketballRes.data?.[0] || null
+            basketball: basketballRes.data?.[0] || null,
+            combined: combinedRes.data?.[0] || null
           })
         }
       } catch (error) {
@@ -541,14 +558,14 @@ export default function DateSection() {
     if (isSelected) {
       const bgColor = isInRange ? 'bg-[#D5EBC5]' : 'bg-[#76C043]'
       const textColorSelected = isInRange ? 'text-lime-600' : 'text-white'
-      const outline = "rounded outline outline-1 outline-offset-[-1px] outline-[#6AAD3C] overflow-hidden"
+      const outline = "rounded outline-1 outline-offset-[-1px] outline-[#6AAD3C] overflow-hidden"
       
       // Check if this is the start date (main selection) - only show price on start date
       const isStartDate = selectedDateRange && 
         currentCheckDate.getTime() === selectedDateRange.startDate.getTime()
 
       return (
-        <div className={isInRange ? outline : ''}>
+        <div className={outline}>
           <div className={`w-12 h-12 ${bgColor} rounded inline-flex flex-col justify-center items-center cursor-pointer`} 
                onClick={handleClick}>
             <div className={`text-center ${textColorSelected} text-sm font-medium font-['Poppins'] leading-tight`}>
@@ -592,7 +609,7 @@ export default function DateSection() {
           
           if (isSelected && isInRange && day) {
             return (
-              <div key={dayIndex} className="rounded outline outline-1 outline-offset-[-1px] outline-[#6AAD3C] overflow-hidden">
+              <div key={dayIndex} className="rounded outline-1 outline-offset-[-1px] outline-[#6AAD3C] overflow-hidden">
                 {renderCalendarDay(day, monthIndex, year, true)}
               </div>
             )
@@ -645,7 +662,7 @@ export default function DateSection() {
   // Show loading state
   if (isLoading || isLoadingPrices) {
     return (
-      <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-center items-center gap-6 min-h-[600px]">
+      <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-center items-center gap-6 min-h-[600px]">
         <div className="text-center text-neutral-800 text-xl font-medium font-['Poppins']">
           Loading available dates...
         </div>
@@ -654,7 +671,7 @@ export default function DateSection() {
   }
 
   return (
-    <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-start items-start gap-6 min-h-[600px]">
+    <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-start items-start gap-6 min-h-[600px]">
       <div className="self-stretch flex flex-col justify-center items-start gap-3">
         <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
           <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">Date Section</div>
@@ -693,7 +710,7 @@ export default function DateSection() {
           )} */}
 
           {/* Duration Selectionn */}
-          <div className="p-1 bg-white rounded-xl outline outline-1 outline-offset-[-1px] outline-gray-200 w-full overflow-x-auto">
+          <div className="p-1 bg-white rounded-xl outline-1 outline-offset-[-1px] outline-gray-200 w-full overflow-x-auto">
             <div className="flex xl:inline-flex justify-start items-center gap-1 xl:gap-0 min-w-max xl:min-w-0">
               {DURATION_OPTIONS.map((option, index) => (
                 <div
@@ -720,7 +737,7 @@ export default function DateSection() {
 
           {/* Calendar Sectioon */}
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
-            <div className="w-full p-4 xl:p-6 bg-white rounded-lg outline outline-1 outline-offset-[-1px] outline-gray-200 flex justify-center items-start overflow-x-auto">
+            <div className="w-full p-4 xl:p-6 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-gray-200 flex justify-center items-start overflow-x-auto">
               <div className="flex flex-col xl:flex-row justify-start items-start gap-6 xl:gap-8 min-w-full xl:min-w-0">
                 {/* Current Month Calendar */}
                 <div className="w-full xl:w-96 flex flex-col justify-start items-center gap-4 xl:gap-6">
@@ -775,17 +792,15 @@ export default function DateSection() {
                           <div className="flex items-center gap-2">
                             <span className="text-gray-600 font-['Poppins']">Standard:</span>
                             <span className="font-semibold text-lime-600 font-['Poppins']">
-                              {packagePrices.football.currentStandardPrice}
-                              {packagePrices.football.currency === 'euro' ? '€' : 
-                               packagePrices.football.currency === 'usd' ? '$' : '£'}
+                              {packagePrices.football.pricesByDuration?.[selectedDurationKey]?.standard ?? 0}
+                              {getItemCurrencySymbol(packagePrices.football)}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-gray-600 font-['Poppins']">Premium:</span>
                             <span className="font-semibold text-lime-600 font-['Poppins']">
-                              {packagePrices.football.currentPremiumPrice}
-                              {packagePrices.football.currency === 'euro' ? '€' : 
-                               packagePrices.football.currency === 'usd' ? '$' : '£'}
+                              {packagePrices.football.pricesByDuration?.[selectedDurationKey]?.premium ?? 0}
+                              {getItemCurrencySymbol(packagePrices.football)}
                             </span>
                           </div>
                         </>
@@ -802,17 +817,15 @@ export default function DateSection() {
                           <div className="flex items-center gap-2">
                             <span className="text-gray-600 font-['Poppins']">Standard:</span>
                             <span className="font-semibold text-lime-600 font-['Poppins']">
-                              {packagePrices.basketball.currentStandardPrice}
-                              {packagePrices.basketball.currency === 'euro' ? '€' : 
-                               packagePrices.basketball.currency === 'usd' ? '$' : '£'}
+                              {packagePrices.basketball.pricesByDuration?.[selectedDurationKey]?.standard ?? 0}
+                              {getItemCurrencySymbol(packagePrices.basketball)}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-gray-600 font-['Poppins']">Premium:</span>
                             <span className="font-semibold text-lime-600 font-['Poppins']">
-                              {packagePrices.basketball.currentPremiumPrice}
-                              {packagePrices.basketball.currency === 'euro' ? '€' : 
-                               packagePrices.basketball.currency === 'usd' ? '$' : '£'}
+                              {packagePrices.basketball.pricesByDuration?.[selectedDurationKey]?.premium ?? 0}
+                              {getItemCurrencySymbol(packagePrices.basketball)}
                             </span>
                           </div>
                         </>
@@ -830,26 +843,21 @@ export default function DateSection() {
                  {formData.selectedSport && formData.selectedPackage && (
                    <span className="ml-2 font-semibold text-lime-600">
                      {formData.selectedSport === 'both' ? (
-                       <>
-                         (Combined base price: {
-                           packagePrices.football && packagePrices.basketball ? (
-                             (formData.selectedPackage === 'standard' 
-                               ? packagePrices.football.currentStandardPrice + packagePrices.basketball.currentStandardPrice
-                               : packagePrices.football.currentPremiumPrice + packagePrices.basketball.currentPremiumPrice
-                             )
-                           ) : 'Loading...'
-                         }
-                         {packagePrices.football?.currency === 'euro' ? '€' : 
-                          packagePrices.football?.currency === 'usd' ? '$' : '£'})
-                       </>
+                       packagePrices.combined ? (
+                         <>
+                           (Combined base price: {formData.selectedPackage === 'standard'
+                             ? (packagePrices.combined.pricesByDuration?.[selectedDurationKey]?.standard ?? 0)
+                             : (packagePrices.combined.pricesByDuration?.[selectedDurationKey]?.premium ?? 0)}
+                           {getItemCurrencySymbol(packagePrices.combined)})
+                         </>
+                       ) : 'Loading...'
                      ) : (
-                       packagePrices[formData.selectedSport as 'football' | 'basketball'] && (
+                       packagePrices[formData.selectedSport as BaseSportKey] && (
                          <>
                            (Base price: {formData.selectedPackage === 'standard' 
-                             ? packagePrices[formData.selectedSport as 'football' | 'basketball']?.currentStandardPrice
-                             : packagePrices[formData.selectedSport as 'football' | 'basketball']?.currentPremiumPrice}
-                           {packagePrices[formData.selectedSport as 'football' | 'basketball']?.currency === 'euro' ? '€' : 
-                            packagePrices[formData.selectedSport as 'football' | 'basketball']?.currency === 'usd' ? '$' : '£'})
+                             ? packagePrices[formData.selectedSport as BaseSportKey]?.pricesByDuration?.[selectedDurationKey]?.standard
+                             : packagePrices[formData.selectedSport as BaseSportKey]?.pricesByDuration?.[selectedDurationKey]?.premium}
+                           {getItemCurrencySymbol(packagePrices[formData.selectedSport as BaseSportKey])})
                          </>
                        )
                      )}

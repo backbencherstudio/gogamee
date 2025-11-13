@@ -3,7 +3,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000', // ⬅️ .env theke base URL with fallback
+  baseURL: '/api',
   withCredentials: true, // ⬅️ jodi cookie based auth thake
   headers: {
     'Content-Type': 'application/json',
