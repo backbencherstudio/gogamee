@@ -36,8 +36,8 @@ export interface LogoutResponse {
   success: boolean;
 }
 
-function getRequestContext() {
-  const hdrs = headers();
+async function getRequestContext() {
+  const hdrs = await headers();
   return {
     ipAddress: hdrs.get("x-forwarded-for") ?? hdrs.get("x-real-ip") ?? null,
     userAgent: hdrs.get("user-agent") ?? null,
@@ -156,6 +156,7 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
   }
 
   const now = Date.now();
+  const requestContext = await getRequestContext();
   const session: Session = {
     id: randomUUID(),
     adminId: admin.id,
@@ -163,12 +164,12 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     createdAt: new Date(now).toISOString(),
     expiresAt: new Date(now + SESSION_TTL_MS).toISOString(),
     lastUsedAt: new Date(now).toISOString(),
-    ...getRequestContext(),
+    ...requestContext,
   };
 
   await appendSession(session);
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.set({
     name: SESSION_COOKIE,
     value: session.token,
@@ -191,7 +192,7 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
 }
 
 export async function logout(): Promise<LogoutResponse> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
 
   if (token) {
@@ -203,7 +204,7 @@ export async function logout(): Promise<LogoutResponse> {
 }
 
 export async function getCurrentAdmin(): Promise<Admin | null> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
 
   if (!token) {
@@ -217,7 +218,8 @@ export async function getCurrentAdmin(): Promise<Admin | null> {
 
   if (new Date(session.expiresAt).getTime() <= Date.now()) {
     await removeSession(token);
-    cookies().delete(SESSION_COOKIE);
+    const cookieStoreToDelete = await cookies();
+    cookieStoreToDelete.delete(SESSION_COOKIE);
     return null;
   }
 
