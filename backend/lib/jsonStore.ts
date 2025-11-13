@@ -9,25 +9,28 @@ const LOCK_MAX_RETRIES = 250; // 5 seconds max wait
 // In-memory storage as last resort
 const inMemoryStore = new Map<string, unknown>();
 
-// Lazy load Vercel KV
-let kvClient: any = null;
-let kvInitialized = false;
+// Lazy load Upstash Redis
+let redisClient: any = null;
+let redisInitialized = false;
 
-async function getKvClient() {
-  if (kvInitialized) {
-    return kvClient;
+async function getRedisClient() {
+  if (redisInitialized) {
+    return redisClient;
   }
 
-  kvInitialized = true;
+  redisInitialized = true;
 
-  // Check if we're in Vercel environment and KV is available
-  if (process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN) {
+  // Check if Upstash Redis is available
+  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
     try {
-      const { kv } = await import("@vercel/kv");
-      kvClient = kv;
-      return kvClient;
+      const { Redis } = await import("@upstash/redis");
+      redisClient = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      });
+      return redisClient;
     } catch (error) {
-      console.warn("Vercel KV not available, using file system fallback");
+      console.warn("Upstash Redis not available, using file system fallback", error);
       return null;
     }
   }
@@ -88,20 +91,20 @@ async function releaseLock(lockPath: string) {
   });
 }
 
-// Read from KV, file, or memory (in that order)
+// Read from Redis, file, or memory (in that order)
 async function readJson<T>(fileName: string): Promise<T> {
-  // 1. Try Vercel KV first (persistent, works in serverless)
-  const kv = await getKvClient();
-  if (kv) {
+  // 1. Try Upstash Redis first (persistent, works in serverless, FREE)
+  const redis = await getRedisClient();
+  if (redis) {
     try {
-      const data = await kv.get(`jsonstore:${fileName}`) as T | null;
+      const data = await redis.get(`jsonstore:${fileName}`) as T | null;
       if (data) {
         // Cache in memory for faster access
         inMemoryStore.set(fileName, data);
         return data;
       }
     } catch (error) {
-      console.warn(`KV read failed for ${fileName}, trying file system`, error);
+      console.warn(`Redis read failed for ${fileName}, trying file system`, error);
     }
   }
 
@@ -117,13 +120,13 @@ async function readJson<T>(fileName: string): Promise<T> {
     const raw = await fs.readFile(filePath, "utf-8");
     const parsed = JSON.parse(raw) as T;
     
-    // Cache in memory and KV
+    // Cache in memory and Redis
     inMemoryStore.set(fileName, parsed);
-    if (kv) {
+    if (redis) {
       try {
-        await kv.set(`jsonstore:${fileName}`, parsed);
+        await redis.set(`jsonstore:${fileName}`, JSON.stringify(parsed));
       } catch (error) {
-        // Ignore KV write errors
+        // Ignore Redis write errors
       }
     }
     
@@ -136,20 +139,20 @@ async function readJson<T>(fileName: string): Promise<T> {
   }
 }
 
-// Write to KV, file, and memory
+// Write to Redis, file, and memory
 async function writeJson<T>(fileName: string, data: T): Promise<void> {
   // Always store in memory first (fastest)
   inMemoryStore.set(fileName, data);
 
-  // 1. Try Vercel KV (persistent, works in serverless)
-  const kv = await getKvClient();
-  if (kv) {
+  // 1. Try Upstash Redis (persistent, works in serverless, FREE)
+  const redis = await getRedisClient();
+  if (redis) {
     try {
-      await kv.set(`jsonstore:${fileName}`, data);
-      // Successfully stored in KV, we're done
+      await redis.set(`jsonstore:${fileName}`, JSON.stringify(data));
+      // Successfully stored in Redis, we're done
       return;
     } catch (error) {
-      console.warn(`KV write failed for ${fileName}, trying file system`, error);
+      console.warn(`Redis write failed for ${fileName}, trying file system`, error);
     }
   }
 
@@ -170,9 +173,9 @@ async function writeJson<T>(fileName: string, data: T): Promise<void> {
       await releaseLock(lockPath);
     }
   } catch (error: unknown) {
-    // File write failed, but we've stored in memory and possibly KV
+    // File write failed, but we've stored in memory and possibly Redis
     // This is acceptable in serverless environments
-    if (!kv) {
+    if (!redis) {
       console.warn(`File write failed for ${fileName}, data stored in memory only`);
     }
   }
