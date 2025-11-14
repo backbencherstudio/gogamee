@@ -181,14 +181,24 @@ export default function DateSection() {
         }
         
         // Store custom prices for this date
-        customPrices[dateString] = {
-          football: {
-            standard: item.updated_football_standard_package_price ?? item.football_standard_package_price,
-            premium: item.updated_football_premium_package_price ?? item.football_premium_package_price
-          },
-          basketball: {
-            standard: item.updated_baskatball_standard_package_price ?? item.baskatball_standard_package_price,
-            premium: item.updated_baskatball_premium_package_price ?? item.baskatball_premium_package_price
+        // Only include custom prices if they are explicitly set (not null)
+        // If custom price is null, don't include it so base price will be used
+        const hasCustomFootballStandard = item.updated_football_standard_package_price !== null && item.updated_football_standard_package_price !== undefined
+        const hasCustomFootballPremium = item.updated_football_premium_package_price !== null && item.updated_football_premium_package_price !== undefined
+        const hasCustomBasketballStandard = item.updated_baskatball_standard_package_price !== null && item.updated_baskatball_standard_package_price !== undefined
+        const hasCustomBasketballPremium = item.updated_baskatball_premium_package_price !== null && item.updated_baskatball_premium_package_price !== undefined
+        
+        // Only create custom price entry if at least one custom price exists
+        if (hasCustomFootballStandard || hasCustomFootballPremium || hasCustomBasketballStandard || hasCustomBasketballPremium) {
+          customPrices[dateString] = {
+            football: {
+              ...(hasCustomFootballStandard && { standard: item.updated_football_standard_package_price! }),
+              ...(hasCustomFootballPremium && { premium: item.updated_football_premium_package_price! })
+            },
+            basketball: {
+              ...(hasCustomBasketballStandard && { standard: item.updated_baskatball_standard_package_price! }),
+              ...(hasCustomBasketballPremium && { premium: item.updated_baskatball_premium_package_price! })
+            }
           }
         }
       } else {
@@ -220,7 +230,7 @@ export default function DateSection() {
     return pkg === 'standard' ? entry.standard : entry.premium
   }, [packagePrices])
 
-  const calculatePrice = useCallback((nights: number): string => {
+  const calculatePrice = useCallback((nights: number, checkDate?: Date): string => {
     const sport = formData.selectedSport
     const packageType = formData.selectedPackage
     if (!packageType) return '€'
@@ -228,6 +238,42 @@ export default function DateSection() {
     let totalPrice = 0
     let currencySymbol = '€'
 
+    // Check for custom price if a specific date is provided
+    if (checkDate) {
+      const restrictions = getDateRestrictions()
+      const dateString = formatDateForAPI(checkDate)
+      const customPrice = restrictions.customPrices[dateString]
+
+      if (customPrice) {
+        if (sport === 'both') {
+          const footballPrice = packageType === 'standard' 
+            ? (customPrice.football?.standard ?? 0)
+            : (customPrice.football?.premium ?? 0)
+          const basketballPrice = packageType === 'standard'
+            ? (customPrice.basketball?.standard ?? 0)
+            : (customPrice.basketball?.premium ?? 0)
+          totalPrice = footballPrice + basketballPrice
+          currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
+        } else if (sport === 'football') {
+          totalPrice = packageType === 'standard'
+            ? (customPrice.football?.standard ?? 0)
+            : (customPrice.football?.premium ?? 0)
+          currencySymbol = getItemCurrencySymbol(packagePrices.football)
+        } else if (sport === 'basketball') {
+          totalPrice = packageType === 'standard'
+            ? (customPrice.basketball?.standard ?? 0)
+            : (customPrice.basketball?.premium ?? 0)
+          currencySymbol = getItemCurrencySymbol(packagePrices.basketball)
+        }
+
+        // If custom price found and valid, return it
+        if (totalPrice > 0) {
+          return `${totalPrice}${currencySymbol}`
+        }
+      }
+    }
+
+    // Fallback to base price if no custom price found or no date provided
     if (sport === 'both') {
       const combinedBase = getBaseNightPrice('combined', packageType as 'standard' | 'premium', nights)
       if (combinedBase > 0) {
@@ -246,7 +292,7 @@ export default function DateSection() {
 
     if (totalPrice <= 0) return currencySymbol
     return `${totalPrice}${currencySymbol}`
-  }, [formData.selectedSport, formData.selectedPackage, packagePrices, getBaseNightPrice, getItemCurrencySymbol])
+  }, [formData.selectedSport, formData.selectedPackage, packagePrices, getBaseNightPrice, getItemCurrencySymbol, getDateRestrictions])
 
 
   // Fetch API data
@@ -498,7 +544,8 @@ export default function DateSection() {
     }
 
     // Calculate price for the selected duration and this specific date
-    const currentPrice = calculatePrice(DURATION_OPTIONS[selectedDuration].nights)
+    // Pass the current date to check for custom prices
+    const currentPrice = calculatePrice(DURATION_OPTIONS[selectedDuration].nights, currentCheckDate)
     
 
     if (isSelected) {
