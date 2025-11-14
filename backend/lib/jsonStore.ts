@@ -100,17 +100,22 @@ async function readJson<T>(fileName: string): Promise<T> {
     try {
       const data = await redis.get(`jsonstore:${fileName}`) as T | null;
       if (data) {
-        // Cache in memory for faster access
+        // Always update in-memory cache with fresh data from Redis
         inMemoryStore.set(fileName, data);
         return data;
+      } else {
+        // Redis returned null, clear in-memory cache to force fresh read
+        inMemoryStore.delete(fileName);
       }
     } catch (error) {
       console.warn(`Redis read failed for ${fileName}, trying file system`, error);
+      // On Redis error, clear in-memory cache to avoid stale data
+      inMemoryStore.delete(fileName);
     }
   }
 
-  // 2. Check in-memory cache
-  if (inMemoryStore.has(fileName)) {
+  // 2. Check in-memory cache (only if Redis is not available)
+  if (!redis && inMemoryStore.has(fileName)) {
     return inMemoryStore.get(fileName) as T;
   }
 
@@ -142,20 +147,21 @@ async function readJson<T>(fileName: string): Promise<T> {
 
 // Write to Redis, file, and memory
 async function writeJson<T>(fileName: string, data: T): Promise<void> {
-  // Always store in memory first (fastest)
-  inMemoryStore.set(fileName, data);
-
-  // 1. Try Upstash Redis (persistent, works in serverless, FREE)
+  // 1. Try Upstash Redis first (persistent, works in serverless, FREE)
   const redis = await getRedisClient();
   if (redis) {
     try {
       await redis.set(`jsonstore:${fileName}`, JSON.stringify(data));
-      // Successfully stored in Redis, we're done
+      // Successfully stored in Redis, now update in-memory cache
+      inMemoryStore.set(fileName, data);
       return;
     } catch (error) {
       console.warn(`Redis write failed for ${fileName}, trying file system`, error);
     }
   }
+
+  // Always store in memory (even if Redis write failed)
+  inMemoryStore.set(fileName, data);
 
   // 2. Try file system (for local development)
   try {
