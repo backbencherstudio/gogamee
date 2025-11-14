@@ -238,10 +238,20 @@ export default function DateSection() {
     let totalPrice = 0
     let currencySymbol = '€'
 
-    // Check for custom price if a specific date is provided
-    if (checkDate) {
+    // Check for custom price if a date is selected
+    // Calculate selectedDateRange inline to avoid dependency issue
+    let currentSelectedDateRange: { startDate: Date; endDate: Date } | null = null
+    if (selectedStartDate && selectedMonth !== null && selectedYear !== null) {
+      const startDate = new Date(selectedYear, selectedMonth, selectedStartDate)
+      const duration = DURATION_OPTIONS[selectedDuration].days
+      const endDate = new Date(startDate)
+      endDate.setDate(startDate.getDate() + duration - 1)
+      currentSelectedDateRange = { startDate, endDate }
+    }
+
+    if (currentSelectedDateRange) {
       const restrictions = getDateRestrictions()
-      const dateString = formatDateForAPI(checkDate)
+      const dateString = formatDateForAPI(currentSelectedDateRange.startDate)
       const customPrice = restrictions.customPrices[dateString]
 
       if (customPrice) {
@@ -273,7 +283,7 @@ export default function DateSection() {
       }
     }
 
-    // Fallback to base price if no custom price found or no date provided
+    // Fallback to base price if no custom price found
     if (sport === 'both') {
       const combinedBase = getBaseNightPrice('combined', packageType as 'standard' | 'premium', nights)
       if (combinedBase > 0) {
@@ -292,7 +302,7 @@ export default function DateSection() {
 
     if (totalPrice <= 0) return currencySymbol
     return `${totalPrice}${currencySymbol}`
-  }, [formData.selectedSport, formData.selectedPackage, packagePrices, getBaseNightPrice, getItemCurrencySymbol, getDateRestrictions])
+  }, [formData.selectedSport, formData.selectedPackage, packagePrices, getBaseNightPrice, getItemCurrencySymbol, selectedStartDate, selectedMonth, selectedYear, selectedDuration, getDateRestrictions])
 
 
   // Fetch API data

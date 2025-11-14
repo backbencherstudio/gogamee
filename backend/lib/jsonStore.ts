@@ -1,3 +1,4 @@
+import { Redis } from "@upstash/redis";
 import { promises as fs } from "fs";
 import path from "path";
 
@@ -10,7 +11,7 @@ const LOCK_MAX_RETRIES = 250; // 5 seconds max wait
 const inMemoryStore = new Map<string, unknown>();
 
 // Lazy load Upstash Redis
-let redisClient: any = null;
+let redisClient: Redis | null = null;
 let redisInitialized = false;
 
 async function getRedisClient() {
