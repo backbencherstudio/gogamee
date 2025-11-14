@@ -237,6 +237,7 @@ export default function DateSection() {
 
     let totalPrice = 0
     let currencySymbol = '€'
+    let hasCustomPrice = false
 
     // Check for custom price if a date is selected
     // Calculate selectedDateRange inline to avoid dependency issue
@@ -257,27 +258,49 @@ export default function DateSection() {
       if (customPrice) {
         if (sport === 'both') {
           const footballPrice = packageType === 'standard' 
-            ? (customPrice.football?.standard ?? 0)
-            : (customPrice.football?.premium ?? 0)
+            ? (customPrice.football?.standard)
+            : (customPrice.football?.premium)
           const basketballPrice = packageType === 'standard'
-            ? (customPrice.basketball?.standard ?? 0)
-            : (customPrice.basketball?.premium ?? 0)
-          totalPrice = footballPrice + basketballPrice
-          currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
+            ? (customPrice.basketball?.standard)
+            : (customPrice.basketball?.premium)
+          
+          // If both prices are available, use custom prices
+          if (footballPrice !== undefined && basketballPrice !== undefined) {
+            totalPrice = footballPrice + basketballPrice
+            currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
+            hasCustomPrice = true
+          } else if (footballPrice !== undefined || basketballPrice !== undefined) {
+            // Partial custom price - use what's available and fallback to base for missing
+            const footballFinal = footballPrice ?? getBaseNightPrice('football', packageType as 'standard' | 'premium', nights)
+            const basketballFinal = basketballPrice ?? getBaseNightPrice('basketball', packageType as 'standard' | 'premium', nights)
+            totalPrice = footballFinal + basketballFinal
+            currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
+            hasCustomPrice = true
+          }
         } else if (sport === 'football') {
-          totalPrice = packageType === 'standard'
-            ? (customPrice.football?.standard ?? 0)
-            : (customPrice.football?.premium ?? 0)
-          currencySymbol = getItemCurrencySymbol(packagePrices.football)
+          const price = packageType === 'standard'
+            ? (customPrice.football?.standard)
+            : (customPrice.football?.premium)
+          
+          if (price !== undefined) {
+            totalPrice = price
+            currencySymbol = getItemCurrencySymbol(packagePrices.football)
+            hasCustomPrice = true
+          }
         } else if (sport === 'basketball') {
-          totalPrice = packageType === 'standard'
-            ? (customPrice.basketball?.standard ?? 0)
-            : (customPrice.basketball?.premium ?? 0)
-          currencySymbol = getItemCurrencySymbol(packagePrices.basketball)
+          const price = packageType === 'standard'
+            ? (customPrice.basketball?.standard)
+            : (customPrice.basketball?.premium)
+          
+          if (price !== undefined) {
+            totalPrice = price
+            currencySymbol = getItemCurrencySymbol(packagePrices.basketball)
+            hasCustomPrice = true
+          }
         }
 
         // If custom price found and valid, return it
-        if (totalPrice > 0) {
+        if (hasCustomPrice && totalPrice > 0) {
           return `${totalPrice}${currencySymbol}`
         }
       }
@@ -597,7 +620,8 @@ export default function DateSection() {
         )}
       </div>
     )
-  }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePrice, selectedDuration, selectedDateRange])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePrice, selectedDuration])
 
   const renderCalendarWeeks = useCallback((days: (number | null)[], monthIndex: number, year: number) => {
     const weeks: (number | null)[][] = []
