@@ -15,7 +15,7 @@ export default function Mailus() {
         <div className="w-full flex flex-col md:flex-row justify-between items-center gap-8 md:gap-4">
           <div className="w-full md:w-[60%] flex flex-col justify-start items-start gap-6 md:gap-24">
             <div className="w-full text-center md:text-left justify-start text-white text-3xl md:text-6xl font-semibold font-['Inter'] leading-tight md:leading-[67.20px]">
-              Sign up now and be the first to travel with GoGame
+              Sign up now and be the first to travel with <span className="text-[#76C043]">GoGame</span>
             </div>
           </div>
           <div className="w-full md:w-[384px] p-3 bg-white rounded-lg backdrop-blur-[5px] flex flex-col justify-start items-start gap-3">
