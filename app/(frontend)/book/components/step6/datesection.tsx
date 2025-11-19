@@ -25,6 +25,10 @@ interface DateRestrictions {
       standard?: number;
       premium?: number;
     };
+    both?: {
+      standard?: number;
+      premium?: number;
+    };
   }>
 }
 
@@ -157,15 +161,22 @@ export default function DateSection() {
         standard?: number;
         premium?: number;
       };
+      both?: {
+        standard?: number;
+        premium?: number;
+      };
     }> = {}
 
     // Filter API data based on selected league and sport
     const filteredApiData = apiDateData.filter(item => {
       const matchesLeague = !selectedLeague || item.league === selectedLeague
-      const matchesSport = !formData.selectedSport || 
-        (formData.selectedSport === 'football' && item.sportname === 'football') ||
-        (formData.selectedSport === 'basketball' && item.sportname === 'basketball') ||
-        (formData.selectedSport === 'both')
+      const matchesSport = (() => {
+        if (!formData.selectedSport) return true
+        if (formData.selectedSport === 'both') {
+          return item.sportname === 'both'
+        }
+        return item.sportname === formData.selectedSport
+      })()
       const matchesDuration = (item.duration ?? '1') === selectedDurationKey
       return matchesLeague && matchesSport && matchesDuration
     })
@@ -189,17 +200,43 @@ export default function DateSection() {
         const hasCustomBasketballPremium = item.updated_baskatball_premium_package_price !== null && item.updated_baskatball_premium_package_price !== undefined
         
         // Only create custom price entry if at least one custom price exists
-        if (hasCustomFootballStandard || hasCustomFootballPremium || hasCustomBasketballStandard || hasCustomBasketballPremium) {
-          customPrices[dateString] = {
-            football: {
-              ...(hasCustomFootballStandard && { standard: item.updated_football_standard_package_price! }),
-              ...(hasCustomFootballPremium && { premium: item.updated_football_premium_package_price! })
-            },
-            basketball: {
-              ...(hasCustomBasketballStandard && { standard: item.updated_baskatball_standard_package_price! }),
-              ...(hasCustomBasketballPremium && { premium: item.updated_baskatball_premium_package_price! })
+        const entry = customPrices[dateString] ?? {}
+
+        if (item.sportname === 'football' && (hasCustomFootballStandard || hasCustomFootballPremium)) {
+          entry.football = {
+            ...(hasCustomFootballStandard && { standard: item.updated_football_standard_package_price! }),
+            ...(hasCustomFootballPremium && { premium: item.updated_football_premium_package_price! })
+          }
+        } else if (item.sportname === 'basketball' && (hasCustomBasketballStandard || hasCustomBasketballPremium)) {
+          entry.basketball = {
+            ...(hasCustomBasketballStandard && { standard: item.updated_baskatball_standard_package_price! }),
+            ...(hasCustomBasketballPremium && { premium: item.updated_baskatball_premium_package_price! })
+          }
+        } else if (item.sportname === 'both') {
+          const hasCustomBothStandard =
+            item.updated_football_standard_package_price !== null && item.updated_football_standard_package_price !== undefined ||
+            item.updated_baskatball_standard_package_price !== null && item.updated_baskatball_standard_package_price !== undefined
+          const hasCustomBothPremium =
+            item.updated_football_premium_package_price !== null && item.updated_football_premium_package_price !== undefined ||
+            item.updated_baskatball_premium_package_price !== null && item.updated_baskatball_premium_package_price !== undefined
+
+          if (hasCustomBothStandard || hasCustomBothPremium) {
+            const standardBoth =
+              item.updated_football_standard_package_price ??
+              item.updated_baskatball_standard_package_price
+            const premiumBoth =
+              item.updated_football_premium_package_price ??
+              item.updated_baskatball_premium_package_price
+
+            entry.both = {
+              ...(hasCustomBothStandard && standardBoth != null && { standard: standardBoth }),
+              ...(hasCustomBothPremium && premiumBoth != null && { premium: premiumBoth })
             }
           }
+        }
+
+        if (Object.keys(entry).length > 0) {
+          customPrices[dateString] = entry
         }
       } else {
         blockedDates.push(dateString)
@@ -247,25 +284,33 @@ export default function DateSection() {
 
       if (customPrice) {
         if (sport === 'both') {
-          const footballPrice = packageType === 'standard' 
-            ? (customPrice.football?.standard)
-            : (customPrice.football?.premium)
-          const basketballPrice = packageType === 'standard'
-            ? (customPrice.basketball?.standard)
-            : (customPrice.basketball?.premium)
-          
-          // If both prices are available, use custom prices
-          if (footballPrice !== undefined && basketballPrice !== undefined) {
-            totalPrice = footballPrice + basketballPrice
-            currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
+          const combinedCustom = packageType === 'standard'
+            ? customPrice.both?.standard
+            : customPrice.both?.premium
+
+          if (combinedCustom !== undefined) {
+            totalPrice = combinedCustom
+            currencySymbol = getItemCurrencySymbol(packagePrices.combined ?? packagePrices.football ?? packagePrices.basketball)
             hasCustomPrice = true
-          } else if (footballPrice !== undefined || basketballPrice !== undefined) {
-            // Partial custom price - use what's available and fallback to base for missing
-            const footballFinal = footballPrice ?? getBaseNightPrice('football', packageType as 'standard' | 'premium', nights)
-            const basketballFinal = basketballPrice ?? getBaseNightPrice('basketball', packageType as 'standard' | 'premium', nights)
-            totalPrice = footballFinal + basketballFinal
-            currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
-            hasCustomPrice = true
+          } else {
+            const footballPrice = packageType === 'standard'
+              ? customPrice.football?.standard
+              : customPrice.football?.premium
+            const basketballPrice = packageType === 'standard'
+              ? customPrice.basketball?.standard
+              : customPrice.basketball?.premium
+
+            if (footballPrice !== undefined && basketballPrice !== undefined) {
+              totalPrice = footballPrice + basketballPrice
+              currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
+              hasCustomPrice = true
+            } else if (footballPrice !== undefined || basketballPrice !== undefined) {
+              const footballFinal = footballPrice ?? getBaseNightPrice('football', packageType as 'standard' | 'premium', nights)
+              const basketballFinal = basketballPrice ?? getBaseNightPrice('basketball', packageType as 'standard' | 'premium', nights)
+              totalPrice = footballFinal + basketballFinal
+              currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
+              hasCustomPrice = true
+            }
           }
         } else if (sport === 'football') {
           const price = packageType === 'standard'

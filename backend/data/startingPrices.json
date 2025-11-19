@@ -24,7 +24,7 @@
           "premium": 1499
         }
       },
-      "updatedAt": "2025-11-13T12:28:04.868Z"
+      "updatedAt": "2025-11-19T09:02:00.635Z"
     },
     {
       "id": "starting-basketball",
@@ -50,7 +50,7 @@
           "premium": 1479
         }
       },
-      "updatedAt": "2025-11-13T12:28:04.845Z"
+      "updatedAt": "2025-11-19T09:02:00.658Z"
     },
     {
       "id": "starting-combined",
@@ -60,7 +60,7 @@
       "premiumDescription": "Combined premium package baseline",
       "pricesByDuration": {
         "1": {
-          "standard": 55,
+          "standard": 277,
           "premium": 155
         },
         "2": {
@@ -76,11 +76,11 @@
           "premium": 155
         }
       },
-      "updatedAt": "2025-11-13T12:28:04.859Z"
+      "updatedAt": "2025-11-19T09:02:00.659Z"
     }
   ],
   "meta": {
     "version": 1,
-    "updatedAt": "2025-11-13T12:28:04.868Z"
+    "updatedAt": "2025-11-19T09:02:00.659Z"
   }
 }

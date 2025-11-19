@@ -20,6 +20,10 @@ interface DateRestrictions {
       standard?: number;
       premium?: number;
     };
+    both?: {
+      standard?: number;
+      premium?: number;
+    };
   }>
 }
 
@@ -31,9 +35,11 @@ interface CompetitionType {
 }
 
 // Price editing interface
+type SportOption = 'football' | 'basketball' | 'both'
+
 interface PriceEditData {
   date: string
-  sport: 'football' | 'basketball'
+  sport: SportOption
   standardPrice: number
   premiumPrice: number
   apiItemId?: string
@@ -51,14 +57,20 @@ const FALLBACK_DURATION_PRICES = {
     '2': { standard: 359, premium: 1479 },
     '3': { standard: 359, premium: 1479 },
     '4': { standard: 359, premium: 1479 }
+  },
+  combined: {
+    '1': { standard: 738, premium: 2978 },
+    '2': { standard: 738, premium: 2978 },
+    '3': { standard: 738, premium: 2978 },
+    '4': { standard: 738, premium: 2978 }
   }
-} satisfies Record<'football' | 'basketball', Record<'1' | '2' | '3' | '4', { standard: number; premium: number }>>
+} satisfies Record<'football' | 'basketball' | 'combined', Record<'1' | '2' | '3' | '4', { standard: number; premium: number }>>
 
 export default function DateManagement() {
   const { addToast } = useToast()
   const [competitionTypes, setCompetitionTypes] = useState<CompetitionType[]>([])
   const [selectedCompetition, setSelectedCompetition] = useState<string>('national')
-  const [selectedSport, setSelectedSport] = useState<'football' | 'basketball'>('football')
+  const [selectedSport, setSelectedSport] = useState<SportOption>('football')
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
@@ -70,9 +82,11 @@ export default function DateManagement() {
   const [basePrices, setBasePrices] = useState<{
     football: StartingPriceItem | null
     basketball: StartingPriceItem | null
+    combined: StartingPriceItem | null
   }>({
     football: null,
-    basketball: null
+    basketball: null,
+    combined: null
   })
 
   const getCurrencySymbol = (currency?: string): string => {
@@ -85,21 +99,27 @@ export default function DateManagement() {
   }
 
   const getBasePrice = useCallback((
-    sport: 'football' | 'basketball',
+    sport: SportOption,
     packageType: 'standard' | 'premium',
     durationKey?: '1' | '2' | '3' | '4'
   ): number => {
     const duration = durationKey ?? selectedDuration
-    const item = basePrices[sport]
+    const baseKey = sport === 'both' ? 'combined' : sport
+    const item = basePrices[baseKey]
     const durationPrices = item?.pricesByDuration?.[duration]
 
     if (durationPrices) {
       return packageType === 'standard' ? durationPrices.standard : durationPrices.premium
     }
 
-    const fallback = FALLBACK_DURATION_PRICES[sport][duration] ?? FALLBACK_DURATION_PRICES[sport]['1']
+    const fallback = FALLBACK_DURATION_PRICES[baseKey][duration] ?? FALLBACK_DURATION_PRICES[baseKey]['1']
     return fallback ? fallback[packageType] : 0
   }, [basePrices, selectedDuration])
+
+  const getSportCurrency = useCallback((sport: SportOption): string | undefined => {
+    const baseKey = sport === 'both' ? 'combined' : sport
+    return basePrices[baseKey]?.currency
+  }, [basePrices])
   
   // API data state
   const [apiDateData, setApiDateData] = useState<(DateManagementItem & { duration: '1' | '2' | '3' | '4' })[]>([])
@@ -177,14 +197,16 @@ export default function DateManagement() {
   // Load base prices from package service
   const loadBasePrices = async () => {
     try {
-      const [footballPriceRes, basketballPriceRes] = await Promise.all([
+      const [footballPriceRes, basketballPriceRes, combinedPriceRes] = await Promise.all([
         getStartingPrice('football'),
-        getStartingPrice('basketball')
+        getStartingPrice('basketball'),
+        getStartingPrice('combined')
       ])
 
       setBasePrices({
         football: footballPriceRes.success && footballPriceRes.data?.length ? footballPriceRes.data[0] : null,
-        basketball: basketballPriceRes.success && basketballPriceRes.data?.length ? basketballPriceRes.data[0] : null
+        basketball: basketballPriceRes.success && basketballPriceRes.data?.length ? basketballPriceRes.data[0] : null,
+        combined: combinedPriceRes.success && combinedPriceRes.data?.length ? combinedPriceRes.data[0] : null
       })
     } catch (error) {
       console.error('Error loading base prices:', error)
@@ -302,15 +324,28 @@ export default function DateManagement() {
         try {
           // Set time to 12:00 UTC to avoid timezone shifting the calendar day
           const utcNoon = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0))
+          const footballStandardBase = selectedSport === 'both'
+            ? getBasePrice('both', 'standard')
+            : getBasePrice('football', 'standard')
+          const footballPremiumBase = selectedSport === 'both'
+            ? getBasePrice('both', 'premium')
+            : getBasePrice('football', 'premium')
+          const basketballStandardBase = selectedSport === 'both'
+            ? getBasePrice('both', 'standard')
+            : getBasePrice('basketball', 'standard')
+          const basketballPremiumBase = selectedSport === 'both'
+            ? getBasePrice('both', 'premium')
+            : getBasePrice('basketball', 'premium')
+
           const newDateData = {
             date: utcNoon.toISOString(),
             status: 'enabled',
             league: selectedCompetition,
             sportname: selectedSport,
-            football_standard_package_price: getBasePrice('football', 'standard'),
-            football_premium_package_price: getBasePrice('football', 'premium'),
-            baskatball_standard_package_price: getBasePrice('basketball', 'standard'),
-            baskatball_premium_package_price: getBasePrice('basketball', 'premium'),
+            football_standard_package_price: footballStandardBase,
+            football_premium_package_price: footballPremiumBase,
+            baskatball_standard_package_price: basketballStandardBase,
+            baskatball_premium_package_price: basketballPremiumBase,
             approve_status: 'pending',
             duration: selectedDuration // This ensures each duration has its own independent data
           }
@@ -385,9 +420,18 @@ export default function DateManagement() {
     if (selectedSport === 'football') {
       standardPrice = apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price
       premiumPrice = apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price
-    } else {
+    } else if (selectedSport === 'basketball') {
       standardPrice = apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price
       premiumPrice = apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price
+    } else {
+      const footballStandard = apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price
+      const basketballStandard = apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price
+      const footballPremium = apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price
+      const basketballPremium = apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price
+
+      // Prefer football fields, fallback to basketball if empty
+      standardPrice = footballStandard ?? basketballStandard ?? null
+      premiumPrice = footballPremium ?? basketballPremium ?? null
     }
     
     // If no custom prices exist, use base prices from package service
@@ -405,7 +449,7 @@ export default function DateManagement() {
       prices: {
         standard: standardPrice,
         premium: premiumPrice,
-        base: basePrices[selectedSport]?.pricesByDuration
+        base: (selectedSport === 'both' ? basePrices.combined : basePrices[selectedSport])?.pricesByDuration
       }
     })
     
@@ -463,11 +507,20 @@ export default function DateManagement() {
         if (premiumPrice && premiumPrice > 0) {
           updateData.updated_football_premium_package_price = premiumPrice
         }
-      } else {
+      } else if (priceEditData.sport === 'basketball') {
         if (standardPrice && standardPrice > 0) {
           updateData.updated_baskatball_standard_package_price = standardPrice
         }
         if (premiumPrice && premiumPrice > 0) {
+          updateData.updated_baskatball_premium_package_price = premiumPrice
+        }
+      } else {
+        if (standardPrice && standardPrice > 0) {
+          updateData.updated_football_standard_package_price = standardPrice
+          updateData.updated_baskatball_standard_package_price = standardPrice
+        }
+        if (premiumPrice && premiumPrice > 0) {
+          updateData.updated_football_premium_package_price = premiumPrice
           updateData.updated_baskatball_premium_package_price = premiumPrice
         }
       }
@@ -494,8 +547,16 @@ export default function DateManagement() {
                 sportname: priceEditData.sport,
                 updated_football_standard_package_price: priceEditData.sport === 'football' ? priceEditData.standardPrice : item.updated_football_standard_package_price,
               updated_football_premium_package_price: priceEditData.sport === 'football' ? priceEditData.premiumPrice : item.updated_football_premium_package_price,
-              updated_baskatball_standard_package_price: priceEditData.sport === 'basketball' ? priceEditData.standardPrice : item.updated_baskatball_standard_package_price,
-              updated_baskatball_premium_package_price: priceEditData.sport === 'basketball' ? priceEditData.premiumPrice : item.updated_baskatball_premium_package_price
+                updated_baskatball_standard_package_price: priceEditData.sport === 'basketball' 
+                  ? priceEditData.standardPrice 
+                  : priceEditData.sport === 'both'
+                    ? priceEditData.standardPrice
+                    : item.updated_baskatball_standard_package_price,
+              updated_baskatball_premium_package_price: priceEditData.sport === 'basketball' 
+                ? priceEditData.premiumPrice 
+                : priceEditData.sport === 'both'
+                  ? priceEditData.premiumPrice
+                  : item.updated_baskatball_premium_package_price
             }
           : item
         )
@@ -525,7 +586,7 @@ export default function DateManagement() {
     }
   }
 
-  const getCustomPrice = (date: string, sport: 'football' | 'basketball', packageType: 'standard' | 'premium', duration: '1' | '2' | '3' | '4'): number | null => {
+  const getCustomPrice = (date: string, sport: SportOption, packageType: 'standard' | 'premium', duration: '1' | '2' | '3' | '4'): number | null => {
     // Find API data for this date, competition, and sport
     const apiDateItem = apiDateData.find(item => {
       const itemDateString = formatApiDateForComparison(item.date)
@@ -540,10 +601,19 @@ export default function DateManagement() {
         return packageType === 'standard' 
           ? (apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price)
           : (apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price)
-      } else {
+      } else if (sport === 'basketball') {
         return packageType === 'standard'
           ? (apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price)
           : (apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price)
+      } else {
+        const footballPrice = packageType === 'standard'
+          ? (apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price)
+          : (apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price)
+        const basketballPrice = packageType === 'standard'
+          ? (apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price)
+          : (apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price)
+
+        return footballPrice ?? basketballPrice ?? null
       }
     }
     
@@ -614,7 +684,7 @@ export default function DateManagement() {
 
   const handleResetDuration = async (duration: '1' | '2' | '3' | '4') => {
     // Confirm before resetting
-    const confirmMessage = `Are you sure you want to reset all data for ${duration} Night${duration === '1' ? '' : 's'} package?\n\nThis will delete all enabled dates, blocked dates, and custom prices for:\n- ${selectedCompetition === 'national' ? 'National' : 'European'} Leagues\n- ${selectedSport === 'football' ? 'Football' : 'Basketball'}\n- ${duration} Night${duration === '1' ? '' : 's'} duration\n\nThis action cannot be undone.`
+    const confirmMessage = `Are you sure you want to reset all data for ${duration} Night${duration === '1' ? '' : 's'} package?\n\nThis will delete all enabled dates, blocked dates, and custom prices for:\n- ${selectedCompetition === 'national' ? 'National' : 'European'} Leagues\n- ${selectedSport === 'football' ? 'Football' : selectedSport === 'basketball' ? 'Basketball' : 'Both'}\n- ${duration} Night${duration === '1' ? '' : 's'} duration\n\nThis action cannot be undone.`
     
     if (!window.confirm(confirmMessage)) {
       return
@@ -803,6 +873,17 @@ export default function DateManagement() {
                   <span>🏀</span>
                   <span>Basketball</span>
                 </button>
+                <button
+                  onClick={() => setSelectedSport('both')}
+                  className={`px-4 py-2 md:px-6 text-sm md:text-base rounded-lg font-medium font-['Poppins'] transition-all duration-200 flex items-center justify-center gap-2 ${
+                    selectedSport === 'both'
+                      ? 'bg-[#76C043] text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                  }`}
+                >
+                  <span>⚽🏀</span>
+                  <span>Both</span>
+                </button>
               </div>
             </div>
           </div>
@@ -912,15 +993,23 @@ export default function DateManagement() {
                         selectedSport === 'football' 
                           ? (apiDateItem.updated_football_standard_package_price !== null ||
                              apiDateItem.updated_football_premium_package_price !== null)
-                          : (apiDateItem.updated_baskatball_standard_package_price !== null ||
-                             apiDateItem.updated_baskatball_premium_package_price !== null)
+                          : selectedSport === 'basketball'
+                            ? (apiDateItem.updated_baskatball_standard_package_price !== null ||
+                               apiDateItem.updated_baskatball_premium_package_price !== null)
+                            : (
+                              (apiDateItem.updated_football_standard_package_price !== null ||
+                               apiDateItem.updated_baskatball_standard_package_price !== null) ||
+                              (apiDateItem.updated_football_premium_package_price !== null ||
+                               apiDateItem.updated_baskatball_premium_package_price !== null)
+                            )
                       ) : false
                       
                       // Get currency symbol
                       const currencySymbol = getCurrencySymbol(
-                        basePrices[selectedSport]?.currency ??
+                        getSportCurrency(selectedSport) ??
                         basePrices.football?.currency ??
                         basePrices.basketball?.currency ??
+                        basePrices.combined?.currency ??
                         'euro'
                       )
                       
@@ -932,9 +1021,17 @@ export default function DateManagement() {
                         if (selectedSport === 'football') {
                           displayStandard = apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price
                           displayPremium = apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price
-                        } else {
+                        } else if (selectedSport === 'basketball') {
                           displayStandard = apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price
                           displayPremium = apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price
+                        } else {
+                          const footballStandard = apiDateItem.updated_football_standard_package_price ?? apiDateItem.football_standard_package_price
+                          const basketballStandard = apiDateItem.updated_baskatball_standard_package_price ?? apiDateItem.baskatball_standard_package_price
+                          const footballPremium = apiDateItem.updated_football_premium_package_price ?? apiDateItem.football_premium_package_price
+                          const basketballPremium = apiDateItem.updated_baskatball_premium_package_price ?? apiDateItem.baskatball_premium_package_price
+
+                          displayStandard = footballStandard ?? basketballStandard ?? null
+                          displayPremium = footballPremium ?? basketballPremium ?? null
                         }
                       }
 
@@ -983,7 +1080,9 @@ export default function DateManagement() {
                             {/* Display prices (custom or base) */}
                             {shouldDisplayPrices && (
                               <div className="flex items-center justify-center gap-1 mt-0.5 w-full px-0.5">
-                                <span className="text-[10px] md:text-[11px]">{selectedSport === 'football' ? '⚽' : '🏀'}</span>
+                                <span className="text-[10px] md:text-[11px]">
+                                  {selectedSport === 'football' ? '⚽' : selectedSport === 'basketball' ? '🏀' : '⚽🏀'}
+                                </span>
                                 <span className="text-[10px] md:text-[11px] font-medium">
                                   {currencySymbol}{Math.round(standardToDisplay)}
                                   <span className="text-[9px] md:text-[10px] opacity-75">/{currencySymbol}{Math.round(premiumToDisplay)}</span>
@@ -1029,7 +1128,11 @@ export default function DateManagement() {
 
               {/* Summary */}
               <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
-                <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-2 font-['Poppins']">Current Configuration ({selectedSport === 'football' ? '⚽ Football' : '🏀 Basketball'})</h3>
+                <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+                  Current Configuration (
+                  {selectedSport === 'football' ? '⚽ Football' : selectedSport === 'basketball' ? '🏀 Basketball' : '⚽🏀 Both'}
+                  )
+                </h3>
                 <div className="text-xs md:text-sm text-gray-600 font-['Poppins'] space-y-1">
                   <p><strong>API Data:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport && item.duration === selectedDuration).length} dates loaded</p>
                   <p><strong>Enabled Dates:</strong> {apiDateData.filter(item => item.league === selectedCompetition && item.sportname === selectedSport && item.duration === selectedDuration && item.status === 'enabled').length} dates</p>
@@ -1043,6 +1146,12 @@ export default function DateManagement() {
                         item.updated_football_premium_package_price !== null
                       )) ||
                       (selectedSport === 'basketball' && (
+                        item.updated_baskatball_standard_package_price !== null ||
+                        item.updated_baskatball_premium_package_price !== null
+                      )) ||
+                      (selectedSport === 'both' && (
+                        item.updated_football_standard_package_price !== null ||
+                        item.updated_football_premium_package_price !== null ||
                         item.updated_baskatball_standard_package_price !== null ||
                         item.updated_baskatball_premium_package_price !== null
                       ))
@@ -1140,7 +1249,7 @@ export default function DateManagement() {
                 <select
                   value={priceEditData.sport}
                   onChange={(e) => {
-                    const newSport = e.target.value as 'football' | 'basketball'
+                    const newSport = e.target.value as SportOption
                     const currentStandardPrice = getCustomPrice(priceEditData.date, newSport, 'standard', selectedDuration)
                     const currentPremiumPrice = getCustomPrice(priceEditData.date, newSport, 'premium', selectedDuration)
                     
@@ -1163,13 +1272,16 @@ export default function DateManagement() {
                   <option value="basketball">
                     Basketball {basePrices.basketball ? `(${getCurrencySymbol(basePrices.basketball.currency)}${Math.round(getBasePrice('basketball', 'standard', selectedDuration))}/${getCurrencySymbol(basePrices.basketball.currency)}${Math.round(getBasePrice('basketball', 'premium', selectedDuration))})` : ''}
                   </option>
+                  <option value="both">
+                    Both {basePrices.combined ? `(${getCurrencySymbol(basePrices.combined.currency)}${Math.round(getBasePrice('both', 'standard', selectedDuration))}/${getCurrencySymbol(basePrices.combined.currency)}${Math.round(getBasePrice('both', 'premium', selectedDuration))})` : ''}
+                  </option>
                 </select>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-                    Standard Package Price ({getCurrencySymbol(basePrices[priceEditData.sport]?.currency ?? 'euro')})
+                    Standard Package Price ({getCurrencySymbol(getSportCurrency(priceEditData.sport) ?? 'euro')})
                   </label>
                   <input
                     type="number"
@@ -1181,17 +1293,17 @@ export default function DateManagement() {
                       const numValue = value === '' ? 0 : Number(value)
                       setPriceEditData(prev => prev ? {...prev, standardPrice: isNaN(numValue) ? 0 : numValue} : null)
                     }}
-                    placeholder={`Current: ${getCurrencySymbol(basePrices[priceEditData.sport]?.currency ?? 'euro')}${getBasePrice(priceEditData.sport, 'standard')}`}
+                    placeholder={`Current: ${getCurrencySymbol(getSportCurrency(priceEditData.sport) ?? 'euro')}${getBasePrice(priceEditData.sport, 'standard')}`}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Base package price: {getCurrencySymbol(basePrices[priceEditData.sport]?.currency ?? 'euro')}{getBasePrice(priceEditData.sport, 'standard')} | Set custom price to override for this date only
+                    Base package price: {getCurrencySymbol(getSportCurrency(priceEditData.sport) ?? 'euro')}{getBasePrice(priceEditData.sport, 'standard')} | Set custom price to override for this date only
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-                    Premium Package Price ({getCurrencySymbol(basePrices[priceEditData.sport]?.currency ?? 'euro')})
+                    Premium Package Price ({getCurrencySymbol(getSportCurrency(priceEditData.sport) ?? 'euro')})
                   </label>
                   <input
                     type="number"
@@ -1203,11 +1315,11 @@ export default function DateManagement() {
                       const numValue = value === '' ? 0 : Number(value)
                       setPriceEditData(prev => prev ? {...prev, premiumPrice: isNaN(numValue) ? 0 : numValue} : null)
                     }}
-                    placeholder={`Current: ${getCurrencySymbol(basePrices[priceEditData.sport]?.currency ?? 'euro')}${getBasePrice(priceEditData.sport, 'premium')}`}
+                    placeholder={`Current: ${getCurrencySymbol(getSportCurrency(priceEditData.sport) ?? 'euro')}${getBasePrice(priceEditData.sport, 'premium')}`}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Base package price: {getCurrencySymbol(basePrices[priceEditData.sport]?.currency ?? 'euro')}{getBasePrice(priceEditData.sport, 'premium')} | Set custom price to override for this date only
+                    Base package price: {getCurrencySymbol(getSportCurrency(priceEditData.sport) ?? 'euro')}{getBasePrice(priceEditData.sport, 'premium')} | Set custom price to override for this date only
                   </p>
                 </div>
               </div>
