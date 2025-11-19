@@ -928,8 +928,8 @@ export const AppData = {
         description: "Turkish top-flight basketball league"
       },
       {
-        id: "la liga acb",
-        name: "la Liga ACB",
+        id: "La liga acb",
+        name: "La Liga ACB",
         image: "/homepage/image/laligaacb.jpg",
         country: "France",
         description: "French top-flight basketball league"
