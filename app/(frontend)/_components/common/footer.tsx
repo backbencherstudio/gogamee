@@ -1,5 +1,5 @@
 'use client'
-import { Mail, Phone, Heart, Instagram, MessageCircle } from "lucide-react"
+import { Mail, Heart, Instagram, MessageCircle, Linkedin } from "lucide-react"
 import Link from "next/link"
 import { useLanguage } from "./LanguageContext"
 import Image from "next/image"
@@ -23,8 +23,8 @@ export default function Footer() {
               <span className="text-white text-base font-medium font-['Inter']">example@gmail.com</span>
             </div>
             <div className="flex items-center justify-center lg:justify-start gap-2">
-              <Phone className="w-6 h-6 text-white" />
-              <span className="text-white text-base font-medium font-['Inter']">(888)-123456789</span>
+              <MessageCircle className="w-6 h-6 text-white" />
+              <span className="text-white text-base font-medium font-['Inter']">{t.footer.whatsapp}</span>
             </div>
           </div>
         </div>
@@ -81,6 +81,12 @@ export default function Footer() {
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-white text-base font-normal font-['Inter']">{t.footer.whatsapp}</span>
+              </Link>
+              <Link href="#" className="flex items-center gap-2 cursor-pointer">
+                <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
+                  <Linkedin className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-white text-lg font-normal font-['Inter']">LinkedIn</span>
               </Link>
             </div>
           </div>
