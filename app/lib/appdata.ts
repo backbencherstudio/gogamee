@@ -908,7 +908,7 @@ export const AppData = {
         name: "European Competition",
         image: "/homepage/image/eredivisie.jpg",
         country: "Europe",
-        description: "European club competitions including Champions League and Europa League"
+        description: "European club competitions including Champions League and Europaa League"
       }
     ],
     
