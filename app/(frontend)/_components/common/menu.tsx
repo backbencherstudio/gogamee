@@ -7,8 +7,8 @@ import { useLanguage, Language } from './LanguageContext'
 import Image from 'next/image'
 
 const languages = [
-  { code: 'Eng', label: 'English', value: 'en' as Language },
-  { code: 'Esp', label: 'Español', value: 'es' as Language },
+  { code: 'English', label: 'English', value: 'en' as Language },
+  { code: 'Spanish', label: 'Español', value: 'es' as Language },
 ]
 
 export default function Menu() {
