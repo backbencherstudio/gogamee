@@ -39,14 +39,30 @@ const createInitialExtras = (): ExtraService[] => {
 export default function Extras() {
   const { formData, updateExtras, nextStep, getTotalPeople } = useBooking()
   
+  // Get total number of travelers (needed for initial extras)
+  const totalTravelers = getTotalPeople()
+  
   // Get initial extras from BookingContext or create defaults
   const getInitialExtras = (): ExtraService[] => {
     if (formData.extras && formData.extras.length > 0) {
       console.log('Loading existing extras from BookingContext:', formData.extras)
-      return formData.extras
+      // Update Underseat bag quantity based on current total travelers
+      return formData.extras.map(extra => {
+        if (extra.id === 'underseat-bag' && extra.isIncluded) {
+          return { ...extra, quantity: totalTravelers, isSelected: true }
+        }
+        return extra
+      })
     } else {
       console.log('Creating default extras')
-      return createInitialExtras()
+      const initialExtras = createInitialExtras()
+      // Update Underseat bag quantity based on total travelers (1 bag per person)
+      return initialExtras.map(extra => {
+        if (extra.id === 'underseat-bag' && extra.isIncluded) {
+          return { ...extra, quantity: totalTravelers, isSelected: true }
+        }
+        return extra
+      })
     }
   }
   
@@ -59,15 +75,17 @@ export default function Extras() {
   const watchedValues = watch()
   const { extras } = watchedValues
 
-  // Get total number of travelers
-  const totalTravelers = getTotalPeople()
-
-  // Update quantities for group options when total travelers changes
+  // Update quantities for group options and included extras (like Underseat bag) when total travelers changes
   useEffect(() => {
     const currentExtras = getValues('extras')
     const updatedExtras = currentExtras.map(extra => {
+      // Update group options when selected
       if (extra.isGroupOption && extra.isSelected) {
         return { ...extra, quantity: totalTravelers }
+      }
+      // Update Underseat bag (included extra) quantity based on total travelers (1 bag per person)
+      if (extra.id === 'underseat-bag' && extra.isIncluded) {
+        return { ...extra, quantity: totalTravelers, isSelected: true }
       }
       return extra
     })
@@ -160,6 +178,17 @@ export default function Extras() {
   }, [updateExtras, nextStep, totalTravelers])
 
   const renderQuantityControls = (extra: ExtraService) => {
+    // For included extras like Underseat bag, show quantity based on total travelers (1 bag per person)
+    if (extra.isIncluded && extra.id === 'underseat-bag') {
+      return (
+        <div className="flex items-center gap-2">
+          <div className="justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none min-w-[20px] text-center">
+            x{extra.quantity}
+          </div>
+        </div>
+      )
+    }
+    
     // For group options, show quantity but don't allow individual changes
     if (extra.isGroupOption) {
       return (
