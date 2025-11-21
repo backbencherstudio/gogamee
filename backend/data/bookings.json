@@ -2,7 +2,7 @@
   "bookings": [
     {
       "id": "booking-68c89989-fd8b-40f9-9f81-e8b3c135a90d",
-      "status": "pending",
+      "status": "rejected",
       "payment_status": "unpaid",
       "stripe_payment_intent_id": null,
       "selectedSport": "football",
@@ -51,7 +51,7 @@
       "totalCost": "1405",
       "approve_status": "pending",
       "created_at": "2025-11-21T03:29:01.963Z",
-      "updated_at": "2025-11-21T03:29:01.963Z",
+      "updated_at": "2025-11-21T08:33:17.372Z",
       "deleted_at": null,
       "bookingExtras": [
         {
@@ -125,7 +125,7 @@
     },
     {
       "id": "booking-d5bdd585-d9c2-4dfc-90d7-09dd3c437d49",
-      "status": "pending",
+      "status": "approved",
       "payment_status": "unpaid",
       "stripe_payment_intent_id": null,
       "selectedSport": "both",
@@ -174,7 +174,7 @@
       "totalCost": "3136",
       "approve_status": "pending",
       "created_at": "2025-11-21T06:24:56.317Z",
-      "updated_at": "2025-11-21T06:24:56.317Z",
+      "updated_at": "2025-11-21T08:27:25.736Z",
       "deleted_at": null,
       "bookingExtras": [
         {
@@ -391,6 +391,6 @@
   ],
   "meta": {
     "version": 1,
-    "updatedAt": "2025-11-21T06:56:25.707Z"
+    "updatedAt": "2025-11-21T08:33:17.372Z"
   }
 }

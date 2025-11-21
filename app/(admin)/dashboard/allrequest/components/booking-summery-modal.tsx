@@ -132,6 +132,10 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
   const [isUpdating, setIsUpdating] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
   const [isTravelersExpanded, setIsTravelersExpanded] = useState(false)
+  const formatCurrency = (value: number | null | undefined) => {
+    const amount = Number(value ?? 0)
+    return amount.toFixed(2)
+  }
 
   // Update local state when bookingData changes
   const updateLocalState = useCallback(() => {
@@ -461,7 +465,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                         ) : (
                           <div className="flex items-center gap-1 font-semibold text-gray-900">
                             <Euro className="h-4 w-4" />
-                            {extra.price * extra.quantity}
+                            {formatCurrency(extra.price * extra.quantity)}
                           </div>
                         )}
                       </div>
@@ -472,7 +476,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                     <span className="text-lg font-semibold text-gray-900">Total Extras Cost</span>
                     <div className="flex items-center gap-1 text-xl font-bold text-gray-900">
                       <Euro className="h-5 w-5" />
-                      {bookingData.totalExtrasCost}
+                      {formatCurrency(bookingData.totalExtrasCost)}
                     </div>
                   </div>
                 </div>
@@ -509,6 +513,9 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                 const leagueSurcharge = AppData.pricing.getLeagueSurcharge(bookingData.selectedLeague);
                 const extrasCost = bookingData.totalExtrasCost;
                 const totalCost = packagePrice + leagueSurcharge + extrasCost;
+                const costPerPerson = bookingData.totalPeople > 0
+                  ? totalCost / bookingData.totalPeople
+                  : 0;
 
                 return (
                   <div className="space-y-4">
@@ -527,7 +534,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                       </div>
                       <div className="flex items-center gap-1 text-lg font-semibold text-gray-900">
                         <Euro className="h-4 w-4" />
-                        {packagePrice}
+                        {formatCurrency(packagePrice)}
                       </div>
                     </div>
 
@@ -543,7 +550,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                         </div>
                         <div className="flex items-center gap-1 text-lg font-semibold text-gray-900">
                           <Euro className="h-4 w-4" />
-                          {leagueSurcharge}
+                          {formatCurrency(leagueSurcharge)}
                         </div>
                       </div>
                     )}
@@ -560,7 +567,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                         </div>
                         <div className="flex items-center gap-1 text-lg font-semibold text-gray-900">
                           <Euro className="h-4 w-4" />
-                          {extrasCost}
+                          {formatCurrency(extrasCost)}
                         </div>
                       </div>
                     )}
@@ -579,7 +586,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                       </div>
                       <div className="flex items-center gap-2 text-3xl font-bold text-blue-900">
                         <Euro className="h-8 w-8" />
-                        {totalCost}
+                        {formatCurrency(totalCost)}
                       </div>
                     </div>
 
@@ -589,7 +596,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                         <span className="font-medium">Cost per person:</span> 
                         <span className="font-semibold text-gray-900 ml-1">
                           <Euro className="h-3 w-3 inline mr-1" />
-                          {Math.round(totalCost / bookingData.totalPeople)}
+                          {formatCurrency(costPerPerson)}
                         </span>
                       </p>
                     </div>
