@@ -12,6 +12,8 @@ export interface ExtraService {
   quantity: number
   maxQuantity?: number
   isIncluded?: boolean
+  isGroupOption?: boolean
+  currency?: string
 }
 
 interface HeroData {

@@ -15,6 +15,8 @@ import {
   MapPin,
   Trophy,
   Clock,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -104,6 +106,16 @@ interface BookingData {
   previousTravelInfo?: string
   destinationCity?: string
   assignedMatch?: string
+  allTravelers?: Array<{
+    name: string
+    email: string
+    phone: string
+    dateOfBirth: string
+    documentType: 'ID' | 'Passport'
+    documentNumber: string
+    isPrimary?: boolean
+    travelerNumber?: number
+  }>
 }
 
 interface BookingSummaryModalProps {
@@ -119,6 +131,7 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
   const [assignedMatch, setAssignedMatch] = useState(bookingData.assignedMatch || "")
   const [isUpdating, setIsUpdating] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
+  const [isTravelersExpanded, setIsTravelersExpanded] = useState(false)
 
   // Update local state when bookingData changes
   const updateLocalState = useCallback(() => {
@@ -159,7 +172,17 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
         <DialogHeader className="border-b border-gray-100 pb-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
-                              <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">Booking Summary #{bookingData.id}</DialogTitle>
+              {/* Client Name as Main Title */}
+              <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">
+                {bookingData.fullName || `${bookingData.firstName} ${bookingData.lastName}`}
+              </DialogTitle>
+              
+              {/* Package Type */}
+              <div className="flex items-center gap-2 mb-2">
+                <Package className="h-4 w-4 text-gray-500" />
+                <p className="text-base font-semibold text-gray-700 capitalize">{bookingData.selectedPackage}</p>
+              </div>
+              
               <DialogDescription className="text-gray-600">Review your complete booking details</DialogDescription>
             </div>
                           <div className="flex items-center gap-2">
@@ -576,45 +599,130 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
             </CardContent>
           </Card>
 
-          {/* Contact Information */}
+          {/* All Travelers Information - Collapsible */}
           <Card className="border border-gray-200 shadow-sm">
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
-                  <Mail className="h-4 w-4 text-indigo-600" />
+              <button
+                onClick={() => setIsTravelersExpanded(!isTravelersExpanded)}
+                className="flex items-center justify-between w-full hover:opacity-80 transition-opacity"
+              >
+                <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <Users className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  All Travelers Information
+                  {bookingData.allTravelers && bookingData.allTravelers.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {bookingData.allTravelers.length} {bookingData.allTravelers.length === 1 ? 'Traveler' : 'Travelers'}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  {isTravelersExpanded ? (
+                    <ChevronUp className="h-5 w-5 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="h-5 w-5 text-gray-500" />
+                  )}
                 </div>
-                Contact Information
-              </CardTitle>
+              </button>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Users className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-500">Full Name</p>
-                    <p className="font-medium text-gray-900 truncate">{bookingData.fullName}</p>
+            {isTravelersExpanded && (
+              <CardContent className="space-y-4">
+                {bookingData.allTravelers && bookingData.allTravelers.length > 0 ? (
+                  bookingData.allTravelers.map((traveler, index) => (
+                    <div
+                      key={index}
+                      className={`p-4 rounded-lg border ${
+                        traveler.isPrimary
+                          ? 'bg-blue-50 border-blue-200'
+                          : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Users className={`h-4 w-4 ${traveler.isPrimary ? 'text-blue-600' : 'text-gray-500'}`} />
+                          <h4 className="font-semibold text-gray-900">
+                            {traveler.name}
+                            {traveler.isPrimary && (
+                              <Badge className="ml-2 bg-blue-600 text-white">Primary</Badge>
+                            )}
+                          </h4>
+                        </div>
+                        {traveler.travelerNumber && (
+                          <span className="text-sm text-gray-500">Traveler #{traveler.travelerNumber}</span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                        {traveler.email && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs text-gray-500">Email</p>
+                              <p className="text-sm font-medium text-gray-900 truncate">{traveler.email}</p>
+                            </div>
+                          </div>
+                        )}
+                        {traveler.phone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs text-gray-500">Phone</p>
+                              <p className="text-sm font-medium text-gray-900 truncate">{traveler.phone}</p>
+                            </div>
+                          </div>
+                        )}
+                        {traveler.dateOfBirth && (
+                          <div className="flex items-center gap-2">
+                            <CalendarIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs text-gray-500">Date of Birth</p>
+                              <p className="text-sm font-medium text-gray-900">
+                                {new Date(traveler.dateOfBirth).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {traveler.documentType && traveler.documentNumber && (
+                          <div className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs text-gray-500">Document ({traveler.documentType})</p>
+                              <p className="text-sm font-medium text-gray-900 truncate">{traveler.documentNumber}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <Users className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm text-gray-500">Primary Traveler</p>
+                        <p className="font-medium text-gray-900 truncate">{bookingData.fullName}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-gray-500">Email</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{bookingData.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs text-gray-500">Phone</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{bookingData.phone}</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-500">Email</p>
-                    <p className="font-medium text-gray-900 truncate">{bookingData.email}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-500">Phone</p>
-                    <p className="font-medium text-gray-900 truncate">{bookingData.phone}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                )}
+                {bookingData.previousTravelInfo && (
+                  <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
                 <div className="flex items-start gap-3">
                   <div className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -626,8 +734,10 @@ export default function BookingSummaryModal({ bookingData, onStatusUpdate }: Boo
                     <p className="font-medium text-gray-900 text-sm leading-relaxed">{bookingData.previousTravelInfo && bookingData.previousTravelInfo.trim() ? bookingData.previousTravelInfo : 'Not provided'}</p>
                   </div>
                 </div>
-              </div>
-            </CardContent>
+                  </div>
+                )}
+              </CardContent>
+            )}
           </Card>
 
           {/* Payment & Booking */}
