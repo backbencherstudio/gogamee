@@ -50,6 +50,58 @@ const getLeagueCountry = (league: string | { id?: string; name?: string; country
   return 'Unknown'
 }
 
+type TravelerInfo = {
+  name: string
+  email: string
+  phone: string
+  dateOfBirth: string
+  documentType: 'ID' | 'Passport'
+  documentNumber: string
+  isPrimary?: boolean
+  travelerNumber?: number
+}
+
+type BookingWithTravelers = BookingItem & {
+  allTravelers?: TravelerInfo[] | string
+}
+
+const safeJsonParse = (value: string): unknown => {
+  try {
+    return JSON.parse(value)
+  } catch {
+    return null
+  }
+}
+
+const createFallbackTraveler = (booking: BookingItem): TravelerInfo => ({
+  name: booking.fullName,
+  email: booking.email,
+  phone: booking.phone,
+  dateOfBirth: '',
+  documentType: 'ID',
+  documentNumber: '',
+  isPrimary: true,
+  travelerNumber: 1
+})
+
+const parseTravelersFromBooking = (booking: BookingItem): TravelerInfo[] => {
+  const bookingWithTravelers = booking as BookingWithTravelers
+  const rawTravelers = bookingWithTravelers.allTravelers
+
+  if (!rawTravelers) {
+    return [createFallbackTraveler(booking)]
+  }
+
+  const parsed: unknown =
+    typeof rawTravelers === 'string' ? safeJsonParse(rawTravelers) : rawTravelers
+
+  if (Array.isArray(parsed) && parsed.length > 0) {
+    return parsed as TravelerInfo[]
+  }
+
+  return [createFallbackTraveler(booking)]
+}
+
 export default function EventReqTable() {
   
   const [activeTab, setActiveTab] = useState("all")
@@ -563,39 +615,7 @@ export default function EventReqTable() {
                             requiresEuropeanLeagueHandling: booking.requiresEuropeanLeagueHandling,
                             destinationCity: booking.destinationCity,
                             assignedMatch: booking.assignedMatch,
-                            allTravelers: (() => {
-                              try {
-                                // Try to parse allTravelers if it exists in booking
-                                if ((booking as any).allTravelers) {
-                                  const travelers = typeof (booking as any).allTravelers === 'string'
-                                    ? JSON.parse((booking as any).allTravelers)
-                                    : (booking as any).allTravelers
-                                  return Array.isArray(travelers) ? travelers : []
-                                }
-                                // If not available, create from primary traveler data
-                                return [{
-                                  name: booking.fullName,
-                                  email: booking.email,
-                                  phone: booking.phone,
-                                  dateOfBirth: '',
-                                  documentType: 'ID' as const,
-                                  documentNumber: '',
-                                  isPrimary: true,
-                                  travelerNumber: 1
-                                }]
-                              } catch {
-                                return [{
-                                  name: booking.fullName,
-                                  email: booking.email,
-                                  phone: booking.phone,
-                                  dateOfBirth: '',
-                                  documentType: 'ID' as const,
-                                  documentNumber: '',
-                                  isPrimary: true,
-                                  travelerNumber: 1
-                                }]
-                              }
-                            })()
+                            allTravelers: parseTravelersFromBooking(booking)
                           }}
                        onStatusUpdate={async () => {
                          // Refresh the bookings data from API
