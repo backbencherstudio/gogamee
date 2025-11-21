@@ -7,6 +7,48 @@ import { subDays, parseISO, isWithinInterval, format, startOfDay, endOfDay } fro
 import BookingSummaryModal from "./booking-summery-modal"
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal"
 import { getAllBookings, deleteBooking, BookingItem } from "../../../../../services/bookingService"
+import { removeLeagueData, homepageLeaguesData } from "../../../../lib/appdata"
+
+// Helper function to get country for a league
+const getLeagueCountry = (league: string | { id?: string; name?: string; country?: string }): string => {
+  // If league is an object with country already, use it
+  if (typeof league === 'object' && league.country) {
+    return league.country
+  }
+  
+  // Extract id or name for lookup
+  const leagueId = typeof league === 'string' ? league : league.id || ''
+  const leagueName = typeof league === 'object' ? league.name || '' : ''
+  
+  // First, try to find in removeLeagueData by id or name
+  const removeLeague = removeLeagueData.leagues.find(
+    l => l.id === leagueId || l.name === leagueName
+  )
+  if (removeLeague) {
+    return removeLeague.country
+  }
+  
+  // Then try homepageLeaguesData (football)
+  const footballLeagues = homepageLeaguesData.getFootballLeagues()
+  const footballLeague = footballLeagues.find(
+    l => l.id === leagueId || l.name === leagueName
+  )
+  if (footballLeague) {
+    return footballLeague.country
+  }
+  
+  // Then try homepageLeaguesData (basketball)
+  const basketballLeagues = homepageLeaguesData.getBasketballLeagues()
+  const basketballLeague = basketballLeagues.find(
+    l => l.id === leagueId || l.name === leagueName
+  )
+  if (basketballLeague) {
+    return basketballLeague.country
+  }
+  
+  // Fallback to 'Unknown' if not found
+  return 'Unknown'
+}
 
 export default function EventReqTable() {
   
@@ -485,10 +527,10 @@ export default function EventReqTable() {
                                 const leagues = typeof booking.removedLeagues === 'string' 
                                   ? JSON.parse(booking.removedLeagues) 
                                   : booking.removedLeagues
-                                return Array.isArray(leagues) ? leagues.map((league: string | { id?: string; name?: string }) => ({ 
+                                return Array.isArray(leagues) ? leagues.map((league: string | { id?: string; name?: string; country?: string }) => ({ 
                                   id: typeof league === 'string' ? league : league.id || '', 
                                   name: typeof league === 'string' ? league : league.name || '', 
-                                  country: 'Spain' 
+                                  country: getLeagueCountry(league)
                                 })) : []
                               } catch {
                                 return []
@@ -520,7 +562,40 @@ export default function EventReqTable() {
                             hasFlightPreferences: booking.hasFlightPreferences,
                             requiresEuropeanLeagueHandling: booking.requiresEuropeanLeagueHandling,
                             destinationCity: booking.destinationCity,
-                            assignedMatch: booking.assignedMatch
+                            assignedMatch: booking.assignedMatch,
+                            allTravelers: (() => {
+                              try {
+                                // Try to parse allTravelers if it exists in booking
+                                if ((booking as any).allTravelers) {
+                                  const travelers = typeof (booking as any).allTravelers === 'string'
+                                    ? JSON.parse((booking as any).allTravelers)
+                                    : (booking as any).allTravelers
+                                  return Array.isArray(travelers) ? travelers : []
+                                }
+                                // If not available, create from primary traveler data
+                                return [{
+                                  name: booking.fullName,
+                                  email: booking.email,
+                                  phone: booking.phone,
+                                  dateOfBirth: '',
+                                  documentType: 'ID' as const,
+                                  documentNumber: '',
+                                  isPrimary: true,
+                                  travelerNumber: 1
+                                }]
+                              } catch {
+                                return [{
+                                  name: booking.fullName,
+                                  email: booking.email,
+                                  phone: booking.phone,
+                                  dateOfBirth: '',
+                                  documentType: 'ID' as const,
+                                  documentNumber: '',
+                                  isPrimary: true,
+                                  travelerNumber: 1
+                                }]
+                              }
+                            })()
                           }}
                        onStatusUpdate={async () => {
                          // Refresh the bookings data from API

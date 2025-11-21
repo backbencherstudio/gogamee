@@ -904,11 +904,18 @@ export const AppData = {
         description: "French top-flight football league"
       },
       {
+        id: "eredivisie",
+        name: "Eredivisie",
+        image: "/homepage/image/eredivisie.jpg",
+        country: "Netherlands",
+        description: "Dutch top-flight football league"
+      },
+      {
         id: "european-competition",
         name: "European Competition",
-        image: "/homepage/image/eredivisie.jpg",
+        image: "/homepage/image/champions.jpeg",
         country: "Europe",
-        description: "European club competitions including Champions League and Europaa League"
+        description: "European club competitions including Champions League and Europa League"
       }
     ],
     
@@ -917,8 +924,8 @@ export const AppData = {
         id: "lnb pro a",
         name: "Lnb Pro A",
         image: "/homepage/image/lnbproa.jpg",
-        country: "Spain",
-        description: "Spanish top-flight basketball league"
+        country: "France",
+        description: "French top-flight basketball league"
       },
       {
         id: "basketbol-super-ligi",
@@ -931,8 +938,8 @@ export const AppData = {
         id: "la liga acb",
         name: "La Liga ACB",
         image: "/homepage/image/laligaacb.jpg",
-        country: "France",
-        description: "French top-flight basketball league"
+        country: "Spain",
+        description: "Spanish top-flight basketball league"
       },
       {
         id: "lega-basket-serie-a",

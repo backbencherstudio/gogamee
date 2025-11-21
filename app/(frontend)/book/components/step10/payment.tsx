@@ -33,6 +33,7 @@ export default function Payment() {
   
   // Storage key for payment form data
   const STORAGE_KEY = paymentData.storage.key
+  const BOOKING_DATA_STORAGE_KEY = 'gogame_booking_data'
   
   // Helper functions for localStorage
   const saveToStorage = useCallback((data: PaymentFormData) => {
@@ -58,6 +59,28 @@ export default function Payment() {
       return null
     }
   }, [STORAGE_KEY])
+
+  const resolveTravelerData = useCallback(() => {
+    if (formData.allTravelers && formData.allTravelers.length > 0) {
+      return formData.allTravelers
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const savedBooking = localStorage.getItem(BOOKING_DATA_STORAGE_KEY)
+        if (savedBooking) {
+          const parsedBooking = JSON.parse(savedBooking)
+          if (Array.isArray(parsedBooking?.allTravelers) && parsedBooking.allTravelers.length > 0) {
+            return parsedBooking.allTravelers
+          }
+        }
+      } catch (error) {
+        console.error('Error loading traveler data from localStorage:', error)
+      }
+    }
+
+    return []
+  }, [formData.allTravelers, BOOKING_DATA_STORAGE_KEY])
   
   const {
     register,
@@ -307,6 +330,20 @@ export default function Payment() {
       // ========================================
       // SINGLE COMPREHENSIVE OBJECT FOR DATABASE
       // ========================================
+      const fallbackTraveler = {
+        name: `${formData.personalInfo.firstName} ${formData.personalInfo.lastName}`.trim() || formData.personalInfo.firstName || '',
+        email: formData.personalInfo.email,
+        phone: formData.personalInfo.phone,
+        dateOfBirth: '',
+        documentType: 'ID',
+        documentNumber: '',
+        isPrimary: true,
+        travelerNumber: 1
+      }
+
+      const resolvedTravelers = resolveTravelerData()
+      const normalizedTravelers = resolvedTravelers.length > 0 ? resolvedTravelers : [fallbackTraveler]
+
       const singleFormDataObject = {
         // Basic Information
         selectedSport: formData.selectedSport,
@@ -355,6 +392,7 @@ export default function Payment() {
         email: formData.personalInfo.email,
         phone: formData.personalInfo.phone,
         previousTravelInfo: formData.personalInfo.previousTravelInfo,
+        allTravelers: normalizedTravelers,
         
         // Payment Information
         paymentMethod: data.paymentMethod,
@@ -459,7 +497,8 @@ export default function Payment() {
           bookingExtras: singleFormDataObject.selectedExtras.map(extra => ({
             ...extra,
             currency: "EUR"
-          }))
+        })),
+        allTravelers: singleFormDataObject.allTravelers
         }
         
         console.log('📤 Sending booking to API:', bookingPayload)
@@ -538,7 +577,7 @@ export default function Payment() {
     } finally {
       setIsProcessing(false)
     }
-  }, [isFormValid, updateFormData, formData, clearBookingData, STORAGE_KEY, selectedPayment, creditCardData, isCreditCardValid])
+  }, [isFormValid, updateFormData, formData, clearBookingData, STORAGE_KEY, selectedPayment, creditCardData, isCreditCardValid, resolveTravelerData])
 
   // Payment method option component
   const PaymentMethodOption = useCallback(({ 

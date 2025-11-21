@@ -1,6 +1,17 @@
 import { z } from "zod";
 import { metaSchema } from "./common";
 
+const travelerSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  dateOfBirth: z.string().optional(),
+  documentType: z.string().optional(),
+  documentNumber: z.string().optional(),
+  isPrimary: z.boolean().optional(),
+  travelerNumber: z.number().int().positive().optional(),
+});
+
 export const bookingExtraSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -68,6 +79,7 @@ export const bookingSchema = z.object({
   updated_at: z.string().optional(),
   deleted_at: z.string().nullable().optional(),
   bookingExtras: z.array(bookingExtraSchema).optional(),
+  allTravelers: z.array(travelerSchema).optional(),
 });
 
 export const bookingStoreSchema = z.object({

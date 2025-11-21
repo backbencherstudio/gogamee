@@ -14,6 +14,17 @@ export interface BookingExtra {
   currency: string;
 }
 
+export interface TravelerInfo {
+  name?: string;
+  email?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  documentType?: string;
+  documentNumber?: string;
+  isPrimary?: boolean;
+  travelerNumber?: number;
+}
+
 export interface BookingItem {
   id: string;
   status: string;
@@ -68,6 +79,7 @@ export interface BookingItem {
   updated_at: string;
   deleted_at: string | null;
   bookingExtras?: BookingExtra[];
+  allTravelers?: TravelerInfo[];
 }
 
 export interface BookingResponse {
@@ -123,6 +135,7 @@ export interface CreateBookingPayload {
   requiresEuropeanLeagueHandling: boolean;
   totalCost: string;
   bookingExtras: BookingExtra[];
+  allTravelers?: TravelerInfo[];
 }
 
 export interface UpdateBookingPayload {

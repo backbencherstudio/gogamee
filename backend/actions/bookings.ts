@@ -24,6 +24,17 @@ export interface BookingExtraInput {
   currency: string;
 }
 
+export interface TravelerInput {
+  name?: string;
+  email?: string;
+  phone?: string;
+  dateOfBirth?: string;
+  documentType?: string;
+  documentNumber?: string;
+  isPrimary?: boolean;
+  travelerNumber?: number;
+}
+
 export interface CreateBookingPayload {
   selectedSport: string;
   selectedPackage: string;
@@ -59,6 +70,7 @@ export interface CreateBookingPayload {
   requiresEuropeanLeagueHandling: boolean;
   totalCost: string;
   bookingExtras: BookingExtraInput[];
+  allTravelers?: TravelerInput[];
 }
 
 export interface UpdateBookingPayload {
@@ -158,6 +170,7 @@ function buildNewBooking(
     updated_at: new Date(timestamp).toISOString(),
     deleted_at: null,
     bookingExtras: payload.bookingExtras,
+    allTravelers: payload.allTravelers ?? [],
   });
 }
 
