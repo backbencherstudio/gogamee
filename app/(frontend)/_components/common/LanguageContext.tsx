@@ -1,5 +1,5 @@
 'use client'
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 
 // Language types
 export type Language = 'en' | 'es'
@@ -261,15 +261,172 @@ interface LanguageContextType {
 // Create context
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
+// Google Translate types
+declare global {
+  interface Window {
+    googleTranslateElementInit?: () => void
+    google?: {
+      translate?: {
+        TranslateElement: new (
+          options: { pageLanguage: string; includedLanguages: string; autoDisplay: boolean },
+          elementId: string
+        ) => void
+      }
+    }
+  }
+}
+
 // Language provider component
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState<Language>('en')
+  const [language, setLanguageState] = useState<Language>('en')
+  const [isGoogleReady, setIsGoogleReady] = useState(false)
+
+  // Initialize Google Translate (hidden, no banner)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    // Create hidden container for Google Translate
+    const ensureHiddenMount = () => {
+      let hiddenHost = document.getElementById('google_translate_element') as HTMLDivElement | null
+      if (!hiddenHost) {
+        hiddenHost = document.createElement('div')
+        hiddenHost.id = 'google_translate_element'
+        document.body.appendChild(hiddenHost)
+      }
+      hiddenHost.style.position = 'fixed'
+      hiddenHost.style.top = '-9999px'
+      hiddenHost.style.left = '-9999px'
+      hiddenHost.style.opacity = '0'
+      hiddenHost.style.pointerEvents = 'none'
+      hiddenHost.style.width = '0'
+      hiddenHost.style.height = '0'
+    }
+
+    ensureHiddenMount()
+
+    const initGoogleTranslator = () => {
+      if (window.google?.translate?.TranslateElement) {
+        try {
+          new window.google.translate.TranslateElement(
+            {
+              pageLanguage: 'en',
+              includedLanguages: 'en,es',
+              autoDisplay: false // Don't show banner
+            },
+            'google_translate_element'
+          )
+          setIsGoogleReady(true)
+        } catch (error) {
+          console.warn('Google Translate initialization error:', error)
+        }
+      }
+    }
+
+    window.googleTranslateElementInit = initGoogleTranslator
+
+    // Load Google Translate script
+    const existingScript = document.getElementById('google-translate-script')
+    if (!existingScript) {
+      const script = document.createElement('script')
+      script.id = 'google-translate-script'
+      script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit'
+      script.async = true
+      script.onerror = () => {
+        console.warn('Failed to load Google Translate script')
+      }
+      document.body.appendChild(script)
+    } else {
+      initGoogleTranslator()
+    }
+
+    // Hide Google Translate banner and elements
+    if (!document.getElementById('google-translate-hide-style')) {
+      const style = document.createElement('style')
+      style.id = 'google-translate-hide-style'
+      style.innerHTML = `
+        /* Hide Google Translate banner */
+        .goog-te-banner-frame,
+        .goog-te-balloon-frame,
+        .goog-te-gadget-icon,
+        .goog-te-gadget-simple,
+        .goog-te-menu-value,
+        .goog-te-menu-value span,
+        .goog-te-menu-frame,
+        .goog-te-ftab,
+        .goog-te-ftab-link,
+        .skiptranslate,
+        #google_translate_element {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          height: 0 !important;
+          width: 0 !important;
+          position: absolute !important;
+          top: -9999px !important;
+          left: -9999px !important;
+        }
+        /* Prevent body shift */
+        body {
+          top: 0 !important;
+        }
+        /* Hide language selector dropdown */
+        .goog-te-combo {
+          display: none !important;
+        }
+      `
+      document.head.appendChild(style)
+    }
+
+    // Cleanup function
+    return () => {
+      const style = document.getElementById('google-translate-hide-style')
+      if (style) {
+        style.remove()
+      }
+    }
+  }, [])
+
+  // Apply Google Translate when language changes
+  const applyGoogleTranslation = useCallback((targetLang: Language) => {
+    if (!isGoogleReady) return
+
+    const combo = document.querySelector<HTMLSelectElement>('.goog-te-combo')
+    if (!combo) {
+      // Retry after a short delay
+      setTimeout(() => applyGoogleTranslation(targetLang), 300)
+      return
+    }
+
+    // Map our language codes to Google Translate codes
+    const googleLangCode = targetLang === 'es' ? 'es' : 'en'
+    
+    if (combo.value !== googleLangCode) {
+      combo.value = googleLangCode
+      combo.dispatchEvent(new Event('change', { bubbles: true }))
+    }
+  }, [isGoogleReady])
+
+  // Trigger Google Translate when language changes
+  useEffect(() => {
+    if (!isGoogleReady) return
+
+    // Apply translation with multiple attempts to ensure it works
+    const timers = [
+      setTimeout(() => applyGoogleTranslation(language), 100),
+      setTimeout(() => applyGoogleTranslation(language), 500),
+      setTimeout(() => applyGoogleTranslation(language), 1000)
+    ]
+
+    return () => {
+      timers.forEach(timer => clearTimeout(timer))
+    }
+  }, [language, isGoogleReady, applyGoogleTranslation])
 
   // Load language from localStorage on mount
   useEffect(() => {
     const savedLanguage = localStorage.getItem('gogame_language') as Language
     if (savedLanguage && (savedLanguage === 'en' || savedLanguage === 'es')) {
-      setLanguage(savedLanguage)
+      setLanguageState(savedLanguage)
     }
   }, [])
 
@@ -277,6 +434,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem('gogame_language', language)
   }, [language])
+
+  // Update HTML lang attribute when language changes
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = language
+    }
+  }, [language])
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang)
+  }
 
   const value: LanguageContextType = {
     language,
