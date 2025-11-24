@@ -535,7 +535,7 @@ export const AppData = {
         id: '5', 
         name: 'Eredivisie', 
         country: 'Netherlands', 
-        image: '/stepper/img5.png',
+        image: '/homepage/image/Eredivisie00.jpg',
         description: 'Dutch top-flight football league'
       },
       { 
@@ -906,7 +906,7 @@ export const AppData = {
       {
         id: "eredivisie",
         name: "Eredivisie",
-        image: "/homepage/image/eredivisie.jpg",
+        image: "/homepage/image/Eredivisie00.jpg",
         country: "Netherlands",
         description: "Dutch top-flight football league"
       },
@@ -964,7 +964,7 @@ export const AppData = {
       },
       {
         id: "european-competition",
-        name: "European competition",
+        name: "European Competition",
         image: "/homepage/image/euroleague.jpg",
         country: "Europe",
         description: "European basketball competitions"
