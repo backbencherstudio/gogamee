@@ -964,7 +964,7 @@ export const AppData = {
       },
       {
         id: "european-competition",
-        name: "European competition",
+        name: "European Competition",
         image: "/homepage/image/euroleague.jpg",
         country: "Europe",
         description: "European basketball competitions"
