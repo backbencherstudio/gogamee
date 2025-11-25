@@ -1,11 +1,9 @@
 'use client'
 import { Mail, Heart, Instagram, MessageCircle, Linkedin } from "lucide-react"
 import Link from "next/link"
-import { useLanguage } from "./LanguageContext"
 import Image from "next/image"
 
 export default function Footer() {
-  const { t } = useLanguage()
   return (
     <div className="w-full bg-[#060606] mt-5">
         <div className="max-w-[1200px] mx-auto">
@@ -15,7 +13,7 @@ export default function Footer() {
         <div className="w-full max-w-md lg:w-80 lg:max-w-none mx-auto lg:mx-0 space-y-6 text-center lg:text-left">
           <Image src="/logowhite.svg" className="min-w-36 h-auto" alt="Logo" width={100} height={100} />
           <p className="text-neutral-300 text-lg font-normal font-['Inter'] leading-7">
-            {t.footer.description}
+            GoGame is a surprise travel platform that creates unforgettable sports experiences
           </p>
           <div className="space-y-4">
             <div className="flex items-center justify-center lg:justify-start gap-2">
@@ -24,7 +22,7 @@ export default function Footer() {
             </div>
             <div className="flex items-center justify-center lg:justify-start gap-2">
               <MessageCircle className="w-6 h-6 text-white" />
-              <span className="text-white text-base font-medium font-['Inter']">{t.footer.whatsapp}</span>
+              <span className="text-white text-base font-medium font-['Inter']">WhatsApp</span>
             </div>
           </div>
         </div>
@@ -33,55 +31,50 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap lg:gap-28 gap-8 sm:gap-12 justify-around lg:justify-start w-full lg:w-auto">
           {/* Quick Links */}
           <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
-            <h3 className="text-white text-xl font-medium font-['Inter']">{t.footer.quickLink}</h3>
+            <h3 className="text-white text-xl font-medium font-['Inter']">Quick link</h3>
             <div className="space-y-4">
               <Link href="/" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
-                {t.menu.home}
+                Home
               </Link>
               <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
-                {t.menu.packages}
+                Packages
               </Link>
               <Link href="/faqs" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
-                {t.menu.faqs}
+                FAQs
               </Link>
             </div>
           </div>
 
           {/* Packs */}
           <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
-            <h3 className="text-white text-xl font-medium font-['Inter']">{t.footer.packs}</h3>
+            <h3 className="text-white text-xl font-medium font-['Inter']">Packs</h3>
             <div className="space-y-4">
               <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
-                {t.footer.standardPack}
+                Standard pack
               </Link>
               <Link href="/packages" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
-                {t.footer.premiumPack}
+                Premium pack
               </Link>
             </div>
           </div>
 
           {/* Social Media */}
           <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
-            <h3 className="text-white text-xl font-medium font-['Inter']">{t.footer.socialMedia}</h3>
+            <h3 className="text-white text-xl font-medium font-['Inter']">Social Media</h3>
             <div className="space-y-4 flex flex-col items-center sm:items-start">
               <Link href="#" className="flex items-center gap-2 cursor-pointer">
                 <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
                   <Heart className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-white text-lg font-normal font-['Inter']">{t.footer.tiktok}</span>
+                <span className="text-white text-lg font-normal font-['Inter']">TikTok</span>
               </Link>
               <Link href="#" className="flex items-center gap-2 cursor-pointer">
                 <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
                   <Instagram className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-white text-lg font-normal font-['Inter']">{t.footer.instagram}</span>
+                <span className="text-white text-lg font-normal font-['Inter']">Instagram</span>
               </Link>
-              <Link href="#" className="flex items-center gap-2 cursor-pointer">
-                <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
-                  <MessageCircle className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-white text-base font-normal font-['Inter']">{t.footer.whatsapp}</span>
-              </Link>
+
               <Link href="#" className="flex items-center gap-2 cursor-pointer">
                 <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
                   <Linkedin className="w-5 h-5 text-white" />
@@ -98,17 +91,17 @@ export default function Footer() {
         <hr className="opacity-50 border-zinc-500" />
         <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4 md:gap-0 text-center md:text-left">
           <p className="text-neutral-300 text-base font-normal font-['Inter']">
-            {t.footer.copyright}
+            Copyright 2025 by GoGame. All rights reserved
           </p>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 items-center sm:items-start">
             <Link href="/privacy" className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer">
-              {t.footer.privacyPolicy}
+              Privacy Policy
             </Link>
             <Link href="/cookies" className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer">
-              {t.footer.cookiePolicy}
+              Cookie Policy
             </Link>
             <Link href="/terms" className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer">
-              {t.footer.termsConditions}
+              Terms & Conditions
             </Link>
           </div>
         </div>

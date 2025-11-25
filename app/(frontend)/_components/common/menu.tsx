@@ -12,19 +12,19 @@ const languages = [
 ]
 
 export default function Menu() {
-  const { language, setLanguage, t } = useLanguage()
+  const { language, setLanguage } = useLanguage()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false)
   
   // Get current language object for display
   const selectedLang = languages.find(lang => lang.value === language) || languages[0]
   
-  // Dynamic menu items based on current language
+  // Menu items - English content
   const menuItems = [
-    { label: t.menu.home, href: '/' },
-    { label: t.menu.packages, href: '/packages' },
-    { label: t.menu.faqs, href: '/faqs' },
-    { label: t.menu.about, href: '/about' },
+    { label: 'Home', href: '/' },
+    { label: 'Packages', href: '/packages' },
+    { label: 'FAQs', href: '/faqs' },
+    { label: 'About Us', href: '/about' },
   ]
 
   const toggleLangDropdown = () => {
@@ -84,7 +84,7 @@ export default function Menu() {
             href="/contact"
             className="px-3 py-2 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2 hover:bg-lime-600 transition-colors cursor-pointer"
           >
-            <span className="text-center text-white text-sm font-normal font-['Inter'] leading-5">{t.menu.contactUs}</span>
+            <span className="text-center text-white text-sm font-normal font-['Inter'] leading-5">Contact us</span>
           </Link>
 
           {/* Mobile Menu Button */}
@@ -150,7 +150,7 @@ export default function Menu() {
             href="/contact"
             className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
           >
-            <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">{t.menu.contactUs}</span>
+            <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">Contact us</span>
           </Link>
         </div>
 
