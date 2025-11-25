@@ -1,6 +1,6 @@
 {
   "privacy": {
-    "en": "<h2>Privacy Policy for GoGame</h2>",
+    "en": "<h3>Privacy Policy for <b><i><u>GoGame</u></i></b></h3>",
     "es": ""
   },
   "cookie": {
@@ -13,6 +13,6 @@
   },
   "meta": {
     "version": 1,
-    "updatedAt": "2025-11-25T06:08:41.393Z"
+    "updatedAt": "2025-11-25T09:11:50.616Z"
   }
 }

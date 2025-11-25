@@ -8,6 +8,7 @@ import {
   type LegalPageContent,
 } from '../../../../../../services/settingsService'
 import { useToast } from '../../../../../../components/ui/toast'
+import RichTextEditor from './RichTextEditor'
 
 type PageType = 'privacy' | 'cookie' | 'terms'
 
@@ -142,19 +143,17 @@ export default function LegalPageManagement({ pageType, pageTitle }: LegalPageMa
 
           {/* Content Editor */}
           <div className="space-y-4">
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Content ({activeLanguage === 'en' ? 'English' : 'Spanish'})
             </label>
-            <textarea
-              id="content"
+            <RichTextEditor
               value={content[activeLanguage] || ''}
-              onChange={(e) => handleContentChange(activeLanguage, e.target.value)}
-              rows={30}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent font-mono text-sm"
-              placeholder={`Enter ${pageTitle.toLowerCase()} content in ${activeLanguage === 'en' ? 'English' : 'Spanish'}...`}
+              onChange={(html) => handleContentChange(activeLanguage, html)}
+              placeholder={`Write ${pageTitle.toLowerCase()} content in ${activeLanguage === 'en' ? 'English' : 'Spanish'}...`}
             />
             <p className="text-sm text-gray-500">
-              You can use HTML tags for formatting. Current language: <strong>{activeLanguage === 'en' ? 'English' : 'Spanish'}</strong>
+              Use the toolbar to format text (headings, lists, bold, italic, underline). Current language:{' '}
+              <strong>{activeLanguage === 'en' ? 'English' : 'Spanish'}</strong>
             </p>
           </div>
 
