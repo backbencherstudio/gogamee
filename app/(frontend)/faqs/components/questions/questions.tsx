@@ -3,10 +3,13 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { IoIosArrowDown } from 'react-icons/io';
 import { getAllFaqs, FaqItem } from '../../../../../services/faqService';
+import { useLanguage } from '../../../../context/LanguageContext';
 
 export default function Questions() {
+  const { language, translateText } = useLanguage();
   const [expandedItems, setExpandedItems] = useState<number[]>([0]);
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [translatedFaqs, setTranslatedFaqs] = useState<FaqItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,6 +39,30 @@ export default function Questions() {
 
     fetchFaqs();
   }, []);
+
+  // Translate FAQs when language changes
+  useEffect(() => {
+    const translateFaqs = async () => {
+      if (language === 'es') {
+        // If Spanish, use original FAQs (no translation needed)
+        setTranslatedFaqs(faqs);
+      } else {
+        // If English, translate all FAQs
+        const translated = await Promise.all(
+          faqs.map(async (faq) => ({
+            ...faq,
+            question: await translateText(faq.question),
+            answer: await translateText(faq.answer),
+          }))
+        );
+        setTranslatedFaqs(translated);
+      }
+    };
+
+    if (faqs.length > 0) {
+      translateFaqs();
+    }
+  }, [language, faqs, translateText]);
 
   const toggleItem = (index: number) => {
     setExpandedItems(prev => {
@@ -85,7 +112,7 @@ export default function Questions() {
               </div>
             ) : (
               <div className="flex flex-col gap-5 w-full">
-                {faqs.map((item, index) => (
+                {translatedFaqs.map((item, index) => (
                 <div key={item.id} className="flex flex-col gap-4 md:gap-5 w-full">
                   <div className="w-full">
                     <div 
@@ -129,7 +156,7 @@ export default function Questions() {
                     {item.answer}
                   </div>
                   
-                  {index < faqs.length - 1 && (
+                  {index < translatedFaqs.length - 1 && (
                     <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
                   )}
                 </div>

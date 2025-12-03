@@ -2,10 +2,13 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { getAllPackages, getStartingPrice, PackageItem, StartingPriceItem } from "../../../../../services/packageService";
+import { useLanguage } from "../../../../context/LanguageContext";
 
 export default function PackageTable() {
+  const { language, translateText } = useLanguage();
   const [selectedSport, setSelectedSport] = useState<'football' | 'basketball'>('football');
   const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [translatedPackages, setTranslatedPackages] = useState<PackageItem[]>([]);
   const [startingPrices, setStartingPrices] = useState<{
     football: StartingPriceItem | null;
     basketball: StartingPriceItem | null;
@@ -59,8 +62,33 @@ export default function PackageTable() {
     fetchData();
   }, [selectedSport]);
 
+  // Translate packages when language changes
+  useEffect(() => {
+    const translatePackages = async () => {
+      if (language === 'es') {
+        // If Spanish, use original packages (no translation needed)
+        setTranslatedPackages(packages);
+      } else {
+        // If English, translate package content
+        const translated = await Promise.all(
+          packages.map(async (pkg) => ({
+            ...pkg,
+            category: await translateText(pkg.category),
+            standard: await translateText(pkg.standard),
+            premium: await translateText(pkg.premium),
+          }))
+        );
+        setTranslatedPackages(translated);
+      }
+    };
+
+    if (packages.length > 0) {
+      translatePackages();
+    }
+  }, [language, packages, translateText]);
+
   // Filter packages by selected sport
-  const filteredPackages = packages.filter(pkg => pkg.sport === selectedSport);
+  const filteredPackages = translatedPackages.filter(pkg => pkg.sport === selectedSport);
 
   // Extract features (row labels) from the filtered packages, with Starting Price last
   const features = [...filteredPackages.map((item) => item.category), 'Starting Price'];
