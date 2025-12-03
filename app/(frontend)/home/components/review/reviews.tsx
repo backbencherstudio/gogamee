@@ -8,17 +8,20 @@ import { Navigation } from 'swiper/modules';
 import Image from 'next/image';
 import Link from 'next/link';
 import { getAllTestimonials, TestimonialItem } from '../../../../../services/testimonialService';
+import { useLanguage } from '../../../../context/LanguageContext';
 
 // Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 
 export default function Reviews() {
+  const { language, translateText } = useLanguage();
   const [swiper, setSwiper] = useState<SwiperType>();
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [apiReviews, setApiReviews] = useState<TestimonialItem[]>([]);
+  const [translatedReviews, setTranslatedReviews] = useState<TestimonialItem[]>([]);
 
   useEffect(() => {
     if (swiper && prevRef.current && nextRef.current) {
@@ -34,6 +37,31 @@ export default function Reviews() {
     };
     load();
   }, []);
+
+  // Translate reviews when language changes
+  useEffect(() => {
+    const translateReviews = async () => {
+      if (language === 'es') {
+        // If Spanish, use original reviews (no translation needed)
+        setTranslatedReviews(apiReviews);
+      } else {
+        // If English, translate reviews
+        const translated = await Promise.all(
+          apiReviews.map(async (review) => ({
+            ...review,
+            name: await translateText(review.name),
+            role: await translateText(review.role),
+            review: await translateText(review.review),
+          }))
+        );
+        setTranslatedReviews(translated);
+      }
+    };
+
+    if (apiReviews.length > 0) {
+      translateReviews();
+    }
+  }, [language, apiReviews, translateText]);
 
   const handleImageError = (imagePath: string, e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     // Only set fallback if we haven't already tried for this image
@@ -97,7 +125,7 @@ export default function Reviews() {
           }}
           className="pb-12"
         >
-          {apiReviews.map((review) => (
+          {translatedReviews.map((review) => (
             <SwiperSlide key={review.id} className="h-auto">
               <div className="h-[298px] p-4 bg-white rounded-lg border border-gray-200 flex flex-col gap-4">
                 {/* Review Header */}

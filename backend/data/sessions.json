@@ -1,8 +1,18 @@
 {
-  "sessions": [],
+  "sessions": [
+    {
+      "id": "393eee10-b2fe-498b-8047-c4ea98b85127",
+      "adminId": "admin-1",
+      "token": "5e8690f4-088a-4cb6-9af5-313c92aca7c0",
+      "createdAt": "2025-12-03T08:44:33.298Z",
+      "expiresAt": "2025-12-10T08:44:33.298Z",
+      "lastUsedAt": "2025-12-03T08:44:33.298Z",
+      "ipAddress": "::1",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+    }
+  ],
   "meta": {
     "version": 1,
-    "updatedAt": null
+    "updatedAt": "2025-12-03T08:44:33.304Z"
   }
 }
-

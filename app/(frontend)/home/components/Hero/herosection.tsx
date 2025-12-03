@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useMemo } from "react"
 import { IoChevronDown } from "react-icons/io5"
 import { gsap } from "gsap"
 import { useRouter } from "next/navigation"
-import { useLanguage, formatPeopleCount } from "../../../_components/common/LanguageContext"
+import { formatPeopleCount } from "../../../_components/common/LanguageContext"
 import { heroData } from "../../../../lib/appdata"
 import { getStartingPrice, StartingPriceItem } from "../../../../../services/packageService"
 
@@ -18,7 +18,6 @@ export default function HeroSection() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const heroTextRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
-  const { language, t } = useLanguage()
 
   // Sport selection state
   const [selectedSport, setSelectedSport] = useState<"Football" | "Basketball" | "Both">("Football")
@@ -56,7 +55,7 @@ export default function HeroSection() {
 
   // Compute pack types using live prices when available
   const packTypes = useMemo(() => {
-    const fromText = t.common.from
+    const fromText = 'from'
     const defaults = {
       Football: { standard: 299, premium: 1399, currency: '€' },
       Basketball: { standard: 279, premium: 1279, currency: '€' }
@@ -100,7 +99,7 @@ export default function HeroSection() {
       ...pack,
       price: `${fromText} ${pack.name === 'Standard' ? chosen.standard : chosen.premium}${chosen.currency}`
     }))
-  }, [selectedSport, t.common.from, startingPrices])
+  }, [selectedSport, startingPrices])
 
   // Dropdown states
   const [selectedPack, setSelectedPack] = useState(packTypes[0])
@@ -157,7 +156,7 @@ export default function HeroSection() {
 
   // Format people count for display
   const formatPeopleDisplay = () => {
-    return formatPeopleCount(peopleCount.adults, peopleCount.children, peopleCount.babies, language)
+    return formatPeopleCount(peopleCount.adults, peopleCount.children, peopleCount.babies)
   }
 
   // Close all dropdowns when clicking outside
@@ -209,10 +208,10 @@ export default function HeroSection() {
             className="w-full max-w-[1041px] flex flex-col justify-start items-start gap-4 md:gap-6"
           >
             <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold font-['Inter'] leading-tight md:leading-[86.40px]">
-              {t.hero.title}
+              Are you ready to experience sports like never before?
             </h1>
             <p className="text-white text-sm sm:text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose">
-              {t.hero.subtitle}
+              Let your passion for soccer or basketball take you to an unexpected place. The destination is a surprise.
             </p>
           </div>
 
@@ -223,7 +222,6 @@ export default function HeroSection() {
             {/* Sport Selection - Mobile: Stack vertically, Desktop: Horizontal */}
             <div className="bg-gray-50 rounded-lg flex flex-col sm:flex-row w-full sm:inline-flex justify-start items-center">
               {heroData.sports.map((sport, index, array) => {
-                const sportLabel = sport.name === "Football" ? t.hero.football : sport.name === "Basketball" ? t.hero.basketball : t.hero.both
                 return (
                   <button
                     key={sport.id}
@@ -242,7 +240,7 @@ export default function HeroSection() {
                           : "sm:rounded-none"
                     } backdrop-blur-[5px]`}
                   >
-                    <span className="text-center text-base font-normal font-['Inter']">{sportLabel}</span>
+                    <span className="text-center text-base font-normal font-['Inter']">{sport.name}</span>
                   </button>
                 )
               })}
@@ -252,7 +250,7 @@ export default function HeroSection() {
             <div className="w-full p-3 bg-gray-50 rounded-xl flex flex-col lg:flex-row justify-start items-start lg:items-end gap-3">
               {/* Pack Type Dropdown */}
               <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-2 relative">
-                <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">{t.hero.packType}</label>
+                <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">Pack type:</label>
                 <div
                   onClick={(e) => {
                     e.stopPropagation()
@@ -261,7 +259,7 @@ export default function HeroSection() {
                   className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
                 >
                   <span className="text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed">
-                    {selectedPack.name === "Standard" ? t.hero.standard : t.hero.premium} - {selectedPack.price}
+                    {selectedPack.name} - {selectedPack.price}
                   </span>
                   <IoChevronDown
                     className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${openDropdown === "pack" ? "rotate-180" : ""}`}
@@ -279,7 +277,7 @@ export default function HeroSection() {
                         }}
                         className="px-3.5 py-2 hover:bg-gray-50 cursor-pointer flex justify-between items-center"
                       >
-                        <span className="text-sm font-normal font-['Poppins'] text-black">{pack.name === "Standard" ? t.hero.standard : t.hero.premium}</span>
+                        <span className="text-sm font-normal font-['Poppins'] text-black">{pack.name}</span>
                         <span className="text-sm font-medium text-black">{pack.price}</span>
                       </div>
                     ))}
@@ -289,7 +287,7 @@ export default function HeroSection() {
 
               {/* Departure City Dropdown */}
               <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-2 relative">
-                <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">{t.hero.departure}</label>
+                <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">Departure:</label>
                 <div
                   onClick={(e) => {
                     e.stopPropagation()
@@ -326,7 +324,7 @@ export default function HeroSection() {
               {/* People Count Dropdown */}
               <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-2 relative">
                 <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-                  {t.hero.howManyAreYou}
+                  How many are you?:
                 </label>
                 <div
                   onClick={(e) => {
@@ -348,8 +346,8 @@ export default function HeroSection() {
                       {/* Adults */}
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium font-['Poppins'] text-black">{t.hero.adults}</span>
-                          <span className="text-xs text-gray-500 font-['Poppins']">{t.hero.adultsAge}</span>
+                          <span className="text-sm font-medium font-['Poppins'] text-black">Adults</span>
+                          <span className="text-xs text-gray-500 font-['Poppins']">12 years or older</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <button
@@ -379,8 +377,8 @@ export default function HeroSection() {
                       {/* Children */}
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium font-['Poppins'] text-black">{t.hero.children}</span>
-                          <span className="text-xs text-gray-500 font-['Poppins']">{t.hero.childrenAge}</span>
+                          <span className="text-sm font-medium font-['Poppins'] text-black">Children</span>
+                          <span className="text-xs text-gray-500 font-['Poppins']">2 to 11 years</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <button
@@ -410,8 +408,8 @@ export default function HeroSection() {
                       {/* Babies */}
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium font-['Poppins'] text-black">{t.hero.babies}</span>
-                          <span className="text-xs text-gray-500 font-['Poppins']">{t.hero.babiesAge}</span>
+                          <span className="text-sm font-medium font-['Poppins'] text-black">Babies</span>
+                          <span className="text-xs text-gray-500 font-['Poppins']">0 to 2 years</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <button
@@ -441,7 +439,7 @@ export default function HeroSection() {
                       {/* Total count display */}
                       <div className="pt-2 border-t border-gray-200">
                         <div className="text-xs text-gray-500 font-['Poppins'] text-center">
-                          {t.hero.total}: {totalPeople}/{heroData.maxTotalPeople} {t.hero.people}
+                          Total: {totalPeople}/{heroData.maxTotalPeople} people
                         </div>
                       </div>
                     </div>
@@ -495,7 +493,7 @@ export default function HeroSection() {
                 }}
                 className="w-full lg:w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
               >
-                <span className="text-center text-white text-base font-normal font-['Inter']">{t.hero.startTheGame}</span>
+                <span className="text-center text-white text-base font-normal font-['Inter']">Start the game</span>
               </button>
             </div>
           </div>

@@ -2,12 +2,18 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { getAboutManagement, type MainSection, type OurValue, type WhyChooseUs } from '../../../../services/aboutService'
+import { useLanguage } from '../../../context/LanguageContext'
 
 export default function AboutPage() {
+  const { language, translateText } = useLanguage();
   const [sections, setSections] = useState<MainSection[]>([])
   const [values, setValues] = useState<OurValue[]>([])
   const [whyChooseUs, setWhyChooseUs] = useState<WhyChooseUs[]>([])
+  const [translatedSections, setTranslatedSections] = useState<MainSection[]>([])
+  const [translatedValues, setTranslatedValues] = useState<OurValue[]>([])
+  const [translatedWhyChooseUs, setTranslatedWhyChooseUs] = useState<WhyChooseUs[]>([])
   const [headline, setHeadline] = useState('We turn sports into unforgettable surprise adventures.')
+  const [translatedHeadline, setTranslatedHeadline] = useState('')
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -36,6 +42,48 @@ export default function AboutPage() {
     fetchAboutData();
   }, []);
 
+  // Translate content when language changes
+  useEffect(() => {
+    const translateContent = async () => {
+      if (language === 'es') {
+        // If Spanish, use original content (no translation needed)
+        setTranslatedSections(sections);
+        setTranslatedValues(values);
+        setTranslatedWhyChooseUs(whyChooseUs);
+        setTranslatedHeadline(headline);
+      } else {
+        // If English, translate all content
+        const [translatedHeadlineText, translatedSectionsData, translatedValuesData, translatedWhyChooseUsData] = await Promise.all([
+          translateText(headline),
+          Promise.all(sections.map(async (section) => ({
+            ...section,
+            title: await translateText(section.title),
+            description: await translateText(section.description),
+          }))),
+          Promise.all(values.map(async (value) => ({
+            ...value,
+            title: await translateText(value.title),
+            description: await translateText(value.description),
+          }))),
+          Promise.all(whyChooseUs.map(async (item) => ({
+            ...item,
+            title: await translateText(item.title),
+            description: await translateText(item.description),
+          }))),
+        ]);
+        
+        setTranslatedHeadline(translatedHeadlineText);
+        setTranslatedSections(translatedSectionsData);
+        setTranslatedValues(translatedValuesData);
+        setTranslatedWhyChooseUs(translatedWhyChooseUsData);
+      }
+    };
+
+    if (sections.length > 0 || values.length > 0 || whyChooseUs.length > 0) {
+      translateContent();
+    }
+  }, [language, sections, values, whyChooseUs, headline, translateText]);
+
   return (
     <div className="w-full bg-[#FCFEFB] py-12 md:py-16 lg:py-24">
       <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-0">
@@ -43,7 +91,7 @@ export default function AboutPage() {
         <div className="flex flex-col justify-start items-center gap-6 lg:gap-12 mb-8 lg:mb-12">
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="text-center text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              {headline}
+              {translatedHeadline || headline}
             </div>
           </div>
         </div>
@@ -69,7 +117,7 @@ export default function AboutPage() {
               <div className="flex flex-col gap-8 md:gap-10 w-full">
               
               {/* Dynamic Sections */}
-              {sections.map((section, index) => (
+              {translatedSections.map((section, index) => (
                 <React.Fragment key={section.id}>
                   <div className="flex flex-col gap-4 md:gap-5 w-full">
                     <div className="flex items-center gap-2 md:gap-3">
@@ -86,7 +134,7 @@ export default function AboutPage() {
                       {section.description}
                     </div>
                   </div>
-                  {index < sections.length - 1 && (
+                  {index < translatedSections.length - 1 && (
                     <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
                   )}
                 </React.Fragment>
@@ -107,7 +155,7 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full pl-7 md:pl-8 lg:pl-9">
-                  {values.map((value) => (
+                  {translatedValues.map((value) => (
                     <div key={value.id} className="flex flex-col gap-2">
                       <div className="text-lime-900 text-base md:text-lg font-medium font-['Poppins']">
                         {value.title}
@@ -135,7 +183,7 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full pl-7 md:pl-8 lg:pl-9">
-                  {whyChooseUs.map((item) => (
+                  {translatedWhyChooseUs.map((item) => (
                     <div key={item.id} className="flex flex-col gap-2">
                       <div className="text-lime-900 text-base md:text-lg font-medium font-['Poppins']">
                         {item.title}
