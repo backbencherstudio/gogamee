@@ -3,28 +3,49 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { HiGlobeAlt } from 'react-icons/hi'
 import { HiMenu, HiX } from 'react-icons/hi'
-import { useLanguage, Language } from './LanguageContext'
+import { useLanguage } from '../../../context/LanguageContext'
 import Image from 'next/image'
 
+type LanguageType = 'es' | 'en';
+
 const languages = [
-  { code: 'English', label: 'English', value: 'en' as Language },
-  { code: 'Spanish', label: 'Español', value: 'es' as Language },
+  { code: 'English', label: 'English', value: 'en' as LanguageType },
+  { code: 'Spanish', label: 'Español', value: 'es' as LanguageType },
 ]
 
+// Menu translations (Spanish is default)
+const translations = {
+  es: {
+    home: 'Inicio',
+    packages: 'Paquetes',
+    faqs: 'Preguntas frecuentes',
+    about: 'Acerca de',
+    contactUs: 'Contáctenos'
+  },
+  en: {
+    home: 'Home',
+    packages: 'Packages',
+    faqs: 'FAQs',
+    about: 'About',
+    contactUs: 'Contact Us'
+  }
+}
+
 export default function Menu() {
-  const { language, setLanguage, t } = useLanguage()
+  const { language, toggleLanguage } = useLanguage()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false)
   
   // Get current language object for display
-  const selectedLang = languages.find(lang => lang.value === language) || languages[0]
+  const selectedLang = languages.find(lang => lang.value === language) || languages[1] // Default Spanish
+  const t = translations[language];
   
   // Dynamic menu items based on current language
   const menuItems = [
-    { label: t.menu.home, href: '/' },
-    { label: t.menu.packages, href: '/packages' },
-    { label: t.menu.faqs, href: '/faqs' },
-    { label: t.menu.about, href: '/about' },
+    { label: t.home, href: '/' },
+    { label: t.packages, href: '/packages' },
+    { label: t.faqs, href: '/faqs' },
+    { label: t.about, href: '/about' },
   ]
 
   const toggleLangDropdown = () => {
@@ -32,7 +53,10 @@ export default function Menu() {
   }
 
   const selectLanguage = (lang: typeof languages[0]) => {
-    setLanguage(lang.value)
+    // Only toggle if selecting a different language
+    if (lang.value !== language) {
+      toggleLanguage()
+    }
     setIsLangDropdownOpen(false)
   }
 
@@ -84,7 +108,7 @@ export default function Menu() {
             href="/contact"
             className="px-3 py-2 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2 hover:bg-lime-600 transition-colors cursor-pointer"
           >
-            <span className="text-center text-white text-sm font-normal font-['Inter'] leading-5">{t.menu.contactUs}</span>
+            <span className="text-center text-white text-sm font-normal font-['Inter'] leading-5">{t.contactUs}</span>
           </Link>
 
           {/* Mobile Menu Button */}
@@ -150,7 +174,7 @@ export default function Menu() {
             href="/contact"
             className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
           >
-            <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">{t.menu.contactUs}</span>
+            <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">{t.contactUs}</span>
           </Link>
         </div>
 
