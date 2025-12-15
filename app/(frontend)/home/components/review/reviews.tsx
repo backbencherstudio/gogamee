@@ -9,6 +9,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getAllTestimonials, TestimonialItem } from '../../../../../services/testimonialService';
 import { useLanguage } from '../../../../context/LanguageContext';
+import { TranslatedText } from '../../../_components/TranslatedText';
 
 // Import Swiper styles
 import 'swiper/css';
@@ -76,10 +77,14 @@ export default function Reviews() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 lg:gap-24 mb-12">
         <h2 className="w-full lg:w-[533px] text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] text-zinc-950 leading-tight lg:leading-[57.60px]">
-          What our customers are saying
+          <TranslatedText text="Qué dicen nuestros viajeros" english="What our customers are saying" as="span" />
         </h2>
         <p className="flex-1 text-sm md:text-base font-normal font-['Poppins'] text-neutral-600 leading-relaxed lg:leading-7">
-          Hear from our thrilled travelers who embarked on unforgettable sports adventures and embraced the excitement of surprise destinations!
+          <TranslatedText
+            text="Conoce las experiencias de quienes ya disfrutaron de aventuras deportivas inolvidables... ¡y vivieron la emoción de descubrir su destino por sorpresa!"
+            english="Hear from our thrilled travelers who embarked on unforgettable sports adventures and embraced the excitement of surprise destinations!"
+            as="span"
+          />
         </p>
       </div>
 
@@ -158,7 +163,9 @@ export default function Reviews() {
                         <AiFillStar key={i + review.rating} className="w-3 h-3 md:w-4 md:h-4 text-gray-200" />
                       ))}
                     </div>
-                    <p className="text-xs md:text-sm text-zinc-500 whitespace-nowrap">2 days ago</p>
+                    <p className="text-xs md:text-sm text-zinc-500 whitespace-nowrap">
+                      <TranslatedText text="Hace 2 días" english="2 days ago" as="span" />
+                    </p>
                   </div>
                 </div>
 
@@ -178,7 +185,7 @@ export default function Reviews() {
       <div className="flex justify-center mt-8">
         <Link href="/book">
         <button className="w-full md:w-44 px-4 py-2.5 bg-[#76C043] rounded-full text-white text-lg font-['Inter'] hover:bg-lime-600 transition-colors cursor-pointer">
-          Book Now
+          <TranslatedText text="Reserva ahora" english="Book Now" as="span" />
         </button>
         </Link>
       </div>

@@ -17,10 +17,10 @@ const languages = [
 const translations = {
   es: {
     home: 'Inicio',
-    packages: 'Paquetes',
+    packages: 'Packs',
     faqs: 'Preguntas frecuentes',
-    about: 'Acerca de',
-    contactUs: 'Contáctenos'
+    about: 'Sobre nosotros',
+    contactUs: 'Contacto'
   },
   en: {
     home: 'Home',

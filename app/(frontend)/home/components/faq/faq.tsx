@@ -4,14 +4,18 @@ import Image from "next/image";
 import { IoIosArrowDown } from "react-icons/io";
 import Link from "next/link";
 import { getAllFaqs, type FaqItem } from "../../../../../services/faqService";
+import { TranslatedText } from "../../../_components/TranslatedText";
+import { useLanguage } from "../../../../context/LanguageContext";
 
 interface FaqProps {
   className?: string;
 }
 
 export default function Faq({ className = "" }: FaqProps) {
+  const { language, translateText } = useLanguage();
   const [expandedItems, setExpandedItems] = useState<number[]>([0]);
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [translatedFaqs, setTranslatedFaqs] = useState<FaqItem[]>([]);
 
   useEffect(() => {
     const fetchFaqs = async () => {
@@ -30,6 +34,30 @@ export default function Faq({ className = "" }: FaqProps) {
     fetchFaqs();
   }, []);
 
+  // Translate FAQs when language changes
+  useEffect(() => {
+    const translateFaqs = async () => {
+      if (language === 'es') {
+        // If Spanish, use original FAQs (no translation needed)
+        setTranslatedFaqs(faqs);
+      } else {
+        // If English, translate FAQs
+        const translated = await Promise.all(
+          faqs.map(async (faq) => ({
+            ...faq,
+            question: await translateText(faq.question),
+            answer: await translateText(faq.answer),
+          }))
+        );
+        setTranslatedFaqs(translated);
+      }
+    };
+
+    if (faqs.length > 0) {
+      translateFaqs();
+    }
+  }, [language, faqs, translateText]);
+
   const toggleItem = (index: number) => {
     setExpandedItems((prev) => {
       if (prev.includes(index)) {
@@ -47,11 +75,14 @@ export default function Faq({ className = "" }: FaqProps) {
           {/* Header Section */}
           <div className="self-stretch flex flex-col lg:flex-row justify-start items-start lg:items-center gap-6 lg:gap-24">
             <div className="w-full lg:w-[533px] text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              Frequently asked questions
+              <TranslatedText text="Preguntas frecuentes" english="Frequently asked questions" as="span" />
             </div>
             <div className="flex-1 text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed md:leading-7">
-              Find solutions to common inquiries. Browse through our answers to
-              frequently asked questions and get the clarity you need.
+              <TranslatedText
+                text="Encuentra respuestas a las dudas más comunes. Explora nuestras preguntas frecuentes y obtén toda la información que necesitas."
+                english="Find solutions to common inquiries. Browse through our answers to frequently asked questions and get the clarity you need."
+                as="span"
+              />
             </div>
           </div>
 
@@ -60,7 +91,7 @@ export default function Faq({ className = "" }: FaqProps) {
             <div className="self-stretch bg-white flex flex-col justify-start items-start gap-6 w-full">
               <div className="self-stretch p-5 md:p-8 lg:p-10 rounded-lg outline-[6px] outline-offset-[-6px] outline-green-50 w-full">
                 <div className="flex flex-col gap-5 w-full">
-                  {faqs.slice(0, 5).map((item, index) => (
+                  {(translatedFaqs.length > 0 ? translatedFaqs : faqs).slice(0, 5).map((item, index) => (
                     <div
                       key={item.id}
                       className="flex flex-col gap-4 md:gap-5 w-full"
@@ -121,9 +152,7 @@ export default function Faq({ className = "" }: FaqProps) {
                 href="/faqs"
                 className="px-4 py-2 md:py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] flex justify-center items-center gap-2.5 w-36 md:w-44 cursor-pointer"
               >
-                <span className="text-center text-white text-base md:text-lg font-normal font-['Inter'] leading-normal md:leading-7">
-                  View more
-                </span>
+                <TranslatedText text="Ver más" english="View more" className="text-center text-white text-base md:text-lg font-normal font-['Inter'] leading-normal md:leading-7" />
               </Link>
             </div>
           </div>

@@ -62,28 +62,39 @@ export function useLanguage() {
   return context
 }
 
-// Helper function to format people count in English
+// Helper function to format people count in Spanish (default)
 export function formatPeopleCount(
   adultsCount: number,
   childrenCount: number,
-  babiesCount: number
+  babiesCount: number,
+  language: Language = 'es'
 ): string {
   const parts = []
   
   if (adultsCount > 0) {
-    const adultsText = `${adultsCount} adult${adultsCount > 1 ? 's' : ''}`
+    const adultsText = language === 'en'
+      ? `${adultsCount} ${adultsCount > 1 ? 'adults' : 'adult'}`
+      : `${adultsCount} ${adultsCount > 1 ? 'adultos' : 'adulto'}`
     parts.push(adultsText)
   }
   
   if (childrenCount > 0) {
-    const childrenText = `${childrenCount} child${childrenCount > 1 ? 'ren' : ''}`
+    const childrenText = language === 'en'
+      ? `${childrenCount} ${childrenCount > 1 ? 'children' : 'child'}`
+      : `${childrenCount} ${childrenCount > 1 ? 'niños' : 'niño'}`
     parts.push(childrenText)
   }
   
   if (babiesCount > 0) {
-    const babiesText = `${babiesCount} bab${babiesCount > 1 ? 'ies' : 'y'}`
+    const babiesText = language === 'en'
+      ? `${babiesCount} ${babiesCount > 1 ? 'babies' : 'baby'}`
+      : `${babiesCount} ${babiesCount > 1 ? 'bebés' : 'bebé'}`
     parts.push(babiesText)
   }
   
-  return parts.length > 0 ? parts.join(', ') : '2 adults'
+  if (parts.length === 0) {
+    return language === 'en' ? '2 adults' : '2 adultos'
+  }
+
+  return parts.join(', ')
 } 
