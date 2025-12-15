@@ -62,7 +62,7 @@ export function useLanguage() {
   return context
 }
 
-// Helper function to format people count in English
+// Helper function to format people count in Spanish (default)
 export function formatPeopleCount(
   adultsCount: number,
   childrenCount: number,
@@ -71,19 +71,19 @@ export function formatPeopleCount(
   const parts = []
   
   if (adultsCount > 0) {
-    const adultsText = `${adultsCount} adult${adultsCount > 1 ? 's' : ''}`
+    const adultsText = `${adultsCount} ${adultsCount > 1 ? 'adultos' : 'adulto'}`
     parts.push(adultsText)
   }
   
   if (childrenCount > 0) {
-    const childrenText = `${childrenCount} child${childrenCount > 1 ? 'ren' : ''}`
+    const childrenText = `${childrenCount} ${childrenCount > 1 ? 'niños' : 'niño'}`
     parts.push(childrenText)
   }
   
   if (babiesCount > 0) {
-    const babiesText = `${babiesCount} bab${babiesCount > 1 ? 'ies' : 'y'}`
+    const babiesText = `${babiesCount} ${babiesCount > 1 ? 'bebés' : 'bebé'}`
     parts.push(babiesText)
   }
   
-  return parts.length > 0 ? parts.join(', ') : '2 adults'
+  return parts.length > 0 ? parts.join(', ') : '2 adultos'
 } 

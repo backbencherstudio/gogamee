@@ -248,13 +248,13 @@ export const AppData = {
   // Hero Section Data
   hero: {
     sports: [
-      { id: "football", name: "Football", label: "Football", value: "Football" },
-      { id: "basketball", name: "Basketball", label: "Basketball", value: "Basketball" },
-      { id: "both", name: "Both", label: "Both", value: "Both" }
+      { id: "football", name: "Fútbol", label: "Fútbol", value: "Fútbol" },
+      { id: "basketball", name: "Basket", label: "Basket", value: "Basket" },
+      { id: "both", name: "Ambos", label: "Ambos", value: "Ambos" }
     ],
     
     packTypes: [
-      { id: 1, name: "Standard", basePrice: 299, currency: "EUR" },
+      { id: 1, name: "Estándar", basePrice: 299, currency: "EUR" },
       { id: 2, name: "Premium", basePrice: 1399, currency: "EUR" }
     ],
     
@@ -270,7 +270,7 @@ export const AppData = {
     peopleCategories: [
       { 
         id: "adults", 
-        name: "Adults", 
+        name: "Adultos", 
         minAge: 18, 
         maxAge: 100, 
         minCount: 1, 
@@ -279,7 +279,7 @@ export const AppData = {
       },
       { 
         id: "children", 
-        name: "Children", 
+        name: "Niños", 
         minAge: 2, 
         maxAge: 17, 
         minCount: 0, 
@@ -288,7 +288,7 @@ export const AppData = {
       },
       { 
         id: "babies", 
-        name: "Babies", 
+        name: "Bebés", 
         minAge: 0, 
         maxAge: 1, 
         minCount: 0, 
