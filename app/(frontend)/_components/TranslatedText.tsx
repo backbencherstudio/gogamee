@@ -1,41 +1,43 @@
-"use client";
+'use client'
 
-import React, { useEffect, useState } from 'react';
-import { useLanguage } from '../../context/LanguageContext';
+import React, { useEffect, useState } from 'react'
+import { useLanguage } from '../../context/LanguageContext'
 
 interface TranslatedTextProps {
-  text: string;
-  as?: keyof React.JSX.IntrinsicElements;
-  className?: string;
+  text: string
+  english?: string // Optional English fallback to bypass API calls
+  as?: keyof React.JSX.IntrinsicElements
+  className?: string
 }
 
 /**
- * Component that automatically translates Spanish text to English when language is toggled
- * Does NOT translate if language is Spanish (shows original content)
+ * Shows Spanish text by default and switches to English when the language is English.
+ * - If `english` is provided, it is used directly (no API call).
+ * - Otherwise, it falls back to the translateText API for dynamic content.
  */
-export const TranslatedText: React.FC<TranslatedTextProps> = ({ 
-  text, 
+export const TranslatedText: React.FC<TranslatedTextProps> = ({
+  text,
+  english,
   as: Component = 'span',
-  className = ''
+  className = '',
 }) => {
-  const { language, translateText } = useLanguage();
-  const [displayText, setDisplayText] = useState(text);
+  const { language, translateText } = useLanguage()
+  const [displayText, setDisplayText] = useState(text)
 
   useEffect(() => {
     const translate = async () => {
       if (language === 'es') {
-        // If Spanish, show original text (no translation)
-        setDisplayText(text);
+        setDisplayText(text)
+      } else if (english) {
+        setDisplayText(english)
       } else {
-        // If English, translate from Spanish to English
-        const translated = await translateText(text);
-        setDisplayText(translated);
+        const translated = await translateText(text)
+        setDisplayText(translated)
       }
-    };
+    }
 
-    translate();
-  }, [text, language, translateText]);
+    translate()
+  }, [text, english, language, translateText])
 
-  return <Component className={className}>{displayText}</Component>;
-};
-
+  return <Component className={className}>{displayText}</Component>
+}

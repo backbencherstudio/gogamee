@@ -75,10 +75,14 @@ export default function Faq({ className = "" }: FaqProps) {
           {/* Header Section */}
           <div className="self-stretch flex flex-col lg:flex-row justify-start items-start lg:items-center gap-6 lg:gap-24">
             <div className="w-full lg:w-[533px] text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              <TranslatedText text="Preguntas frecuentes" as="span" />
+              <TranslatedText text="Preguntas frecuentes" english="Frequently asked questions" as="span" />
             </div>
             <div className="flex-1 text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed md:leading-7">
-              <TranslatedText text="Encuentra respuestas a las dudas más comunes. Explora nuestras preguntas frecuentes y obtén toda la información que necesitas." as="span" />
+              <TranslatedText
+                text="Encuentra respuestas a las dudas más comunes. Explora nuestras preguntas frecuentes y obtén toda la información que necesitas."
+                english="Find solutions to common inquiries. Browse through our answers to frequently asked questions and get the clarity you need."
+                as="span"
+              />
             </div>
           </div>
 
@@ -148,7 +152,7 @@ export default function Faq({ className = "" }: FaqProps) {
                 href="/faqs"
                 className="px-4 py-2 md:py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] flex justify-center items-center gap-2.5 w-36 md:w-44 cursor-pointer"
               >
-                <TranslatedText text="Ver más" className="text-center text-white text-base md:text-lg font-normal font-['Inter'] leading-normal md:leading-7" />
+                <TranslatedText text="Ver más" english="View more" className="text-center text-white text-base md:text-lg font-normal font-['Inter'] leading-normal md:leading-7" />
               </Link>
             </div>
           </div>

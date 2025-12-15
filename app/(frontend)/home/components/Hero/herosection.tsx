@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useMemo } from "react"
 import { IoChevronDown } from "react-icons/io5"
 import { gsap } from "gsap"
 import { useRouter } from "next/navigation"
-import { formatPeopleCount } from "../../../_components/common/LanguageContext"
+import { formatPeopleCount, useLanguage } from "../../../_components/common/LanguageContext"
 import { heroData } from "../../../../lib/appdata"
 import { getStartingPrice, StartingPriceItem } from "../../../../../services/packageService"
 import { TranslatedText } from "../../../_components/TranslatedText"
@@ -19,9 +19,11 @@ export default function HeroSection() {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const heroTextRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const { language } = useLanguage()
 
-  // Sport selection state
-  const [selectedSport, setSelectedSport] = useState<"Fútbol" | "Basket" | "Ambos">("Fútbol")
+  // Sport selection state (supports Spanish + English labels)
+  type SportChoice = "Fútbol" | "Basket" | "Ambos" | "Football" | "Basketball" | "Both"
+  const [selectedSport, setSelectedSport] = useState<SportChoice>("Fútbol")
 
   // Starting prices loaded from API (single source of truth)
   const [startingPrices, setStartingPrices] = useState<{
@@ -56,13 +58,13 @@ export default function HeroSection() {
 
   // Compute pack types using live prices when available
   const packTypes = useMemo(() => {
-    const fromText = 'desde'
+    const fromText = language === 'en' ? 'from' : 'desde'
     const defaults = {
       Football: { standard: 299, premium: 1399, currency: '€' },
       Basketball: { standard: 279, premium: 1279, currency: '€' }
     }
 
-    const priceBySport = (sport: "Fútbol" | "Basket" | "Ambos") => {
+    const priceBySport = (sport: SportChoice) => {
       if (sport === 'Fútbol' || sport === 'Football') {
         const p = startingPrices.football?.pricesByDuration?.['1']
         return startingPrices.football && p
@@ -100,7 +102,7 @@ export default function HeroSection() {
       ...pack,
       price: `${fromText} ${pack.name === 'Estándar' ? chosen.standard : chosen.premium}${chosen.currency}`
     }))
-  }, [selectedSport, startingPrices])
+  }, [selectedSport, startingPrices, language])
 
   // Dropdown states
   const [selectedPack, setSelectedPack] = useState(packTypes[0])
@@ -157,7 +159,7 @@ export default function HeroSection() {
 
   // Format people count for display
   const formatPeopleDisplay = () => {
-    return formatPeopleCount(peopleCount.adults, peopleCount.children, peopleCount.babies)
+    return formatPeopleCount(peopleCount.adults, peopleCount.children, peopleCount.babies, language)
   }
 
   // Close all dropdowns when clicking outside
@@ -209,10 +211,18 @@ export default function HeroSection() {
             className="w-full max-w-[1041px] flex flex-col justify-start items-start gap-4 md:gap-6"
           >
             <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold font-['Inter'] leading-tight md:leading-[86.40px]">
-              <TranslatedText text="¿Listo para vivir el deporte como nunca antes?" as="span" />
+              <TranslatedText
+                text="¿Listo para vivir el deporte como nunca antes?"
+                english="Are you ready to experience sports like never before?"
+                as="span"
+              />
             </h1>
             <p className="text-white text-sm sm:text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose">
-              <TranslatedText text="Deja que tu pasión por el fútbol o el baloncesto te lleve a un destino inesperado. El lugar final es una sorpresa." as="span" />
+              <TranslatedText
+                text="Deja que tu pasión por el fútbol o el baloncesto te lleve a un destino inesperado. El lugar final es una sorpresa."
+                english="Let your passion for soccer or basketball take you to an unexpected place. The destination is a surprise."
+                as="span"
+              />
             </p>
           </div>
 
@@ -228,7 +238,7 @@ export default function HeroSection() {
                     key={sport.id}
                     onClick={(e) => {
                       e.stopPropagation()
-                      setSelectedSport(sport.name as "Fútbol" | "Basket" | "Ambos")
+                      setSelectedSport(sport.name as SportChoice)
                     }}
                     className={`w-full sm:w-36 h-11 px-3.5 py-1.5 flex justify-center items-center gap-2.5 cursor-pointer ${
                       selectedSport === sport.name ? "bg-[#76C043] text-white" : "text-neutral-600"
@@ -241,7 +251,17 @@ export default function HeroSection() {
                           : "sm:rounded-none"
                     } backdrop-blur-[5px]`}
                   >
-                    <TranslatedText text={sport.name} className="text-center text-base font-normal font-['Inter']" />
+                  <TranslatedText
+                    text={sport.name}
+                    english={
+                      sport.id === 'football'
+                        ? 'Football'
+                        : sport.id === 'basketball'
+                          ? 'Basketball'
+                          : 'Both'
+                    }
+                    className="text-center text-base font-normal font-['Inter']"
+                  />
                   </button>
                 )
               })}
@@ -252,7 +272,7 @@ export default function HeroSection() {
               {/* Pack Type Dropdown */}
               <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-2 relative">
                 <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-                  <TranslatedText text="Elige tu pack:" as="span" />
+                  <TranslatedText text="Elige tu pack:" english="Pack type:" as="span" />
                 </label>
                 <div
                   onClick={(e) => {
@@ -262,7 +282,17 @@ export default function HeroSection() {
                   className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
                 >
                   <span className="text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed">
-                    <TranslatedText text={selectedPack.name} as="span" /> - <TranslatedText text={selectedPack.price} as="span" />
+                    <TranslatedText
+                      text={selectedPack.name}
+                      english={selectedPack.name === 'Estándar' ? 'Standard' : 'Premium'}
+                      as="span"
+                    />{' '}
+                    -{' '}
+                    <TranslatedText
+                      text={selectedPack.price}
+                      english={selectedPack.price.replace('desde', 'from')}
+                      as="span"
+                    />
                   </span>
                   <IoChevronDown
                     className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${openDropdown === "pack" ? "rotate-180" : ""}`}
@@ -280,8 +310,16 @@ export default function HeroSection() {
                         }}
                         className="px-3.5 py-2 hover:bg-gray-50 cursor-pointer flex justify-between items-center"
                       >
-                        <TranslatedText text={pack.name} className="text-sm font-normal font-['Poppins'] text-black" />
-                        <TranslatedText text={pack.price} className="text-sm font-medium text-black" />
+                        <TranslatedText
+                          text={pack.name}
+                          english={pack.name === 'Estándar' ? 'Standard' : 'Premium'}
+                          className="text-sm font-normal font-['Poppins'] text-black"
+                        />
+                        <TranslatedText
+                          text={pack.price}
+                          english={pack.price.replace('desde', 'from')}
+                          className="text-sm font-medium text-black"
+                        />
                       </div>
                     ))}
                   </div>
@@ -291,7 +329,7 @@ export default function HeroSection() {
               {/* Departure City Dropdown */}
               <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-2 relative">
                 <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-                  <TranslatedText text="Salida:" as="span" />
+                  <TranslatedText text="Salida:" english="Departure:" as="span" />
                 </label>
                 <div
                   onClick={(e) => {
@@ -329,7 +367,7 @@ export default function HeroSection() {
               {/* People Count Dropdown */}
               <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-2 relative">
                 <label className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-                  <TranslatedText text="¿Cuántos sois?:" as="span" />
+                  <TranslatedText text="¿Cuántos sois?:" english="How many are you?:" as="span" />
                 </label>
                 <div
                   onClick={(e) => {
@@ -351,8 +389,8 @@ export default function HeroSection() {
                       {/* Adults */}
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <TranslatedText text="Adultos" className="text-sm font-medium font-['Poppins'] text-black" />
-                          <TranslatedText text="12 años o más" className="text-xs text-gray-500 font-['Poppins']" />
+                          <TranslatedText text="Adultos" english="Adults" className="text-sm font-medium font-['Poppins'] text-black" />
+                          <TranslatedText text="12 años o más" english="12 years or older" className="text-xs text-gray-500 font-['Poppins']" />
                         </div>
                         <div className="flex items-center gap-3">
                           <button
@@ -382,8 +420,8 @@ export default function HeroSection() {
                       {/* Children */}
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <TranslatedText text="Niños" className="text-sm font-medium font-['Poppins'] text-black" />
-                          <TranslatedText text="2 a 11 años" className="text-xs text-gray-500 font-['Poppins']" />
+                          <TranslatedText text="Niños" english="Children" className="text-sm font-medium font-['Poppins'] text-black" />
+                          <TranslatedText text="2 a 11 años" english="2 to 11 years" className="text-xs text-gray-500 font-['Poppins']" />
                         </div>
                         <div className="flex items-center gap-3">
                           <button
@@ -413,8 +451,8 @@ export default function HeroSection() {
                       {/* Babies */}
                       <div className="flex justify-between items-center">
                         <div className="flex flex-col">
-                          <TranslatedText text="Bebés" className="text-sm font-medium font-['Poppins'] text-black" />
-                          <TranslatedText text="0 a 2 años" className="text-xs text-gray-500 font-['Poppins']" />
+                          <TranslatedText text="Bebés" english="Babies" className="text-sm font-medium font-['Poppins'] text-black" />
+                          <TranslatedText text="0 a 2 años" english="0 to 2 years" className="text-xs text-gray-500 font-['Poppins']" />
                         </div>
                         <div className="flex items-center gap-3">
                           <button
@@ -444,7 +482,11 @@ export default function HeroSection() {
                       {/* Total count display */}
                       <div className="pt-2 border-t border-gray-200">
                         <div className="text-xs text-gray-500 font-['Poppins'] text-center">
-                          <TranslatedText text={`Total: ${totalPeople}/${heroData.maxTotalPeople} personas`} as="span" />
+                          <TranslatedText
+                            text={`Total: ${totalPeople}/${heroData.maxTotalPeople} personas`}
+                            english={`Total: ${totalPeople}/${heroData.maxTotalPeople} people`}
+                            as="span"
+                          />
                         </div>
                       </div>
                     </div>

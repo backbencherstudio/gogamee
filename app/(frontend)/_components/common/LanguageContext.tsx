@@ -66,24 +66,35 @@ export function useLanguage() {
 export function formatPeopleCount(
   adultsCount: number,
   childrenCount: number,
-  babiesCount: number
+  babiesCount: number,
+  language: Language = 'es'
 ): string {
   const parts = []
   
   if (adultsCount > 0) {
-    const adultsText = `${adultsCount} ${adultsCount > 1 ? 'adultos' : 'adulto'}`
+    const adultsText = language === 'en'
+      ? `${adultsCount} ${adultsCount > 1 ? 'adults' : 'adult'}`
+      : `${adultsCount} ${adultsCount > 1 ? 'adultos' : 'adulto'}`
     parts.push(adultsText)
   }
   
   if (childrenCount > 0) {
-    const childrenText = `${childrenCount} ${childrenCount > 1 ? 'niños' : 'niño'}`
+    const childrenText = language === 'en'
+      ? `${childrenCount} ${childrenCount > 1 ? 'children' : 'child'}`
+      : `${childrenCount} ${childrenCount > 1 ? 'niños' : 'niño'}`
     parts.push(childrenText)
   }
   
   if (babiesCount > 0) {
-    const babiesText = `${babiesCount} ${babiesCount > 1 ? 'bebés' : 'bebé'}`
+    const babiesText = language === 'en'
+      ? `${babiesCount} ${babiesCount > 1 ? 'babies' : 'baby'}`
+      : `${babiesCount} ${babiesCount > 1 ? 'bebés' : 'bebé'}`
     parts.push(babiesText)
   }
   
-  return parts.length > 0 ? parts.join(', ') : '2 adultos'
+  if (parts.length === 0) {
+    return language === 'en' ? '2 adults' : '2 adultos'
+  }
+
+  return parts.join(', ')
 } 

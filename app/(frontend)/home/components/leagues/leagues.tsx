@@ -56,14 +56,14 @@ export default function SportsLeagues() {
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="flex flex-col justify-start items-center gap-3">
               <div className="text-center text-zinc-950 text-3xl sm:text-4xl md:text-5xl font-semibold font-poppins leading-tight md:leading-[57.60px] px-4">
-                <TranslatedText text="¿Listo para estas ligas?" as="span" />
+                <TranslatedText text="¿Listo para estas ligas?" english="Ready for these leagues?" as="span" />
               </div>
             </div>
           </div>
         </div>
         <div className="inline-flex justify-start items-center gap-5">
           <div className={`text-lg font-medium font-poppins leading-loose ${isFootball ? 'text-neutral-800' : 'text-zinc-500'}`}>
-            <TranslatedText text="Fútbol" as="span" />
+            <TranslatedText text="Fútbol" english="Football" as="span" />
           </div>
           <button
             onClick={() => setIsFootball(!isFootball)}
@@ -74,7 +74,7 @@ export default function SportsLeagues() {
             <div className="w-5 h-5 bg-white rounded-full shadow-[0px_1px_2px_0px_rgba(16,24,40,0.06)] " />
           </button>
           <div className={`text-lg font-medium font-poppins leading-loose ${!isFootball ? 'text-neutral-800' : 'text-zinc-500'}`}>
-            <TranslatedText text="Basket" as="span" />
+            <TranslatedText text="Basket" english="Basketball" as="span" />
           </div>
         </div>
       </div>
@@ -146,8 +146,8 @@ export default function SportsLeagues() {
       </div>
       
       <Link href="/packages">
-      <div className="px-4 py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
-        <TranslatedText text="Ver packs" className="text-center justify-start text-white text-sm sm:text-base lg:text-lg font-normal font-['Inter'] leading-7" />
+        <div className="px-4 py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
+          <TranslatedText text="Ver packs" english="View packages" className="text-center justify-start text-white text-sm sm:text-base lg:text-lg font-normal font-['Inter'] leading-7" />
       </div>
       </Link>
       
