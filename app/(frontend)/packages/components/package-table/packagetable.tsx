@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { getAllPackages, getStartingPrice, PackageItem, StartingPriceItem } from "../../../../../services/packageService";
 import { useLanguage } from "../../../../context/LanguageContext";
+import { TranslatedText } from "../../../_components/TranslatedText";
 
 export default function PackageTable() {
   const { language, translateText } = useLanguage();
@@ -104,7 +105,8 @@ export default function PackageTable() {
       if (!priceEntry) return '';
 
       const price = type === 'standard' ? priceEntry.standard : priceEntry.premium;
-      return `From ${price}${getCurrencySymbol(currentPrices.currency)}`;
+      const fromLabel = language === 'en' ? 'From ' : 'Desde ';
+      return `${fromLabel}${price}${getCurrencySymbol(currentPrices.currency)}`;
     }
     
     const found = filteredPackages.find((item) => item.category === feature);
@@ -137,8 +139,10 @@ export default function PackageTable() {
       <div className="flex flex-col justify-start items-center gap-6">
         <div className="flex flex-col justify-start items-center gap-12">
           <div className="flex flex-col justify-start items-center gap-4">
-            <div className="flex flex-col justify-start items-center gap-2 md:gap-3">
-              <div className="text-center justify-start text-zinc-950 text-2xl md:text-5xl font-semibold font-['Poppins'] leading-tight md:leading-[57.60px]">Types of packs offered</div>
+              <div className="flex flex-col justify-start items-center gap-2 md:gap-3">
+              <div className="text-center justify-start text-zinc-950 text-2xl md:text-5xl font-semibold font-['Poppins'] leading-tight md:leading-[57.60px]">
+                <TranslatedText text="Tipos de packs disponibles" english="Types of packs offered" />
+              </div>
             </div>
           </div>
         </div>
@@ -150,7 +154,7 @@ export default function PackageTable() {
             aria-pressed={selectedSport === 'football'}
             disabled={loading}
           >
-            Football
+            <TranslatedText text="Fútbol" english="Football" />
           </button>
           <button
             type="button"
@@ -171,7 +175,7 @@ export default function PackageTable() {
             aria-pressed={selectedSport === 'basketball'}
             disabled={loading}
           >
-            Basketball
+            <TranslatedText text="Basket" english="Basketball" />
           </button>
         </div>
       </div>
@@ -204,21 +208,52 @@ export default function PackageTable() {
               <div key={type} className="w-full rounded-2xl bg-white outline-[6px] outline-offset-[-6px] outline-green-50">
                 <div className="p-4 border-b border-slate-200">
                   <div className="inline-flex px-2 py-1.5 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mb-1">
-                    <span className="text-[#76C043] text-xs font-medium font-['Poppins']">{type} pack</span>
+                    <span className="text-[#76C043] text-xs font-medium font-['Poppins']">
+                      <TranslatedText text={type === 'Standard' ? 'Pack Estándar' : 'Pack Premium'} english={`${type} pack`} />
+                    </span>
                   </div>
                   <div className="text-zinc-950 text-lg font-bold font-['Poppins']">
-                    {type === 'Standard' ? (selectedSport === 'football' ? 'Standard GoGame Kickoff' : 'Standard GoGame Slam') : (selectedSport === 'football' ? 'Premium GoGame Legend' : 'Premium GoGame MVP')}
+                    <TranslatedText
+                      text={
+                        type === 'Standard'
+                          ? selectedSport === 'football'
+                            ? 'Estándar GoGame Kickoff'
+                            : 'Estándar GoGame Slam'
+                          : selectedSport === 'football'
+                            ? 'Premium GoGame Legend'
+                            : 'Premium GoGame MVP'
+                      }
+                      english={
+                        type === 'Standard'
+                          ? selectedSport === 'football'
+                            ? 'Standard GoGame Kickoff'
+                            : 'Standard GoGame Slam'
+                          : selectedSport === 'football'
+                            ? 'Premium GoGame Legend'
+                            : 'Premium GoGame MVP'
+                      }
+                    />
                   </div>
                 </div>
                 <div className="divide-y divide-slate-200">
                   {features.map((feature) => (
                     <div key={feature} className="px-4 py-3 flex items-start gap-3">
-                      <div className="min-w-[140px] text-neutral-600 text-sm font-medium font-['Poppins']">{feature}</div>
+                      <div className="min-w-[140px] text-neutral-600 text-sm font-medium font-['Poppins']">
+                        {feature === 'Starting Price' ? (
+                          <TranslatedText text="Precio" english="Starting Price" />
+                        ) : (
+                          feature
+                        )}
+                      </div>
                       <div className="flex-1 text-neutral-900 text-sm font-normal font-['Poppins']">
                         {feature === 'Starting Price' ? (
                           <>
-                            <span className="font-normal">From </span>
-                            <span className="font-bold">{getValue(feature, (type.toLowerCase() as 'standard' | 'premium')).replace('From ', '')}</span>
+                            <span className="font-normal">
+                              <TranslatedText text="Desde " english="From " />
+                            </span>
+                            <span className="font-bold">
+                              {getValue(feature, (type.toLowerCase() as 'standard' | 'premium')).replace(/^(From|Desde)\s*/, '')}
+                            </span>
                           </>
                         ) : (
                           formatWithBoldNumbers(getValue(feature, (type.toLowerCase() as 'standard' | 'premium')))
@@ -239,7 +274,7 @@ export default function PackageTable() {
                 <thead>
                   <tr className="md:w-96 border-b border-slate-200">
                     <th className="w-56 md:w-96 self-stretch text-start  pl-3 md:pl-6 text-neutral-800 text-lg md:text-3xl font-bold font-['Poppins'] whitespace-nowrap leading-loose border-r border-slate-200">
-                      Compare packs
+                      <TranslatedText text="Compara nuestros packs" english="Compare packs" />
                     </th>
                     {["Standard", "Premium"].map((type, idx) => (
                       <th
@@ -251,11 +286,30 @@ export default function PackageTable() {
                             className={`inline-flex px-2 md:px-3 py-1.5 md:py-2 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mb-1`}
                           >
                             <span className={`text-[#76C043] text-xs md:text-sm font-medium font-['Poppins'] flex items-center justify-center`}>
-                              {type} pack
+                              <TranslatedText text={type === 'Standard' ? 'Pack Estándar' : 'Pack Premium'} english={`${type} pack`} />
                             </span>
                           </div>
                           <span className="text-lg md:text-2xl font-bold font-['Poppins'] text-zinc-950">
-                            {type === 'Standard' ? (selectedSport === 'football' ? 'Standard GoGame Kickoff' : 'Standard GoGame Slam') : (selectedSport === 'football' ? 'Premium GoGame Legend' : 'Premium GoGame MVP')}
+                            <TranslatedText
+                              text={
+                                type === 'Standard'
+                                  ? selectedSport === 'football'
+                                    ? 'Estándar GoGame Kickoff'
+                                    : 'Estándar GoGame Slam'
+                                  : selectedSport === 'football'
+                                    ? 'Premium GoGame Legend'
+                                    : 'Premium GoGame MVP'
+                              }
+                              english={
+                                type === 'Standard'
+                                  ? selectedSport === 'football'
+                                    ? 'Standard GoGame Kickoff'
+                                    : 'Standard GoGame Slam'
+                                  : selectedSport === 'football'
+                                    ? 'Premium GoGame Legend'
+                                    : 'Premium GoGame MVP'
+                              }
+                            />
                           </span>
                         </div>
                       </th>
@@ -266,7 +320,11 @@ export default function PackageTable() {
                   {features.map((feature) => (
                     <tr key={feature}>
                       <th className="w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-base md:text-lg font-medium font-['Poppins'] text-neutral-800 text-left bg-white align-middle border-r ">
-                        {feature}
+                        {feature === 'Starting Price' ? (
+                          <TranslatedText text="Precio" english="Starting Price" />
+                        ) : (
+                          feature
+                        )}
                       </th>
                       {["standard", "premium"].map((type, idx) => (
                         <td
@@ -275,8 +333,12 @@ export default function PackageTable() {
                         >
                           {feature === 'Starting Price' ? (
                             <>
-                              <span className="font-normal">From </span>
-                              <span className="font-bold">{getValue(feature, type as 'standard' | 'premium').replace('From ', '')}</span>
+                              <span className="font-normal">
+                                <TranslatedText text="Desde " english="From " />
+                              </span>
+                              <span className="font-bold">
+                                {getValue(feature, type as 'standard' | 'premium').replace(/^(From|Desde)\s*/, '')}
+                              </span>
                             </>
                           ) : (
                             formatWithBoldNumbers(getValue(feature, type as 'standard' | 'premium'))
@@ -296,7 +358,9 @@ export default function PackageTable() {
       </div>
       <Link href="/book">
         <div className="w-44 px-4 py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer transition-all">
-          <div className="text-center justify-start text-white text-lg font-normal font-['Inter'] leading-7">Book Now</div>
+          <div className="text-center justify-start text-white text-lg font-normal font-['Inter'] leading-7">
+            <TranslatedText text="Reserva ahora" english="Book Now" />
+          </div>
         </div>
       </Link>
     </div>

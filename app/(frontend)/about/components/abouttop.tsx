@@ -1,4 +1,5 @@
 import React from 'react'
+import { TranslatedText } from '../../_components/TranslatedText'
 
 export default function AboutTop() {
   return (
@@ -17,7 +18,7 @@ export default function AboutTop() {
       {/* Content */}
       <div className="flex flex-col justify-start items-start gap-2 sm:gap-3 w-full">
         <h1 className="text-white text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold font-['Poppins'] leading-tight sm:leading-[1.1] md:leading-[1.15] lg:leading-[86.40px] px-4">
-        About us
+          <TranslatedText text="Sobre nosotros" english="About us" />
         </h1>
       </div>
     </div>

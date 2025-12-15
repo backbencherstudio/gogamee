@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { IoIosArrowDown } from 'react-icons/io';
 import { getAllFaqs, FaqItem } from '../../../../../services/faqService';
 import { useLanguage } from '../../../../context/LanguageContext';
+import { TranslatedText } from '../../../_components/TranslatedText';
 
 export default function Questions() {
   const { language, translateText } = useLanguage();
@@ -81,11 +82,14 @@ export default function Questions() {
         <div className="flex flex-col justify-start items-center gap-6 lg:gap-12 mb-8 lg:mb-12">
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="text-center text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              Frequently asked questions
+              <TranslatedText text="Preguntas frecuentes" english="Frequently asked questions" />
             </div>
           </div>
           <div className="w-full max-w-[532px] text-center text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed md:leading-7">
-            Find solutions to common inquiries. Browse through our answers to frequently asked questions and get the clarity you need.
+            <TranslatedText
+              text="Encuentra respuestas a las dudas más comunes. Explora nuestras preguntas frecuentes y obtén toda la información que necesitas."
+              english="Find solutions to common inquiries. Browse through our answers to frequently asked questions and get the clarity you need."
+            />
           </div>
         </div>
 

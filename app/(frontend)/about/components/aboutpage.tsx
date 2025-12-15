@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { getAboutManagement, type MainSection, type OurValue, type WhyChooseUs } from '../../../../services/aboutService'
 import { useLanguage } from '../../../context/LanguageContext'
+import { TranslatedText } from '../../_components/TranslatedText'
 
 export default function AboutPage() {
   const { language, translateText } = useLanguage();
@@ -12,7 +13,7 @@ export default function AboutPage() {
   const [translatedSections, setTranslatedSections] = useState<MainSection[]>([])
   const [translatedValues, setTranslatedValues] = useState<OurValue[]>([])
   const [translatedWhyChooseUs, setTranslatedWhyChooseUs] = useState<WhyChooseUs[]>([])
-  const [headline, setHeadline] = useState('We turn sports into unforgettable surprise adventures.')
+  const [headline, setHeadline] = useState('Disfruta de aventuras deportivas únicas y en directo')
   const [translatedHeadline, setTranslatedHeadline] = useState('')
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -27,7 +28,7 @@ export default function AboutPage() {
           setSections(response.content.sections || []);
           setValues(response.content.values?.items || []);
           setWhyChooseUs(response.content.whyChooseUs?.items || []);
-          setHeadline(response.content.headline || 'We turn sports into unforgettable surprise adventures.');
+          setHeadline(response.content.headline || 'Disfruta de aventuras deportivas únicas y en directo');
         } else {
           setError('Failed to fetch about page data');
         }
@@ -91,7 +92,7 @@ export default function AboutPage() {
         <div className="flex flex-col justify-start items-center gap-6 lg:gap-12 mb-8 lg:mb-12">
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="text-center text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              {translatedHeadline || headline}
+              <TranslatedText text={headline} english={translatedHeadline || 'Experience unforgettable live sports adventures.'} />
             </div>
           </div>
         </div>
@@ -116,21 +117,16 @@ export default function AboutPage() {
             ) : (
               <div className="flex flex-col gap-8 md:gap-10 w-full">
               
-              {/* Dynamic Sections */}
-              {translatedSections.map((section, index) => (
+              {/* Dynamic Sections (only if data exists) */}
+              {translatedSections.length > 0 && translatedSections.map((section, index) => (
                 <React.Fragment key={section.id}>
                   <div className="flex flex-col gap-4 md:gap-5 w-full">
                     <div className="flex items-center gap-2 md:gap-3">
-                      <div className="w-5 h-5 md:w-6 md:h-6 relative overflow-hidden flex-shrink-0">
-                        <div className="w-full h-full bg-lime-600 rounded-full flex items-center justify-center">
-                          <span className="text-white text-xs font-bold">{section.order}</span>
-                        </div>
-                      </div>
                       <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9">
                         {section.title}
                       </div>
                     </div>
-                    <div className="text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-7 md:pl-8 lg:pl-9">
+                    <div className="text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-0 md:pl-0 lg:pl-0">
                       {section.description}
                     </div>
                   </div>
@@ -140,76 +136,77 @@ export default function AboutPage() {
                 </React.Fragment>
               ))}
 
-              <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
+              {translatedSections.length > 0 && <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />}
 
-              {/* Our Values Section */}
-              <div className="flex flex-col gap-4 md:gap-5 w-full">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <div className="w-5 h-5 md:w-6 md:h-6 relative overflow-hidden flex-shrink-0">
-                    <div className="w-full h-full bg-lime-600 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">5</span>
-                    </div>
-                  </div>
-                  <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9">
-                    Our Values
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full pl-7 md:pl-8 lg:pl-9">
-                  {translatedValues.map((value) => (
-                    <div key={value.id} className="flex flex-col gap-2">
-                      <div className="text-lime-900 text-base md:text-lg font-medium font-['Poppins']">
-                        {value.title}
-                      </div>
-                      <div className="text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed">
-                        {value.description}
+              {/* Our Values Section (only if data exists) */}
+              {translatedValues.length > 0 && (
+                <>
+                  <div className="flex flex-col gap-4 md:gap-5 w-full">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9">
+                        <TranslatedText text="Nuestros valores" english="Our Values" />
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
-
-              {/* Why Choose Us Section */}
-              <div className="flex flex-col gap-4 md:gap-5 w-full">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <div className="w-5 h-5 md:w-6 md:h-6 relative overflow-hidden flex-shrink-0">
-                    <div className="w-full h-full bg-lime-600 rounded-full flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">6</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+                      {translatedValues.map((value) => (
+                        <div key={value.id} className="flex flex-col gap-2">
+                          <div className="text-lime-900 text-base md:text-lg font-medium font-['Poppins']">
+                            {value.title}
+                          </div>
+                          <div className="text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed">
+                            {value.description}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9">
-                    Why Choose Us
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full pl-7 md:pl-8 lg:pl-9">
-                  {translatedWhyChooseUs.map((item) => (
-                    <div key={item.id} className="flex flex-col gap-2">
-                      <div className="text-lime-900 text-base md:text-lg font-medium font-['Poppins']">
-                        {item.title}
-                      </div>
-                      <div className="text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed">
-                        {item.description}
+
+                  <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
+                </>
+              )}
+
+              {/* Why Choose Us Section (only if data exists) */}
+              {translatedWhyChooseUs.length > 0 && (
+                <>
+                  <div className="flex flex-col gap-4 md:gap-5 w-full">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9">
+                        <TranslatedText text="¿Por qué elegir GoGame?" english="Why Choose Us" />
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
+                      {translatedWhyChooseUs.map((item) => (
+                        <div key={item.id} className="flex flex-col gap-2">
+                          <div className="text-lime-900 text-base md:text-lg font-medium font-['Poppins']">
+                            {item.title}
+                          </div>
+                          <div className="text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed">
+                            {item.description}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
 
-              <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
+                  <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
+                </>
+              )}
 
               {/* CTA Section */}
               <div className="flex flex-col gap-4 md:gap-5 w-full">
                 <div className="text-center text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full">
-                  Ready to play the game of your life? Discover your pack today.
+                  <TranslatedText
+                    text="¿Listo para vivir el deporte como nunca antes? Elige tu pack."
+                    english="Ready to play the game of your life? Discover your pack today."
+                  />
                 </div>
                 <div className="flex justify-center w-full pt-4">
                   <Link 
-                    href="/packages"
+                    href="/book"
                     className="px-6 py-3 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
                   >
                     <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">
-                      Start the Game
+                      <TranslatedText text="Empieza el juego" english="Start the Game" />
                     </span>
                   </Link>
                 </div>
