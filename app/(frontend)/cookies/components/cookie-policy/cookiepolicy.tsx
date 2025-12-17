@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { getLegalPageContent } from '../../../../../services/publicSettingsService'
-import { useLanguage } from '../../../_components/common/LanguageContext'
+import { useLanguage } from '../../../../context/LanguageContext'
 
 export default function CookiePolicy() {
   const { language } = useLanguage()

@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const page = searchParams.get("page"); // privacy, cookie, or terms
-    const lang = searchParams.get("lang") || "en"; // en or es
+    const lang = searchParams.get("lang") || "es"; // es (default) or en
 
     const response = await getLegalPages();
 
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       const content = response.content[page as "privacy" | "cookie" | "terms"];
       return NextResponse.json({
         success: true,
-        content: content[lang as "en" | "es"] || content.en || "",
+        content: content[lang as "en" | "es"] || content.es || content.en || "",
       });
     }
 

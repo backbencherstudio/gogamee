@@ -16,7 +16,7 @@ export interface LegalPageResponse {
 // GET legal page content (public, no auth required)
 export const getLegalPageContent = async (
   page: "privacy" | "cookie" | "terms",
-  lang: "en" | "es" = "en"
+  lang: "en" | "es" = "es"
 ): Promise<LegalPageResponse> => {
   const response = await axiosClient.get(
     `/legal-pages?page=${page}&lang=${lang}`
