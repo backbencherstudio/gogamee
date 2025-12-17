@@ -102,29 +102,29 @@ const FlightInfoHeader = React.memo(({
     : label
   
   return (
-    <div className="self-stretch inline-flex justify-start items-center gap-20">
-      <div className="flex justify-start items-center gap-4">
-        <FlightIcon type={icon} />
-        <div className="w-32 inline-flex flex-col justify-start items-start gap-1">
-          <div className="self-stretch justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
+  <div className="self-stretch inline-flex justify-start items-center gap-20">
+    <div className="flex justify-start items-center gap-4">
+      <FlightIcon type={icon} />
+      <div className="w-32 inline-flex flex-col justify-start items-start gap-1">
+        <div className="self-stretch justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
             {translatedLabel}
-          </div>
-          <div className="justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
-            {city}
-          </div>
         </div>
-      </div>
-      <div className="flex-1 flex justify-end items-center gap-4">
-        <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-          <div className="self-stretch text-right justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
-            {price}
-          </div>
-          <div className="self-stretch text-right justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
-            <TranslatedText text="Por persona" english="Per person" />
-          </div>
+        <div className="justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
+          {city}
         </div>
       </div>
     </div>
+    <div className="flex-1 flex justify-end items-center gap-4">
+      <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
+        <div className="self-stretch text-right justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
+          {price}
+        </div>
+        <div className="self-stretch text-right justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
+          <TranslatedText text="Por persona" english="Per person" />
+        </div>
+      </div>
+    </div>
+  </div>
   )
 })
 
