@@ -912,7 +912,7 @@ export const AppData = {
       },
       {
         id: "european-competition",
-        name: "European Competition",
+        name: "Competición Europea",
         image: "/homepage/image/champions.jpeg",
         country: "Europe",
         description: "European club competitions including Champions League and Europa League"
@@ -964,7 +964,7 @@ export const AppData = {
       },
       {
         id: "european-competition",
-        name: "European Competition",
+        name: "Competición Europea",
         image: "/homepage/image/euroleague.jpg",
         country: "Europe",
         description: "European basketball competitions"
