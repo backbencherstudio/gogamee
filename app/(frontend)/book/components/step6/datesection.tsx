@@ -60,11 +60,11 @@ const DURATION_OPTIONS: DurationOption[] = [
 ]
 
 const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'
 ]
 
-const WEEK_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const WEEK_DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
 
 // Dynamic pricing will be calculated based on sport, package, and nights
 
@@ -736,7 +736,7 @@ export default function DateSection() {
     <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-start items-start gap-6 min-h-[600px]">
       <div className="self-stretch flex flex-col justify-center items-start gap-3">
         <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
-          <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">Date Section</div>
+          <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">Escoge tu día perfecto</div>
         </div>
         
         <div className="self-stretch flex flex-col justify-start items-start gap-3">
@@ -745,13 +745,13 @@ export default function DateSection() {
             <div className="w-full p-4 bg-white rounded-lg border border-gray-200">
               <div className="flex flex-col gap-2">
                 <div className="text-sm text-gray-600 font-medium">
-                  {formData.selectedPackage.charAt(0).toUpperCase() + formData.selectedPackage.slice(1)} Package - {formData.selectedSport.charAt(0).toUpperCase() + formData.selectedSport.slice(1)}
+                  {formData.selectedPackage === 'standard' ? 'Paquete Estándar' : 'Paquete Premium'} - {formData.selectedSport === 'football' ? 'Fútbol' : formData.selectedSport === 'basketball' ? 'Basket' : 'Ambos'}
                 </div>
                 <div className="text-lg font-bold text-lime-600">
-                  From {calculatePrice(DURATION_OPTIONS[selectedDuration].nights)}
+                  Desde {calculatePrice(DURATION_OPTIONS[selectedDuration].nights)}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {DURATION_OPTIONS[selectedDuration].days} days, {DURATION_OPTIONS[selectedDuration].nights} nights
+                  {DURATION_OPTIONS[selectedDuration].days} días, {DURATION_OPTIONS[selectedDuration].nights} noches
                 </div>
               </div>
             </div>
@@ -785,12 +785,12 @@ export default function DateSection() {
                   <div className={`justify-center text-base xl:text-lg font-medium font-['Poppins'] leading-loose ${
                     selectedDuration === index ? 'text-white' : 'text-black'
                   }`}>
-                    {option.days} day
+                    {option.days} {option.days === 1 ? 'día' : 'días'}
                   </div>
                   <div className={`justify-center text-xs xl:text-sm font-normal font-['Poppins'] leading-relaxed ${
                     selectedDuration === index ? 'text-white' : 'text-black'
                   }`}>
-                    {option.nights}{option.nights === 1 ? ' Night' : ' Night'}
+                    {option.nights} {option.nights === 1 ? 'noche' : 'noches'}
                   </div>
                 </div>
               ))}
