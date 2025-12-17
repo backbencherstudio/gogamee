@@ -1436,13 +1436,13 @@ export const AppData = {
   // Extras Data
   extrasData: {
     text: {
-      title: "Do you want to add extra services?",
-      perPerson: "Per person",
-      included: "Included",
-      add: "Add",
-      remove: "Remove",
-      confirm: "Confirm",
-      totalCost: "Total Extra Services Cost:"
+      title: "Mejora tu experiencia\n\n¡Añade extras a tu viaje!",
+      perPerson: "Por persona",
+      included: "Incluído",
+      add: "Añadir",
+      remove: "Eliminar",
+      confirm: "Confirmar",
+      totalCost: "Coste Extra de Comodidad"
     },
     constants: {
       currencySymbol: "€",
@@ -1452,8 +1452,8 @@ export const AppData = {
     initialExtras: [
       {
         id: "breakfast",
-        name: "Breakfast",
-        description: "Start your day full of energy with breakfast for only 10 euros per person",
+        name: "Desayuno",
+        description: "Empieza tu día lleno de energía con desayuno por sólo 10 euros por persona.",
         price: 10,
         icon: "/stepper/icon/icon1.svg",
         isSelected: false, // Start with breakfast NOT selected
@@ -1464,8 +1464,8 @@ export const AppData = {
       },
       {
         id: "travel-insurance",
-        name: "Travel Insurance",
-        description: "Cover yourself for delays or strikes as well as medical insurance in the country you are going to.",
+        name: "Seguro de Viaje",
+        description: "Cúbrete de retrasos en vuelos o vagas así como tener seguro médico en el país de destino.",
         price: 20,
         icon: "/stepper/icon/icon2.svg",
         isSelected: false,
@@ -1476,8 +1476,8 @@ export const AppData = {
       },
       {
         id: "underseat-bag",
-        name: "Underseat bag",
-        description: "Check the measurements accepted by the airline you are flying with.",
+        name: "Bolsa pequeña (debajo del asiento)",
+        description: "Comprueba las medidas aceptadas por la aerolínea con la que volarás.",
         price: 0,
         icon: "/stepper/icon/icon3.svg",
         isSelected: true, // This is included by default
@@ -1488,8 +1488,8 @@ export const AppData = {
       },
       {
         id: "extra-luggage",
-        name: "Extra luggage",
-        description: "Extra luggage (8kg- 10kg)",
+        name: "Maleta extra",
+        description: "Entre 8 y 10 kg.",
         price: 40,
         icon: "/stepper/icon/icon4.svg",
         isSelected: false,
@@ -1501,8 +1501,8 @@ export const AppData = {
       },
       {
         id: "seats-together",
-        name: "Seats together",
-        description: "Do you want to sit together on the flight? Otherwise the seats will be chosen randomly.",
+        name: "¡Sentaros juntos!",
+        description: "¿Queréis sentaros juntos en el vuelo? Sinó los asientos serán asignados aleatoriamente.",
         price: 20,
         icon: "/stepper/icon/icon5.svg",
         isSelected: false,
@@ -1518,84 +1518,84 @@ export const AppData = {
   // Personal Info Data
   personalInfo: {
     text: {
-      title: "Personal Information",
-      primaryTravelerTitle: "Primary Traveler Information",
-      extraTravelerTitle: "Extra Traveler Information",
-      reservationTitle: "Your Reservation",
-      paymentMethodTitle: "Payment Method",
+      title: "Información",
+      primaryTravelerTitle: "Información del Primer Fanático/a",
+      extraTravelerTitle: "Fanático/a acompañante",
+      reservationTitle: "Ya escucho los cánticos de los aficionados…",
+      paymentMethodTitle: "Método de pago",
       confirm: "Confirm",
       clearForm: "Clear Form",
-      flightHotel: "Flight + Hotel",
-      totalCost: "Total Cost"
+      flightHotel: "Vuelo + Hotel",
+      totalCost: "Coste Total:"
     },
     travelerFields: {
       name: {
-        label: "Traveler's name (as on ID/ passport)",
-        placeholder: "Enter traveler's name",
+        label: "Nombre del Viajero (como en el pasaporte o DNI)",
+        placeholder: "Escribe tu nombre",
         required: true
       },
       email: {
-        label: "Traveler's email",
-        placeholder: "Enter traveler's email",
+        label: "Email del viajero",
+        placeholder: "Escribe tu email",
         required: true,
         onlyForPrimary: true
       },
       phone: {
-        label: "Phone number",
-        placeholder: "Enter phone number",
+        label: "Número de teléfono",
+        placeholder: "Escribe tu número de teléfono",
         required: true,
         onlyForPrimary: true
       },
       dateOfBirth: {
-        label: "Date of birth",
+        label: "Fecha de nacimiento",
         required: true
       },
       documentType: {
-        label: "Document type",
-        id: "ID",
-        passport: "Passport",
+        label: "Tipo de Documento",
+        id: "DNI",
+        passport: "Pasaporte",
         required: true
       },
       documentNumber: {
-        label: "Document number",
-        placeholder: "Enter document number",
+        label: "Número de Documento",
+        placeholder: "Escribe tu número de documento",
         required: true
       }
     },
     formFields: {
       travelerName: {
-        label: "Traveler's name (as on ID/ passport)",
-        placeholder: "Enter your name"
+        label: "Nombre del Viajero (como en el pasaporte o DNI)",
+        placeholder: "Escribe tu nombre"
       },
       email: {
-        label: "Traveler's email",
-        placeholder: "Enter your email"
+        label: "Email del viajero",
+        placeholder: "Escribe tu email"
       },
       phone: {
-        label: "Phone number",
-        placeholder: "Enter your phone number"
+        label: "Número de teléfono",
+        placeholder: "Escribe tu número de teléfono"
       },
       dateOfBirth: {
-        label: "Date of birth"
+        label: "Fecha de nacimiento"
       },
       documentType: {
-        label: "Document type",
-        id: "ID",
-        passport: "Passport"
+        label: "Tipo de Documento",
+        id: "DNI",
+        passport: "Pasaporte"
       },
       documentNumber: {
-        label: "Documents number",
-        placeholder: "Enter your documents number"
+        label: "Número de Documento",
+        placeholder: "Escribe tu número de documento"
       },
       previousTravelInfo: {
-        label: "Previous Travel Experience",
-        placeholder: "Have you traveled with us before? If so, please write which city and which match, so we can take it into account. Thank you!"
+        label: "Experiencia deportiva anterior",
+        placeholder: "¿Has viajado con nosotros antes? Si tu respuesta es SÍ, escríbenos a qué ciudad y a qué partido para que lo podamos tener en cuenta. ¡Muchas gracias!"
       }
     },
     paymentMethods: [
       {
         value: 'credit',
-        label: "Credit Card/Debit Card",
+        label: "Tarjeta de crédito/débito",
         icon: "/stepper/icon/visa.png",
         alt: "Visa",
         additionalIcon: "/stepper/icon/mastercard.png",
@@ -1615,21 +1615,21 @@ export const AppData = {
       }
     ],
     reservationSummary: {
-      title: "Reservation Summary",
+      title: "Ya escucho los cánticos de los aficionados…",
       departure: {
         city: "Barcelona",
         date: "20 July 2025",
-        label: "Departure: Barcelona"
+        label: "Salida: Barcelona"
       },
       return: {
         city: "Barcelona",
         date: "23 July 2025",
-        label: "Return: Back to Barcelona"
+        label: "Llegada: De vuelta a Barcelona"
       },
       pricing: {
-        concept: "Concept",
-        price: "Price",
-        quantity: "Qty",
+        concept: "Concepto",
+        price: "Precio",
+        quantity: "Cantidad",
         total: "Total",
         barcelona: "Barcelona",
         priceValue: "150.00€",
@@ -1755,9 +1755,9 @@ export const AppData = {
   // Payment Data
   payment: {
     text: {
-      title: "Payment Informations",
-      paymentMethodTitle: "Payment Method",
-      creditCardTitle: "Credit Card/Debit Card",
+      title: "Información de pago",
+      paymentMethodTitle: "Método de pago",
+      creditCardTitle: "Tarjeta de crédito/débito",
       nameOnCardLabel: "Name on Card",
       nameOnCardPlaceholder: "Enter your name",
       cardNumberLabel: "Card number",
@@ -1774,7 +1774,7 @@ export const AppData = {
     paymentMethods: [
       {
         value: 'credit' as const,
-        label: "Credit Card/Debit Card",
+        label: "Tarjeta de crédito/débito",
         icon: "/stepper/icon/visa.png",
         alt: "Visa",
         additionalIcon: "/stepper/icon/mastercard.png",

@@ -780,7 +780,7 @@ export default function Personalinfo() {
                 <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
                   <div className="self-stretch inline-flex justify-start items-center gap-2">
                     <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                      Extra Travelers ({reservationData.totalPeople - 1})
+                      {personalInfoData.text.extraTravelerTitle} ({reservationData.totalPeople - 1})
                     </div>
                   </div>
                   <div className="self-stretch flex flex-col justify-start items-start gap-6">
@@ -788,7 +788,7 @@ export default function Personalinfo() {
                       <div key={index} className="self-stretch flex flex-col justify-start items-start gap-4 border border-gray-200 rounded-lg p-4">
                         <div className="self-stretch inline-flex justify-start items-center gap-2">
                           <div className="justify-start text-neutral-800 text-base font-semibold font-['Poppins'] leading-loose">
-                            Traveler {index + 2}
+                            Fanático/a {index + 2}
                           </div>
                         </div>
                         <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -929,7 +929,7 @@ export default function Personalinfo() {
                             </div>
                             <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
                               <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none whitespace-nowrap">
-                                Departure: {reservationData.departureCity}
+                                Salida: {reservationData.departureCity}
                               </div>
                               <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
                                 {reservationData.departureDate}
@@ -951,7 +951,7 @@ export default function Personalinfo() {
                             </div>
                             <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
                               <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none whitespace-nowrap">
-                                Return: Back to {reservationData.departureCity}
+                                Llegada: De vuelta a {reservationData.departureCity}
                               </div>
                               <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
                                 {reservationData.returnDate}
@@ -1089,13 +1089,13 @@ export default function Personalinfo() {
                       <div className="hidden md:block w-full">
                         <div className="w-full grid grid-cols-4 gap-4 border-b-2 border-gray-300 pb-4 mb-2">
                           <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
-                            Concept
+                            Concepto
                           </div>
                           <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
-                            Price
+                            Precio
                           </div>
                           <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
-                            Qty
+                            Cantidad
                           </div>
                           <div className="text-right text-base font-bold font-['Poppins'] leading-none text-gray-700">
                             Total
@@ -1233,14 +1233,14 @@ export default function Personalinfo() {
                       <div className="space-y-3">
                         <div className="text-center mb-4">
                           <h3 className="text-lg font-bold text-gray-800 font-['Poppins']">
-                            Booking Summary
+                            ¡Vamos que nos vamos!
                           </h3>
                         </div>
                         
                                                  <div className="space-y-2">
                            <div className="flex justify-between items-center py-2 border-b border-lime-200">
                              <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                               Package Total:
+                               Total del paquete:
                              </span>
                              <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                {reservationData.packageTotal.toFixed(2)}€
@@ -1250,7 +1250,7 @@ export default function Personalinfo() {
                            {reservationData.extrasTotal > 0 && (
                              <div className="flex justify-between items-center py-2 border-b border-lime-200">
                                <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                 Extras Total:
+                                 Total de extras:
                                </span>
                                <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                  {reservationData.extrasTotal.toFixed(2)}€
@@ -1261,7 +1261,7 @@ export default function Personalinfo() {
                            {reservationData.flightScheduleTotal > 0 && (
                              <div className="flex justify-between items-center py-2 border-b border-lime-200">
                                <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                 Flight Schedule Total:
+                                 Total horarios de vuelo:
                                </span>
                                <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                  {reservationData.flightScheduleTotal.toFixed(2)}€
@@ -1272,7 +1272,7 @@ export default function Personalinfo() {
                            {reservationData.leagueTotal > 0 && (
                              <div className="flex justify-between items-center py-2 border-b border-lime-200">
                                <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                 European Competition:
+                                 Competición europea:
                                </span>
                                <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                  {reservationData.leagueTotal.toFixed(2)}€
@@ -1283,7 +1283,7 @@ export default function Personalinfo() {
                           {reservationData.singleTravelerSupplement > 0 && (
                             <div className="flex justify-between items-center py-2 border-b border-lime-200">
                               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                Single traveler supplement:
+                                Suplemento viajero individual:
                               </span>
                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                 {reservationData.singleTravelerSupplement.toFixed(2)}€
@@ -1294,7 +1294,7 @@ export default function Personalinfo() {
                            {reservationData.removalTotal > 0 && (
                              <div className="flex justify-between items-center py-2 border-b border-lime-200">
                                <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                 League removals:
+                                Eliminación de ligas:
                                </span>
                                <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                  {reservationData.removalTotal.toFixed(2)}€

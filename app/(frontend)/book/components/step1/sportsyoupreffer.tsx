@@ -5,6 +5,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { IoChevronDown } from 'react-icons/io5'
 import { useBooking } from '../../context/BookingContext'
 import { sportsPreferenceData } from '../../../../lib/appdata'
+import { TranslatedText } from '../../../_components/TranslatedText'
 
 // Types
 interface FormData {
@@ -68,10 +69,13 @@ export default function SportsYouPreffer() {
       {/* Header Section */}
       <div className="mb-6 xl:mb-8">
         <h1 className="text-2xl xl:text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-8 xl:leading-10 mb-3">
-          What sport do you prefer?
+          <TranslatedText text="¿Qué deporte prefieres?" english="What sport do you prefer?" />
         </h1>
         <p className="text-sm xl:text-base text-neutral-600 font-['Poppins'] leading-6 xl:leading-7">
-          {sportsPreferenceData.getSportByValue(selectedSport)?.description || 'We always try to maximize the time at the destination'}
+          <TranslatedText
+            text="Siempre intentamos que puedas maximizar tu tiempo en el destino."
+            english={sportsPreferenceData.getSportByValue(selectedSport)?.description || 'We always try to maximize the time at the destination'}
+          />
         </p>
       </div>
 
@@ -148,7 +152,9 @@ export default function SportsYouPreffer() {
           className="w-44 h-11 px-3.5 py-1.5 bg-[#76C043] hover:bg-lime-600 rounded backdrop-blur-[5px] flex justify-center items-center transition-all disabled:opacity-50 disabled:cursor-not-allowed absolute bottom-4 left-4 xl:bottom-6 xl:left-6"
           disabled={!selectedSport}
         >
-          <span className="text-base text-white font-['Inter']">Next</span>
+          <span className="text-base text-white font-['Inter']">
+            <TranslatedText text="Siguiente" english="Next" />
+          </span>
         </button>
       </form>
 

@@ -5,6 +5,7 @@ import { MdFlightTakeoff, MdFlightLand } from 'react-icons/md'
 import { Range } from 'react-range'
 import { useBooking } from '../../context/BookingContext'
 import { flightScheduleData } from '../../../../lib/appdata'
+import { TranslatedText } from '../../../_components/TranslatedText'
 
 // ========================= TYPES =========================
 interface TimeRange {
@@ -92,31 +93,40 @@ const FlightInfoHeader = React.memo(({
   city: string
   price: string
   icon: 'takeoff' | 'landing'
-}) => (
-  <div className="self-stretch inline-flex justify-start items-center gap-20">
-    <div className="flex justify-start items-center gap-4">
-      <FlightIcon type={icon} />
-      <div className="w-32 inline-flex flex-col justify-start items-start gap-1">
-        <div className="self-stretch justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
-          {label}
+}) => {
+  // Translate label based on its value
+  const translatedLabel = label === 'Departure from' 
+    ? <TranslatedText text="Salida desde" english="Departure from" />
+    : label === 'Arrival'
+    ? <TranslatedText text="Llegada" english="Arrival" />
+    : label
+  
+  return (
+    <div className="self-stretch inline-flex justify-start items-center gap-20">
+      <div className="flex justify-start items-center gap-4">
+        <FlightIcon type={icon} />
+        <div className="w-32 inline-flex flex-col justify-start items-start gap-1">
+          <div className="self-stretch justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
+            {translatedLabel}
+          </div>
+          <div className="justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
+            {city}
+          </div>
         </div>
-        <div className="justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
-          {city}
+      </div>
+      <div className="flex-1 flex justify-end items-center gap-4">
+        <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
+          <div className="self-stretch text-right justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
+            {price}
+          </div>
+          <div className="self-stretch text-right justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
+            <TranslatedText text="Por persona" english="Per person" />
+          </div>
         </div>
       </div>
     </div>
-    <div className="flex-1 flex justify-end items-center gap-4">
-      <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-        <div className="self-stretch text-right justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
-          {price}
-        </div>
-        <div className="self-stretch text-right justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
-          Per person
-        </div>
-      </div>
-    </div>
-  </div>
-))
+  )
+})
 
 FlightInfoHeader.displayName = 'FlightInfoHeader'
 
@@ -133,7 +143,14 @@ const TimeDisplay = React.memo(({
   return (
     <div className="self-stretch px-4 py-2.5 bg-neutral-50 rounded outline outline-1 outline-offset-[-1px] outline-gray-200 inline-flex justify-center items-center gap-2.5">
       <div className="justify-start text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-        Your flight will {isDeparture ? 'depart' : 'land'} between {startTime} and {endTime}
+        <TranslatedText
+          text={
+            isDeparture
+              ? `Tu vuelo saldrá entre las ${startTime} y las ${endTime}`
+              : `Tu vuelo llegará entre las ${startTime} y las ${endTime}`
+          }
+          english={`Your flight will ${isDeparture ? 'depart' : 'land'} between ${startTime} and ${endTime}`}
+        />
       </div>
     </div>
   )
@@ -431,7 +448,7 @@ export default function FlightSchedule() {
       <div className="self-stretch xl:h-[587px] flex flex-col justify-center items-start gap-3">
         <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
           <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-            Flight Schedule
+            <TranslatedText text="Horarios de vuelo" english="Flight Schedule" />
           </div>
         </div>
         
@@ -452,15 +469,18 @@ export default function FlightSchedule() {
             <div className="w-full p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-yellow-800 font-medium">
-                  Total Additional Cost:
+                  <TranslatedText text="Coste Extra de Horarios:" english="Total Additional Cost:" />
                 </div>
                 <div className="text-lg font-bold text-yellow-700">
                   +{totalAdditionalCost}€
                 </div>
               </div>
-                              <div className="text-xs text-yellow-600 mt-1">
-                  Based on {Math.floor(totalAdditionalCost / flightScheduleData.getPricePerStep())} step(s) from default times
-                </div>
+              <div className="text-xs text-yellow-600 mt-1">
+                <TranslatedText
+                  text={`Basado en ${Math.floor(totalAdditionalCost / flightScheduleData.getPricePerStep())} paso(s) desde los horarios por defecto`}
+                  english={`Based on ${Math.floor(totalAdditionalCost / flightScheduleData.getPricePerStep())} step(s) from default times`}
+                />
+              </div>
             </div>
           )}
           
@@ -470,7 +490,7 @@ export default function FlightSchedule() {
             type="button"
           >
             <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-              Confirm
+              <TranslatedText text="Confirmar" english="Confirm" />
             </div>
           </button>
         </div>

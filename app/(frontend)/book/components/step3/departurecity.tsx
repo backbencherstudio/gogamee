@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
 import { departureCityData } from '../../../../lib/appdata'
+import { TranslatedText } from '../../../_components/TranslatedText'
 
 // Types
 interface CityOption {
@@ -151,7 +152,7 @@ const DepartureCity: React.FC = () => {
       {/* Header Section */}
       <header className="mb-6 xl:mb-8">
         <h1 className="text-2xl xl:text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-8 xl:leading-10">
-          Departure city
+          <TranslatedText text="¿Desde dónde viajan?" english="Departure city" />
         </h1>
       </header>
 
@@ -189,7 +190,7 @@ const DepartureCity: React.FC = () => {
           aria-label="Proceed to next step"
         >
           <span className={buttonTextClassName}>
-            Next
+            <TranslatedText text="Siguiente" english="Next" />
           </span>
         </button>
       </div>

@@ -5,6 +5,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { IoChevronDown } from 'react-icons/io5'
 import { useBooking } from '../../context/BookingContext'
 import { packageTypeData } from '../../../../lib/appdata'
+import { TranslatedText } from '../../../_components/TranslatedText'
 
 // Types
 interface PackageFormData {
@@ -37,7 +38,7 @@ const PackageType: React.FC = () => {
   
   // Memoized values
   const selectedLabel = useMemo(() => 
-    packageTypeData.getPackageByValue(selectedPackage)?.label || 'Select a package',
+    packageTypeData.getPackageByValue(selectedPackage)?.label || 'Standard',
     [selectedPackage]
   )
   
@@ -91,7 +92,7 @@ const PackageType: React.FC = () => {
       {/* Header Section */}
       <header className="mb-6 xl:mb-8">
         <h1 className="text-2xl xl:text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-8 xl:leading-10">
-          How do you want to experience it?
+          <TranslatedText text="¿Cómo quieres que sea tu experiencia?" english="How do you want to experience it?" />
         </h1>
       </header>
 
@@ -121,7 +122,10 @@ const PackageType: React.FC = () => {
                 }}
               >
                 <span className="text-sm text-zinc-950 font-['Poppins']">
-                  {selectedLabel}
+                  <TranslatedText
+                    text={selectedLabel === 'Standard' ? 'Estándar' : selectedLabel === 'Premium' ? 'Premium' : selectedLabel}
+                    english={selectedLabel}
+                  />
                 </span>
                 <IoChevronDown 
                   className={`w-5 h-5 text-zinc-950 transition-transform duration-200 ${
@@ -156,7 +160,9 @@ const PackageType: React.FC = () => {
         aria-label="Proceed to next step"
         onClick={handleSubmit(onSubmit)}
       >
-        <span className="text-base text-white font-['Inter']">Next</span>
+        <span className="text-base text-white font-['Inter']">
+          <TranslatedText text="Siguiente" english="Next" />
+        </span>
       </button>
 
       {/* Click outside to close dropdown */}

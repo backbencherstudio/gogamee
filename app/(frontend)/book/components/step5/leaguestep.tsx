@@ -4,6 +4,7 @@ import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { FaCheck } from 'react-icons/fa';
 import { useBooking } from '../../context/BookingContext';
+import { TranslatedText } from '../../../_components/TranslatedText';
 
 interface LeagueOption {
   id: string;
@@ -98,7 +99,10 @@ export default function LeagueStep() {
         
         {/* League Title */}
         <div className="relative z-10 self-stretch text-center justify-start text-white text-base xl:text-lg font-bold font-['Poppins'] leading-loose drop-shadow-lg">
-          {option.title} {option.price}
+          <TranslatedText
+            text={option.id === 'national' ? 'Ligas nacionales' : 'Competiciones europeas'}
+            english={`${option.title} ${option.price}`.trim()}
+          />
         </div>
 
         {/* Selection Indicator */}
@@ -117,7 +121,10 @@ export default function LeagueStep() {
         {/* Header Section */}
         <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
           <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-            Which type of competition do you want to attend?
+            <TranslatedText
+              text="¿Qué tipo de competición quieres ver?"
+              english="Which type of competition do you want to attend?"
+            />
           </div>
         </div>
 
@@ -144,7 +151,7 @@ export default function LeagueStep() {
             type="button"
           >
             <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-              Next
+              <TranslatedText text="Siguiente" english="Next" />
             </div>
           </button>
         </div>
