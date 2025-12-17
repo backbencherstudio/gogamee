@@ -18,6 +18,26 @@ interface FormData {
   selectedCity: string
 }
 
+// City image mapping
+const CITY_IMAGES: Record<string, string> = {
+  madrid: '/city/Madrid.png',
+  barcelona: '/city/Barcelona.png',
+  malaga: '/city/Málaga.png',
+  valencia: '/city/Valencia.png',
+  alicante: '/city/Alicante.png',
+  bilbao: '/city/Bilbao.png'
+}
+
+// City color overlay mapping (30% opacity)
+const CITY_OVERLAYS: Record<string, string> = {
+  madrid: 'bg-slate-700/30',
+  barcelona: 'bg-emerald-600/30',
+  malaga: 'bg-amber-600/30',
+  valencia: 'bg-blue-600/30',
+  alicante: 'bg-orange-600/30',
+  bilbao: 'bg-red-600/30'
+}
+
 // Components
 const CheckIcon: React.FC = React.memo(() => (
   <svg 
@@ -58,14 +78,16 @@ const CityCard: React.FC<CityCardProps> = React.memo(({ city, isSelected, onSele
     onSelect(city.value)
   }, [city.value, onSelect])
 
+  const cityImage = CITY_IMAGES[city.value] || ''
+  const cityOverlay = CITY_OVERLAYS[city.value] || 'bg-gray-600/20'
+
   const cardClassName = useMemo(() => `
-    relative h-[120px] xl:h-[140px] rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-105
-    bg-gradient-to-br ${city.gradient} ${city.accent}
+    relative h-[120px] xl:h-[140px] rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-105 overflow-hidden
     ${isSelected 
       ? 'ring-4 ring-lime-400 ring-opacity-60 shadow-lg shadow-lime-200' 
       : 'hover:shadow-xl'
     }
-  `, [city.gradient, city.accent, isSelected])
+  `, [isSelected])
 
   return (
     <div
@@ -82,8 +104,17 @@ const CityCard: React.FC<CityCardProps> = React.memo(({ city, isSelected, onSele
       aria-pressed={isSelected}
       aria-label={`Select ${city.label} as departure city`}
     >
+      {/* Background Image Layer */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat rounded transition-transform duration-300 hover:scale-110"
+        style={{ backgroundImage: `url(${cityImage})` }}
+      />
+
+      {/* Color Overlay (20% opacity) */}
+      <div className={`absolute inset-0 ${cityOverlay} rounded`} />
+
       {/* City Name Overlay */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center z-10">
         <h3 className="text-white text-base xl:text-lg font-semibold font-['Poppins'] text-center drop-shadow-lg">
           {city.label}
         </h3>
@@ -91,7 +122,7 @@ const CityCard: React.FC<CityCardProps> = React.memo(({ city, isSelected, onSele
 
       {/* Selected Indicator */}
       {isSelected && (
-        <div className="absolute top-2 right-2 w-6 h-6 bg-lime-400 rounded-full flex items-center justify-center">
+        <div className="absolute top-2 right-2 w-6 h-6 bg-lime-400 rounded-full flex items-center justify-center z-20">
           <CheckIcon />
         </div>
       )}
