@@ -35,15 +35,15 @@ export default function Footer() {
         {/* Quick Links and Social Media */}
         <div className="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap lg:gap-28 gap-8 sm:gap-12 justify-around lg:justify-start w-full lg:w-auto">
           {/* Quick Links */}
-          <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
-            <h3 className="text-white text-xl font-medium font-['Inter']">
+          <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[180px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
+            <h3 className="text-white text-xl font-medium font-['Inter'] whitespace-nowrap">
               <TranslatedText text="Enlaces rápidos" english="Quick links" as="span" />
             </h3>
             <div className="space-y-4">
               <Link href="/" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
                 <TranslatedText text="Inicio" english="Home" as="span" />
               </Link>
-              <Link href="/faqs" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
+              <Link href="/faqs" className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer whitespace-nowrap">
                 <TranslatedText text="Preguntas frecuentes" english="FAQs" as="span" />
               </Link>
             </div>

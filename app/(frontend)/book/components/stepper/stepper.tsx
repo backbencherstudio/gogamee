@@ -2,7 +2,7 @@ import React from 'react'
 
 interface Step {
   id: number
-  title: string
+  title: React.ReactNode
   completed?: boolean
 }
 

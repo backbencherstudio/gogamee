@@ -4,6 +4,7 @@ import React, { useEffect, useCallback, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { HiMinus, HiPlus } from 'react-icons/hi2';
 import { useBooking } from '../../context/BookingContext';
+import { TranslatedText } from '../../../_components/TranslatedText';
 
 // Types
 interface CounterFormData {
@@ -219,7 +220,7 @@ export default function HowManyTotal() {
           {/* Header */}
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
             <h2 className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-              How many are you?
+              <TranslatedText text="¿Cuántos fanáticos/as viajarán?" english="How many are you?" />
             </h2>
           </div>
           
@@ -234,8 +235,20 @@ export default function HowManyTotal() {
                   control={control}
                   render={({ field }) => (
                     <CounterItem
-                      title={title}
-                      description={description}
+                      title={
+                        key === 'adults'
+                          ? 'Adultos'
+                          : key === 'kids'
+                            ? 'Niños o niñas'
+                            : 'Bebés'
+                      }
+                      description={
+                        key === 'adults'
+                          ? '12 años o más'
+                          : key === 'kids'
+                            ? 'De 2 a 11 años'
+                            : 'De 0 a 2 años'
+                      }
                       count={field.value}
                       onIncrement={() => updateCount(key, 'increment', minValue)}
                       onDecrement={() => updateCount(key, 'decrement', minValue)}
@@ -263,7 +276,7 @@ export default function HowManyTotal() {
               className="w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
             >
               <span className="text-center justify-start text-white text-base font-normal font-['Inter']">
-                Next
+                <TranslatedText text="Siguiente" english="Next" />
               </span>
             </button>
           </div>

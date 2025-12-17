@@ -3,7 +3,8 @@ import { useState, useEffect, useRef, useMemo } from "react"
 import { IoChevronDown } from "react-icons/io5"
 import { gsap } from "gsap"
 import { useRouter } from "next/navigation"
-import { formatPeopleCount, useLanguage } from "../../../_components/common/LanguageContext"
+import { formatPeopleCount } from "../../../_components/common/LanguageContext"
+import { useLanguage } from "../../../../context/LanguageContext"
 import { heroData } from "../../../../lib/appdata"
 import { getStartingPrice, StartingPriceItem } from "../../../../../services/packageService"
 import { TranslatedText } from "../../../_components/TranslatedText"
@@ -288,11 +289,9 @@ export default function HeroSection() {
                       as="span"
                     />{' '}
                     -{' '}
-                    <TranslatedText
-                      text={selectedPack.price}
-                      english={selectedPack.price.replace('desde', 'from')}
-                      as="span"
-                    />
+                    <span>
+                      {selectedPack.price}
+                    </span>
                   </span>
                   <IoChevronDown
                     className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${openDropdown === "pack" ? "rotate-180" : ""}`}
@@ -315,11 +314,9 @@ export default function HeroSection() {
                           english={pack.name === 'Estándar' ? 'Standard' : 'Premium'}
                           className="text-sm font-normal font-['Poppins'] text-black"
                         />
-                        <TranslatedText
-                          text={pack.price}
-                          english={pack.price.replace('desde', 'from')}
-                          className="text-sm font-medium text-black"
-                        />
+                        <span className="text-sm font-medium text-black">
+                          {pack.price}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -377,7 +374,7 @@ export default function HeroSection() {
                   className="cursor-pointer w-full h-11 px-3.5 py-1.5 bg-white rounded outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-between items-center"
                 >
                   <span className="text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed">
-                    <TranslatedText text={formatPeopleDisplay()} as="span" />
+                    {formatPeopleDisplay()}
                   </span>
                   <IoChevronDown
                     className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${openDropdown === "people" ? "rotate-180" : ""}`}

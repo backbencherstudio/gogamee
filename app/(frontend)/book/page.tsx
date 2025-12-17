@@ -14,6 +14,7 @@ import PersonalInfo from './components/step9/personalinfo'
 import Payment from './components/step10/payment'
 import Stepper from './components/stepper/stepper'
 import { BookingProvider, useBooking } from './context/BookingContext'
+import { TranslatedText } from '../_components/TranslatedText'
 
 // Component that uses the context (needs to be inside provider)
 function BookingContent() {
@@ -23,16 +24,16 @@ function BookingContent() {
   console.log('🎯 BookingContent - currentStep:', currentStep, 'fromHero:', formData.fromHero, 'isHydrated:', isHydrated)
 
   const steps = [
-    { id: 1, title: 'Sports Preference' },
-    { id: 2, title: 'Package Type' },
-    { id: 3, title: 'Departure City' },
-    { id: 4, title: 'Total People' },
-    { id: 5, title: 'Leagues' },
-    { id: 6, title: 'Date Selection' },
-    { id: 7, title: 'Flight Schedule' },
-    { id: 8, title: 'Extras' },
-    { id: 9, title: 'Personal Info' },
-    { id: 10, title: 'Payment' }
+    { id: 1, title: <TranslatedText text="Deporte" english="Sports Preference" /> },
+    { id: 2, title: <TranslatedText text="Tipo de Paquete" english="Package Type" /> },
+    { id: 3, title: <TranslatedText text="Ciudad de Salida" english="Departure City" /> },
+    { id: 4, title: <TranslatedText text="Viajeros Totales" english="Total People" /> },
+    { id: 5, title: <TranslatedText text="Ligas" english="Leagues" /> },
+    { id: 6, title: <TranslatedText text="Selección de Fechas" english="Date Selection" /> },
+    { id: 7, title: <TranslatedText text="Horario de Vuelos" english="Flight Schedule" /> },
+    { id: 8, title: <TranslatedText text="Extras" english="Extras" /> },
+    { id: 9, title: <TranslatedText text="Información Personal" english="Personal Info" /> },
+    { id: 10, title: <TranslatedText text="Pago" english="Payment" /> }
   ]
 
   const renderCurrentStep = () => {
@@ -105,10 +106,16 @@ function BookingContent() {
               <span className="text-lime-600 text-sm">🎯</span>
               <div className="flex flex-col">
                 <span className="text-lime-700 text-xs font-medium">
-                  Steps 1-4 pre-filled from home page
+                  <TranslatedText
+                    text="Pasos del 1-4 rellenados desde la página de inicio."
+                    english="Steps 1-4 pre-filled from home page"
+                  />
                 </span>
                 <span className="text-lime-600 text-xs">
-                  You can review/modify by clicking on previous steps
+                  <TranslatedText
+                    text="¡Puedes revisarlos/modificarlos clicando en los pasos anteriores!"
+                    english="You can review/modify by clicking on previous steps"
+                  />
                 </span>
               </div>
             </div>

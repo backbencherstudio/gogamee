@@ -6,11 +6,39 @@ import { useForm, Controller, useWatch } from 'react-hook-form'
 import { useBooking } from '../../context/BookingContext'
 import type { ExtraService as BookingExtraService } from '../../context/BookingContext'
 import { extrasData } from '../../../../lib/appdata'
+import { TranslatedText } from '../../../_components/TranslatedText'
 
 type ExtraService = BookingExtraService
 
 interface FormData {
   extras: ExtraService[]
+}
+
+// Helper function to get English translations for extras
+const getExtraEnglishText = (id: string, type: 'name' | 'description'): string => {
+  const translations: Record<string, { name: string; description: string }> = {
+    'breakfast': {
+      name: 'Breakfast',
+      description: 'Start your day full of energy with breakfast for only 10 euros per person'
+    },
+    'travel-insurance': {
+      name: 'Travel Insurance',
+      description: 'Cover yourself for delays or strikes as well as medical insurance in the country you are going to.'
+    },
+    'underseat-bag': {
+      name: 'Underseat bag',
+      description: 'Check the measurements accepted by the airline you are flying with.'
+    },
+    'extra-luggage': {
+      name: 'Extra luggage',
+      description: 'Extra luggage (8kg-10kg)'
+    },
+    'seats-together': {
+      name: 'Seats together',
+      description: 'Do you want to sit together on the flight? Otherwise the seats will be chosen randomly.'
+    }
+  }
+  return translations[id]?.[type] || ''
 }
 
 // Initial data factory
@@ -252,7 +280,11 @@ const { formData, updateExtras, nextStep, getTotalPeople } = useBooking()
       }`}
     >
       <div className="text-center justify-start text-white text-sm sm:text-lg font-normal font-['Inter'] leading-5 sm:leading-7">
-        {extra.isSelected ? 'Remove' : 'Add'}
+        {extra.isSelected ? (
+          <TranslatedText text={extrasData.text.remove} english="Remove" />
+        ) : (
+          <TranslatedText text={extrasData.text.add} english="Add" />
+        )}
       </div>
     </button>
   )
@@ -274,14 +306,18 @@ const { formData, updateExtras, nextStep, getTotalPeople } = useBooking()
             </div>
             <div className="flex flex-col gap-1 flex-1 min-w-0">
               <div className="text-neutral-800 text-base font-medium font-['Poppins'] leading-tight">
-                {extra.name}
+                <TranslatedText text={extra.name} english={getExtraEnglishText(extra.id, 'name')} />
               </div>
               <div className="text-[#6AAD3C] text-base font-semibold font-['Poppins']">
-                {extra.isIncluded ? 'Included' : `+${extra.price}€`}
+                {extra.isIncluded ? (
+                  <TranslatedText text={extrasData.text.included} english="Included" />
+                ) : (
+                  `+${extra.price}€`
+                )}
               </div>
               {!extra.isIncluded && (
                 <div className="text-neutral-600 text-sm font-normal font-['Poppins']">
-                  {extra.isGroupOption ? extrasData.text.perPerson : extrasData.text.perPerson}
+                  <TranslatedText text={extrasData.text.perPerson} english="Per person" />
                 </div>
               )}
             </div>
@@ -290,7 +326,7 @@ const { formData, updateExtras, nextStep, getTotalPeople } = useBooking()
 
         {/* Description */}
         <div className="text-neutral-600 text-sm font-normal font-['Poppins'] leading-5">
-          {extra.description}
+          <TranslatedText text={extra.description} english={getExtraEnglishText(extra.id, 'description')} />
         </div>
 
         {/* Controls */}
@@ -320,21 +356,25 @@ const { formData, updateExtras, nextStep, getTotalPeople } = useBooking()
           </div>
           <div className="inline-flex flex-col justify-start items-start gap-1 flex-1">
             <div className="self-stretch justify-start text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
-              {extra.name}
+              <TranslatedText text={extra.name} english={getExtraEnglishText(extra.id, 'name')} />
             </div>
             <div className="self-stretch justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
-              {extra.description}
+              <TranslatedText text={extra.description} english={getExtraEnglishText(extra.id, 'description')} />
             </div>
           </div>
         </div>
         <div className="inline-flex flex-col justify-center items-end gap-4">
-          <div className="flex flex-col justify-start items-end gap-1">
+            <div className="flex flex-col justify-start items-end gap-1">
             <div className="self-stretch text-right justify-start text-[#6AAD3C] text-lg font-semibold font-['Poppins'] leading-loose">
-              {extra.isIncluded ? 'Included' : `+${extra.price}€`}
+              {extra.isIncluded ? (
+                <TranslatedText text={extrasData.text.included} english="Included" />
+              ) : (
+                `+${extra.price}€`
+              )}
             </div>
             {!extra.isIncluded && (
               <div className="self-stretch text-right justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
-                {extra.isGroupOption ? extrasData.text.perPerson : extrasData.text.perPerson}
+                <TranslatedText text={extrasData.text.perPerson} english="Per person" />
               </div>
             )}
           </div>
@@ -359,9 +399,17 @@ const { formData, updateExtras, nextStep, getTotalPeople } = useBooking()
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="w-full xl:w-[894px] px-3 sm:px-4 xl:px-6 py-4 sm:py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 sm:gap-6 min-h-[400px] sm:min-h-[500px] xl:min-h-0">
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
-          <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
+          <div className="self-stretch flex flex-col justify-start items-start gap-3">
             <div className="justify-center text-neutral-800 text-xl sm:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 sm:leading-8 xl:leading-10">
-              {extrasData.text.title}
+              <TranslatedText 
+                text="Mejora tu experiencia" 
+                english="Do you want to add extra services?" 
+              />
+              <br />
+              <TranslatedText 
+                text="¡Añade extras a tu viaje!" 
+                english="" 
+              />
             </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
@@ -385,7 +433,7 @@ const { formData, updateExtras, nextStep, getTotalPeople } = useBooking()
               <div className="self-stretch p-3 sm:p-4 bg-lime-50 rounded-lg border border-lime-200">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 sm:gap-0">
                   <div className="text-neutral-800 text-base sm:text-lg font-medium font-['Poppins']">
-                    {extrasData.text.totalCost}
+                    <TranslatedText text={extrasData.text.totalCost} english="Total Extra Services Cost" />
                   </div>
                   <div className="text-lime-600 text-lg sm:text-xl font-semibold font-['Poppins']">
                     +{extrasData.constants.currencySymbol}{totalExtrasCost}
@@ -399,7 +447,7 @@ const { formData, updateExtras, nextStep, getTotalPeople } = useBooking()
               className="w-full sm:w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
             >
               <div className="text-center justify-start text-[#ffffff] text-base font-normal font-['Inter']">
-                {extrasData.text.confirm}
+                <TranslatedText text={extrasData.text.confirm} english="Confirm" />
               </div>
             </button>
           </div>

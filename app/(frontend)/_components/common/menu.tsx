@@ -9,8 +9,8 @@ import Image from 'next/image'
 type LanguageType = 'es' | 'en';
 
 const languages = [
-  { code: 'English', label: 'English', value: 'en' as LanguageType },
-  { code: 'Spanish', label: 'Español', value: 'es' as LanguageType },
+  { code: 'ENG', label: 'English', value: 'en' as LanguageType },
+  { code: 'ESP', label: 'Español', value: 'es' as LanguageType },
 ]
 
 // Menu translations (Spanish is default)
