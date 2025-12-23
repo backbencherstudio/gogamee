@@ -14,6 +14,16 @@ function getStripeInstance() {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 
+// GET handler for testing/verification (optional)
+export async function GET() {
+  return NextResponse.json({
+    message: "Stripe webhook endpoint is active",
+    endpoint: "/api/webhooks/stripe",
+    method: "POST",
+    note: "This endpoint only accepts POST requests from Stripe",
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
