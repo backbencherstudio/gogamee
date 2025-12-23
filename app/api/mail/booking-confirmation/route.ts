@@ -267,20 +267,37 @@ function generateEmailContent(booking: BookingData) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if email configuration is available
+    if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+      console.error("❌ Email configuration missing: MAIL_USER or MAIL_PASS not set");
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: "Email service not configured. Please check environment variables.",
+          details: "MAIL_USER or MAIL_PASS is missing"
+        },
+        { status: 500 }
+      );
+    }
+
     const { booking } = await request.json();
 
     if (!booking || !booking.email) {
+      console.error("❌ Missing booking data or email:", { booking: !!booking, email: booking?.email });
       return NextResponse.json(
         { success: false, error: "Booking data and email are required." },
         { status: 400 }
       );
     }
 
+    console.log("📧 Processing email for booking:", booking.id);
+    console.log("📧 Customer email:", booking.email);
+
     // Generate email content
     const emailContent = generateEmailContent(booking);
 
-    // Send email
-    await transporter.sendMail({
+    // Send email to customer
+    const customerEmailResult = await transporter.sendMail({
       from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
       to: booking.email,
       subject: emailContent.subject,
@@ -289,11 +306,50 @@ export async function POST(request: NextRequest) {
       replyTo: process.env.MAIL_FROM ?? process.env.MAIL_USER,
     });
 
-    console.log("✅ Booking confirmation email sent to:", booking.email);
+    console.log("✅ Booking confirmation email sent to customer:", booking.email);
+    console.log("📧 Email message ID:", customerEmailResult.messageId);
+
+    // Also send notification email to admin
+    const adminEmail = process.env.MAIL_TO ?? process.env.MAIL_USER;
+    if (adminEmail && adminEmail !== booking.email) {
+      try {
+        const adminEmailContent = `
+          <h2>New Booking Received</h2>
+          <p><strong>Booking ID:</strong> ${booking.id}</p>
+          <p><strong>Customer:</strong> ${booking.fullName}</p>
+          <p><strong>Email:</strong> ${booking.email}</p>
+          <p><strong>Phone:</strong> ${booking.phone}</p>
+          <p><strong>Sport:</strong> ${booking.selectedSport}</p>
+          <p><strong>Package:</strong> ${booking.selectedPackage}</p>
+          <p><strong>City:</strong> ${booking.selectedCity}</p>
+          <p><strong>League:</strong> ${booking.selectedLeague}</p>
+          <p><strong>Travel Dates:</strong> ${booking.departureDateFormatted} - ${booking.returnDateFormatted}</p>
+          <p><strong>Total People:</strong> ${booking.totalPeople}</p>
+          <p><strong>Status:</strong> ${booking.status}</p>
+          <p><strong>Payment Status:</strong> ${booking.payment_status}</p>
+        `;
+
+        await transporter.sendMail({
+          from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+          to: adminEmail,
+          subject: `New Booking: ${booking.id} - ${booking.fullName}`,
+          html: adminEmailContent,
+          text: `New Booking Received\n\nBooking ID: ${booking.id}\nCustomer: ${booking.fullName}\nEmail: ${booking.email}\nPhone: ${booking.phone}\nSport: ${booking.selectedSport}\nPackage: ${booking.selectedPackage}\nCity: ${booking.selectedCity}\nLeague: ${booking.selectedLeague}\nTravel Dates: ${booking.departureDateFormatted} - ${booking.returnDateFormatted}\nTotal People: ${booking.totalPeople}\nStatus: ${booking.status}\nPayment Status: ${booking.payment_status}`,
+          replyTo: booking.email,
+        });
+
+        console.log("✅ Admin notification email sent to:", adminEmail);
+      } catch (adminEmailError) {
+        console.error("❌ Failed to send admin notification email:", adminEmailError);
+        // Don't fail if admin email fails
+      }
+    }
 
     return NextResponse.json({
       success: true,
       message: "Confirmation email sent successfully",
+      customerEmail: booking.email,
+      adminEmail: adminEmail,
     });
   } catch (error) {
     console.error("❌ Error sending booking confirmation email:", error);

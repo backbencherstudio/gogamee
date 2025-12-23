@@ -205,8 +205,9 @@ export async function createBooking(
     };
   });
 
-  // Get base URL from environment or use default
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  // Get base URL from environment - use production URL
+  // For production, always use the Vercel URL
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gogame-zeta.vercel.app";
   
   // Calculate extras total from bookingExtras array
   const extrasTotal = payload.bookingExtras
@@ -288,8 +289,8 @@ export async function createBooking(
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
-      success_url: `${baseUrl}/book/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${id}`,
-      cancel_url: `${baseUrl}/book/cancel?booking_id=${id}`,
+      success_url: `${baseUrl}/?payment=success&session_id={CHECKOUT_SESSION_ID}&booking_id=${id}`,
+      cancel_url: `${baseUrl}/?payment=cancelled&booking_id=${id}`,
       customer_email: payload.email,
       metadata: {
         booking_id: id,

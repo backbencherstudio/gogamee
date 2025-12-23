@@ -86,29 +86,38 @@ export async function POST(request: NextRequest) {
 
         // Send confirmation email
         try {
-          const emailResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/mail/booking-confirmation`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                booking: updatedBooking,
-              }),
-            }
-          );
+          // Use absolute URL for email API call
+          const emailApiUrl = process.env.NEXT_PUBLIC_APP_URL 
+            ? `${process.env.NEXT_PUBLIC_APP_URL}/api/mail/booking-confirmation`
+            : process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}/api/mail/booking-confirmation`
+            : "http://localhost:3000/api/mail/booking-confirmation";
 
+          console.log("📧 Calling email API:", emailApiUrl);
+          console.log("📧 Booking email:", updatedBooking.email);
+          
+          const emailResponse = await fetch(emailApiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              booking: updatedBooking,
+            }),
+          });
+
+          const emailResponseText = await emailResponse.text();
+          
           if (emailResponse.ok) {
-            console.log("✅ Confirmation email sent to:", updatedBooking.email);
+            console.log("✅ Confirmation email sent successfully to:", updatedBooking.email);
+            console.log("📧 Email API response:", emailResponseText);
           } else {
-            console.error(
-              "❌ Failed to send confirmation email:",
-              await emailResponse.text()
-            );
+            console.error("❌ Failed to send confirmation email. Status:", emailResponse.status);
+            console.error("❌ Email API error response:", emailResponseText);
           }
         } catch (emailError) {
           console.error("❌ Error sending confirmation email:", emailError);
+          console.error("❌ Error details:", emailError instanceof Error ? emailError.message : String(emailError));
           // Don't fail the webhook if email fails
         }
 
