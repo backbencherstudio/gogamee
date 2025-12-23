@@ -1,6 +1,7 @@
 "use server";
 
 import { randomUUID } from "crypto";
+import Stripe from "stripe";
 import { readStore, updateStore } from "../lib/jsonStore";
 import {
   bookingStoreSchema,
@@ -10,6 +11,17 @@ import {
 } from "../schemas";
 
 const BOOKING_STORE_FILE = "bookings.json";
+
+// Initialize Stripe (only if key is provided)
+function getStripeInstance() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error("STRIPE_SECRET_KEY environment variable is not set");
+  }
+  return new Stripe(secretKey, {
+    apiVersion: "2025-12-15.clover",
+  });
+}
 
 export interface BookingExtraInput {
   id: string;
@@ -181,6 +193,7 @@ export async function createBooking(
   const id = `booking-${randomUUID()}`;
   const newBooking = buildNewBooking(payload, id, now);
 
+  // Save booking to store first (before creating Stripe session)
   await updateStore(BOOKING_STORE_FILE, (current) => {
     const parsed = bookingStoreSchema.parse(current);
     return {
@@ -192,18 +205,103 @@ export async function createBooking(
     };
   });
 
-  return {
-    id: `session_${randomUUID()}`,
-    object: "checkout.session",
-    url: `/dashboard/allrequest?booking=${encodeURIComponent(id)}`,
-    amount_total: Number(payload.totalCost) || 0,
-    currency: "eur",
-    status: "open",
-    payment_status: "unpaid",
-    metadata: {
-      booking_id: id,
+  // Get base URL from environment or use default
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const amountInCents = Math.round(Number(payload.totalCost) * 100); // Convert to cents
+
+  // Build line items for Stripe
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
+    {
+      price_data: {
+        currency: "eur",
+        product_data: {
+          name: `${payload.selectedSport} - ${payload.selectedPackage} Package`,
+          description: `Travel from ${payload.selectedCity} to ${payload.selectedLeague} league`,
+        },
+        unit_amount: amountInCents,
+      },
+      quantity: 1,
     },
-  };
+  ];
+
+  // Add extras as separate line items if any
+  if (payload.bookingExtras && payload.bookingExtras.length > 0) {
+    payload.bookingExtras.forEach((extra) => {
+      if (extra.price > 0 && extra.isSelected) {
+        lineItems.push({
+          price_data: {
+            currency: "eur",
+            product_data: {
+              name: extra.name,
+              description: extra.description || "",
+            },
+            unit_amount: Math.round(extra.price * 100 * extra.quantity),
+          },
+          quantity: 1,
+        });
+      }
+    });
+  }
+
+  try {
+    // Create Stripe Checkout Session
+    const stripe = getStripeInstance();
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      mode: "payment",
+      success_url: `${baseUrl}/book/success?session_id={CHECKOUT_SESSION_ID}&booking_id=${id}`,
+      cancel_url: `${baseUrl}/book/cancel?booking_id=${id}`,
+      customer_email: payload.email,
+      metadata: {
+        booking_id: id,
+        sport: payload.selectedSport,
+        package: payload.selectedPackage,
+        city: payload.selectedCity,
+      },
+      expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 minutes from now
+    });
+
+    // Update booking with Stripe session ID
+    await updateStore(BOOKING_STORE_FILE, (current) => {
+      const parsed = bookingStoreSchema.parse(current);
+      const updatedBookings = parsed.bookings.map((booking) => {
+        if (booking.id === id) {
+          return {
+            ...booking,
+            stripe_payment_intent_id: session.id,
+          };
+        }
+        return booking;
+      });
+
+      return {
+        bookings: updatedBookings,
+        meta: {
+          ...parsed.meta,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+    });
+
+    return {
+      id: session.id,
+      object: "checkout.session",
+      url: session.url || "",
+      amount_total: session.amount_total || amountInCents,
+      currency: session.currency || "eur",
+      status: session.status || "open",
+      payment_status: session.payment_status || "unpaid",
+      metadata: {
+        booking_id: id,
+      },
+    };
+  } catch (error) {
+    console.error("❌ Error creating Stripe session:", error);
+    throw new Error(
+      `Failed to create Stripe checkout session: ${error instanceof Error ? error.message : "Unknown error"}`
+    );
+  }
 }
 
 export async function updateBooking(
