@@ -207,22 +207,45 @@ export async function createBooking(
 
   // Get base URL from environment or use default
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const amountInCents = Math.round(Number(payload.totalCost) * 100); // Convert to cents
+  
+  // Calculate extras total from bookingExtras array
+  const extrasTotal = payload.bookingExtras
+    ? payload.bookingExtras
+        .filter((extra) => extra.isSelected && extra.price > 0)
+        .reduce((sum, extra) => sum + extra.price * extra.quantity, 0)
+    : payload.totalExtrasCost || 0;
+
+  // Calculate league removal cost
+  // Formula: (removedLeaguesCount - 1) * 20€ * totalPeople (first removal is free)
+  const freeRemovals = 1;
+  const paidRemovals = Math.max(0, payload.removedLeaguesCount - freeRemovals);
+  const removalCostPerPerson = paidRemovals * 20; // 20€ per paid removal
+  const leagueRemovalCost = payload.hasRemovedLeagues && payload.removedLeaguesCount > 0
+    ? removalCostPerPerson * payload.totalPeople
+    : 0;
+
+  // Package cost = totalCost - extras - league removals
+  // (totalCost already includes everything, so we subtract what we're showing separately)
+  const packageCost = Number(payload.totalCost) - extrasTotal - leagueRemovalCost;
+  const packageCostInCents = Math.max(0, Math.round(packageCost * 100)); // Ensure non-negative
 
   // Build line items for Stripe
-  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
-    {
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+
+  // Add package as first line item (only if package cost > 0)
+  if (packageCost > 0) {
+    lineItems.push({
       price_data: {
         currency: "eur",
         product_data: {
           name: `${payload.selectedSport} - ${payload.selectedPackage} Package`,
           description: `Travel from ${payload.selectedCity} to ${payload.selectedLeague} league`,
         },
-        unit_amount: amountInCents,
+        unit_amount: packageCostInCents,
       },
       quantity: 1,
-    },
-  ];
+    });
+  }
 
   // Add extras as separate line items if any
   if (payload.bookingExtras && payload.bookingExtras.length > 0) {
@@ -240,6 +263,21 @@ export async function createBooking(
           quantity: 1,
         });
       }
+    });
+  }
+
+  // Add league removals as separate line item if any
+  if (leagueRemovalCost > 0) {
+    lineItems.push({
+      price_data: {
+        currency: "eur",
+        product_data: {
+          name: "League Removals",
+          description: `${payload.removedLeaguesCount} league(s) removed`,
+        },
+        unit_amount: Math.round(leagueRemovalCost * 100),
+      },
+      quantity: 1,
     });
   }
 
@@ -288,7 +326,7 @@ export async function createBooking(
       id: session.id,
       object: "checkout.session",
       url: session.url || "",
-      amount_total: session.amount_total || amountInCents,
+      amount_total: session.amount_total || Math.round(Number(payload.totalCost) * 100),
       currency: session.currency || "eur",
       status: session.status || "open",
       payment_status: session.payment_status || "unpaid",
