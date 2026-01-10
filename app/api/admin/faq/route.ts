@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getAllFaqs, addFaq } from "../../../../backend/actions/faq";
-import { toErrorMessage } from "../../../../backend/lib/errors";
+import { getAllFaqs, addFaq } from "../../../../backendgogame/actions/faq";
+import { toErrorMessage } from "../../../../backendgogame/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

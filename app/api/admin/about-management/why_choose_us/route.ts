@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { addWhyChooseUs } from "../../../../../backend/actions/about";
-import { toErrorMessage } from "../../../../../backend/lib/errors";
+import { addWhyChooseUs } from "../../../../../backendgogame/actions/about";
+import { toErrorMessage } from "../../../../../backendgogame/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

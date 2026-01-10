@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAllTestimonials } from "../../../backend/actions/testimonials";
+import { getAllTestimonials } from "../../../backendgogame/actions/testimonials";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

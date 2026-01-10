@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import {
   getAboutManagement,
   addMainSection,
-} from "../../../../../backend/actions/about";
-import { toErrorMessage } from "../../../../../backend/lib/errors";
+} from "../../../../../backendgogame/actions/about";
+import { toErrorMessage } from "../../../../../backendgogame/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

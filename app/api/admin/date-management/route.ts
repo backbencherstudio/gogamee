@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAllDates, createDate } from '../../../../backend/actions/dateManagement'
-import { toErrorMessage } from '../../../../backend/lib/errors'
+import { getAllDates, createDate } from "../../../../backendgogame/actions/dateManagement"
+import { toErrorMessage } from "../../../../backendgogame/lib/errors"
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0

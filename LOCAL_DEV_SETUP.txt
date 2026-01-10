@@ -1,0 +1,63 @@
+==========================================
+LOCAL DEVELOPMENT SETUP
+==========================================
+
+এখন আপনার project এ আলাদা Backend Server আছে!
+
+==========================================
+TERMINAL 1: Backend Server
+==========================================
+
+Command:
+npm run dev:backend
+
+Backend Server:
+- Port: 5000 (default)
+- URL: http://localhost:5000
+- Health Check: http://localhost:5000/health
+
+==========================================
+TERMINAL 2: Frontend (Next.js)
+==========================================
+
+Command:
+npm run dev:frontend
+
+Frontend:
+- Port: 3000
+- URL: http://localhost:3000
+
+==========================================
+ENVIRONMENT VARIABLES
+==========================================
+
+.env.local এ add করুন:
+BACKEND_PORT=5000
+FRONTEND_URL=http://localhost:3000
+NEXT_PUBLIC_BACKEND_URL=http://localhost:5000/api
+
+==========================================
+QUICK START
+==========================================
+
+1. Terminal 1:
+   npm run dev:backend
+
+2. Terminal 2:
+   npm run dev:frontend
+
+3. Browser:
+   - Frontend: http://localhost:3000
+   - Backend Health: http://localhost:5000/health
+
+==========================================
+NOTES
+==========================================
+
+- Backend server Express.js দিয়ে তৈরি
+- Backend code: server/ folder
+- Backend logic: backendgogame/ folder
+- Database: backend/data/*.json files
+- API Routes: server/routes/ folder
+
+==========================================

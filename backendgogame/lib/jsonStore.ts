@@ -7,7 +7,7 @@ const LOCK_EXTENSION = ".lock";
 const LOCK_RETRY_DELAY_MS = 20;
 const LOCK_MAX_RETRIES = 250; // 5 seconds max wait
 
-// In-memory storageeeeeeeeeeeeee as last resort
+// In-memory storage as last resort
 const inMemoryStore = new Map<string, unknown>();
 
 // Lazy load Upstash Redis
@@ -22,18 +22,37 @@ async function getRedisClient() {
   redisInitialized = true;
 
   // Check if Upstash Redis is available
-  if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  
+  console.log('🔍 Checking Upstash Redis configuration...');
+  console.log(`   UPSTASH_REDIS_REST_URL: ${redisUrl ? '✅ Set' : '❌ Missing'}`);
+  console.log(`   UPSTASH_REDIS_REST_TOKEN: ${redisToken ? '✅ Set' : '❌ Missing'}`);
+  
+  if (redisUrl && redisToken) {
     try {
       const { Redis } = await import("@upstash/redis");
       redisClient = new Redis({
-        url: process.env.UPSTASH_REDIS_REST_URL,
-        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+        url: redisUrl,
+        token: redisToken,
       });
+      
+      // Test connection
+      try {
+        await redisClient.ping();
+        console.log('✅ Upstash Redis connected successfully');
+      } catch (pingError) {
+        console.warn('⚠️ Upstash Redis ping failed, but client created', pingError);
+      }
+      
       return redisClient;
     } catch (error) {
-      console.warn("Upstash Redis not available, using file system fallback", error);
+      console.error("❌ Upstash Redis initialization failed:", error);
+      console.warn("   Falling back to file system");
       return null;
     }
+  } else {
+    console.warn("⚠️ Upstash Redis environment variables not set, using file system fallback");
   }
 
   return null;
@@ -98,20 +117,40 @@ async function readJson<T>(fileName: string): Promise<T> {
   const redis = await getRedisClient();
   if (redis) {
     try {
-      const data = await redis.get(`jsonstore:${fileName}`) as T | null;
+      // Try with jsonstore: prefix first
+      let data = await redis.get(`jsonstore:${fileName}`) as T | null;
+      
+      // If not found, try without prefix (in case data was stored directly)
+      if (!data) {
+        data = await redis.get(fileName) as T | null;
+      }
+      
       if (data) {
+        // If data is a string, parse it
+        if (typeof data === 'string') {
+          try {
+            data = JSON.parse(data) as T;
+          } catch (parseError) {
+            console.warn(`Failed to parse Redis data for ${fileName}, using as-is`);
+          }
+        }
+        
         // Always update in-memory cache with fresh data from Redis
         inMemoryStore.set(fileName, data);
+        console.log(`✅ Read ${fileName} from Upstash Redis`);
         return data;
       } else {
         // Redis returned null, clear in-memory cache to force fresh read
         inMemoryStore.delete(fileName);
+        console.log(`⚠️ No data found in Redis for ${fileName}, trying file system`);
       }
     } catch (error) {
       console.warn(`Redis read failed for ${fileName}, trying file system`, error);
       // On Redis error, clear in-memory cache to avoid stale data
       inMemoryStore.delete(fileName);
     }
+  } else {
+    console.log(`⚠️ Redis client not available for ${fileName}, using file system`);
   }
 
   // 2. Check in-memory cache (only if Redis is not available)
@@ -229,3 +268,4 @@ export async function updateStore<T>(
 }
 
 export { JsonStoreError };
+

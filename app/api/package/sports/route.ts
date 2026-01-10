@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAvailableSports } from "../../../../backend/actions/packages";
+import { getAvailableSports } from "../../../../backendgogame/actions/packages";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

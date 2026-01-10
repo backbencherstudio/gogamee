@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "set TURBOPACK=0&& next dev",
+    "dev:frontend": "set TURBOPACK=0&& next dev",
+    "dev:backend": "tsx watch server/index.ts",
     "build": "set TURBOPACK=0&& next build",
     "start": "next start",
+    "start:backend": "tsx server/index.ts",
     "lint": "next lint"
   },
   "dependencies": {
@@ -41,13 +44,20 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^20.19.28",
     "@types/nodemailer": "^7.0.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cors": "^2.8.5",
     "eslint": "^9",
     "eslint-config-next": "^16.0.10",
+    "express": "^5.2.1",
+    "multer": "^2.0.2",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5"
   }

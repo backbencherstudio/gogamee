@@ -1,7 +1,4 @@
-"use server";
-
 import { randomBytes, randomUUID, timingSafeEqual } from "crypto";
-import { cookies, headers } from "next/headers";
 import { readStore, JsonStoreError } from "../lib/jsonStore";
 import {
   adminStoreSchema,
@@ -29,18 +26,16 @@ export interface LoginResponse {
   success: boolean;
   message: string;
   authorization?: AuthorizationData;
+  sessionToken?: string; // Return token for API route to set cookie
 }
 
 export interface LogoutResponse {
   success: boolean;
 }
 
-async function getRequestContext() {
-  const hdrs = await headers();
-  return {
-    ipAddress: hdrs.get("x-forwarded-for") ?? hdrs.get("x-real-ip") ?? null,
-    userAgent: hdrs.get("user-agent") ?? null,
-  };
+export interface RequestContext {
+  ipAddress: string | null;
+  userAgent: string | null;
 }
 
 function hashPassword(password: string, salt?: string) {
@@ -85,9 +80,10 @@ async function readAdmins(): Promise<Admin[]> {
   return parsed.admins;
 }
 
-// Session management functions are now imported from sessionStore.ts
-
-export async function login(payload: LoginPayload): Promise<LoginResponse> {
+export async function login(
+  payload: LoginPayload,
+  requestContext?: RequestContext
+): Promise<LoginResponse> {
   const admins = await readAdmins();
   const admin = admins.find(
     (entry) => entry.email.toLowerCase() === payload.email.toLowerCase()
@@ -110,7 +106,7 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
   }
 
   const now = Date.now();
-  const requestContext = await getRequestContext();
+  const context = requestContext || { ipAddress: null, userAgent: null };
   const session: Session = {
     id: randomUUID(),
     adminId: admin.id,
@@ -118,21 +114,10 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
     createdAt: new Date(now).toISOString(),
     expiresAt: new Date(now + SESSION_TTL_MS).toISOString(),
     lastUsedAt: new Date(now).toISOString(),
-    ...requestContext,
+    ...context,
   };
 
   await appendSession(session);
-
-  const cookieStore = await cookies();
-  cookieStore.set({
-    name: SESSION_COOKIE,
-    value: session.token,
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    path: "/",
-    expires: new Date(now + SESSION_TTL_MS),
-  });
 
   return {
     success: true,
@@ -142,25 +127,19 @@ export async function login(payload: LoginPayload): Promise<LoginResponse> {
       access_token: session.token,
       refresh_token: null,
     },
+    sessionToken: session.token, // Return token for API route to set cookie
   };
 }
 
-export async function logout(): Promise<LogoutResponse> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
-
+export async function logout(token?: string): Promise<LogoutResponse> {
   if (token) {
     await removeSession(token);
-    cookieStore.delete(SESSION_COOKIE);
   }
 
   return { success: true };
 }
 
-export async function getCurrentAdmin(): Promise<Admin | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(SESSION_COOKIE)?.value;
-
+export async function getCurrentAdmin(token?: string): Promise<Admin | null> {
   if (!token) {
     return null;
   }
@@ -172,8 +151,6 @@ export async function getCurrentAdmin(): Promise<Admin | null> {
 
   if (new Date(session.expiresAt).getTime() <= Date.now()) {
     await removeSession(token);
-    const cookieStoreToDelete = await cookies();
-    cookieStoreToDelete.delete(SESSION_COOKIE);
     return null;
   }
 
@@ -181,8 +158,8 @@ export async function getCurrentAdmin(): Promise<Admin | null> {
   return admins.find((admin) => admin.id === session.adminId) ?? null;
 }
 
-export async function requireAdmin(): Promise<Admin> {
-  const admin = await getCurrentAdmin();
+export async function requireAdmin(token?: string): Promise<Admin> {
+  const admin = await getCurrentAdmin(token);
   if (!admin) {
     throw new Error("Unauthorized");
   }

@@ -1,5 +1,3 @@
-"use server";
-
 import { readStore, updateStore, JsonStoreError } from "./jsonStore";
 import { sessionStoreSchema, type Session } from "../schemas";
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { deleteBooking } from "../../../../../backend/actions/bookings";
-import { toErrorMessage } from "../../../../../backend/lib/errors";
+import { deleteBooking } from "../../../../../backendgogame/actions/bookings";
+import { toErrorMessage } from "../../../../../backendgogame/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

@@ -1,5 +1,3 @@
-"use server";
-
 import { randomUUID } from "crypto";
 import Stripe from "stripe";
 import { readStore, updateStore } from "../lib/jsonStore";
@@ -205,9 +203,14 @@ export async function createBooking(
     };
   });
 
-  // Get base URL from environment - use production URL
-  // For production, always use the Vercel URL
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://gogame-zeta.vercel.app";
+  // Get base URL. Prefer production URL; avoid localhost in success/cancel redirects.
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
+  const isLocalhost = envUrl?.includes("localhost");
+  const baseUrl = isLocalhost
+    ? "https://gogame-zeta.vercel.app"
+    : envUrl
+    ? envUrl.startsWith("http") ? envUrl : `https://${envUrl}`
+    : "https://gogame-zeta.vercel.app";
   
   // Calculate extras total from bookingExtras array
   const extrasTotal = payload.bookingExtras

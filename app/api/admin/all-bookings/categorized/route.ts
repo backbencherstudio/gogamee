@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAllBookings } from "../../../../../backend/actions/bookings";
+import { getAllBookings } from "../../../../../backendgogame/actions/bookings";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
