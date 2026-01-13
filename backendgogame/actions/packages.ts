@@ -51,7 +51,10 @@ const DURATION_KEYS = ["1", "2", "3", "4"] as const;
 
 type DurationKey = (typeof DURATION_KEYS)[number];
 
-type PricesByDuration = Record<DurationKey, { standard: number; premium: number }>;
+type PricesByDuration = Record<
+  DurationKey,
+  { standard: number; premium: number }
+>;
 
 function normalizePricesByDuration(
   prices: Partial<Record<DurationKey, { standard: number; premium: number }>>
@@ -69,6 +72,7 @@ function normalizePricesByDuration(
 
 async function readPackages() {
   const raw = await readStore(PACKAGE_STORE_FILE);
+  console.log(raw);
   return packageStoreSchema.parse(raw);
 }
 
@@ -77,9 +81,7 @@ async function readStartingPrices() {
   return startingPriceStoreSchema.parse(raw);
 }
 
-export async function getAllPackages(
-  sport?: string
-): Promise<PackageResponse> {
+export async function getAllPackages(sport?: string): Promise<PackageResponse> {
   const store = await readPackages();
   const list = sport
     ? store.packages.filter(
@@ -96,9 +98,7 @@ export async function getAllPackages(
   };
 }
 
-export async function getPackageById(
-  id: string
-): Promise<PackageResponse> {
+export async function getPackageById(id: string): Promise<PackageResponse> {
   const store = await readPackages();
   const found = store.packages.find((item) => item.id === id);
 
@@ -186,9 +186,7 @@ export async function editPackage(
   };
 }
 
-export async function deletePackage(
-  id: string
-): Promise<PackageResponse> {
+export async function deletePackage(id: string): Promise<PackageResponse> {
   await updateStore(PACKAGE_STORE_FILE, (current) => {
     const parsed = packageStoreSchema.parse(current);
     return {
@@ -230,7 +228,9 @@ export interface UpdateStartingPricePayload {
   standardDescription?: string;
   premiumDescription?: string;
   currency: string;
-  pricesByDuration: Partial<Record<DurationKey, { standard: number; premium: number }>>;
+  pricesByDuration: Partial<
+    Record<DurationKey, { standard: number; premium: number }>
+  >;
 }
 
 export async function updateStartingPrice(
@@ -247,7 +247,9 @@ export async function updateStartingPrice(
         return item;
       }
 
-      const pricesByDuration = normalizePricesByDuration(payload.pricesByDuration);
+      const pricesByDuration = normalizePricesByDuration(
+        payload.pricesByDuration
+      );
 
       updated = startingPriceItemSchema.parse({
         ...item,
@@ -259,17 +261,17 @@ export async function updateStartingPrice(
     });
 
     if (!updated) {
-      const pricesByDuration = normalizePricesByDuration(payload.pricesByDuration);
+      const pricesByDuration = normalizePricesByDuration(
+        payload.pricesByDuration
+      );
       const fallback: StartingPriceItem = startingPriceItemSchema.parse({
         id: `starting-${sport}`,
         type: sport,
         currency: payload.currency,
         standardDescription:
-          payload.standardDescription ??
-          `${sport} standard package baseline`,
+          payload.standardDescription ?? `${sport} standard package baseline`,
         premiumDescription:
-          payload.premiumDescription ??
-          `${sport} premium package baseline`,
+          payload.premiumDescription ?? `${sport} premium package baseline`,
         pricesByDuration,
         updatedAt: now,
       });
@@ -296,4 +298,3 @@ export async function updateStartingPrice(
     data: [updated],
   };
 }
-
