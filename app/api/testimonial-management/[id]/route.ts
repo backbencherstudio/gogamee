@@ -3,8 +3,8 @@ import {
   getTestimonialById,
   updateTestimonial,
   deleteTestimonial,
-} from "../../../../backend/actions/testimonials";
-import { toErrorMessage } from "../../../../backend/lib/errors";
+} from "../../../../backendgogame/actions/testimonials";
+import { toErrorMessage } from "../../../../backendgogame/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

@@ -3,8 +3,8 @@ import {
   getPackageById,
   editPackage,
   deletePackage,
-} from "../../../../backend/actions/packages";
-import { toErrorMessage } from "../../../../backend/lib/errors";
+} from "../../../../backendgogame/actions/packages";
+import { toErrorMessage } from "../../../../backendgogame/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

@@ -1,86 +1,8 @@
 {
-  "startingPrices": [
-    {
-      "id": "starting-football",
-      "type": "football",
-      "currency": "euro",
-      "standardDescription": "Football standard package baseline",
-      "premiumDescription": "Football premium package baseline",
-      "pricesByDuration": {
-        "1": {
-          "standard": 255,
-          "premium": 1499
-        },
-        "2": {
-          "standard": 355,
-          "premium": 1499
-        },
-        "3": {
-          "standard": 455,
-          "premium": 1499
-        },
-        "4": {
-          "standard": 555,
-          "premium": 1499
-        }
-      },
-      "updatedAt": "2025-11-19T09:02:00.635Z"
-    },
-    {
-      "id": "starting-basketball",
-      "type": "basketball",
-      "currency": "euro",
-      "standardDescription": "Basketball standard package baseline",
-      "premiumDescription": "Basketball premium package baseline",
-      "pricesByDuration": {
-        "1": {
-          "standard": 256,
-          "premium": 1479
-        },
-        "2": {
-          "standard": 356,
-          "premium": 1479
-        },
-        "3": {
-          "standard": 456,
-          "premium": 1479
-        },
-        "4": {
-          "standard": 555,
-          "premium": 1479
-        }
-      },
-      "updatedAt": "2025-11-19T09:02:00.658Z"
-    },
-    {
-      "id": "starting-combined",
-      "type": "combined",
-      "currency": "euro",
-      "standardDescription": "Combined standard package baseline",
-      "premiumDescription": "Combined premium package baseline",
-      "pricesByDuration": {
-        "1": {
-          "standard": 277,
-          "premium": 155
-        },
-        "2": {
-          "standard": 155,
-          "premium": 155
-        },
-        "3": {
-          "standard": 255,
-          "premium": 155
-        },
-        "4": {
-          "standard": 354.98,
-          "premium": 155
-        }
-      },
-      "updatedAt": "2025-11-19T09:02:00.659Z"
-    }
-  ],
+  "startingPrices": [],
   "meta": {
     "version": 1,
-    "updatedAt": "2025-11-19T09:02:00.659Z"
+    "updatedAt": null
   }
 }
+

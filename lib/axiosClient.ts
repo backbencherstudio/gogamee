@@ -2,7 +2,7 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
 // *** axios instance ***
 const axiosClient: AxiosInstance = axios.create({
-    baseURL: "/api",
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "/api",
     headers: {
         "Content-Type": "application/json",
     },

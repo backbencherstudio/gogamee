@@ -1,43 +1,8 @@
 {
-  "packages": [
-    {
-      "id": "package-bdb485fd-901a-4e8e-bae1-a102ebcdc6ba",
-      "sport": "football",
-      "category": "newwwwwwwwwww",
-      "standard": "fcgyujfh",
-      "premium": "dfhgmjfgcyjm"
-    },
-    {
-      "id": "package-03cba9df-4450-4c85-b094-53dc0814c326",
-      "sport": "football",
-      "category": "gyfcjkfgj",
-      "standard": "dfxyhccxtfgh",
-      "premium": "xfgycmhxcgf"
-    },
-    {
-      "id": "package-221cdd46-3337-423c-af6d-df32647c0aac",
-      "sport": "basketball",
-      "category": "newwwwwwwwwww",
-      "standard": " vnxnc",
-      "premium": "xgbn"
-    },
-    {
-      "id": "package-9026fceb-f168-488e-9bd2-88610a0ea00a",
-      "sport": "basketball",
-      "category": "test2",
-      "standard": "xfghfgth",
-      "premium": "xfghfxghfgxh"
-    },
-    {
-      "id": "package-57f353a7-ab66-4cc0-b2aa-1e3f9956f33b",
-      "sport": "football",
-      "category": "Price555",
-      "standard": "seudónimo y posterior nombre legal[1]​ de Ricardo Eliécer Neftalí Reyes Basoalto (Parral, 12 de julio",
-      "premium": "e 1904-Santiago, 23 de septiembre de 1973), fue un poeta y político chileno."
-    }
-  ],
+  "packages": [],
   "meta": {
     "version": 1,
-    "updatedAt": "2025-12-03T09:01:14.012Z"
+    "updatedAt": null
   }
 }
+

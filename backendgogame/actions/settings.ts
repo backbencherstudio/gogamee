@@ -1,5 +1,3 @@
-"use server";
-
 import { readStore, updateStore, writeStore } from "../lib/jsonStore";
 import {
   socialContactStoreSchema,

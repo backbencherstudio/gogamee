@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import {
   getLegalPages,
-} from "../../../../../backend/actions/settings";
-import { toErrorMessage } from "../../../../../backend/lib/errors";
+} from "../../../../../backendgogame/actions/settings";
+import { toErrorMessage } from "../../../../../backendgogame/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { createBooking } from "../../../../backend/actions/bookings";
-import { toErrorMessage } from "../../../../backend/lib/errors";
+import { createBooking } from "../../../../backendgogame/actions/bookings";
+import { toErrorMessage } from "../../../../backendgogame/lib/errors";
 
 export async function POST(request: Request) {
   const payload = await request.json();
