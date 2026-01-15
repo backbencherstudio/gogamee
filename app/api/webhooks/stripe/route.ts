@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { updateBooking } from "../../../../backendgogame/actions/bookings";
+import { BookingService } from "@/_backend";
 
 function getStripeInstance() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -15,9 +15,17 @@ function getStripeInstance() {
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
 
 // Validate webhook secret
-if (!webhookSecret || webhookSecret === "whsec_YOUR_WEBHOOK_SECRET_HERE" || webhookSecret.includes("YOUR_WEBHOOK")) {
-  console.error("❌ CRITICAL: STRIPE_WEBHOOK_SECRET is not set or is a placeholder!");
-  console.error("❌ Please set the actual webhook secret from Stripe Dashboard in Vercel environment variables");
+if (
+  !webhookSecret ||
+  webhookSecret === "whsec_YOUR_WEBHOOK_SECRET_HERE" ||
+  webhookSecret.includes("YOUR_WEBHOOK")
+) {
+  console.error(
+    "❌ CRITICAL: STRIPE_WEBHOOK_SECRET is not set or is a placeholder!"
+  );
+  console.error(
+    "❌ Please set the actual webhook secret from Stripe Dashboard in Vercel environment variables"
+  );
 }
 
 // GET handler for testing/verification (optional)
@@ -35,7 +43,10 @@ export async function POST(request: NextRequest) {
     console.log("📥 Webhook received at:", new Date().toISOString());
     console.log("🔑 Webhook secret configured:", webhookSecret ? "YES" : "NO");
     console.log("🔑 Webhook secret length:", webhookSecret.length);
-    console.log("🔑 Webhook secret starts with whsec_:", webhookSecret.startsWith("whsec_"));
+    console.log(
+      "🔑 Webhook secret starts with whsec_:",
+      webhookSecret.startsWith("whsec_")
+    );
 
     const body = await request.text();
     const signature = request.headers.get("stripe-signature");
@@ -54,9 +65,9 @@ export async function POST(request: NextRequest) {
     if (!webhookSecret || webhookSecret.length < 20) {
       console.error("❌ Webhook secret is invalid or too short");
       return NextResponse.json(
-        { 
+        {
           error: "Webhook secret not configured properly",
-          details: "STRIPE_WEBHOOK_SECRET must be set in environment variables"
+          details: "STRIPE_WEBHOOK_SECRET must be set in environment variables",
         },
         { status: 500 }
       );
@@ -68,21 +79,23 @@ export async function POST(request: NextRequest) {
       // Verify webhook signature
       const stripe = getStripeInstance();
       console.log("🔍 Attempting to verify webhook signature...");
-      event = stripe.webhooks.constructEvent(
-        body,
-        signature,
-        webhookSecret
-      );
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       console.log("✅ Webhook signature verified successfully");
     } catch (err) {
       console.error("❌ Webhook signature verification failed");
-      console.error("❌ Error details:", err instanceof Error ? err.message : String(err));
-      console.error("❌ Expected secret (first 10 chars):", webhookSecret.substring(0, 10) + "...");
+      console.error(
+        "❌ Error details:",
+        err instanceof Error ? err.message : String(err)
+      );
+      console.error(
+        "❌ Expected secret (first 10 chars):",
+        webhookSecret.substring(0, 10) + "..."
+      );
       return NextResponse.json(
-        { 
+        {
           error: "Webhook signature verification failed",
           details: err instanceof Error ? err.message : "Unknown error",
-          hint: "Check if STRIPE_WEBHOOK_SECRET in Vercel matches the webhook secret in Stripe Dashboard"
+          hint: "Check if STRIPE_WEBHOOK_SECRET in Vercel matches the webhook secret in Stripe Dashboard",
         },
         { status: 400 }
       );
@@ -110,24 +123,38 @@ export async function POST(request: NextRequest) {
 
       // Update booking status to "paid" and "completed"
       try {
-        const updatedBooking = await updateBooking({
-          id: bookingId,
+        const updatedBooking = await BookingService.updateById(bookingId, {
           status: "completed",
           payment_status: "paid",
         });
+
+        if (!updatedBooking) {
+          throw new Error(`Booking not found with ID: ${bookingId}`);
+        }
 
         console.log("✅ Booking updated:", bookingId);
 
         // Send confirmation email - use direct function call for reliability
         try {
-          console.log("📧 Sending confirmation email to:", updatedBooking.email);
-          
+          console.log(
+            "📧 Sending confirmation email to:",
+            updatedBooking.email
+          );
+
           // Import and call email function directly (works for both localhost and Vercel)
-          const { sendBookingConfirmationEmail } = await import("../../mail/send-booking-email");
-          const emailResult = await sendBookingConfirmationEmail(updatedBooking);
-          
+          const { sendBookingConfirmationEmail } = await import(
+            "../../mail/send-booking-email"
+          );
+
+          const bookingData: any = updatedBooking;
+
+          const emailResult = await sendBookingConfirmationEmail(bookingData);
+
           if (emailResult.success) {
-            console.log("✅ Confirmation email sent successfully to:", updatedBooking.email);
+            console.log(
+              "✅ Confirmation email sent successfully to:",
+              updatedBooking.email
+            );
             console.log("📧 Email result:", emailResult.message);
           } else {
             console.error("❌ Failed to send confirmation email");
@@ -136,8 +163,16 @@ export async function POST(request: NextRequest) {
           }
         } catch (emailError) {
           console.error("❌ Error sending confirmation email:", emailError);
-          console.error("❌ Error details:", emailError instanceof Error ? emailError.message : String(emailError));
-          console.error("❌ Stack:", emailError instanceof Error ? emailError.stack : "No stack trace");
+          console.error(
+            "❌ Error details:",
+            emailError instanceof Error
+              ? emailError.message
+              : String(emailError)
+          );
+          console.error(
+            "❌ Stack:",
+            emailError instanceof Error ? emailError.stack : "No stack trace"
+          );
           // Don't fail the webhook if email fails
         }
 
@@ -151,7 +186,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: "Failed to update booking",
-            details: updateError instanceof Error ? updateError.message : "Unknown error",
+            details:
+              updateError instanceof Error
+                ? updateError.message
+                : "Unknown error",
           },
           { status: 500 }
         );
@@ -164,8 +202,7 @@ export async function POST(request: NextRequest) {
       const bookingId = session.metadata?.booking_id;
 
       if (bookingId) {
-        await updateBooking({
-          id: bookingId,
+        await BookingService.updateById(bookingId, {
           payment_status: "paid",
         });
         console.log("✅ Async payment succeeded for booking:", bookingId);
@@ -177,8 +214,7 @@ export async function POST(request: NextRequest) {
       const bookingId = session.metadata?.booking_id;
 
       if (bookingId) {
-        await updateBooking({
-          id: bookingId,
+        await BookingService.updateById(bookingId, {
           payment_status: "failed",
         });
         console.log("❌ Async payment failed for booking:", bookingId);
@@ -197,4 +233,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

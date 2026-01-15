@@ -36,16 +36,20 @@ export interface LegalPagesResponse {
 // ========== Social Media & Contact Links API Functions ==========
 
 // GET social contact links
-export const getSocialContactLinks = async (): Promise<SocialContactResponse> => {
-  const response = await axiosClient.get("/admin/settings/social-contact");
-  return response.data;
-};
+export const getSocialContactLinks =
+  async (): Promise<SocialContactResponse> => {
+    const response = await axiosClient.get("/admin/settings/social-contact");
+    return response.data;
+  };
 
 // PUT update social contact links
 export const updateSocialContactLinks = async (
   links: Partial<SocialContactLinks>
 ): Promise<SocialContactResponse> => {
-  const response = await axiosClient.put("/admin/settings/social-contact", links);
+  const response = await axiosClient.put(
+    "/admin/settings/social-contact",
+    links
+  );
   return response.data;
 };
 
@@ -61,7 +65,10 @@ export const getLegalPages = async (): Promise<LegalPagesResponse> => {
 export const updatePrivacyPolicy = async (
   content: LegalPageContent
 ): Promise<LegalPagesResponse> => {
-  const response = await axiosClient.put("/admin/settings/legal/privacy", content);
+  const response = await axiosClient.put(
+    "/admin/settings/legal/privacy",
+    content
+  );
   return response.data;
 };
 
@@ -69,7 +76,10 @@ export const updatePrivacyPolicy = async (
 export const updateCookiePolicy = async (
   content: LegalPageContent
 ): Promise<LegalPagesResponse> => {
-  const response = await axiosClient.put("/admin/settings/legal/cookie", content);
+  const response = await axiosClient.put(
+    "/admin/settings/legal/cookie",
+    content
+  );
   return response.data;
 };
 
@@ -77,7 +87,9 @@ export const updateCookiePolicy = async (
 export const updateTermsConditions = async (
   content: LegalPageContent
 ): Promise<LegalPagesResponse> => {
-  const response = await axiosClient.put("/admin/settings/legal/terms", content);
+  const response = await axiosClient.put(
+    "/admin/settings/legal/terms",
+    content
+  );
   return response.data;
 };
-

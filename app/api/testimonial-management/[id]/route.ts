@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  getTestimonialById,
-  updateTestimonial,
-  deleteTestimonial,
-} from "../../../../backendgogame/actions/testimonials";
-import { toErrorMessage } from "../../../../backendgogame/lib/errors";
+import { TestimonialService } from "@/_backend";
+import { toErrorMessage } from "@/_backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -20,22 +16,28 @@ async function getId(context: RouteContext) {
 
 export async function GET(_: Request, context: RouteContext) {
   const id = await getId(context);
-  const response = await getTestimonialById(id);
-  const status = response.success ? 200 : 404;
-  return NextResponse.json(response, {
-    status,
-    headers: { "Cache-Control": "no-store" },
-  });
+  const response = await TestimonialService.getById(id);
+  const status = response ? 200 : 404;
+  return NextResponse.json(
+    { success: !!response, testimonial: response },
+    {
+      status,
+      headers: { "Cache-Control": "no-store" },
+    }
+  );
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
   const payload = await request.json();
   try {
     const id = await getId(context);
-    const response = await updateTestimonial(id, payload);
-    return NextResponse.json(response, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    const response = await TestimonialService.updateById(id, payload);
+    return NextResponse.json(
+      { success: true, testimonial: response },
+      {
+        headers: { "Cache-Control": "no-store" },
+      }
+    );
   } catch (error: unknown) {
     console.error("Update testimonial error", error);
     return NextResponse.json(
@@ -51,10 +53,13 @@ export async function PATCH(request: Request, context: RouteContext) {
 export async function DELETE(_: Request, context: RouteContext) {
   try {
     const id = await getId(context);
-    const response = await deleteTestimonial(id);
-    return NextResponse.json(response, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    await TestimonialService.deleteById(id);
+    return NextResponse.json(
+      { success: true },
+      {
+        headers: { "Cache-Control": "no-store" },
+      }
+    );
   } catch (error: unknown) {
     console.error("Delete testimonial error", error);
     return NextResponse.json(
@@ -66,4 +71,3 @@ export async function DELETE(_: Request, context: RouteContext) {
     );
   }
 }
-

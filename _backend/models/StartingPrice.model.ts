@@ -72,7 +72,7 @@ const StartingPriceSchema = new Schema<IStartingPrice>(
   },
   {
     timestamps: true,
-    collection: "startingPrices",
+    collection: "starting_prices",
   }
 );
 
@@ -82,7 +82,7 @@ StartingPriceSchema.index({ isActive: 1 });
 StartingPriceSchema.index({ updatedAt: -1 });
 
 // Pre-save middleware to update lastModifiedBy
-StartingPriceSchema.pre("save", function (next) {
+StartingPriceSchema.pre("save", function (next: any) {
   if (this.isModified() && this.lastModifiedBy) {
     // Could be enhanced to get current user from context
     console.log(`StartingPrice ${this.type} modified`);
@@ -92,7 +92,10 @@ StartingPriceSchema.pre("save", function (next) {
 
 // Virtual for minimum price across all durations
 StartingPriceSchema.virtual("minPrice").get(function () {
-  const prices = Object.values(this.pricesByDuration);
+  const prices = Object.values(this.pricesByDuration) as {
+    standard: number;
+    premium: number;
+  }[];
   const allPrices = prices.flatMap((duration) => [
     duration.standard,
     duration.premium,
@@ -102,7 +105,10 @@ StartingPriceSchema.virtual("minPrice").get(function () {
 
 // Virtual for maximum price across all durations
 StartingPriceSchema.virtual("maxPrice").get(function () {
-  const prices = Object.values(this.pricesByDuration);
+  const prices = Object.values(this.pricesByDuration) as {
+    standard: number;
+    premium: number;
+  }[];
   const allPrices = prices.flatMap((duration) => [
     duration.standard,
     duration.premium,

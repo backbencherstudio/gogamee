@@ -3,7 +3,10 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface ILegalPage extends Document {
   type: "privacy" | "terms" | "cookie";
   title: string;
-  content: string;
+  content: {
+    en: string;
+    es?: string;
+  };
   version: string;
   isActive: boolean;
   effectiveDate?: Date;
@@ -27,8 +30,14 @@ const LegalPageSchema = new Schema<ILegalPage>(
       trim: true,
     },
     content: {
-      type: String,
-      required: true,
+      en: {
+        type: String,
+        required: true,
+      },
+      es: {
+        type: String,
+        default: "",
+      },
     },
     version: {
       type: String,
@@ -75,6 +84,11 @@ LegalPageSchema.statics.getAllActive = function () {
     deletedAt: { $exists: false },
   }).sort({ type: 1 });
 };
+
+// Prevent model compilation errors in development
+if (process.env.NODE_ENV === "development") {
+  delete mongoose.models.LegalPage;
+}
 
 export default mongoose.models.LegalPage ||
   mongoose.model<ILegalPage>("LegalPage", LegalPageSchema);

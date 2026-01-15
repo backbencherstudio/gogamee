@@ -35,6 +35,32 @@ class SettingsService {
     return saved;
   }
 
+  async upsertSocialContact(
+    data: CreateSocialContactData
+  ): Promise<ISocialContact> {
+    await connectToDatabase();
+
+    // Check by platform (case-insensitive usually good, but exact match for now based on data)
+    let contact = await SocialContact.findOne({
+      platform: data.platform,
+      deletedAt: { $exists: false },
+    });
+
+    if (contact) {
+      contact.url = data.url;
+      if (data.icon !== undefined) contact.icon = data.icon;
+      if (data.isActive !== undefined) contact.isActive = data.isActive;
+      if (data.order !== undefined) contact.order = data.order;
+
+      const saved = await contact.save();
+      await deleteCache(`settings:social:${saved._id}`);
+      await clearCachePattern("settings:social:*");
+      return saved;
+    } else {
+      return this.createSocialContact(data);
+    }
+  }
+
   async getAllSocialContacts(options: SettingsQueryOptions = {}): Promise<{
     contacts: ISocialContact[];
     total: number;
@@ -236,7 +262,7 @@ class SettingsService {
       // Update existing
       page.title = data.title;
       page.content = data.content;
-      page.version = data.version;
+      if (data.version) page.version = data.version;
       if (data.isActive !== undefined) page.isActive = data.isActive;
 
       const updated = await page.save();

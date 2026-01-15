@@ -1,6 +1,5 @@
 // Export all lib utilities (Mongoose-based)
 export * from "./errors";
-export * from "./responses";
 export * from "./constants";
 export { default as connectToDatabase, checkDatabaseHealth } from "./mongoose";
 

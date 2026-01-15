@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { deleteBooking } from "../../../../../backendgogame/actions/bookings";
-import { toErrorMessage } from "../../../../../backendgogame/lib/errors";
+import { BookingService } from "@/_backend";
+import { toErrorMessage } from "@/_backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -17,7 +17,7 @@ async function getId(context: RouteContext) {
 export async function DELETE(_: Request, context: RouteContext) {
   try {
     const id = await getId(context);
-    await deleteBooking(id);
+    await BookingService.deleteById(id);
     return new NextResponse(null, {
       status: 204,
       headers: { "Cache-Control": "no-store" },
@@ -30,4 +30,3 @@ export async function DELETE(_: Request, context: RouteContext) {
     );
   }
 }
-

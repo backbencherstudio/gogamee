@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  getPackageById,
-  editPackage,
-  deletePackage,
-} from "../../../../backendgogame/actions/packages";
-import { toErrorMessage } from "../../../../backendgogame/lib/errors";
+import { PackageService } from "@/_backend";
+import { toErrorMessage } from "@/_backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -20,22 +16,47 @@ async function getId(context: RouteContext) {
 
 export async function GET(_: Request, context: RouteContext) {
   const id = await getId(context);
-  const response = await getPackageById(id);
-  const status = response.success ? 200 : 404;
-  return NextResponse.json(response, {
-    status,
-    headers: { "Cache-Control": "no-store" },
-  });
+  const pkg = await PackageService.getById(id);
+
+  if (!pkg) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Package not found",
+      },
+      { status: 404 }
+    );
+  }
+
+  // Legacy format: { success: true, message: "...", data: pkg }
+  return NextResponse.json(
+    {
+      success: true,
+      message: "Package fetched successfully",
+      data: pkg,
+    },
+    {
+      headers: { "Cache-Control": "no-store" },
+    }
+  );
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
   const payload = await request.json();
   try {
     const id = await getId(context);
-    const response = await editPackage(id, payload);
-    return NextResponse.json(response, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    const updated = await PackageService.updateById(id, payload);
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Package updated successfully",
+        data: updated,
+      },
+      {
+        headers: { "Cache-Control": "no-store" },
+      }
+    );
   } catch (error: unknown) {
     console.error("Edit package error", error);
     return NextResponse.json(
@@ -51,10 +72,16 @@ export async function PATCH(request: Request, context: RouteContext) {
 export async function DELETE(_: Request, context: RouteContext) {
   try {
     const id = await getId(context);
-    const response = await deletePackage(id);
-    return NextResponse.json(response, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    const response = await PackageService.deleteById(id);
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Package deleted successfully",
+      },
+      {
+        headers: { "Cache-Control": "no-store" },
+      }
+    );
   } catch (error: unknown) {
     console.error("Delete package error", error);
     return NextResponse.json(
@@ -66,4 +93,3 @@ export async function DELETE(_: Request, context: RouteContext) {
     );
   }
 }
-

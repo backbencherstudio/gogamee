@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import {
-  getStartingPrice,
-  updateStartingPrice,
-} from "../../../../../backendgogame/actions/packages";
-import { toErrorMessage } from "../../../../../backendgogame/lib/errors";
+import { StartingPriceService } from "@/_backend";
+import { toErrorMessage } from "@/_backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -25,10 +22,35 @@ async function getSport(
 export async function GET(_: Request, context: RouteContext) {
   try {
     const sport = await getSport(context);
-    const response = await getStartingPrice(sport);
-    return NextResponse.json(response, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    const price = await StartingPriceService.getByType(sport);
+
+    if (!price) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Starting price not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    const dataObj = (price as any).toObject ? (price as any).toObject() : price;
+    if (dataObj && dataObj._id) {
+      dataObj.id = dataObj._id.toString();
+      delete dataObj._id;
+      delete dataObj.__v;
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Starting price fetched successfully",
+        data: [dataObj],
+      },
+      {
+        headers: { "Cache-Control": "no-store" },
+      }
+    );
   } catch (error: unknown) {
     return NextResponse.json(
       {
@@ -47,7 +69,7 @@ export async function PATCH(request: Request, context: RouteContext) {
   try {
     const sport = await getSport(context);
     const payload = await request.json();
-    const response = await updateStartingPrice(sport, payload);
+    const response = await StartingPriceService.updateByType(sport, payload);
     return NextResponse.json(response, {
       headers: { "Cache-Control": "no-store" },
     });
@@ -62,4 +84,3 @@ export async function PATCH(request: Request, context: RouteContext) {
     );
   }
 }
-
