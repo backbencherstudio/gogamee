@@ -9,29 +9,27 @@ export async function GET() {
   try {
     const links = await SettingsService.getActiveSocialContacts();
 
-    // links is an array of ISocialContact, we need the first active one or just the first one
-    const socialContactDoc = Array.isArray(links) ? links[0] : links;
+    // Create a map of platform -> url
+    const socialLinksMap: Record<string, string> = {};
 
-    if (!socialContactDoc) {
-      return NextResponse.json(
-        { success: false, message: "Social contact links not found" },
-        { status: 404 }
-      );
+    if (Array.isArray(links)) {
+      links.forEach((link: any) => {
+        // Normalize platform name to lowercase for consistent access
+        const platform = link.platform?.toLowerCase().trim();
+        if (platform && link.url) {
+          socialLinksMap[platform] = link.url;
+        }
+      });
     }
-
-    // Check if it's a mongoose doc or plain object
-    const data = (socialContactDoc as any).toObject
-      ? (socialContactDoc as any).toObject()
-      : socialContactDoc;
 
     return NextResponse.json({
       success: true,
       links: {
-        whatsapp: data.whatsapp || "",
-        instagram: data.instagram || "",
-        tiktok: data.tiktok || "",
-        linkedin: data.linkedin || "",
-        email: data.email || "",
+        whatsapp: socialLinksMap.whatsapp || "",
+        instagram: socialLinksMap.instagram || "",
+        tiktok: socialLinksMap.tiktok || "",
+        linkedin: socialLinksMap.linkedin || "",
+        email: socialLinksMap.email || "",
       },
     });
   } catch (error) {

@@ -111,8 +111,20 @@ export async function POST(request: Request) {
       returnDate: payload.returnDate,
       departureDateFormatted: payload.departureDateFormatted,
       returnDateFormatted: payload.returnDateFormatted,
+      departureTimeStart: payload.departureTimeStart,
+      departureTimeEnd: payload.departureTimeEnd,
+      arrivalTimeStart: payload.arrivalTimeStart,
+      arrivalTimeEnd: payload.arrivalTimeEnd,
+      departureTimeRange: payload.departureTimeRange,
+      arrivalTimeRange: payload.arrivalTimeRange,
+      removedLeagues: payload.removedLeagues,
+      removedLeaguesCount: payload.removedLeaguesCount,
+      hasRemovedLeagues: payload.hasRemovedLeagues,
+      totalExtrasCost: payload.totalExtrasCost,
+      extrasCount: payload.extrasCount,
+      isBookingComplete: false,
       firstName: payload.firstName,
-      lastName: payload.lastName,
+      lastName: payload.lastName || "",
       email: payload.email,
       phone: payload.phone,
       totalCost: payload.totalCost,
@@ -121,105 +133,49 @@ export async function POST(request: Request) {
       stripe_payment_intent_id: undefined,
     });
 
-    // 3. Create Stripe Session
-
-    // Get base URL
-    const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL;
-    const isLocalhost = envUrl?.includes("localhost");
-    const baseUrl = isLocalhost
-      ? "https://gogame-zeta.vercel.app" // Fallback for dev environment webhook/redirect testing
-      : envUrl
-      ? envUrl.startsWith("http")
-        ? envUrl
-        : `https://${envUrl}`
-      : "https://gogame-zeta.vercel.app";
-
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
-
-    // Add package as first line item
-    if (packageCost > 0) {
-      lineItems.push({
-        price_data: {
-          currency: "eur",
-          product_data: {
-            name: `${payload.selectedSport} - ${payload.selectedPackage} Package`,
-            description: `Travel from ${payload.selectedCity} to ${payload.selectedLeague} league`,
-          },
-          unit_amount: packageCostInCents,
-        },
-        quantity: 1,
-      });
-    }
-
-    // Add extras
-    if (payload.bookingExtras && payload.bookingExtras.length > 0) {
-      payload.bookingExtras.forEach((extra) => {
-        if (extra.price > 0 && extra.isSelected) {
-          lineItems.push({
-            price_data: {
-              currency: "eur",
-              product_data: {
-                name: extra.name,
-                description: extra.description || "",
-              },
-              unit_amount: Math.round(extra.price * 100 * extra.quantity),
-            },
-            quantity: 1,
-          });
-        }
-      });
-    }
-
-    // Add league removals
-    if (leagueRemovalCost > 0) {
-      lineItems.push({
-        price_data: {
-          currency: "eur",
-          product_data: {
-            name: "League Removals",
-            description: `${payload.removedLeaguesCount} league(s) removed`,
-          },
-          unit_amount: Math.round(leagueRemovalCost * 100),
-        },
-        quantity: 1,
-      });
-    }
+    // 3. Create Stripe PaymentIntent (for embedded Elements)
 
     const stripe = getStripeInstance();
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: lineItems,
-      mode: "payment",
-      success_url: `${baseUrl}/?payment=success&session_id={CHECKOUT_SESSION_ID}&booking_id=${booking._id}`,
-      cancel_url: `${baseUrl}/?payment=cancelled&booking_id=${booking._id}`,
-      customer_email: payload.email,
+
+    // Calculate total amount in cents
+    const totalAmountInCents = Math.round(Number(payload.totalCost) * 100);
+
+    console.log("💰 Creating PaymentIntent for:", {
+      amount: totalAmountInCents,
+      currency: "eur",
+      bookingId: booking._id.toString(),
+    });
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: totalAmountInCents,
+      currency: "eur",
+      automatic_payment_methods: {
+        enabled: true,
+      },
       metadata: {
         booking_id: booking._id.toString(),
         sport: payload.selectedSport,
         package: payload.selectedPackage,
         city: payload.selectedCity,
       },
-      expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 mins
+      description: `Booking for ${payload.selectedSport} - ${payload.selectedPackage}`,
+      receipt_email: payload.email,
     });
 
-    // 4. Update Booking with Session ID
+    // 4. Update Booking with PaymentIntent ID
     await BookingService.updateById(booking._id.toString(), {
-      stripe_payment_intent_id: session.id,
+      stripe_payment_intent_id: paymentIntent.id,
     });
 
-    // 5. Return Stripe Session Response (matching legacy interface)
+    console.log("✅ PaymentIntent created:", paymentIntent.id);
+
+    // 5. Return client secret for frontend
     return NextResponse.json({
-      id: session.id,
-      object: "checkout.session",
-      url: session.url || "",
-      amount_total:
-        session.amount_total || Math.round(Number(payload.totalCost) * 100),
-      currency: session.currency || "eur",
-      status: session.status || "open",
-      payment_status: session.payment_status || "unpaid",
-      metadata: {
-        booking_id: booking._id.toString(),
-      },
+      success: true,
+      clientSecret: paymentIntent.client_secret,
+      bookingId: booking._id.toString(),
+      amount: totalAmountInCents / 100,
+      currency: "eur",
     });
   } catch (error: unknown) {
     console.error("Create booking error", error);

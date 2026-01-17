@@ -77,7 +77,6 @@ const StartingPriceSchema = new Schema<IStartingPrice>(
 );
 
 // Indexes
-StartingPriceSchema.index({ type: 1 }, { unique: true });
 StartingPriceSchema.index({ isActive: 1 });
 StartingPriceSchema.index({ updatedAt: -1 });
 

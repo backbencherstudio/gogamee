@@ -13,6 +13,18 @@ export interface CreateBookingData {
   returnDate: string;
   departureDateFormatted: string;
   returnDateFormatted: string;
+  departureTimeStart: number;
+  departureTimeEnd: number;
+  arrivalTimeStart: number;
+  arrivalTimeEnd: number;
+  departureTimeRange: string;
+  arrivalTimeRange: string;
+  removedLeagues?: any;
+  removedLeaguesCount: number;
+  hasRemovedLeagues: boolean;
+  totalExtrasCost: number;
+  extrasCount: number;
+  isBookingComplete?: boolean;
   firstName: string;
   lastName: string;
   email: string;

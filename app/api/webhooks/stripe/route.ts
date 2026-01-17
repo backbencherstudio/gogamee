@@ -104,7 +104,45 @@ export async function POST(request: NextRequest) {
     console.log("✅ Webhook event received:", event.type);
     console.log("📋 Event ID:", event.id);
 
-    // Handle checkout.session.completed event
+    // Handle PaymentIntent events (Stripe Elements)
+    if (event.type === "payment_intent.succeeded") {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const bookingId = paymentIntent.metadata.booking_id;
+
+      console.log("💰 PaymentIntent succeeded for booking:", bookingId);
+
+      if (bookingId) {
+        try {
+          // Update booking status
+          const updatedBooking = await BookingService.updateById(bookingId, {
+            status: "confirmed", // Using 'confirmed' as it implies booked but not yet 'completed' (travelled)
+            payment_status: "paid",
+            stripe_payment_intent_id: paymentIntent.id,
+          });
+
+          if (updatedBooking) {
+            console.log("✅ Booking updated:", bookingId);
+
+            // Reuse existing email logic if possible, or duplicate it here
+            try {
+              const { sendBookingConfirmationEmail } = await import(
+                "../../mail/send-booking-email"
+              );
+              await sendBookingConfirmationEmail(updatedBooking as any);
+              console.log("📧 Confirmation email sent");
+            } catch (e) {
+              console.error("❌ Email failed:", e);
+            }
+          }
+        } catch (err) {
+          console.error("❌ Error updating booking for PaymentIntent:", err);
+          return NextResponse.json({ error: "Update failed" }, { status: 500 });
+        }
+      }
+      return NextResponse.json({ received: true });
+    }
+
+    // Handle checkout.session.completed event (Legacy)
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
 

@@ -22,7 +22,6 @@ const LegalPageSchema = new Schema<ILegalPage>(
       required: true,
       enum: ["privacy", "terms", "cookie"],
       unique: true, // Only one active page per type
-      index: true,
     },
     title: {
       type: String,
