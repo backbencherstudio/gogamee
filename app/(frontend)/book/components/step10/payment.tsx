@@ -39,16 +39,8 @@ export default function Payment() {
       allData: formData,
     });
 
-    if (
-      !formData.selectedCity ||
-      !formData.selectedSport ||
-      !formData.selectedPackage
-    ) {
-      setError(
-        "Missing booking data. Please return to the homepage and restart your booking."
-      );
-      return;
-    }
+    // Note: Removed premature validation check here as formData might not be hydrated yet
+    // The actual validation happens in handleInitiatePayment() where we check formData.selectedCity
 
     if (!hasInitiatedRef.current && !clientSecret && !showSuccess) {
       hasInitiatedRef.current = true;
@@ -68,9 +60,48 @@ export default function Payment() {
     setError(null);
 
     try {
-      // Double check before sending to avoid payload errors
-      if (!formData.selectedCity)
-        throw new Error("Booking data (City) is missing.");
+      // Attempt to recover from localStorage if formData is missing
+      let workingData = formData;
+
+      if (
+        !formData.selectedCity ||
+        !formData.selectedSport ||
+        !formData.selectedPackage
+      ) {
+        console.log(
+          "⚠️ FormData missing critical fields, attempting localStorage recovery...",
+        );
+
+        if (typeof window !== "undefined") {
+          const savedData = localStorage.getItem("gogame_booking_data");
+          if (savedData) {
+            try {
+              const parsedData = JSON.parse(savedData);
+              if (
+                parsedData.selectedCity &&
+                parsedData.selectedSport &&
+                parsedData.selectedPackage
+              ) {
+                console.log("✅ Successfully recovered data from localStorage");
+                workingData = parsedData;
+              } else {
+                throw new Error("Incomplete booking data in localStorage");
+              }
+            } catch (parseError) {
+              console.error("❌ Failed to parse localStorage:", parseError);
+              throw new Error(
+                "Booking data (City, Sport, or Package) is missing.",
+              );
+            }
+          } else {
+            throw new Error(
+              "Booking data (City, Sport, or Package) is missing.",
+            );
+          }
+        } else {
+          throw new Error("Booking data (City, Sport, or Package) is missing.");
+        }
+      }
 
       const fallbackTraveler = {
         name:
@@ -91,9 +122,9 @@ export default function Payment() {
         resolvedTravelers.length > 0 ? resolvedTravelers : [fallbackTraveler];
 
       const bookingPayload: CreateBookingPayload = {
-        selectedSport: formData.selectedSport,
-        selectedPackage: formData.selectedPackage,
-        selectedCity: formData.selectedCity,
+        selectedSport: workingData.selectedSport,
+        selectedPackage: workingData.selectedPackage,
+        selectedCity: workingData.selectedCity,
         selectedLeague: formData.selectedLeague,
         adults: formData.peopleCount.adults,
         kids: formData.peopleCount.kids,
@@ -116,17 +147,17 @@ export default function Payment() {
         arrivalTimeEnd: formData.flightSchedule?.arrival.end || 0,
         departureTimeRange: formData.flightSchedule
           ? `${minutesToTime(
-              formData.flightSchedule.departure.start
+              formData.flightSchedule.departure.start,
             )} - ${minutesToTime(formData.flightSchedule.departure.end)}`
           : "",
         arrivalTimeRange: formData.flightSchedule
           ? `${minutesToTime(
-              formData.flightSchedule.arrival.start
+              formData.flightSchedule.arrival.start,
             )} - ${minutesToTime(formData.flightSchedule.arrival.end)}`
           : "",
         removedLeagues: Array.isArray(formData.removedLeagues)
           ? formData.removedLeagues.map(
-              (league: any) => league.id || league.name || ""
+              (league: any) => league.id || league.name || "",
             )
           : [],
         removedLeaguesCount: formData.removedLeagues?.length || 0,
@@ -147,7 +178,7 @@ export default function Payment() {
             ? Math.ceil(
                 (new Date(formData.returnDate).getTime() -
                   new Date(formData.departureDate).getTime()) /
-                  (1000 * 60 * 60 * 24)
+                  (1000 * 60 * 60 * 24),
               ) + 1
             : 0,
         hasFlightPreferences: formData.flightSchedule !== null,
@@ -264,7 +295,7 @@ export default function Payment() {
 
   console.log(
     "PAYMENT RENDER: Rendering StripeProvider. clientSecret present?",
-    !!clientSecret
+    !!clientSecret,
   );
   return (
     <div className="w-full xl:w-[894px]">

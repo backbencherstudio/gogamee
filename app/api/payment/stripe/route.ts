@@ -83,7 +83,7 @@ export async function POST(request: Request) {
     const freeRemovals = 1;
     const paidRemovals = Math.max(
       0,
-      payload.removedLeaguesCount - freeRemovals
+      payload.removedLeaguesCount - freeRemovals,
     );
     const removalCostPerPerson = paidRemovals * 20; // 20€ per paid removal
     const leagueRemovalCost =
@@ -97,39 +97,43 @@ export async function POST(request: Request) {
     const packageCostInCents = Math.max(0, Math.round(packageCost * 100));
 
     // 2. Persist Initial Booking (Pending)
+    // Prepare fallback values for required fields
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+    const todayFormatted = new Date().toLocaleDateString(); // Localized format
+
     const booking = await BookingService.create({
       status: "pending",
       payment_status: "unpaid",
-      selectedSport: payload.selectedSport,
-      selectedPackage: payload.selectedPackage,
-      selectedCity: payload.selectedCity,
-      selectedLeague: payload.selectedLeague,
-      adults: payload.adults,
-      kids: payload.kids,
-      babies: payload.babies,
-      departureDate: payload.departureDate,
-      returnDate: payload.returnDate,
-      departureDateFormatted: payload.departureDateFormatted,
-      returnDateFormatted: payload.returnDateFormatted,
-      departureTimeStart: payload.departureTimeStart,
-      departureTimeEnd: payload.departureTimeEnd,
-      arrivalTimeStart: payload.arrivalTimeStart,
-      arrivalTimeEnd: payload.arrivalTimeEnd,
-      departureTimeRange: payload.departureTimeRange,
-      arrivalTimeRange: payload.arrivalTimeRange,
-      removedLeagues: payload.removedLeagues,
-      removedLeaguesCount: payload.removedLeaguesCount,
-      hasRemovedLeagues: payload.hasRemovedLeagues,
-      totalExtrasCost: payload.totalExtrasCost,
-      extrasCount: payload.extrasCount,
+      selectedSport: payload.selectedSport || "football",
+      selectedPackage: payload.selectedPackage || "standard",
+      selectedCity: payload.selectedCity || "TBD",
+      selectedLeague: payload.selectedLeague || "TBD",
+      adults: payload.adults || 1,
+      kids: payload.kids || 0,
+      babies: payload.babies || 0,
+      departureDate: payload.departureDate || today,
+      returnDate: payload.returnDate || today,
+      departureDateFormatted: payload.departureDateFormatted || todayFormatted,
+      returnDateFormatted: payload.returnDateFormatted || todayFormatted,
+      departureTimeStart: payload.departureTimeStart || 0,
+      departureTimeEnd: payload.departureTimeEnd || 0,
+      arrivalTimeStart: payload.arrivalTimeStart || 0,
+      arrivalTimeEnd: payload.arrivalTimeEnd || 0,
+      departureTimeRange: payload.departureTimeRange || "TBD",
+      arrivalTimeRange: payload.arrivalTimeRange || "TBD",
+      removedLeagues: payload.removedLeagues || [],
+      removedLeaguesCount: payload.removedLeaguesCount || 0,
+      hasRemovedLeagues: payload.hasRemovedLeagues || false,
+      totalExtrasCost: payload.totalExtrasCost || 0,
+      extrasCount: payload.extrasCount || 0,
       isBookingComplete: false,
       firstName: payload.firstName,
-      lastName: payload.lastName || "",
+      lastName: payload.lastName || "N/A",
       email: payload.email,
       phone: payload.phone,
       totalCost: payload.totalCost,
-      bookingExtras: payload.bookingExtras,
-      allTravelers: payload.allTravelers,
+      bookingExtras: payload.bookingExtras || [],
+      allTravelers: payload.allTravelers || [],
       stripe_payment_intent_id: undefined,
     });
 
@@ -181,7 +185,7 @@ export async function POST(request: Request) {
     console.error("Create booking error", error);
     return NextResponse.json(
       { message: toErrorMessage(error, "Failed to create booking") },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

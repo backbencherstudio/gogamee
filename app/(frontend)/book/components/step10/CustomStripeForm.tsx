@@ -93,12 +93,16 @@ export default function CustomStripeForm({
   const stripe = useStripe();
   const elements = useElements();
   const [selectedPayment, setSelectedPayment] = useState<string>(
-    PAYMENT_METHODS.CREDIT
+    PAYMENT_METHODS.CREDIT,
   );
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardholderName, setCardholderName] = useState("");
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
-    null
+    null,
+  );
+  const [isWalletLoading, setIsWalletLoading] = useState(true);
+  const [walletType, setWalletType] = useState<"applePay" | "googlePay" | null>(
+    null,
   );
   const [isLocalhost, setIsLocalhost] = useState(false);
 
@@ -107,7 +111,7 @@ export default function CustomStripeForm({
     if (typeof window !== "undefined") {
       setIsLocalhost(
         window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1"
+          window.location.hostname === "127.0.0.1",
       );
     }
 
@@ -128,17 +132,27 @@ export default function CustomStripeForm({
           console.log("Stripe Wrapper: PaymentRequest result:", result);
           if (result) {
             setPaymentRequest(pr);
+            // Detect which wallet is available
+            if (result.applePay) {
+              setWalletType("applePay");
+              console.log("✅ Apple Pay is available");
+            } else if (result.googlePay) {
+              setWalletType("googlePay");
+              console.log("✅ Google Pay is available");
+            }
           } else {
             console.log(
-              "Stripe Wrapper: PaymentRequest (Apple/Google Pay) not available on this device/browser."
+              "Stripe Wrapper: PaymentRequest (Apple/Google Pay) not available on this device/browser.",
             );
           }
+          setIsWalletLoading(false);
         })
         .catch((error) => {
           console.error(
             "Stripe Wrapper: Error checking PaymentRequest availability:",
-            error
+            error,
           );
+          setIsWalletLoading(false);
         });
 
       pr.on("paymentmethod", async (ev) => {
@@ -146,7 +160,7 @@ export default function CustomStripeForm({
           await stripe.confirmCardPayment(
             clientSecret,
             { payment_method: ev.paymentMethod.id },
-            { handleActions: false }
+            { handleActions: false },
           );
 
         if (confirmError) {
@@ -205,7 +219,7 @@ export default function CustomStripeForm({
               name: cardholderName,
             },
           },
-        }
+        },
       );
 
       if (error) {
@@ -323,33 +337,39 @@ export default function CustomStripeForm({
                 onSelect={handlePaymentMethodChange}
                 label="Google Pay"
                 icon={
-                  <div className="w-16 md:w-20 inline-flex flex-col justify-center items-center gap-2">
+                  <div className="max-h-6 overflow-hidden inline-flex flex-col justify-center items-center gap-2">
                     <Image
                       src="/stepper/icon/gpay.png"
                       alt="Google Pay"
-                      className="h-4 md:h-6 w-auto"
-                      width={91}
-                      height={17}
+                      className="h-18 w-auto"
+                      width={200}
+                      height={200}
                     />
                   </div>
                 }
               >
                 <div className="w-full pl-0 pt-4">
-                  {paymentRequest ? (
+                  {isWalletLoading ? (
+                    <div className="flex justify-center items-center p-6">
+                      <div className="w-6 h-6 border-3 border-[#6AAD3C] border-t-transparent rounded-full animate-spin"></div>
+                      <span className="ml-3 text-sm text-gray-600 font-['Poppins']">
+                        Checking availability...
+                      </span>
+                    </div>
+                  ) : paymentRequest && walletType === "googlePay" ? (
                     <PaymentRequestButtonElement options={{ paymentRequest }} />
                   ) : (
                     <div className="p-4 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800 font-['Poppins']">
-                      <p className="font-bold">Wallet not available</p>
+                      <p className="font-bold">Google Pay not available</p>
                       {isLocalhost ? (
                         <p className="mt-1">
-                          Apple Pay & Google Pay are disabled on localhost
-                          (HTTP).
+                          Google Pay is disabled on localhost (HTTP).
                           <br />
                           To test, please use the Credit Card option.
                         </p>
                       ) : (
                         <p className="mt-1">
-                          No saved cards found or HTTPS missing.
+                          Google Pay is not supported for your device or region.
                         </p>
                       )}
                     </div>
@@ -376,21 +396,27 @@ export default function CustomStripeForm({
                 }
               >
                 <div className="w-full pl-0 pt-4">
-                  {paymentRequest ? (
+                  {isWalletLoading ? (
+                    <div className="flex justify-center items-center p-6">
+                      <div className="w-6 h-6 border-3 border-[#6AAD3C] border-t-transparent rounded-full animate-spin"></div>
+                      <span className="ml-3 text-sm text-gray-600 font-['Poppins']">
+                        Checking availability...
+                      </span>
+                    </div>
+                  ) : paymentRequest && walletType === "applePay" ? (
                     <PaymentRequestButtonElement options={{ paymentRequest }} />
                   ) : (
                     <div className="p-4 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800 font-['Poppins']">
-                      <p className="font-bold">Wallet not available</p>
+                      <p className="font-bold">Apple Pay not available</p>
                       {isLocalhost ? (
                         <p className="mt-1">
-                          Apple Pay & Google Pay are disabled on localhost
-                          (HTTP).
+                          Apple Pay is disabled on localhost (HTTP).
                           <br />
                           To test, please use the Credit Card option.
                         </p>
                       ) : (
                         <p className="mt-1">
-                          No saved cards found or HTTPS missing.
+                          Apple Pay is not supported for your device or region.
                         </p>
                       )}
                     </div>
