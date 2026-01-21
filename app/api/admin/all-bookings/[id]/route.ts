@@ -14,19 +14,48 @@ async function getId(context: RouteContext) {
   return id;
 }
 
+export async function GET(_: Request, context: RouteContext) {
+  try {
+    const id = await getId(context);
+    const booking = await BookingService.getById(id);
+
+    if (!booking) {
+      return NextResponse.json(
+        { message: "Booking not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ data: booking });
+  } catch (error) {
+    return NextResponse.json(
+      { message: toErrorMessage(error, "Failed to fetch booking") },
+      { status: 500 },
+    );
+  }
+}
+
 export async function DELETE(_: Request, context: RouteContext) {
   try {
     const id = await getId(context);
-    await BookingService.deleteById(id);
-    return new NextResponse(null, {
-      status: 204,
-      headers: { "Cache-Control": "no-store" },
+    const deleted = await BookingService.deleteById(id);
+
+    if (!deleted) {
+      return NextResponse.json(
+        { message: "Booking not found or already deleted" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Booking deleted successfully",
     });
   } catch (error: unknown) {
     console.error("Delete booking error", error);
     return NextResponse.json(
       { message: toErrorMessage(error, "Failed to delete booking") },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

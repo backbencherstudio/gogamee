@@ -19,7 +19,7 @@ const minutesToTime = (minutes: number): string => {
 };
 
 export default function Payment() {
-  const { formData, clearBookingData } = useBooking();
+  const { formData, clearBookingData, isHydrated } = useBooking();
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
@@ -29,13 +29,22 @@ export default function Payment() {
   // Use a ref to prevent double-initiation in React Strict Mode
   const hasInitiatedRef = useRef(false);
 
-  // Auto-initiate payment on mount
+  // Auto-initiate payment on mount - but WAIT for context to hydrate first
   useEffect(() => {
+    // CRITICAL: Wait for context to be hydrated first
+    if (!isHydrated) {
+      console.log(
+        "⏳ Waiting for context hydration before initiating payment...",
+      );
+      return;
+    }
+
     // Validate essential data existence first
     console.log("🔍 Payment Step - Checking formData:", {
       city: formData.selectedCity,
       sport: formData.selectedSport,
       pkg: formData.selectedPackage,
+      isHydrated,
       allData: formData,
     });
 
@@ -46,7 +55,7 @@ export default function Payment() {
       hasInitiatedRef.current = true;
       handleInitiatePayment();
     }
-  }, []); // Run once on mount
+  }, [isHydrated]); // Dependency on isHydrated
 
   const resolveTravelerData = useCallback(() => {
     if (formData.allTravelers && formData.allTravelers.length > 0) {
@@ -68,15 +77,26 @@ export default function Payment() {
         !formData.selectedSport ||
         !formData.selectedPackage
       ) {
-        console.log(
-          "⚠️ FormData missing critical fields, attempting localStorage recovery...",
-        );
+        console.log("⚠️ FormData missing critical fields:", {
+          city: formData.selectedCity || "MISSING",
+          sport: formData.selectedSport || "MISSING",
+          package: formData.selectedPackage || "MISSING",
+        });
+        console.log("🔍 Attempting localStorage recovery...");
 
         if (typeof window !== "undefined") {
           const savedData = localStorage.getItem("gogame_booking_data");
+          console.log("📦 LocalStorage data exists:", !!savedData);
+
           if (savedData) {
             try {
               const parsedData = JSON.parse(savedData);
+              console.log("✅ Parsed localStorage data:", {
+                city: parsedData.selectedCity,
+                sport: parsedData.selectedSport,
+                package: parsedData.selectedPackage,
+              });
+
               if (
                 parsedData.selectedCity &&
                 parsedData.selectedSport &&
@@ -85,6 +105,10 @@ export default function Payment() {
                 console.log("✅ Successfully recovered data from localStorage");
                 workingData = parsedData;
               } else {
+                console.error(
+                  "❌ Incomplete data in localStorage:",
+                  parsedData,
+                );
                 throw new Error("Incomplete booking data in localStorage");
               }
             } catch (parseError) {
@@ -94,6 +118,7 @@ export default function Payment() {
               );
             }
           } else {
+            console.error("❌ No localStorage data found");
             throw new Error(
               "Booking data (City, Sport, or Package) is missing.",
             );
@@ -101,6 +126,12 @@ export default function Payment() {
         } else {
           throw new Error("Booking data (City, Sport, or Package) is missing.");
         }
+      } else {
+        console.log("✅ FormData has all required fields:", {
+          city: formData.selectedCity,
+          sport: formData.selectedSport,
+          package: formData.selectedPackage,
+        });
       }
 
       const fallbackTraveler = {
@@ -223,7 +254,7 @@ export default function Payment() {
     }
     clearBookingData();
     setTimeout(() => {
-      window.location.href = "/?payment=success";
+      window.location.href = "/";
     }, 3000);
   };
 

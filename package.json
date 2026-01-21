@@ -4,11 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "set TURBOPACK=0&& next dev",
-    "dev:frontend": "set TURBOPACK=0&& next dev",
-    "dev:backend": "tsx watch server/index.ts",
     "build": "set TURBOPACK=0&& next build",
     "start": "next start",
-    "start:backend": "tsx server/index.ts",
     "lint": "next lint",
     "seed": "tsx --env-file=.env _backend/seed.ts"
   },

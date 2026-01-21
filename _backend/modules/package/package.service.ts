@@ -106,7 +106,7 @@ class PackageService {
 
   async updateById(
     id: string,
-    data: UpdatePackageData
+    data: UpdatePackageData,
   ): Promise<IPackage | null> {
     await connectToDatabase();
     const updated = await Package.findByIdAndUpdate(id, data, {
@@ -136,6 +136,7 @@ class PackageService {
     return !!result;
   }
 
+  /* UNUSED
   async hardDeleteById(id: string): Promise<boolean> {
     await connectToDatabase();
     const result = await Package.findByIdAndDelete(id);
@@ -147,6 +148,7 @@ class PackageService {
 
     return !!result;
   }
+  */
 
   async getAvailableSports(): Promise<string[]> {
     const CACHE_KEY = "package:sports";
@@ -161,6 +163,7 @@ class PackageService {
     return sports;
   }
 
+  /* UNUSED
   async getCategoriesBySport(sport: string): Promise<string[]> {
     await connectToDatabase();
     const categories = await Package.distinct("category", {
@@ -177,7 +180,9 @@ class PackageService {
       isActive: true,
     }).sort({ sortOrder: 1, createdAt: -1 });
   }
+  */
 
+  /* UNUSED
   async updateSortOrder(
     updates: { id: string; sortOrder: number }[]
   ): Promise<void> {
@@ -195,7 +200,9 @@ class PackageService {
     // Invalidate all package caches as order changed
     await clearCachePattern("package:*");
   }
+  */
 
+  /* UNUSED
   async getStats(): Promise<{
     totalPackages: number;
     activePackages: number;
@@ -232,7 +239,9 @@ class PackageService {
     await setCache(CACHE_KEY, stats, 600); // 10 mins
     return stats;
   }
+  */
 
+  /* UNUSED
   async toggleActiveStatus(id: string): Promise<IPackage | null> {
     await connectToDatabase();
 
@@ -249,6 +258,7 @@ class PackageService {
 
     return updated;
   }
+  */
 }
 
 export default new PackageService();

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 
 export interface ExtraService {
   id: string;
@@ -151,6 +157,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   const [formData, setFormData] =
     useState<BookingContextType["formData"]>(getDefaultFormData);
   const [isHydrated, setIsHydrated] = useState(false);
+  const heroDataProcessedRef = useRef(false); // Track if hero data was processed
 
   // Debug effect to monitor currentStep changes
   useEffect(() => {
@@ -166,7 +173,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     if (typeof window !== "undefined") {
       // 🎯 PRIORITY 1: Check for hero data first
       const heroData = localStorage.getItem("gogame_hero_data");
-      if (heroData) {
+      if (heroData && !heroDataProcessedRef.current) {
+        heroDataProcessedRef.current = true; // Mark as processed
         try {
           const parsedHeroData = JSON.parse(heroData);
           console.log(
@@ -247,35 +255,39 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
         } catch (error) {
           console.error("Error parsing hero data:", error);
           localStorage.removeItem("gogame_hero_data"); // Clean up invalid data
+          heroDataProcessedRef.current = false; // Reset flag on error
         }
       }
 
       // 📦 PRIORITY 2: Load normal booking data from localStorage (only if no hero data)
-      const savedData = localStorage.getItem("gogame_booking_data");
-      if (savedData) {
-        try {
-          const parsedData = JSON.parse(savedData);
-          setFormData(parsedData);
-          console.log("📦 Loaded existing booking data from localStorage");
-        } catch (error) {
-          console.error("Error parsing localStorage data:", error);
+      // Skip this if hero data was already processed
+      if (!heroDataProcessedRef.current) {
+        const savedData = localStorage.getItem("gogame_booking_data");
+        if (savedData) {
+          try {
+            const parsedData = JSON.parse(savedData);
+            setFormData(parsedData);
+            console.log("📦 Loaded existing booking data from localStorage");
+          } catch (error) {
+            console.error("Error parsing localStorage data:", error);
+          }
         }
-      }
 
-      // Load currentStep from localStorage (only if no hero data was processed)
-      const savedStep = localStorage.getItem("gogame_booking_step");
-      if (savedStep) {
-        try {
-          const step = parseFloat(savedStep);
-          setCurrentStep(step);
-          console.log("📍 Loaded current step from localStorage:", step + 1);
-        } catch (error) {
-          console.error("Error parsing localStorage step:", error);
+        // Load currentStep from localStorage (only if no hero data was processed)
+        const savedStep = localStorage.getItem("gogame_booking_step");
+        if (savedStep) {
+          try {
+            const step = parseFloat(savedStep);
+            setCurrentStep(step);
+            console.log("📍 Loaded current step from localStorage:", step + 1);
+          } catch (error) {
+            console.error("Error parsing localStorage step:", error);
+          }
         }
-      }
 
-      // Set isHydrated to true after all normal data loading is complete
-      setIsHydrated(true);
+        // Set isHydrated to true after all normal data loading is complete
+        setIsHydrated(true);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

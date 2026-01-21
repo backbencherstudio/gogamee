@@ -28,6 +28,7 @@ export interface IUser extends Document {
   fullName: string;
   isLocked: boolean;
   // Methods
+  comparePassword(candidatePassword: string): Promise<boolean>;
   getPublicProfile(): any;
 }
 
@@ -130,7 +131,7 @@ const UserSchema = new Schema<IUser>(
   {
     timestamps: true,
     collection: "users",
-  }
+  },
 );
 
 // Indexes
@@ -164,7 +165,7 @@ UserSchema.pre("save", async function () {
 
 // Instance method to check password
 UserSchema.methods.comparePassword = async function (
-  candidatePassword: string
+  candidatePassword: string,
 ): Promise<boolean> {
   return bcrypt.compare(candidatePassword, this.password);
 };
@@ -178,7 +179,7 @@ UserSchema.methods.incLoginAttempts = async function (this: IUser) {
       {
         $unset: { lockUntil: 1 },
         $set: { loginAttempts: 1 },
-      }
+      },
     );
     this.lockUntil = undefined;
     this.loginAttempts = 1;
@@ -208,7 +209,7 @@ UserSchema.methods.resetLoginAttempts = async function (this: IUser) {
     {
       $unset: { loginAttempts: 1, lockUntil: 1 },
       $set: { lastLogin: new Date() },
-    }
+    },
   );
   this.loginAttempts = 0;
   this.lockUntil = undefined;

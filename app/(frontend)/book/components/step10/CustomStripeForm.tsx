@@ -96,6 +96,7 @@ export default function CustomStripeForm({
     PAYMENT_METHODS.CREDIT,
   );
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<string>("");
   const [cardholderName, setCardholderName] = useState("");
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
     null,
@@ -176,21 +177,83 @@ export default function CustomStripeForm({
     }
   }, [stripe, amount, clientSecret]);
 
-  const confirmBackend = async (paymentIntentId: string) => {
+  const confirmBackend = async (paymentIntentId: string, attempts = 0) => {
+    const MAX_ATTEMPTS = 5;
+    const POLLING_INTERVAL = 2000; // 2 seconds
+
     try {
-      const res = await fetch("/api/payment/confirm", {
+      setPaymentStatus(
+        attempts > 0 ? "Finalizing booking..." : "Verifying payment...",
+      );
+
+      // Call verify endpoint (Read-only check)
+      const res = await fetch("/api/payment/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentIntentId, bookingId }),
+        body: JSON.stringify({
+          sessionId: paymentIntentId, // Send ONLY sessionId as requested
+        }),
       });
+
+      const data = await res.json();
+
       if (res.ok) {
+        // Success (200)
+        console.log("✅ Payment verified via Webhook Sync:", data);
         onSuccess();
+      } else if (res.status === 202 || res.status === 404) {
+        // Payment processing (Webhook pending) - Retry?
+        if (attempts < MAX_ATTEMPTS) {
+          console.log(
+            `⏳ Verification pending (Attempt ${attempts + 1}/${MAX_ATTEMPTS}). Retrying in ${POLLING_INTERVAL}ms...`,
+          );
+          setTimeout(
+            () => confirmBackend(paymentIntentId, attempts + 1),
+            POLLING_INTERVAL,
+          );
+        } else {
+          // Max attempts reached - Assume success for UX but warn
+          console.warn(
+            "⚠️ Verification timed out (Webhook slow). Assuming success for UX.",
+          );
+          onError(
+            "Payment successful, checks are pending. Confirmation email will arrive shortly.",
+          );
+          // Ideally we might want to call onSuccess() here too if we trust Stripe frontend success?
+          // Let's call onSuccess() because money is taken.
+          onSuccess();
+        }
       } else {
-        const err = await res.json();
-        onError(err.message || "Backend confirmation failed");
+        // Hard failure (400, 500)
+        console.error("❌ Payment verification failed:", data);
+        onError(data.message || "Backend confirmation failed");
+
+        // Only trigger failure email if it's not a verification timeout
+        try {
+          await fetch("/api/mail/payment-failed", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              bookingId,
+              // We use cardholderName as fallback for now
+              userEmail: "customer",
+              userName: cardholderName || "Guest",
+              amount: amount,
+              errorMessage: data.message || "Backend verification failed",
+            }),
+          });
+        } catch (e) {
+          console.error("Failed to send failure email", e);
+        }
       }
     } catch (error) {
+      console.error("❌ Network error:", error);
       onError("Network error confirming payment");
+    } finally {
+      if (attempts >= MAX_ATTEMPTS) {
+        setIsProcessing(false);
+        setPaymentStatus("");
+      }
     }
   };
 
@@ -199,6 +262,7 @@ export default function CustomStripeForm({
     if (!stripe || !elements) return;
 
     setIsProcessing(true);
+    setPaymentStatus("Processing payment...");
 
     // Handle Card Payment
     if (selectedPayment === PAYMENT_METHODS.CREDIT) {
@@ -223,12 +287,36 @@ export default function CustomStripeForm({
       );
 
       if (error) {
+        console.error("❌ Payment failed:", error);
+
+        // Send payment failed email
+        try {
+          await fetch("/api/mail/payment-failed", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              bookingId: bookingId,
+              userEmail: cardholderName || "customer", // Use cardholderName as proxy for now
+              userName: cardholderName || "Customer",
+              amount: amount,
+              errorMessage: error.message,
+            }),
+          });
+          console.log("📧 Payment failure notification sent");
+        } catch (emailErr) {
+          console.error("⚠️ Failed to send payment failure email:", emailErr);
+          // Don't block the error flow if email fails
+        }
+
         onError(error.message || "Card payment failed");
         setIsProcessing(false);
+        setPaymentStatus("");
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
+        setPaymentStatus("Confirming booking...");
         confirmBackend(paymentIntent.id);
       } else {
         setIsProcessing(false);
+        setPaymentStatus("");
       }
     }
   };
@@ -238,218 +326,243 @@ export default function CustomStripeForm({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="w-full xl:w-[894px] px-4 md:px-5 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 md:gap-6 min-h-[600px] xl:min-h-0">
-        {/* Title */}
-        <div className="self-stretch flex flex-col justify-center items-start gap-3">
-          <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
-            <div className="justify-center text-neutral-800 text-xl md:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 md:leading-8 xl:leading-10">
-              {paymentData.text.title}
-            </div>
-          </div>
-
-          <div className="self-stretch flex flex-col justify-start items-start gap-4 md:gap-6">
-            <div className="self-stretch px-4 md:px-5 py-5 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
-              <div className="self-stretch inline-flex justify-start items-center gap-2">
-                <div className="justify-start text-neutral-800 text-base md:text-lg font-semibold font-['Poppins'] leading-loose">
-                  {paymentData.text.paymentMethodTitle}
-                </div>
-              </div>
-
-              {/* Credit Card Option */}
-              <PaymentMethodOption
-                method={PAYMENT_METHODS.CREDIT}
-                selectedPayment={selectedPayment}
-                onSelect={handlePaymentMethodChange}
-                label={paymentData.paymentMethods[0].label}
-                icon={
-                  <div className="flex justify-start items-center gap-2 md:gap-3">
-                    <div className="w-14 md:w-16 p-1.5 md:p-2 bg-white rounded-[2.92px] outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
-                      <Image
-                        src="/stepper/icon/visa.png"
-                        alt="Visa"
-                        className="h-auto w-full"
-                        width={55}
-                        height={17}
-                      />
-                    </div>
-                    <div className="w-14 md:w-16 h-7 md:h-8 p-1.5 md:p-2 bg-white rounded-[2.91px] outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
-                      <Image
-                        src="/stepper/icon/mastercard.png"
-                        alt="Mastercard"
-                        className="h-5 md:h-6 w-auto"
-                        width={40}
-                        height={25}
-                      />
-                    </div>
-                  </div>
-                }
-              >
-                {/* Credit Card Form Content - Only rendered when selected */}
-                <div className="self-stretch flex flex-col justify-start items-start gap-4 md:gap-5 mt-4">
-                  <div className="self-stretch flex flex-col justify-start items-start gap-4">
-                    {/* Name on Card */}
-                    <div className="self-stretch flex flex-col md:flex-row justify-start items-start gap-4 md:gap-6">
-                      <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
-                        <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                          {paymentData.text.nameOnCardLabel}
-                        </div>
-                        <input
-                          type="text"
-                          placeholder={paymentData.text.nameOnCardPlaceholder}
-                          value={cardholderName}
-                          onChange={(e) => setCardholderName(e.target.value)}
-                          className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
-                          required
-                        />
-                      </div>
-                      <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
-                        <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                          {paymentData.text.expiryLabel}
-                        </div>
-                        <StripeInput component={CardExpiryElement} />
-                      </div>
-                    </div>
-
-                    {/* Card Number & CVC */}
-                    <div className="self-stretch flex flex-col md:flex-row justify-start items-start gap-4">
-                      <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
-                        <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                          {paymentData.text.cardNumberLabel}
-                        </div>
-                        <StripeInput component={CardNumberElement} />
-                      </div>
-                      <div className="w-full md:w-32 inline-flex flex-col justify-start items-start gap-2">
-                        <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                          {paymentData.text.cvvLabel}
-                        </div>
-                        <StripeInput component={CardCvcElement} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </PaymentMethodOption>
-
-              {/* Google Pay Option */}
-              <PaymentMethodOption
-                method={PAYMENT_METHODS.GOOGLE}
-                selectedPayment={selectedPayment}
-                onSelect={handlePaymentMethodChange}
-                label="Google Pay"
-                icon={
-                  <div className="max-h-6 overflow-hidden inline-flex flex-col justify-center items-center gap-2">
-                    <Image
-                      src="/stepper/icon/gpay.png"
-                      alt="Google Pay"
-                      className="h-18 w-auto"
-                      width={200}
-                      height={200}
-                    />
-                  </div>
-                }
-              >
-                <div className="w-full pl-0 pt-4">
-                  {isWalletLoading ? (
-                    <div className="flex justify-center items-center p-6">
-                      <div className="w-6 h-6 border-3 border-[#6AAD3C] border-t-transparent rounded-full animate-spin"></div>
-                      <span className="ml-3 text-sm text-gray-600 font-['Poppins']">
-                        Checking availability...
-                      </span>
-                    </div>
-                  ) : paymentRequest && walletType === "googlePay" ? (
-                    <PaymentRequestButtonElement options={{ paymentRequest }} />
-                  ) : (
-                    <div className="p-4 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800 font-['Poppins']">
-                      <p className="font-bold">Google Pay not available</p>
-                      {isLocalhost ? (
-                        <p className="mt-1">
-                          Google Pay is disabled on localhost (HTTP).
-                          <br />
-                          To test, please use the Credit Card option.
-                        </p>
-                      ) : (
-                        <p className="mt-1">
-                          Google Pay is not supported for your device or region.
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </PaymentMethodOption>
-
-              {/* Apple Pay Option */}
-              <PaymentMethodOption
-                method={PAYMENT_METHODS.APPLE}
-                selectedPayment={selectedPayment}
-                onSelect={handlePaymentMethodChange}
-                label="Apple Pay"
-                icon={
-                  <div className="w-16 md:w-20 inline-flex flex-col justify-center items-center gap-2">
-                    <Image
-                      src="/stepper/icon/apay.png"
-                      alt="Apple Pay"
-                      className="h-4 md:h-6 w-auto"
-                      width={41}
-                      height={17}
-                    />
-                  </div>
-                }
-              >
-                <div className="w-full pl-0 pt-4">
-                  {isWalletLoading ? (
-                    <div className="flex justify-center items-center p-6">
-                      <div className="w-6 h-6 border-3 border-[#6AAD3C] border-t-transparent rounded-full animate-spin"></div>
-                      <span className="ml-3 text-sm text-gray-600 font-['Poppins']">
-                        Checking availability...
-                      </span>
-                    </div>
-                  ) : paymentRequest && walletType === "applePay" ? (
-                    <PaymentRequestButtonElement options={{ paymentRequest }} />
-                  ) : (
-                    <div className="p-4 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800 font-['Poppins']">
-                      <p className="font-bold">Apple Pay not available</p>
-                      {isLocalhost ? (
-                        <p className="mt-1">
-                          Apple Pay is disabled on localhost (HTTP).
-                          <br />
-                          To test, please use the Credit Card option.
-                        </p>
-                      ) : (
-                        <p className="mt-1">
-                          Apple Pay is not supported for your device or region.
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </PaymentMethodOption>
+    <>
+      {/* Payment Processing Overlay */}
+      {isProcessing && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 flex flex-col items-center gap-6 shadow-2xl">
+            <div className="w-16 h-16 border-4 border-[#76C043] border-t-transparent rounded-full animate-spin"></div>
+            <div className="text-center">
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                {paymentStatus || "Processing..."}
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Please don't close or refresh this page
+              </p>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Submit Button */}
-        {selectedPayment === PAYMENT_METHODS.CREDIT && (
+      <form onSubmit={handleSubmit}>
+        <div className="w-full xl:w-[894px] px-4 md:px-5 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 md:gap-6 min-h-[600px] xl:min-h-0">
+          {/* Title */}
           <div className="self-stretch flex flex-col justify-center items-start gap-3">
+            <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
+              <div className="justify-center text-neutral-800 text-xl md:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 md:leading-8 xl:leading-10">
+                {paymentData.text.title}
+              </div>
+            </div>
+
             <div className="self-stretch flex flex-col justify-start items-start gap-4 md:gap-6">
-              <button
-                type="submit"
-                disabled={isProcessing || !stripe}
-                className={`w-full md:w-44 h-12 md:h-11 px-4 md:px-3.5 py-3 md:py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all duration-200 ${
-                  isProcessing || !stripe
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#6AAD3C] hover:bg-lime-600 cursor-pointer"
-                }`}
-              >
-                <div className="text-center justify-start text-white text-sm md:text-base font-medium md:font-normal font-['Inter']">
-                  {isProcessing
-                    ? "Procesando..."
-                    : paymentData.text.confirmButton}
+              <div className="self-stretch px-4 md:px-5 py-5 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
+                <div className="self-stretch inline-flex justify-start items-center gap-2">
+                  <div className="justify-start text-neutral-800 text-base md:text-lg font-semibold font-['Poppins'] leading-loose">
+                    {paymentData.text.paymentMethodTitle}
+                  </div>
                 </div>
-              </button>
+
+                {/* Credit Card Option */}
+                <PaymentMethodOption
+                  method={PAYMENT_METHODS.CREDIT}
+                  selectedPayment={selectedPayment}
+                  onSelect={handlePaymentMethodChange}
+                  label={paymentData.paymentMethods[0].label}
+                  icon={
+                    <div className="flex justify-start items-center gap-2 md:gap-3">
+                      <div className="w-14 md:w-16 p-1.5 md:p-2 bg-white rounded-[2.92px] outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
+                        <Image
+                          src="/stepper/icon/visa.png"
+                          alt="Visa"
+                          className="h-auto w-full"
+                          width={55}
+                          height={17}
+                        />
+                      </div>
+                      <div className="w-14 md:w-16 h-7 md:h-8 p-1.5 md:p-2 bg-white rounded-[2.91px] outline-1 outline-offset-[-1px] outline-green-50 inline-flex flex-col justify-center items-center gap-2">
+                        <Image
+                          src="/stepper/icon/mastercard.png"
+                          alt="Mastercard"
+                          className="h-5 md:h-6 w-auto"
+                          width={40}
+                          height={25}
+                        />
+                      </div>
+                    </div>
+                  }
+                >
+                  {/* Credit Card Form Content - Only rendered when selected */}
+                  <div className="self-stretch flex flex-col justify-start items-start gap-4 md:gap-5 mt-4">
+                    <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                      {/* Name on Card */}
+                      <div className="self-stretch flex flex-col md:flex-row justify-start items-start gap-4 md:gap-6">
+                        <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
+                          <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
+                            {paymentData.text.nameOnCardLabel}
+                          </div>
+                          <input
+                            type="text"
+                            placeholder={paymentData.text.nameOnCardPlaceholder}
+                            value={cardholderName}
+                            onChange={(e) => setCardholderName(e.target.value)}
+                            className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
+                            required
+                          />
+                        </div>
+                        <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
+                          <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
+                            {paymentData.text.expiryLabel}
+                          </div>
+                          <StripeInput component={CardExpiryElement} />
+                        </div>
+                      </div>
+
+                      {/* Card Number & CVC */}
+                      <div className="self-stretch flex flex-col md:flex-row justify-start items-start gap-4">
+                        <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
+                          <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
+                            {paymentData.text.cardNumberLabel}
+                          </div>
+                          <StripeInput component={CardNumberElement} />
+                        </div>
+                        <div className="w-full md:w-32 inline-flex flex-col justify-start items-start gap-2">
+                          <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
+                            {paymentData.text.cvvLabel}
+                          </div>
+                          <StripeInput component={CardCvcElement} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </PaymentMethodOption>
+
+                {/* Google Pay Option */}
+                <PaymentMethodOption
+                  method={PAYMENT_METHODS.GOOGLE}
+                  selectedPayment={selectedPayment}
+                  onSelect={handlePaymentMethodChange}
+                  label="Google Pay"
+                  icon={
+                    <div className="max-h-6 overflow-hidden inline-flex flex-col justify-center items-center gap-2">
+                      <Image
+                        src="/stepper/icon/gpay.png"
+                        alt="Google Pay"
+                        className="h-18 w-auto"
+                        width={200}
+                        height={200}
+                      />
+                    </div>
+                  }
+                >
+                  <div className="w-full pl-0 pt-4">
+                    {isWalletLoading ? (
+                      <div className="flex justify-center items-center p-6">
+                        <div className="w-6 h-6 border-3 border-[#6AAD3C] border-t-transparent rounded-full animate-spin"></div>
+                        <span className="ml-3 text-sm text-gray-600 font-['Poppins']">
+                          Checking availability...
+                        </span>
+                      </div>
+                    ) : paymentRequest && walletType === "googlePay" ? (
+                      <PaymentRequestButtonElement
+                        options={{ paymentRequest }}
+                      />
+                    ) : (
+                      <div className="p-4 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800 font-['Poppins']">
+                        <p className="font-bold">Google Pay not available</p>
+                        {isLocalhost ? (
+                          <p className="mt-1">
+                            Google Pay is disabled on localhost (HTTP).
+                            <br />
+                            To test, please use the Credit Card option.
+                          </p>
+                        ) : (
+                          <p className="mt-1">
+                            Google Pay is not supported for your device or
+                            region.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </PaymentMethodOption>
+
+                {/* Apple Pay Option */}
+                <PaymentMethodOption
+                  method={PAYMENT_METHODS.APPLE}
+                  selectedPayment={selectedPayment}
+                  onSelect={handlePaymentMethodChange}
+                  label="Apple Pay"
+                  icon={
+                    <div className="w-16 md:w-20 inline-flex flex-col justify-center items-center gap-2">
+                      <Image
+                        src="/stepper/icon/apay.png"
+                        alt="Apple Pay"
+                        className="h-4 md:h-6 w-auto"
+                        width={41}
+                        height={17}
+                      />
+                    </div>
+                  }
+                >
+                  <div className="w-full pl-0 pt-4">
+                    {isWalletLoading ? (
+                      <div className="flex justify-center items-center p-6">
+                        <div className="w-6 h-6 border-3 border-[#6AAD3C] border-t-transparent rounded-full animate-spin"></div>
+                        <span className="ml-3 text-sm text-gray-600 font-['Poppins']">
+                          Checking availability...
+                        </span>
+                      </div>
+                    ) : paymentRequest && walletType === "applePay" ? (
+                      <PaymentRequestButtonElement
+                        options={{ paymentRequest }}
+                      />
+                    ) : (
+                      <div className="p-4 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800 font-['Poppins']">
+                        <p className="font-bold">Apple Pay not available</p>
+                        {isLocalhost ? (
+                          <p className="mt-1">
+                            Apple Pay is disabled on localhost (HTTP).
+                            <br />
+                            To test, please use the Credit Card option.
+                          </p>
+                        ) : (
+                          <p className="mt-1">
+                            Apple Pay is not supported for your device or
+                            region.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </PaymentMethodOption>
+              </div>
             </div>
           </div>
-        )}
-      </div>
-    </form>
+
+          {/* Submit Button */}
+          {selectedPayment === PAYMENT_METHODS.CREDIT && (
+            <div className="self-stretch flex flex-col justify-center items-start gap-3">
+              <div className="self-stretch flex flex-col justify-start items-start gap-4 md:gap-6">
+                <button
+                  type="submit"
+                  disabled={isProcessing || !stripe}
+                  className={`w-full md:w-44 h-12 md:h-11 px-4 md:px-3.5 py-3 md:py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all duration-200 ${
+                    isProcessing || !stripe
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#6AAD3C] hover:bg-lime-600 cursor-pointer"
+                  }`}
+                >
+                  <div className="text-center justify-start text-white text-sm md:text-base font-medium md:font-normal font-['Inter']">
+                    {isProcessing
+                      ? "Procesando..."
+                      : paymentData.text.confirmButton}
+                  </div>
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </form>
+    </>
   );
 }

@@ -21,10 +21,10 @@ if (
   webhookSecret.includes("YOUR_WEBHOOK")
 ) {
   console.error(
-    "❌ CRITICAL: STRIPE_WEBHOOK_SECRET is not set or is a placeholder!"
+    "❌ CRITICAL: STRIPE_WEBHOOK_SECRET is not set or is a placeholder!",
   );
   console.error(
-    "❌ Please set the actual webhook secret from Stripe Dashboard in Vercel environment variables"
+    "❌ Please set the actual webhook secret from Stripe Dashboard in Vercel environment variables",
   );
 }
 
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     console.log("🔑 Webhook secret length:", webhookSecret.length);
     console.log(
       "🔑 Webhook secret starts with whsec_:",
-      webhookSecret.startsWith("whsec_")
+      webhookSecret.startsWith("whsec_"),
     );
 
     const body = await request.text();
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       console.error("❌ No Stripe signature found");
       return NextResponse.json(
         { error: "No signature provided" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
           error: "Webhook secret not configured properly",
           details: "STRIPE_WEBHOOK_SECRET must be set in environment variables",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -85,11 +85,11 @@ export async function POST(request: NextRequest) {
       console.error("❌ Webhook signature verification failed");
       console.error(
         "❌ Error details:",
-        err instanceof Error ? err.message : String(err)
+        err instanceof Error ? err.message : String(err),
       );
       console.error(
         "❌ Expected secret (first 10 chars):",
-        webhookSecret.substring(0, 10) + "..."
+        webhookSecret.substring(0, 10) + "...",
       );
       return NextResponse.json(
         {
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
           details: err instanceof Error ? err.message : "Unknown error",
           hint: "Check if STRIPE_WEBHOOK_SECRET in Vercel matches the webhook secret in Stripe Dashboard",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -123,15 +123,30 @@ export async function POST(request: NextRequest) {
           if (updatedBooking) {
             console.log("✅ Booking updated:", bookingId);
 
-            // Reuse existing email logic if possible, or duplicate it here
-            try {
-              const { sendBookingConfirmationEmail } = await import(
-                "../../mail/send-booking-email"
+            // Check if email was already sent using Redis deduplication
+            // This handles cases where Verify API updated status but didn't send email (new architecture)
+            // or if Webhook is retrying
+            const shouldSendEmail = await (
+              await import("@/_backend/lib/email-queue")
+            ).emailQueue.checkAndMarkEmailSent(bookingId);
+
+            if (shouldSendEmail) {
+              try {
+                const { sendBookingConfirmationEmail } =
+                  await import("../../mail/send-booking-email");
+                await sendBookingConfirmationEmail(updatedBooking as any);
+                console.log("📧 Confirmation email sent");
+              } catch (e) {
+                console.error("❌ Email failed:", e);
+                // Reset flag so retry can work?
+                // sendBookingConfirmationEmail already handles queueing, so we don't need to reset flag mostly.
+                // But if sendBookingConfirmationEmail fails BEFORE queueing, we might lose email.
+                // However, sendBookingConfirmationEmail function handles queueing internally now.
+              }
+            } else {
+              console.log(
+                "⚠️ Email already sent for this booking (Deduplicated)",
               );
-              await sendBookingConfirmationEmail(updatedBooking as any);
-              console.log("📧 Confirmation email sent");
-            } catch (e) {
-              console.error("❌ Email failed:", e);
             }
           }
         } catch (err) {
@@ -155,7 +170,7 @@ export async function POST(request: NextRequest) {
         console.error("❌ No booking_id in session metadata");
         return NextResponse.json(
           { error: "No booking_id found in session metadata" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -176,13 +191,12 @@ export async function POST(request: NextRequest) {
         try {
           console.log(
             "📧 Sending confirmation email to:",
-            updatedBooking.email
+            updatedBooking.email,
           );
 
           // Import and call email function directly (works for both localhost and Vercel)
-          const { sendBookingConfirmationEmail } = await import(
-            "../../mail/send-booking-email"
-          );
+          const { sendBookingConfirmationEmail } =
+            await import("../../mail/send-booking-email");
 
           const bookingData: any = updatedBooking;
 
@@ -191,7 +205,7 @@ export async function POST(request: NextRequest) {
           if (emailResult.success) {
             console.log(
               "✅ Confirmation email sent successfully to:",
-              updatedBooking.email
+              updatedBooking.email,
             );
             console.log("📧 Email result:", emailResult.message);
           } else {
@@ -205,11 +219,11 @@ export async function POST(request: NextRequest) {
             "❌ Error details:",
             emailError instanceof Error
               ? emailError.message
-              : String(emailError)
+              : String(emailError),
           );
           console.error(
             "❌ Stack:",
-            emailError instanceof Error ? emailError.stack : "No stack trace"
+            emailError instanceof Error ? emailError.stack : "No stack trace",
           );
           // Don't fail the webhook if email fails
         }
@@ -229,7 +243,7 @@ export async function POST(request: NextRequest) {
                 ? updateError.message
                 : "Unknown error",
           },
-          { status: 500 }
+          { status: 500 },
         );
       }
     }
@@ -267,7 +281,7 @@ export async function POST(request: NextRequest) {
         error: "Webhook handler failed",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

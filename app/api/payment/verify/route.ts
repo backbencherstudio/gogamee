@@ -1,73 +1,60 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
 import { BookingService } from "@/_backend";
 import { toErrorMessage } from "@/_backend/lib/errors";
 
-function getStripeInstance() {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) {
-    throw new Error("STRIPE_SECRET_KEY environment variable is not set");
-  }
-  return new Stripe(secretKey, {
-    apiVersion: "2025-12-15.clover",
-  });
-}
-
 export async function POST(request: Request) {
   try {
-    const { bookingId, sessionId } = await request.json();
+    const { sessionId } = await request.json();
 
-    if (!bookingId || !sessionId) {
+    if (!sessionId) {
       return NextResponse.json(
-        { message: "Booking ID and Session ID are required" },
-        { status: 400 }
+        { message: "Session ID is required" },
+        { status: 400 },
       );
     }
 
-    // check if already paid
-    const currentBooking = await BookingService.getById(bookingId);
-    if (currentBooking?.payment_status === "paid") {
-      return NextResponse.json({
-        success: true,
-        message: "Booking already paid",
-      });
-    }
+    // Polling Logic: Check DB if webhook has updated the booking with this PaymentIntent ID
+    // We assume Webhook has already processed or is processing the payment
+    const booking = await BookingService.findByPaymentIntentId(sessionId);
 
-    const stripe = getStripeInstance();
-    const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-    if (session.payment_status === "paid") {
-      // Verify metadata matches (security check)
-      if (session.metadata?.booking_id !== bookingId) {
+    if (booking) {
+      if (
+        booking.status === "completed" ||
+        booking.payment_status === "paid" ||
+        booking.status === "confirmed"
+      ) {
+        console.log(
+          `✅ Verified payment for Booking #${booking._id} via DB lookup`,
+        );
+        return NextResponse.json({
+          success: true,
+          message: "Payment verified successfully",
+          bookingId: booking._id,
+        });
+      } else {
+        // Booking found but status not paid (Webhook might be slow or payment failed)
+        // Frontend should retry polling
         return NextResponse.json(
-          { message: "Session metadata mismatch" },
-          { status: 400 }
+          { message: "Payment pending or processing" },
+          { status: 202 }, // 202 Accepted (Processing)
         );
       }
-
-      // Update booking
-      await BookingService.updateById(bookingId, {
-        status: "completed",
-        payment_status: "paid",
-        stripe_payment_intent_id:
-          (session.payment_intent as string) || session.id,
-      });
-
-      return NextResponse.json({
-        success: true,
-        message: "Booking verified and updated",
-      });
     } else {
+      // No booking found with this PaymentIntent ID yet (Webhook hasn't arrived)
+      // Frontend should retry polling
+      console.log(
+        `⏳ PaymentIntent ${sessionId} not found in DB yet (Waiting for Webhook)`,
+      );
       return NextResponse.json(
-        { message: "Payment not completed" },
-        { status: 400 }
+        { message: "Payment processing (Webhook pending)" },
+        { status: 404 }, // Not found YET
       );
     }
   } catch (error) {
     console.error("Payment verification error:", error);
     return NextResponse.json(
       { message: toErrorMessage(error, "Failed to verify payment") },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -27,7 +27,7 @@ class BookingService {
       bookingTime: new Date().toTimeString().split(" ")[0],
       travelDuration: this.calculateTravelDuration(
         data.departureDate,
-        data.returnDate
+        data.returnDate,
       ),
       hasFlightPreferences: false,
       requiresEuropeanLeagueHandling: false,
@@ -102,7 +102,7 @@ class BookingService {
 
   async updateById(
     id: string,
-    data: UpdateBookingData
+    data: UpdateBookingData,
   ): Promise<IBooking | null> {
     await connectToDatabase();
     const updated = await Booking.findByIdAndUpdate(id, data, {
@@ -126,8 +126,12 @@ class BookingService {
     });
 
     if (result) {
-      await deleteCache(`booking:${id}`);
-      await clearCachePattern("booking:list:*");
+      try {
+        await deleteCache(`booking:${id}`);
+        await clearCachePattern("booking:list:*");
+      } catch (error) {
+        console.error("Cache clear failed during delete (ignored):", error);
+      }
     }
 
     return !!result;
@@ -151,12 +155,25 @@ class BookingService {
     return bookings;
   }
 
+  async findByPaymentIntentId(
+    paymentIntentId: string,
+  ): Promise<IBooking | null> {
+    await connectToDatabase();
+    // No cache for polling real-time status? or very short cache?
+    // Since polling, direct DB is safer to get latest webhook update.
+    const booking = await Booking.findOne({
+      stripe_payment_intent_id: paymentIntentId,
+      deletedAt: { $exists: false },
+    });
+    return booking;
+  }
+
   async updateStatus(id: string, status: string): Promise<IBooking | null> {
     await connectToDatabase();
     const updated = await Booking.findByIdAndUpdate(
       id,
       { status },
-      { new: true }
+      { new: true },
     );
 
     if (updated) {
@@ -169,7 +186,7 @@ class BookingService {
 
   async updatePaymentStatus(
     id: string,
-    paymentStatus: string
+    paymentStatus: string,
   ): Promise<IBooking | null> {
     await connectToDatabase();
     const updated = await Booking.findByIdAndUpdate(
@@ -178,7 +195,7 @@ class BookingService {
         payment_status: paymentStatus,
         isBookingComplete: paymentStatus === "paid",
       },
-      { new: true }
+      { new: true },
     );
 
     if (updated) {
@@ -191,7 +208,7 @@ class BookingService {
 
   private calculateTravelDuration(
     departureDate: string,
-    returnDate: string
+    returnDate: string,
   ): number {
     const start = new Date(departureDate);
     const end = new Date(returnDate);

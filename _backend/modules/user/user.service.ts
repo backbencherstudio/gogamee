@@ -9,6 +9,7 @@ import type {
 } from "./user.types";
 
 class UserService {
+  /* UNUSED - All methods commented out as they are not being used in the codebase
   async create(data: CreateUserData): Promise<IUser> {
     await connectToDatabase();
 
@@ -139,7 +140,7 @@ class UserService {
     }
 
     return updated;
-  }
+ }
 
   async verifyEmail(id: string): Promise<IUser | null> {
     await connectToDatabase();
@@ -163,6 +164,7 @@ class UserService {
   ): Promise<boolean> {
     return await user.comparePassword(candidatePassword);
   }
+  */
 }
 
 export default new UserService();
