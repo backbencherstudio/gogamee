@@ -1,6 +1,6 @@
 import connectToDatabase from "../../lib/mongoose";
 import { User, IUser } from "../../models";
-import { getCache, setCache, deleteCache, clearCachePattern } from "@/_backend";
+import { getCache, setCache, deleteCache, clearCachePattern } from "@/backend";
 import type {
   CreateUserData,
   UpdateUserData,

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { SettingsService } from "@/_backend";
+import { SettingsService } from "@/backend";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -35,7 +35,7 @@ export async function GET() {
         headers: {
           "Content-Type": "application/json",
         },
-      }
+      },
     );
   } catch (error) {
     console.error("API Error:", error);
@@ -44,7 +44,7 @@ export async function GET() {
         success: false,
         message: "Failed to fetch legal pages",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

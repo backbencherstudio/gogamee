@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { FAQService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { FAQService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -39,7 +39,7 @@ export async function GET() {
       },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error) {
     console.error("API Error:", error);
@@ -48,7 +48,7 @@ export async function GET() {
         success: false,
         message: toErrorMessage(error, "Failed to fetch FAQs"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -84,7 +84,7 @@ export async function POST(request: Request) {
         success: true,
         list: mappedFaqs,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("API Error:", error);
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
         success: false,
         message: toErrorMessage(error, "Failed to create FAQ"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

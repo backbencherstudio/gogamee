@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { PackageService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { PackageService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -24,7 +24,7 @@ export async function GET(_: Request, context: RouteContext) {
         success: false,
         message: "Package not found",
       },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -37,7 +37,7 @@ export async function GET(_: Request, context: RouteContext) {
     },
     {
       headers: { "Cache-Control": "no-store" },
-    }
+    },
   );
 }
 
@@ -55,7 +55,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error: unknown) {
     console.error("Edit package error", error);
@@ -64,7 +64,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         success: false,
         message: toErrorMessage(error, "Failed to update package"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -80,7 +80,7 @@ export async function DELETE(_: Request, context: RouteContext) {
       },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error: unknown) {
     console.error("Delete package error", error);
@@ -89,7 +89,7 @@ export async function DELETE(_: Request, context: RouteContext) {
         success: false,
         message: toErrorMessage(error, "Failed to delete package"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

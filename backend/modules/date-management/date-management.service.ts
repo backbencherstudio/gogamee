@@ -5,7 +5,7 @@ import {
   setCache,
   deleteCache,
   clearCachePattern,
-} from "@/_backend";
+} from "@/backend";
 import type {
   CreateDateManagementData,
   UpdateDateManagementData,
@@ -24,7 +24,7 @@ class DateManagementService {
   }
 
   async getAll(
-    filters: DateManagementFilters = {}
+    filters: DateManagementFilters = {},
   ): Promise<IDateManagement[]> {
     await connectToDatabase();
 
@@ -63,7 +63,7 @@ class DateManagementService {
 
   async getByDate(
     date: string,
-    sportname?: string
+    sportname?: string,
   ): Promise<IDateManagement | null> {
     const CACHE_KEY = `date-management:date:${date}:${sportname || "all"}`;
     const cached = await getCache<IDateManagement>(CACHE_KEY);
@@ -85,7 +85,7 @@ class DateManagementService {
 
   async updateById(
     id: string,
-    data: UpdateDateManagementData
+    data: UpdateDateManagementData,
   ): Promise<IDateManagement | null> {
     await connectToDatabase();
     const updated = await DateManagement.findByIdAndUpdate(id, data, {
@@ -143,7 +143,7 @@ class DateManagementService {
   async getByDateRange(
     startDate: string,
     endDate: string,
-    filters?: { sportname?: string; status?: string }
+    filters?: { sportname?: string; status?: string },
   ): Promise<IDateManagement[]> {
     await connectToDatabase();
 

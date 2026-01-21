@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { StartingPriceService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { StartingPriceService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -10,7 +10,7 @@ interface RouteContext {
 }
 
 async function getSport(
-  context: RouteContext
+  context: RouteContext,
 ): Promise<"football" | "basketball" | "combined"> {
   const { sport } = await context.params;
   if (sport === "football" || sport === "basketball" || sport === "combined") {
@@ -30,7 +30,7 @@ export async function GET(_: Request, context: RouteContext) {
           success: false,
           message: "Starting price not found",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -49,7 +49,7 @@ export async function GET(_: Request, context: RouteContext) {
       },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error: unknown) {
     return NextResponse.json(
@@ -60,7 +60,7 @@ export async function GET(_: Request, context: RouteContext) {
       {
         status: 400,
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   }
 }
@@ -80,7 +80,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         success: false,
         message: toErrorMessage(error, "Failed to update starting price"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

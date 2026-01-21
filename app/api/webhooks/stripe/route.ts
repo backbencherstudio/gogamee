@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { BookingService } from "@/_backend";
+import { BookingService } from "@/backend";
 
 function getStripeInstance() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
             // This handles cases where Verify API updated status but didn't send email (new architecture)
             // or if Webhook is retrying
             const shouldSendEmail = await (
-              await import("@/_backend/lib/email-queue")
+              await import("@/backend/lib/email-queue")
             ).emailQueue.checkAndMarkEmailSent(bookingId);
 
             if (shouldSendEmail) {

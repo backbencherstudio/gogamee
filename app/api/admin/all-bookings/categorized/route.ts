@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { BookingService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { BookingService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -75,12 +75,12 @@ export async function GET() {
       },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error) {
     return NextResponse.json(
       { message: toErrorMessage(error, "Failed to fetch bookings") },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

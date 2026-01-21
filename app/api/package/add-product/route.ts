@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { PackageService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { PackageService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       {
         status: 201,
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error: unknown) {
     console.error("Add package error", error);
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
         success: false,
         message: toErrorMessage(error, "Failed to add package"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

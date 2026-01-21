@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { PackageService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { PackageService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
       },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error) {
     return NextResponse.json(
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
         success: false,
         message: toErrorMessage(error, "Failed to fetch packages"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

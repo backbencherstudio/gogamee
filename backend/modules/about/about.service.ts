@@ -12,7 +12,7 @@ import {
   setCache,
   deleteCache,
   clearCachePattern,
-} from "@/_backend";
+} from "@/backend";
 import type {
   CreateAboutItemData,
   UpdateAboutItemData,
@@ -23,7 +23,7 @@ import type {
 class AboutService {
   // Generic methods for about items
   async createMainSection(
-    data: CreateAboutItemData
+    data: CreateAboutItemData,
   ): Promise<IAboutMainSection> {
     await connectToDatabase();
     const section = new AboutMainSection(data);
@@ -90,7 +90,7 @@ class AboutService {
 
   async updateMainSection(
     id: string,
-    data: UpdateAboutItemData
+    data: UpdateAboutItemData,
   ): Promise<IAboutMainSection | null> {
     await connectToDatabase();
     const updated = await AboutMainSection.findByIdAndUpdate(id, data, {
@@ -134,7 +134,7 @@ class AboutService {
   }
 
   async getAllOurValues(
-    options: AboutQueryOptions = {}
+    options: AboutQueryOptions = {},
   ): Promise<IAboutOurValues[]> {
     const CACHE_KEY = "about:values:all";
     // Note: options not fully supported in cache key for simplicity here,
@@ -172,7 +172,7 @@ class AboutService {
 
   async updateOurValue(
     id: string,
-    data: UpdateAboutItemData
+    data: UpdateAboutItemData,
   ): Promise<IAboutOurValues | null> {
     await connectToDatabase();
     const updated = await AboutOurValues.findByIdAndUpdate(id, data, {
@@ -204,7 +204,7 @@ class AboutService {
   // ===== Why Choose Us =====
 
   async createWhyChooseUs(
-    data: CreateAboutItemData
+    data: CreateAboutItemData,
   ): Promise<IAboutWhyChooseUs> {
     await connectToDatabase();
     const item = new AboutWhyChooseUs(data);
@@ -217,7 +217,7 @@ class AboutService {
   }
 
   async getAllWhyChooseUs(
-    options: AboutQueryOptions = {}
+    options: AboutQueryOptions = {},
   ): Promise<IAboutWhyChooseUs[]> {
     await connectToDatabase();
     const { filters = {}, sort } = options;
@@ -248,7 +248,7 @@ class AboutService {
 
   async updateWhyChooseUs(
     id: string,
-    data: UpdateAboutItemData
+    data: UpdateAboutItemData,
   ): Promise<IAboutWhyChooseUs | null> {
     await connectToDatabase();
     const updated = await AboutWhyChooseUs.findByIdAndUpdate(id, data, {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { TestimonialService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { TestimonialService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,7 +23,7 @@ export async function GET(_: Request, context: RouteContext) {
     {
       status,
       headers: { "Cache-Control": "no-store" },
-    }
+    },
   );
 }
 
@@ -36,7 +36,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       { success: true, testimonial: response },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error: unknown) {
     console.error("Update testimonial error", error);
@@ -45,7 +45,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         success: false,
         message: toErrorMessage(error, "Failed to update testimonial"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -58,7 +58,7 @@ export async function DELETE(_: Request, context: RouteContext) {
       { success: true },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error: unknown) {
     console.error("Delete testimonial error", error);
@@ -67,7 +67,7 @@ export async function DELETE(_: Request, context: RouteContext) {
         success: false,
         message: toErrorMessage(error, "Failed to delete testimonial"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

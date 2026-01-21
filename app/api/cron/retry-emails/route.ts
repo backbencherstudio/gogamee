@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { emailQueue } from "@/_backend/lib/email-queue";
+import { emailQueue } from "@/backend/lib/email-queue";
 
 const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST,

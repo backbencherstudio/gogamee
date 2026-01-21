@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { DateManagementService } from "@/_backend";
+import { DateManagementService } from "@/backend";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -18,7 +18,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     if (!dateEntry) {
       return NextResponse.json(
         { success: false, message: "Date not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -57,13 +57,13 @@ export async function PATCH(request: Request, context: RouteContext) {
       },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error) {
     console.error("API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to update date" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -76,7 +76,7 @@ export async function DELETE(_: Request, context: RouteContext) {
     if (!deleted) {
       return NextResponse.json(
         { success: false, message: "Date not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -87,13 +87,13 @@ export async function DELETE(_: Request, context: RouteContext) {
       },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error) {
     console.error("API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to delete date" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

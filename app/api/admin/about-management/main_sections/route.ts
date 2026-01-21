@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AboutService } from "@/_backend";
+import { AboutService } from "@/backend";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -58,7 +58,7 @@ export async function GET() {
     console.error("API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to fetch about content" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
     console.error("API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to create main section" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -10,7 +10,7 @@ import {
   setCache,
   deleteCache,
   clearCachePattern,
-} from "@/_backend";
+} from "@/backend";
 import type {
   CreateSocialContactData,
   UpdateSocialContactData,
@@ -25,7 +25,7 @@ class SettingsService {
   // ===== Social Contacts =====
 
   async createSocialContact(
-    data: CreateSocialContactData
+    data: CreateSocialContactData,
   ): Promise<ISocialContact> {
     await connectToDatabase();
     const contact = new SocialContact(data);
@@ -36,7 +36,7 @@ class SettingsService {
   }
 
   async upsertSocialContact(
-    data: CreateSocialContactData
+    data: CreateSocialContactData,
   ): Promise<ISocialContact> {
     await connectToDatabase();
 
@@ -77,7 +77,7 @@ class SettingsService {
     if ((filters as SocialContactFilters).platform)
       query.platform = new RegExp(
         (filters as SocialContactFilters).platform!,
-        "i"
+        "i",
       );
 
     const sortOptions: any = sort
@@ -124,7 +124,7 @@ class SettingsService {
 
   async updateSocialContact(
     id: string,
-    data: UpdateSocialContactData
+    data: UpdateSocialContactData,
   ): Promise<ISocialContact | null> {
     await connectToDatabase();
     const updated = await SocialContact.findByIdAndUpdate(id, data, {
@@ -217,7 +217,7 @@ class SettingsService {
 
   async updateLegalPage(
     id: string,
-    data: UpdateLegalPageData
+    data: UpdateLegalPageData,
   ): Promise<ILegalPage | null> {
     await connectToDatabase();
     const updated = await LegalPage.findByIdAndUpdate(id, data, {
@@ -248,7 +248,7 @@ class SettingsService {
   }
 
   async createOrUpdateLegalPage(
-    data: CreateLegalPageData
+    data: CreateLegalPageData,
   ): Promise<ILegalPage> {
     await connectToDatabase();
 

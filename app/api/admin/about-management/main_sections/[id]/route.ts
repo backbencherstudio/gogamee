@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { AboutService } from "@/_backend";
+import { AboutService } from "@/backend";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,7 +23,7 @@ export async function PUT(request: Request, context: RouteContext) {
     if (!section) {
       return NextResponse.json(
         { success: false, message: "Main section not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -87,7 +87,7 @@ export async function PUT(request: Request, context: RouteContext) {
     console.error("API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to update main section" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -100,7 +100,7 @@ export async function DELETE(_: Request, context: RouteContext) {
     if (!deleted) {
       return NextResponse.json(
         { success: false, message: "Main section not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -156,7 +156,7 @@ export async function DELETE(_: Request, context: RouteContext) {
     console.error("API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to delete main section" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

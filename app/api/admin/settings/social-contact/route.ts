@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { SettingsService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { SettingsService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,10 +13,13 @@ export async function GET() {
       success: true,
       message: "Social contacts fetched successfully",
 
-      links: contacts.reduce((acc, contact) => {
-        acc[contact.platform.toLowerCase()] = contact.url;
-        return acc;
-      }, {} as Record<string, string>),
+      links: contacts.reduce(
+        (acc, contact) => {
+          acc[contact.platform.toLowerCase()] = contact.url;
+          return acc;
+        },
+        {} as Record<string, string>,
+      ),
     });
   } catch (error) {
     console.error("API Error:", error);
@@ -25,7 +28,7 @@ export async function GET() {
         success: false,
         message: toErrorMessage(error, "Failed to fetch social contacts"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -45,7 +48,7 @@ export async function PUT(request: Request) {
           url: url as string,
           isActive: true, // Ensure it's active when updated from here
         });
-      }
+      },
     );
 
     await Promise.all(updatePromises);
@@ -61,7 +64,7 @@ export async function PUT(request: Request) {
           "Cache-Control":
             "no-store, no-cache, must-revalidate, proxy-revalidate",
         },
-      }
+      },
     );
   } catch (error) {
     console.error("API Error:", error);
@@ -70,7 +73,7 @@ export async function PUT(request: Request) {
         success: false,
         message: toErrorMessage(error, "Failed to update social contacts"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

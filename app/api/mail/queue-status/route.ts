@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { emailQueue } from "@/_backend/lib/email-queue";
+import { emailQueue } from "@/backend/lib/email-queue";
 
 /**
  * Get email queue status and statistics

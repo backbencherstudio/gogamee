@@ -5,7 +5,7 @@ import {
   setCache,
   deleteCache,
   clearCachePattern,
-} from "@/_backend";
+} from "@/backend";
 import type {
   CreateTestimonialData,
   UpdateTestimonialData,
@@ -100,7 +100,7 @@ class TestimonialService {
 
   async updateById(
     id: string,
-    data: UpdateTestimonialData
+    data: UpdateTestimonialData,
   ): Promise<ITestimonial | null> {
     await connectToDatabase();
     const updated = await Testimonial.findByIdAndUpdate(id, data, {
@@ -149,7 +149,7 @@ class TestimonialService {
     const restored = await Testimonial.findByIdAndUpdate(
       id,
       { $unset: { deletedAt: 1 } },
-      { new: true }
+      { new: true },
     );
 
     if (restored) {
@@ -228,7 +228,7 @@ class TestimonialService {
   }
 
   async updateSortOrder(
-    updates: { id: string; sortOrder: number }[]
+    updates: { id: string; sortOrder: number }[],
   ): Promise<void> {
     await connectToDatabase();
 

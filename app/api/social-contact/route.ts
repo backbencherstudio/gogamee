@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { SettingsService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { SettingsService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -39,7 +39,7 @@ export async function GET() {
         success: false,
         message: toErrorMessage(error, "Failed to fetch social contact links"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

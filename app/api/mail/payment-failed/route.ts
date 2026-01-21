@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import { emailQueue } from "@/_backend/lib/email-queue";
+import { emailQueue } from "@/backend/lib/email-queue";
 
 interface PaymentFailedRequest {
   bookingId: string;
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
 
     if (!finalUserEmail || !finalUserName) {
       try {
-        const { BookingService } = await import("@/_backend");
+        const { BookingService } = await import("@/backend");
         const booking = await BookingService.getById(bookingId);
         if (booking) {
           finalUserEmail = finalUserEmail || booking.email;

@@ -5,7 +5,7 @@ import {
   setCache,
   deleteCache,
   clearCachePattern,
-} from "@/_backend";
+} from "@/backend";
 import type {
   CreateFAQData,
   UpdateFAQData,
@@ -158,12 +158,12 @@ class FAQService {
    * Reorder FAQs
    */
   async reorder(
-    orderedIds: { id: string; sortOrder: number }[]
+    orderedIds: { id: string; sortOrder: number }[],
   ): Promise<void> {
     await connectToDatabase();
 
     const updatePromises = orderedIds.map(({ id, sortOrder }) =>
-      FAQ.findByIdAndUpdate(id, { sortOrder })
+      FAQ.findByIdAndUpdate(id, { sortOrder }),
     );
 
     await Promise.all(updatePromises);

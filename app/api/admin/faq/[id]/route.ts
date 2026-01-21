@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { FAQService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { FAQService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -17,7 +17,7 @@ export async function GET(_: Request, context: RouteContext) {
     if (!faq) {
       return NextResponse.json(
         { success: false, message: "FAQ not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -36,7 +36,7 @@ export async function GET(_: Request, context: RouteContext) {
     console.error("API Error:", error);
     return NextResponse.json(
       { success: false, message: toErrorMessage(error, "Failed to fetch FAQ") },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -79,7 +79,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         success: false,
         message: toErrorMessage(error, "Failed to update FAQ"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -115,7 +115,7 @@ export async function DELETE(_: Request, context: RouteContext) {
         success: false,
         message: toErrorMessage(error, "Failed to delete FAQ"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -16,8 +16,8 @@ import {
   getCache,
   setCache,
   deleteCache,
-} from "@/_backend";
-import { IUser, User } from "@/_backend/models";
+} from "@/backend";
+import { IUser, User } from "@/backend/models";
 
 class AdminService {
   private jwtSecret = process.env.JWT_SECRET || "your-secret-key";
@@ -47,14 +47,14 @@ class AdminService {
     const rateLimit = await checkRateLimit(
       `login:${credentials.identifier}`,
       5,
-      60
+      60,
     );
 
     if (!rateLimit.success) {
       throw new Error(
         `Too many login attempts. Please try again in ${Math.ceil(
-          (rateLimit.reset - Math.floor(Date.now() / 1000)) / 60
-        )} minutes.`
+          (rateLimit.reset - Math.floor(Date.now() / 1000)) / 60,
+        )} minutes.`,
       );
     }
 
@@ -72,7 +72,7 @@ class AdminService {
 
     if (admin.isLocked) {
       throw new Error(
-        "Account is temporarily locked due to too many failed login attempts"
+        "Account is temporarily locked due to too many failed login attempts",
       );
     }
 
@@ -272,7 +272,7 @@ class AdminService {
 
   private async generateTokens(
     admin: IUser,
-    existingSessionId?: string
+    existingSessionId?: string,
   ): Promise<{
     accessToken: string;
     refreshToken: string;
@@ -288,7 +288,7 @@ class AdminService {
           email: admin.email,
           userAgent: "unknown", // In real app, pass this from controller
         },
-        7 * 24 * 60 * 60
+        7 * 24 * 60 * 60,
       ); // 7 days
     }
 

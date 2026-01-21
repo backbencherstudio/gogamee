@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { SettingsService } from "@/_backend";
+import { SettingsService } from "@/backend";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -43,7 +43,7 @@ export async function PUT(request: Request) {
         success: false,
         message: "Failed to update terms and conditions",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

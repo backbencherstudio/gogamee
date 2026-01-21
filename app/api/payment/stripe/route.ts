@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { BookingService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { BookingService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 // Initialize Stripe (only if key is provided)
 function getStripeInstance() {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { PackageService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { PackageService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,7 +15,7 @@ export async function GET() {
         data: sports,
         count: sports.length,
       },
-      { headers: { "Cache-Control": "no-store" } }
+      { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {
     return NextResponse.json(
@@ -23,7 +23,7 @@ export async function GET() {
         success: false,
         message: toErrorMessage(error, "Failed to fetch sports"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

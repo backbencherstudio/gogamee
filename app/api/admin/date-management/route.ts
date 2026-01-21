@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
-import { DateManagementService } from "@/_backend";
+import { DateManagementService } from "@/backend";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
     console.error("API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to fetch dates" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -107,13 +107,13 @@ export async function POST(request: NextRequest) {
       },
       {
         headers: { "Cache-Control": "no-store" },
-      }
+      },
     );
   } catch (error) {
     console.error("API Error:", error);
     return NextResponse.json(
       { success: false, message: "Failed to create date" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

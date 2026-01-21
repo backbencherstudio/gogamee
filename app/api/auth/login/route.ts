@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies, headers } from "next/headers";
-import { AuthService } from "@/_backend/modules";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { AuthService } from "@/backend/modules";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 const SESSION_COOKIE = "gogame_admin_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
         success: false,
         message: "Email and password are required",
       },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         success: false,
         message: "Invalid credentials",
       },
-      { status: 401 }
+      { status: 401 },
     );
   } catch (error: unknown) {
     console.error("Login error", error);
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
         success: false,
         message: toErrorMessage(error, "Login failed"),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

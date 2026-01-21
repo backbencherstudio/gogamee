@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { BookingService } from "@/_backend";
-import { toErrorMessage } from "@/_backend/lib/errors";
+import { BookingService } from "@/backend";
+import { toErrorMessage } from "@/backend/lib/errors";
 
 function getStripeInstance() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     if (!paymentIntentId || !bookingId) {
       return NextResponse.json(
         { message: "PaymentIntent ID and Booking ID are required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -50,14 +50,14 @@ export async function POST(request: Request) {
     } else {
       return NextResponse.json(
         { message: `Payment status: ${paymentIntent.status}` },
-        { status: 400 }
+        { status: 400 },
       );
     }
   } catch (error) {
     console.error("❌ Payment confirmation error:", error);
     return NextResponse.json(
       { message: toErrorMessage(error, "Failed to confirm payment") },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

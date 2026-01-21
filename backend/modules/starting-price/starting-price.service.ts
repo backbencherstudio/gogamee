@@ -5,7 +5,7 @@ import {
   setCache,
   deleteCache,
   clearCachePattern,
-} from "@/_backend";
+} from "@/backend";
 import type {
   CreateStartingPriceData,
   UpdateStartingPriceData,
@@ -53,13 +53,13 @@ class StartingPriceService {
 
   async updateByType(
     type: string,
-    data: UpdateStartingPriceData
+    data: UpdateStartingPriceData,
   ): Promise<IStartingPrice | null> {
     await connectToDatabase();
     const updated = await StartingPrice.findOneAndUpdate(
       { type },
       { ...data, lastModifiedBy: data.lastModifiedBy },
-      { new: true, runValidators: true, upsert: true }
+      { new: true, runValidators: true, upsert: true },
     );
 
     if (updated) {
@@ -73,7 +73,7 @@ class StartingPriceService {
   async getPrice(
     type: string,
     duration: 1 | 2 | 3 | 4,
-    priceType: "standard" | "premium"
+    priceType: "standard" | "premium",
   ): Promise<number | null> {
     const startingPrice = await this.getByType(type);
     if (!startingPrice) return null;
@@ -88,7 +88,7 @@ class StartingPriceService {
   async getFormattedPrice(
     type: string,
     duration: 1 | 2 | 3 | 4,
-    priceType: "standard" | "premium"
+    priceType: "standard" | "premium",
   ): Promise<string> {
     const startingPrice = await this.getByType(type);
     if (!startingPrice) return "Price not set";
@@ -111,7 +111,7 @@ class StartingPriceService {
     if (!startingPrice) return null;
 
     const prices = Object.values(startingPrice.pricesByDuration).flatMap(
-      (duration) => [duration.standard, duration.premium]
+      (duration) => [duration.standard, duration.premium],
     );
 
     return {
