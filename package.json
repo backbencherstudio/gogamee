@@ -7,7 +7,7 @@
     "build": "set TURBOPACK=0&& next build",
     "start": "next start",
     "lint": "next lint",
-    "seed": "tsx --env-file=.env _backend/seed.ts",
+    "seed": "tsx --env-file=.env backend/seed.ts",
     "worker": "tsx --env-file=.env worker.ts",
     "dev:all": "concurrently \"npm run dev\" \"npm run worker\""
   },
