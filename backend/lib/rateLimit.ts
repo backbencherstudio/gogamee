@@ -21,7 +21,7 @@ export interface RateLimitResult {
 export async function checkRateLimit(
   identifier: string,
   limit: number = 10,
-  windowSeconds: number = 60
+  windowSeconds: number = 60,
 ): Promise<RateLimitResult> {
   const now = Math.floor(Date.now() / 1000);
   const reset = now + windowSeconds;
@@ -45,10 +45,11 @@ export async function checkRateLimit(
     pipeline.expire(key, windowSeconds);
 
     // Execute pipeline
-    const results = await pipeline.exec<[number, number]>();
+    const results = await pipeline.exec();
+    if (!results) throw new Error("Pipeline execution failed");
 
-    // Extract count from results. Upstash returns [result, result]
-    const count = results[0];
+    // Extract count from results. ioredis returns [[error, result], ...]
+    const count = results[0][1] as number;
 
     const remaining = Math.max(0, limit - count);
 

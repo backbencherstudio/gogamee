@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 import { emailQueue } from "@/backend/lib/email-queue";
+import { transporter } from "@/backend/lib/mail-transport";
 
 interface PaymentFailedRequest {
   bookingId: string;
@@ -9,16 +9,6 @@ interface PaymentFailedRequest {
   amount: number;
   errorMessage?: string;
 }
-
-const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST,
-  port: Number(process.env.MAIL_PORT || 587),
-  secure: process.env.MAIL_SECURE === "true",
-  auth: {
-    user: process.env.MAIL_USER,
-    pass: process.env.MAIL_PASS,
-  },
-});
 
 function generateFailedPaymentEmail(data: PaymentFailedRequest): string {
   // Styles matching send-booking-email.ts

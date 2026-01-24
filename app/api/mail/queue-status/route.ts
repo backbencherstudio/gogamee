@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const stats = await emailQueue.getQueueStats();
 
     // Get sample emails from each queue
-    const pendingEmails = await emailQueue.getPendingEmails(10);
+    const waitingEmails = await emailQueue.getWaitingEmails(10);
     const failedEmails = await emailQueue.getFailedEmails(10);
 
     return NextResponse.json({
@@ -18,35 +18,30 @@ export async function GET(request: NextRequest) {
       stats,
       queues: {
         pending: {
-          count: stats.pendingCount,
-          sample: pendingEmails.map((email) => ({
-            id: email.id,
-            to: email.to,
-            subject: email.subject,
-            type: email.type,
-            retryCount: email.retryCount,
-            nextRetry: email.nextRetry
-              ? new Date(email.nextRetry).toISOString()
-              : null,
-            createdAt: new Date(email.createdAt).toISOString(),
+          count: stats.waiting,
+          sample: waitingEmails.map((job) => ({
+            id: job.id,
+            to: (job.data as any).to,
+            subject: (job.data as any).subject,
+            type: (job.data as any).type,
+            createdAt: new Date(job.timestamp).toISOString(),
           })),
         },
         processing: {
-          count: stats.processingCount,
+          count: stats.active,
         },
         failed: {
-          count: stats.failedCount,
-          sample: failedEmails.map((email) => ({
-            id: email.id,
-            to: email.to,
-            subject: email.subject,
-            type: email.type,
-            retryCount: email.retryCount,
-            error: email.error,
-            lastAttempt: email.lastAttempt
-              ? new Date(email.lastAttempt).toISOString()
+          count: stats.failed,
+          sample: failedEmails.map((job) => ({
+            id: job.id,
+            to: (job.data as any).to,
+            subject: (job.data as any).subject,
+            type: (job.data as any).type,
+            error: job.reason,
+            failedAt: job.failedAt
+              ? new Date(job.failedAt).toISOString()
               : null,
-            createdAt: new Date(email.createdAt).toISOString(),
+            createdAt: new Date(job.timestamp).toISOString(),
           })),
         },
       },

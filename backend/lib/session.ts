@@ -24,14 +24,15 @@ export interface SessionData {
  */
 export async function createSession(
   data: SessionData,
-  ttlSeconds: number = SESSION_TTL
+  ttlSeconds: number = SESSION_TTL,
 ): Promise<string> {
   if (!redis) throw new Error("Redis is required for session management");
 
   const token = randomUUID();
   const key = `session:${token}`;
 
-  await redis.set(key, data, { ex: ttlSeconds });
+  const stringifiedData = JSON.stringify(data);
+  await redis.set(key, stringifiedData, "EX", ttlSeconds);
 
   return token;
 }
@@ -45,7 +46,8 @@ export async function getSession(token: string): Promise<SessionData | null> {
 
   const key = `session:${token}`;
   try {
-    return await redis.get<SessionData>(key);
+    const data = await redis.get(key);
+    return data ? JSON.parse(data) : null;
   } catch (error) {
     console.error(`[Session] Failed to retrieve session ${token}:`, error);
     return null;
@@ -59,7 +61,7 @@ export async function getSession(token: string): Promise<SessionData | null> {
  */
 export async function refreshSession(
   token: string,
-  ttlSeconds: number = SESSION_TTL
+  ttlSeconds: number = SESSION_TTL,
 ): Promise<boolean> {
   if (!redis) return false;
 

@@ -16,8 +16,9 @@ export async function getCache<T>(key: string): Promise<T | null> {
   if (!redis) return null;
 
   try {
-    const data = await redis.get<T>(key);
-    return data;
+    const data = await redis.get(key);
+    if (!data) return null;
+    return JSON.parse(data) as T;
   } catch (error) {
     console.warn(`[Cache] Failed to get key ${key}:`, error);
     return null;
@@ -33,12 +34,13 @@ export async function getCache<T>(key: string): Promise<T | null> {
 export async function setCache<T>(
   key: string,
   data: T,
-  ttlSeconds: number = DEFAULT_TTL
+  ttlSeconds: number = DEFAULT_TTL,
 ): Promise<void> {
   if (!redis) return;
 
   try {
-    await redis.set(key, data, { ex: ttlSeconds });
+    const stringifiedData = JSON.stringify(data);
+    await redis.set(key, stringifiedData, "EX", ttlSeconds);
   } catch (error) {
     console.warn(`[Cache] Failed to set key ${key}:`, error);
   }

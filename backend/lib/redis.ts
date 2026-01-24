@@ -1,28 +1,29 @@
-import { Redis } from "@upstash/redis";
+import Redis from "ioredis";
 
 /**
  * Redis Client Singleton
- * Uses Upstash Redis (HTTP-based) which is serverless friendly.
+ * Uses ioredis for local/VPS Redis connection.
  *
- * Requires process.env.UPSTASH_REDIS_REST_URL and process.env.UPSTASH_REDIS_REST_TOKEN
+ * Defaults to redis://localhost:6379 if REDIS_URL is not set.
  */
 
-const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+export const redisUrl = process.env.REDIS_URL || "redis://localhost:6379";
 
-const redisClient =
-  redisUrl && redisToken
-    ? new Redis({
-        url: redisUrl,
-        token: redisToken,
-      })
-    : null;
+// Initialize Redis client
+// maxRetriesPerRequest: null is required for BullMQ to avoid initial connection issues blocking workers
+const redisClient = new Redis(redisUrl, {
+  maxRetriesPerRequest: null,
+});
 
-if (!redisClient) {
-  console.warn(
-    "⚠️ Redis client not initialized: Missing UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN"
-  );
-}
+redisClient.on("error", (err) => {
+  // Suppress connection errors to avoid crashing the app if Redis is down momentarily,
+  // but log them so we know what's happening.
+  if ((err as any).code === "ECONNREFUSED") {
+    // console.warn("⚠️ Redis connection refused. Is Redis running?"); // Optional: reduce noise
+  } else {
+    console.error("Redis Client Error:", err);
+  }
+});
 
 export const redis = redisClient;
 
