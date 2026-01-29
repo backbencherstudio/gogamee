@@ -21,8 +21,8 @@ const SocialContactSchema = new Schema<ISocialContact>(
     },
     url: {
       type: String,
-      required: true,
       trim: true,
+      default: "",
     },
     icon: {
       type: String,
@@ -45,7 +45,7 @@ const SocialContactSchema = new Schema<ISocialContact>(
   {
     timestamps: true,
     collection: "social_contacts",
-  }
+  },
 );
 
 // Indexes

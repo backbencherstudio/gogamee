@@ -1,319 +1,260 @@
-import {
-  AboutMainSection,
-  AboutOurValues,
-  AboutWhyChooseUs,
-  IAboutMainSection,
-  IAboutOurValues,
-  IAboutWhyChooseUs,
-} from "../../models";
+import { AboutPageSection, IAboutSection } from "../../models";
 import {
   connectToDatabase,
   getCache,
   setCache,
-  deleteCache,
   clearCachePattern,
 } from "@/backend";
 import type {
-  CreateAboutItemData,
-  UpdateAboutItemData,
-  AboutItemFilters,
-  AboutQueryOptions,
+  CreateAboutSectionData,
+  UpdateAboutSectionData,
 } from "./about.types";
 
 class AboutService {
-  // Generic methods for about items
-  async createMainSection(
-    data: CreateAboutItemData,
-  ): Promise<IAboutMainSection> {
-    await connectToDatabase();
-    const section = new AboutMainSection(data);
-    const saved = await section.save();
-
-    await clearCachePattern("about:main:*");
-    await clearCachePattern("about:content");
-
-    return saved;
-  }
-
-  async getAllMainSections(options: AboutQueryOptions = {}): Promise<{
-    sections: IAboutMainSection[];
-    total: number;
-    hasMore: boolean;
-  }> {
-    await connectToDatabase();
-
-    const { filters = {}, sort, limit = 50, skip = 0 } = options;
-
-    const query: any = { deletedAt: { $exists: false } };
-
-    if (filters.isActive !== undefined) query.isActive = filters.isActive;
-    if (filters.search) {
-      query.$or = [
-        { title: new RegExp(filters.search, "i") },
-        { description: new RegExp(filters.search, "i") },
-      ];
-    }
-
-    const sortOptions: any = sort
-      ? { [sort.field]: sort.order === "desc" ? -1 : 1 }
-      : { order: 1, createdAt: -1 };
-
-    const sections = await AboutMainSection.find(query)
-      .sort(sortOptions)
-      .limit(limit + 1)
-      .skip(skip);
-
-    const hasMore = sections.length > limit;
-    const resultSections = hasMore ? sections.slice(0, limit) : sections;
-    const total = await AboutMainSection.countDocuments(query);
-
-    return { sections: resultSections, total, hasMore };
-  }
-
-  async getMainSectionById(id: string): Promise<IAboutMainSection | null> {
-    const CACHE_KEY = `about:main:${id}`;
-    const cached = await getCache<IAboutMainSection>(CACHE_KEY);
-    if (cached) return cached;
-
-    await connectToDatabase();
-    const section = await AboutMainSection.findOne({
-      _id: id,
-      deletedAt: { $exists: false },
-    });
-
-    if (section) {
-      await setCache(CACHE_KEY, section, 600);
-    }
-
-    return section;
-  }
-
-  async updateMainSection(
-    id: string,
-    data: UpdateAboutItemData,
-  ): Promise<IAboutMainSection | null> {
-    await connectToDatabase();
-    const updated = await AboutMainSection.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (updated) {
-      await deleteCache(`about:main:${id}`);
-      await clearCachePattern("about:content");
-    }
-
-    return updated;
-  }
-
-  async deleteMainSection(id: string): Promise<boolean> {
-    await connectToDatabase();
-    const result = await AboutMainSection.findByIdAndUpdate(id, {
-      deletedAt: new Date(),
-    });
-
-    if (result) {
-      await deleteCache(`about:main:${id}`);
-      await clearCachePattern("about:content");
-    }
-
-    return !!result;
-  }
-
-  // ===== Our Values =====
-
-  async createOurValue(data: CreateAboutItemData): Promise<IAboutOurValues> {
-    await connectToDatabase();
-    const value = new AboutOurValues(data);
-    const saved = await value.save();
-
-    await clearCachePattern("about:values:*");
-    await clearCachePattern("about:content");
-
-    return saved;
-  }
-
-  async getAllOurValues(
-    options: AboutQueryOptions = {},
-  ): Promise<IAboutOurValues[]> {
-    const CACHE_KEY = "about:values:all";
-    // Note: options not fully supported in cache key for simplicity here,
-    // assuming mainly full list fetch. If filtered, we skip cache or simple cache.
-    // For now, let's cache the list if no complex options, or just standard list.
-
-    await connectToDatabase();
-
-    const { filters = {}, sort } = options;
-    const query: any = { deletedAt: { $exists: false } };
-    if (filters.isActive !== undefined) query.isActive = filters.isActive;
-
-    const sortOptions: any = sort
-      ? { [sort.field]: sort.order === "desc" ? -1 : 1 }
-      : { order: 1, createdAt: -1 };
-
-    const values = await AboutOurValues.find(query).sort(sortOptions);
-    return values;
-  }
-
-  async getOurValueById(id: string): Promise<IAboutOurValues | null> {
-    const CACHE_KEY = `about:values:${id}`;
-    const cached = await getCache<IAboutOurValues>(CACHE_KEY);
-    if (cached) return cached;
-
-    await connectToDatabase();
-    const value = await AboutOurValues.findOne({
-      _id: id,
-      deletedAt: { $exists: false },
-    });
-
-    if (value) await setCache(CACHE_KEY, value, 600);
-    return value;
-  }
-
-  async updateOurValue(
-    id: string,
-    data: UpdateAboutItemData,
-  ): Promise<IAboutOurValues | null> {
-    await connectToDatabase();
-    const updated = await AboutOurValues.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (updated) {
-      await deleteCache(`about:values:${id}`);
-      await clearCachePattern("about:content");
-      await clearCachePattern("about:values:all"); // invalidating list if we cached it (skipped above but good practice)
-    }
-    return updated;
-  }
-
-  async deleteOurValue(id: string): Promise<boolean> {
-    await connectToDatabase();
-    const result = await AboutOurValues.findByIdAndUpdate(id, {
-      deletedAt: new Date(),
-    });
-
-    if (result) {
-      await deleteCache(`about:values:${id}`);
-      await clearCachePattern("about:content");
-    }
-    return !!result;
-  }
-
-  // ===== Why Choose Us =====
-
-  async createWhyChooseUs(
-    data: CreateAboutItemData,
-  ): Promise<IAboutWhyChooseUs> {
-    await connectToDatabase();
-    const item = new AboutWhyChooseUs(data);
-    const saved = await item.save();
-
-    await clearCachePattern("about:why:*");
-    await clearCachePattern("about:content");
-
-    return saved;
-  }
-
-  async getAllWhyChooseUs(
-    options: AboutQueryOptions = {},
-  ): Promise<IAboutWhyChooseUs[]> {
-    await connectToDatabase();
-    const { filters = {}, sort } = options;
-    const query: any = { deletedAt: { $exists: false } };
-    if (filters.isActive !== undefined) query.isActive = filters.isActive;
-
-    const sortOptions: any = sort
-      ? { [sort.field]: sort.order === "desc" ? -1 : 1 }
-      : { order: 1, createdAt: -1 };
-
-    return await AboutWhyChooseUs.find(query).sort(sortOptions);
-  }
-
-  async getWhyChooseUsById(id: string): Promise<IAboutWhyChooseUs | null> {
-    const CACHE_KEY = `about:why:${id}`;
-    const cached = await getCache<IAboutWhyChooseUs>(CACHE_KEY);
-    if (cached) return cached;
-
-    await connectToDatabase();
-    const item = await AboutWhyChooseUs.findOne({
-      _id: id,
-      deletedAt: { $exists: false },
-    });
-
-    if (item) await setCache(CACHE_KEY, item, 600);
-    return item;
-  }
-
-  async updateWhyChooseUs(
-    id: string,
-    data: UpdateAboutItemData,
-  ): Promise<IAboutWhyChooseUs | null> {
-    await connectToDatabase();
-    const updated = await AboutWhyChooseUs.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (updated) {
-      await deleteCache(`about:why:${id}`);
-      await clearCachePattern("about:content");
-    }
-    return updated;
-  }
-
-  async deleteWhyChooseUs(id: string): Promise<boolean> {
-    await connectToDatabase();
-    const result = await AboutWhyChooseUs.findByIdAndUpdate(id, {
-      deletedAt: new Date(),
-    });
-
-    if (result) {
-      await deleteCache(`about:why:${id}`);
-      await clearCachePattern("about:content");
-    }
-    return !!result;
-  }
-
-  // Similar methods for Our Values and Why Choose Us can be added here
-  // For brevity, I'll add basic implementations
-
-  async getAllAboutContent(): Promise<{
-    mainSections: IAboutMainSection[];
-    ourValues: IAboutOurValues[];
-    whyChooseUs: IAboutWhyChooseUs[];
-  }> {
+  /**
+   * Retrieves all About page content formatted for the API response.
+   */
+  async getAllAboutContent(): Promise<any> {
     const CACHE_KEY = "about:content";
     const cached = await getCache<any>(CACHE_KEY);
     if (cached) return cached;
 
     await connectToDatabase();
 
-    const [mainSections, ourValues, whyChooseUs] = await Promise.all([
-      AboutMainSection.find({ deletedAt: { $exists: false } }).sort({
-        order: 1,
-        createdAt: 1,
-      }),
-      AboutOurValues.find({ deletedAt: { $exists: false } }).sort({
-        order: 1,
-        createdAt: 1,
-      }),
-      AboutWhyChooseUs.find({ deletedAt: { $exists: false } }).sort({
-        order: 1,
-        createdAt: 1,
-      }),
-    ]);
+    const sections = await AboutPageSection.find({
+      deletedAt: { $exists: false },
+    }).sort({ order: 1 });
+
+    const headlineDoc = sections.find((s) => s.type === "headline");
+    const mainSectionDoc = sections.find((s) => s.type === "main_section");
+    const ourValuesDoc = sections.find((s) => s.type === "our_values");
+    const whyChooseUsDoc = sections.find((s) => s.type === "why_choose_us");
 
     const content = {
-      mainSections,
-      ourValues,
-      whyChooseUs,
+      headline: headlineDoc
+        ? headlineDoc.title
+        : "Experience unforgettable live sports adventures.",
+      sections: mainSectionDoc
+        ? mainSectionDoc.values.map((v: any) => ({
+            id: v._id?.toString(),
+            title: v.title,
+            description: v.description,
+            order: v.order,
+          }))
+        : [],
+      values: {
+        title: ourValuesDoc?.title || "Our Values",
+        items: ourValuesDoc
+          ? ourValuesDoc.values.map((v: any) => ({
+              id: v._id?.toString(),
+              title: v.title,
+              description: v.description,
+              order: v.order,
+            }))
+          : [],
+      },
+      whyChooseUs: {
+        title: whyChooseUsDoc?.title || "Why Choose GoGame",
+        items: whyChooseUsDoc
+          ? whyChooseUsDoc.values.map((v: any) => ({
+              id: v._id?.toString(),
+              title: v.title,
+              description: v.description,
+              order: v.order,
+            }))
+          : [],
+      },
+      meta: {
+        version: 2,
+        updatedAt: new Date().toISOString(),
+      },
     };
 
-    await setCache(CACHE_KEY, content, 3600); // 1 hour cache
-
+    await setCache(CACHE_KEY, content, 3600);
     return content;
+  }
+
+  /**
+   * Adds a new section (mainly for "main_section" type).
+   */
+  async addSection(data: CreateAboutSectionData): Promise<IAboutSection> {
+    await connectToDatabase();
+    const section = await AboutPageSection.create({
+      type: data.type || "main_section",
+      title: data.title,
+      description: data.description,
+      values: data.values || [],
+      order: data.order ?? 0,
+      isActive: data.isActive ?? true,
+    });
+    await clearCachePattern("about:content");
+    return section;
+  }
+
+  /**
+   * Updates or creates the headline section (singleton).
+   */
+  async updateHeadline(title: string): Promise<IAboutSection> {
+    await connectToDatabase();
+
+    // Find existing headline section
+    let headline = await AboutPageSection.findOne({
+      type: "headline",
+      deletedAt: { $exists: false },
+    });
+
+    if (headline) {
+      // Update existing
+      headline.title = title;
+      await headline.save();
+    } else {
+      // Create new
+      headline = await AboutPageSection.create({
+        type: "headline",
+        title,
+        description: "",
+        values: [],
+        order: 0,
+        isActive: true,
+      });
+    }
+
+    await clearCachePattern("about:content");
+    return headline;
+  }
+
+  /**
+   * Updates a section by ID (top-level document).
+   */
+  async updateSection(
+    sectionId: string,
+    data: UpdateAboutSectionData,
+  ): Promise<IAboutSection | null> {
+    await connectToDatabase();
+    const section = await AboutPageSection.findByIdAndUpdate(
+      sectionId,
+      { $set: data },
+      { new: true },
+    );
+    await clearCachePattern("about:content");
+    return section;
+  }
+
+  /**
+   * Soft deletes a section by ID.
+   */
+  async deleteSection(sectionId: string): Promise<boolean> {
+    await connectToDatabase();
+    const section = await AboutPageSection.findByIdAndUpdate(
+      sectionId,
+      { deletedAt: new Date() },
+      { new: true },
+    );
+    await clearCachePattern("about:content");
+    return !!section;
+  }
+
+  // =================================================================
+  // Value Management (Our Values / Why Choose Us)
+  // These are now sub-documents inside specific AboutPageSection docs
+  // =================================================================
+
+  private async getOrCreateSectionByType(
+    type: "our_values" | "why_choose_us" | "main_section",
+  ) {
+    let section = await AboutPageSection.findOne({
+      type,
+      deletedAt: { $exists: false },
+    });
+
+    if (!section) {
+      let title = "Main Sections";
+      if (type === "our_values") title = "Our Values";
+      if (type === "why_choose_us") title = "Why Choose Us";
+
+      section = await AboutPageSection.create({
+        type,
+        title,
+        description: "",
+        values: [],
+        order: 99,
+      });
+    }
+    return section;
+  }
+
+  async addValueToSection(
+    sectionType: "our_values" | "why_choose_us" | "main_section",
+    valueData: {
+      title: string;
+      description: string;
+      order?: number;
+      isActive?: boolean;
+    },
+  ) {
+    await connectToDatabase();
+    const section = await this.getOrCreateSectionByType(sectionType);
+
+    const newValue = {
+      title: valueData.title,
+      description: valueData.description,
+      order: valueData.order ?? 0,
+      // Mongoose subdocs automatically get an _id
+    };
+
+    section.values.push(newValue as any);
+    await section.save();
+    await clearCachePattern("about:content");
+
+    return section.values[section.values.length - 1];
+  }
+
+  async updateValue(
+    sectionType: "our_values" | "why_choose_us" | "main_section",
+    valueId: string,
+    data: {
+      title?: string;
+      description?: string;
+      order?: number;
+      isActive?: boolean;
+    },
+  ) {
+    await connectToDatabase();
+    const section = await AboutPageSection.findOne({
+      type: sectionType,
+      "values._id": valueId,
+    });
+
+    if (!section) return null;
+
+    const valueFn = section.values.id(valueId);
+    if (!valueFn) return null;
+
+    if (data.title !== undefined) valueFn.title = data.title;
+    if (data.description !== undefined) valueFn.description = data.description;
+    if (data.order !== undefined) valueFn.order = data.order;
+
+    await section.save();
+    await clearCachePattern("about:content");
+    return valueFn;
+  }
+
+  async deleteValue(
+    sectionType: "our_values" | "why_choose_us" | "main_section",
+    valueId: string,
+  ) {
+    await connectToDatabase();
+    const section = await AboutPageSection.findOne({
+      type: sectionType,
+      "values._id": valueId,
+    });
+
+    if (!section) return null;
+
+    (section.values as any).pull({ _id: valueId });
+    await section.save();
+    await clearCachePattern("about:content");
+    return true;
   }
 }
 

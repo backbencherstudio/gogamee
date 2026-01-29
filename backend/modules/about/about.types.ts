@@ -1,28 +1,25 @@
-export interface CreateAboutItemData {
-  title: string;
-  description: string;
-  order?: number;
-  isActive?: boolean;
-}
-
-export interface UpdateAboutItemData {
+export interface UpdateAboutSectionData {
+  type?: "headline" | "main_section" | "our_values" | "why_choose_us";
   title?: string;
   description?: string;
+  values?: {
+    title: string;
+    description: string;
+    order: number;
+  }[];
   order?: number;
   isActive?: boolean;
 }
 
-export interface AboutItemFilters {
+export interface CreateAboutSectionData {
+  type: "headline" | "main_section" | "our_values" | "why_choose_us";
+  title: string;
+  description: string;
+  values?: {
+    title: string;
+    description: string;
+    order: number;
+  }[];
+  order?: number;
   isActive?: boolean;
-  search?: string;
-}
-
-export interface AboutQueryOptions {
-  filters?: AboutItemFilters;
-  sort?: {
-    field: "createdAt" | "order";
-    order: "asc" | "desc";
-  };
-  limit?: number;
-  skip?: number;
 }

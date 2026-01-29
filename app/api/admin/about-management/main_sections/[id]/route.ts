@@ -13,75 +13,32 @@ export async function PUT(request: Request, context: RouteContext) {
     const { id } = await context.params;
     const payload = await request.json();
 
-    const section = await AboutService.updateMainSection(id, {
+    const value = await AboutService.updateValue("main_section", id, {
       title: payload.title,
       description: payload.description,
       order: payload.order,
       isActive: payload.isActive,
     });
 
-    if (!section) {
+    if (!value) {
       return NextResponse.json(
         { success: false, message: "Main section not found" },
         { status: 404 },
       );
     }
 
-    const { mainSections, ourValues, whyChooseUs } =
-      await AboutService.getAllAboutContent();
+    const content = await AboutService.getAllAboutContent();
 
     return NextResponse.json({
       success: true,
       message: "Section updated successfully",
       data: {
-        id: section._id.toString(),
-        title: section.title,
-        description: section.description,
-        order: section.order,
-        created_at: section.createdAt,
-        updated_at: section.updatedAt,
-        deleted_at: section.deletedAt || null,
+        id: (value as any)._id,
+        title: value.title,
+        description: value.description,
+        order: value.order,
       },
-      content: {
-        headline: "Experience unforgettable live sports adventures.",
-        sections: mainSections.map((s) => ({
-          id: s._id.toString(),
-          title: s.title,
-          description: s.description,
-          order: s.order,
-          created_at: s.createdAt,
-          updated_at: s.updatedAt,
-          deleted_at: s.deletedAt || null,
-        })),
-        values: {
-          title: "Our Values",
-          items: ourValues.map((item) => ({
-            id: item._id.toString(),
-            title: item.title,
-            description: item.description,
-            order: item.order,
-            created_at: item.createdAt,
-            updated_at: item.updatedAt,
-            deleted_at: item.deletedAt || null,
-          })),
-        },
-        whyChooseUs: {
-          title: "Why Choose GoGame",
-          items: whyChooseUs.map((item) => ({
-            id: item._id.toString(),
-            title: item.title,
-            description: item.description,
-            order: item.order,
-            created_at: item.createdAt,
-            updated_at: item.updatedAt,
-            deleted_at: item.deletedAt || null,
-          })),
-        },
-        meta: {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-        },
-      },
+      content,
     });
   } catch (error) {
     console.error("API Error:", error);
@@ -95,7 +52,7 @@ export async function PUT(request: Request, context: RouteContext) {
 export async function DELETE(_: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const deleted = await AboutService.deleteMainSection(id);
+    const deleted = await AboutService.deleteValue("main_section", id);
 
     if (!deleted) {
       return NextResponse.json(
@@ -104,53 +61,13 @@ export async function DELETE(_: Request, context: RouteContext) {
       );
     }
 
-    const { mainSections, ourValues, whyChooseUs } =
-      await AboutService.getAllAboutContent();
+    const content = await AboutService.getAllAboutContent();
 
     return NextResponse.json({
       success: true,
       message: "Main section deleted successfully",
       data: null,
-      content: {
-        headline: "Experience unforgettable live sports adventures.",
-        sections: mainSections.map((s) => ({
-          id: s._id.toString(),
-          title: s.title,
-          description: s.description,
-          order: s.order,
-          created_at: s.createdAt,
-          updated_at: s.updatedAt,
-          deleted_at: s.deletedAt || null,
-        })),
-        values: {
-          title: "Our Values",
-          items: ourValues.map((item) => ({
-            id: item._id.toString(),
-            title: item.title,
-            description: item.description,
-            order: item.order,
-            created_at: item.createdAt,
-            updated_at: item.updatedAt,
-            deleted_at: item.deletedAt || null,
-          })),
-        },
-        whyChooseUs: {
-          title: "Why Choose GoGame",
-          items: whyChooseUs.map((item) => ({
-            id: item._id.toString(),
-            title: item.title,
-            description: item.description,
-            order: item.order,
-            created_at: item.createdAt,
-            updated_at: item.updatedAt,
-            deleted_at: item.deletedAt || null,
-          })),
-        },
-        meta: {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-        },
-      },
+      content,
     });
   } catch (error) {
     console.error("API Error:", error);

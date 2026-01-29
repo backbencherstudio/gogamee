@@ -13,19 +13,12 @@ export {
   type IDateManagement,
 } from "./DateManagement.model";
 export {
-  default as AboutMainSection,
-  type IAboutMainSection,
-} from "./AboutMainSection.model";
-export {
-  default as AboutOurValues,
-  type IAboutOurValues,
-} from "./AboutOurValues.model";
-export {
-  default as AboutWhyChooseUs,
-  type IAboutWhyChooseUs,
-} from "./AboutWhyChooseUs.model";
-export {
   default as SocialContact,
   type ISocialContact,
 } from "./SocialContact.model";
 export { default as LegalPage, type ILegalPage } from "./LegalPage.model";
+export {
+  AboutPageSection,
+  type IAboutSection,
+  type IAboutValue,
+} from "./AboutPageSection.model";

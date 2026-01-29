@@ -45,7 +45,7 @@ export async function PUT(request: Request) {
       async ([platform, url]) => {
         return await SettingsService.upsertSocialContact({
           platform,
-          url: url as string,
+          url: (url as string) || "",
           isActive: true, // Ensure it's active when updated from here
         });
       },

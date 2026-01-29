@@ -6,22 +6,14 @@ export const revalidate = 0;
 
 export async function GET() {
   try {
-    const items = await AboutService.getAllWhyChooseUs();
+    const content = await AboutService.getAllAboutContent();
 
-    // Mapped to match legacy structure: { content: { whyChooseUs: { items: [] } } }
+    // Mapped to match legacy structure
     return NextResponse.json({
       success: true,
       message: "Why choose us items fetched successfully",
       content: {
-        whyChooseUs: {
-          items: items.map((item) => ({
-            id: item._id.toString(),
-            title: item.title,
-            description: item.description,
-            order: item.order,
-            isActive: item.isActive,
-          })),
-        },
+        whyChooseUs: content.whyChooseUs,
       },
     });
   } catch (error) {
@@ -37,68 +29,25 @@ export async function POST(request: Request) {
   try {
     const payload = await request.json();
 
-    const item = await AboutService.createWhyChooseUs({
+    const item = await AboutService.addValueToSection("why_choose_us", {
       title: payload.title,
       description: payload.description,
       order: payload.order,
       isActive: payload.isActive,
     });
 
-    const { mainSections, ourValues, whyChooseUs } =
-      await AboutService.getAllAboutContent();
+    const content = await AboutService.getAllAboutContent();
 
     return NextResponse.json({
       success: true,
       message: "Why Choose Us item added successfully",
       data: {
-        id: item._id.toString(),
+        id: (item as any)._id,
         title: item.title,
         description: item.description,
         order: item.order,
-        created_at: item.createdAt,
-        updated_at: item.updatedAt,
-        deleted_at: item.deletedAt || null,
       },
-      content: {
-        headline: "Experience unforgettable live sports adventures.",
-        sections: mainSections.map((s) => ({
-          id: s._id.toString(),
-          title: s.title,
-          description: s.description,
-          order: s.order,
-          created_at: s.createdAt,
-          updated_at: s.updatedAt,
-          deleted_at: s.deletedAt || null,
-        })),
-        values: {
-          title: "Our Values",
-          items: ourValues.map((val) => ({
-            id: val._id.toString(),
-            title: val.title,
-            description: val.description,
-            order: val.order,
-            created_at: val.createdAt,
-            updated_at: val.updatedAt,
-            deleted_at: val.deletedAt || null,
-          })),
-        },
-        whyChooseUs: {
-          title: "Why Choose GoGame",
-          items: whyChooseUs.map((w) => ({
-            id: w._id.toString(),
-            title: w.title,
-            description: w.description,
-            order: w.order,
-            created_at: w.createdAt,
-            updated_at: w.updatedAt,
-            deleted_at: w.deletedAt || null,
-          })),
-        },
-        meta: {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-        },
-      },
+      content: content,
     });
   } catch (error) {
     console.error("API Error:", error);
