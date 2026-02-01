@@ -4,11 +4,13 @@ import axiosClient from "../lib/axiosClient";
 export interface LegalPageResponse {
   success: boolean;
   message?: string;
-  content?: string | {
-    privacy: { en: string; es: string };
-    cookie: { en: string; es: string };
-    terms: { en: string; es: string };
-  };
+  content?:
+    | string
+    | {
+        privacy: string;
+        cookie: string;
+        terms: string;
+      };
 }
 
 // ========== Public Legal Pages API Functions ==========
@@ -16,11 +18,8 @@ export interface LegalPageResponse {
 // GET legal page content (public, no auth required)
 export const getLegalPageContent = async (
   page: "privacy" | "cookie" | "terms",
-  lang: "en" | "es" = "es"
 ): Promise<LegalPageResponse> => {
-  const response = await axiosClient.get(
-    `/legal-pages?page=${page}&lang=${lang}`
-  );
+  const response = await axiosClient.get(`/legal-pages?page=${page}`);
   return response.data;
 };
 
@@ -47,8 +46,8 @@ export interface SocialContactResponse {
 }
 
 // GET social contact links (public, no auth required)
-export const getSocialContactLinks = async (): Promise<SocialContactResponse> => {
-  const response = await axiosClient.get("/social-contact");
-  return response.data;
-};
-
+export const getSocialContactLinks =
+  async (): Promise<SocialContactResponse> => {
+    const response = await axiosClient.get("/social-contact");
+    return response.data;
+  };

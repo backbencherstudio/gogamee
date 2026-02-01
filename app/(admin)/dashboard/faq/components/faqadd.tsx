@@ -12,6 +12,7 @@ import {
 } from "../../../../../services/faqService";
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 import { Pagination } from "../../../../../components/ui/Pagination";
+import { autoTranslateContent } from "../../../../../services/translationService";
 
 // Local type aligned with API
 type FAQItem = ApiFaqItem;
@@ -79,9 +80,18 @@ export default function FaqAdd() {
   const handleSaveEdit = async (id: string) => {
     try {
       setSaving(true);
+
+      // Auto-translate content
+      const [translatedQuestion, translatedAnswer] = await Promise.all([
+        autoTranslateContent(editForm.question.trim()),
+        autoTranslateContent(editForm.answer.trim()),
+      ]);
+
       await editFaq(id, {
-        question: editForm.question,
-        answer: editForm.answer,
+        question: editForm.question.trim(),
+        question_es: translatedQuestion.es,
+        answer: editForm.answer.trim(),
+        answer_es: translatedAnswer.es,
       });
       // refresh list
       await loadFaqs(currentPage);
@@ -116,9 +126,18 @@ export default function FaqAdd() {
     if (!newFaqForm.question.trim() || !newFaqForm.answer.trim()) return;
     try {
       setSaving(true);
+
+      // Auto-translate content
+      const [translatedQuestion, translatedAnswer] = await Promise.all([
+        autoTranslateContent(newFaqForm.question.trim()),
+        autoTranslateContent(newFaqForm.answer.trim()),
+      ]);
+
       await addFaq({
         question: newFaqForm.question.trim(),
+        question_es: translatedQuestion.es,
         answer: newFaqForm.answer.trim(),
+        answer_es: translatedAnswer.es,
       });
       await loadFaqs(currentPage);
       setNewFaqForm({ question: "", answer: "" });

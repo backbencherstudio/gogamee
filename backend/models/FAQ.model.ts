@@ -2,7 +2,9 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IFAQ extends Document {
   question: string;
+  question_es?: string;
   answer: string;
+  answer_es?: string;
   sortOrder: number;
   category?: string;
   isActive: boolean;
@@ -18,9 +20,17 @@ const FAQSchema = new Schema<IFAQ>(
       required: true,
       trim: true,
     },
+    question_es: {
+      type: String,
+      trim: true,
+    },
     answer: {
       type: String,
       required: true,
+      trim: true,
+    },
+    answer_es: {
+      type: String,
       trim: true,
     },
     sortOrder: {
@@ -45,7 +55,7 @@ const FAQSchema = new Schema<IFAQ>(
   {
     timestamps: true,
     collection: "faqs",
-  }
+  },
 );
 
 // Indexes

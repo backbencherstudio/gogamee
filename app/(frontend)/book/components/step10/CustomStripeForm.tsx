@@ -12,7 +12,8 @@ import {
 } from "@stripe/react-stripe-js";
 import { paymentData } from "../../../../lib/appdata";
 import StripeInput from "./StripeInput";
-import { PaymentRequest } from "@stripe/stripe-js";
+import { TranslatedText } from "../../../_components/TranslatedText";
+import { useLanguage } from "../../../../context/LanguageContext";
 
 interface CustomStripeFormProps {
   bookingId: string;
@@ -32,7 +33,7 @@ const PAYMENT_METHODS = {
 // Extracted Component to prevent re-mounting issues
 interface PaymentMethodOptionProps {
   method: string;
-  label: string;
+  label: string | React.ReactNode;
   icon: React.ReactNode;
   selectedPayment: string;
   onSelect: (method: string) => void;
@@ -90,6 +91,9 @@ export default function CustomStripeForm({
   onSuccess,
   onError,
 }: CustomStripeFormProps) {
+  const { language } = useLanguage();
+  const t = (es: string, en: string) => (language === "en" ? en : es);
+
   const stripe = useStripe();
   const elements = useElements();
   const [selectedPayment, setSelectedPayment] = useState<string>(
@@ -98,9 +102,7 @@ export default function CustomStripeForm({
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<string>("");
   const [cardholderName, setCardholderName] = useState("");
-  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(
-    null,
-  );
+  const [paymentRequest, setPaymentRequest] = useState<any>(null);
   const [isWalletLoading, setIsWalletLoading] = useState(true);
   const [walletType, setWalletType] = useState<"applePay" | "googlePay" | null>(
     null,
@@ -121,7 +123,7 @@ export default function CustomStripeForm({
         country: "ES",
         currency: "eur",
         total: {
-          label: "Total Payment",
+          label: t("Pago Total", "Total Payment"),
           amount: Math.round(amount * 100), // Stripe uses cents
         },
         requestPayerName: true,
@@ -166,7 +168,7 @@ export default function CustomStripeForm({
 
         if (confirmError) {
           ev.complete("fail");
-          onError(confirmError.message || "Payment failed");
+          onError(confirmError.message || t("Pago fallido", "Payment failed"));
         } else {
           ev.complete("success");
           if (paymentIntent.status === "succeeded") {
@@ -183,7 +185,9 @@ export default function CustomStripeForm({
 
     try {
       setPaymentStatus(
-        attempts > 0 ? "Finalizing booking..." : "Verifying payment...",
+        attempts > 0
+          ? t("Finalizando reserva...", "Finalizing booking...")
+          : t("Verificando pago...", "Verifying payment..."),
       );
 
       // Call verify endpoint (Read-only check)
@@ -217,7 +221,10 @@ export default function CustomStripeForm({
             "⚠️ Verification timed out (Webhook slow). Assuming success for UX.",
           );
           onError(
-            "Payment successful, checks are pending. Confirmation email will arrive shortly.",
+            t(
+              "El pago se realizó con éxito, las comprobaciones están pendientes. El correo electrónico de confirmación llegará en breve.",
+              "Payment successful, checks are pending. Confirmation email will arrive shortly.",
+            ),
           );
           // Ideally we might want to call onSuccess() here too if we trust Stripe frontend success?
           // Let's call onSuccess() because money is taken.
@@ -226,7 +233,13 @@ export default function CustomStripeForm({
       } else {
         // Hard failure (400, 500)
         console.error("❌ Payment verification failed:", data);
-        onError(data.message || "Backend confirmation failed");
+        onError(
+          data.message ||
+            t(
+              "Error en la confirmación del backend",
+              "Backend confirmation failed",
+            ),
+        );
 
         // Only trigger failure email if it's not a verification timeout
         try {
@@ -248,7 +261,12 @@ export default function CustomStripeForm({
       }
     } catch (error) {
       console.error("❌ Network error:", error);
-      onError("Network error confirming payment");
+      onError(
+        t(
+          "Error de red al confirmar el pago",
+          "Network error confirming payment",
+        ),
+      );
     } finally {
       if (attempts >= MAX_ATTEMPTS) {
         setIsProcessing(false);
@@ -262,7 +280,7 @@ export default function CustomStripeForm({
     if (!stripe || !elements) return;
 
     setIsProcessing(true);
-    setPaymentStatus("Processing payment...");
+    setPaymentStatus(t("Procesando pago...", "Processing payment..."));
 
     // Handle Card Payment
     if (selectedPayment === PAYMENT_METHODS.CREDIT) {
@@ -308,11 +326,14 @@ export default function CustomStripeForm({
           // Don't block the error flow if email fails
         }
 
-        onError(error.message || "Card payment failed");
+        onError(
+          error.message ||
+            t("El pago con tarjeta falló", "Card payment failed"),
+        );
         setIsProcessing(false);
         setPaymentStatus("");
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
-        setPaymentStatus("Confirming booking...");
+        setPaymentStatus(t("Confirmando reserva...", "Confirming booking..."));
         confirmBackend(paymentIntent.id);
       } else {
         setIsProcessing(false);
@@ -334,10 +355,13 @@ export default function CustomStripeForm({
             <div className="w-16 h-16 border-4 border-[#76C043] border-t-transparent rounded-full animate-spin"></div>
             <div className="text-center">
               <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                {paymentStatus || "Processing..."}
+                {paymentStatus || t("Procesando...", "Processing...")}
               </h3>
               <p className="text-gray-600 text-sm">
-                Please don't close or refresh this page
+                <TranslatedText
+                  text="No cierres ni refresques esta página"
+                  english="Please don't close or refresh this page"
+                />
               </p>
             </div>
           </div>
@@ -350,7 +374,10 @@ export default function CustomStripeForm({
           <div className="self-stretch flex flex-col justify-center items-start gap-3">
             <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
               <div className="justify-center text-neutral-800 text-xl md:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 md:leading-8 xl:leading-10">
-                {paymentData.text.title}
+                <TranslatedText
+                  text={paymentData.text.title}
+                  english={paymentData.text.titleEn}
+                />
               </div>
             </div>
 
@@ -358,7 +385,10 @@ export default function CustomStripeForm({
               <div className="self-stretch px-4 md:px-5 py-5 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
                 <div className="self-stretch inline-flex justify-start items-center gap-2">
                   <div className="justify-start text-neutral-800 text-base md:text-lg font-semibold font-['Poppins'] leading-loose">
-                    {paymentData.text.paymentMethodTitle}
+                    <TranslatedText
+                      text={paymentData.text.paymentMethodTitle}
+                      english={paymentData.text.paymentMethodTitleEn}
+                    />
                   </div>
                 </div>
 
@@ -398,11 +428,17 @@ export default function CustomStripeForm({
                       <div className="self-stretch flex flex-col md:flex-row justify-start items-start gap-4 md:gap-6">
                         <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            {paymentData.text.nameOnCardLabel}
+                            <TranslatedText
+                              text={paymentData.text.nameOnCardLabel}
+                              english={paymentData.text.nameOnCardLabelEn}
+                            />
                           </div>
                           <input
                             type="text"
-                            placeholder={paymentData.text.nameOnCardPlaceholder}
+                            placeholder={t(
+                              paymentData.text.nameOnCardPlaceholder,
+                              paymentData.text.nameOnCardPlaceholderEn,
+                            )}
                             value={cardholderName}
                             onChange={(e) => setCardholderName(e.target.value)}
                             className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
@@ -411,7 +447,10 @@ export default function CustomStripeForm({
                         </div>
                         <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            {paymentData.text.expiryLabel}
+                            <TranslatedText
+                              text={paymentData.text.expiryLabel}
+                              english={paymentData.text.expiryLabelEn}
+                            />
                           </div>
                           <StripeInput component={CardExpiryElement} />
                         </div>
@@ -421,13 +460,19 @@ export default function CustomStripeForm({
                       <div className="self-stretch flex flex-col md:flex-row justify-start items-start gap-4">
                         <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            {paymentData.text.cardNumberLabel}
+                            <TranslatedText
+                              text={paymentData.text.cardNumberLabel}
+                              english={paymentData.text.cardNumberLabelEn}
+                            />
                           </div>
                           <StripeInput component={CardNumberElement} />
                         </div>
                         <div className="w-full md:w-32 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            {paymentData.text.cvvLabel}
+                            <TranslatedText
+                              text={paymentData.text.cvvLabel}
+                              english={paymentData.text.cvvLabelEn}
+                            />
                           </div>
                           <StripeInput component={CardCvcElement} />
                         </div>
@@ -459,7 +504,10 @@ export default function CustomStripeForm({
                       <div className="flex justify-center items-center p-6">
                         <div className="w-6 h-6 border-3 border-[#6AAD3C] border-t-transparent rounded-full animate-spin"></div>
                         <span className="ml-3 text-sm text-gray-600 font-['Poppins']">
-                          Checking availability...
+                          <TranslatedText
+                            text="Comprobando disponibilidad..."
+                            english="Checking availability..."
+                          />
                         </span>
                       </div>
                     ) : paymentRequest && walletType === "googlePay" ? (
@@ -468,17 +516,30 @@ export default function CustomStripeForm({
                       />
                     ) : (
                       <div className="p-4 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800 font-['Poppins']">
-                        <p className="font-bold">Google Pay not available</p>
+                        <p className="font-bold">
+                          <TranslatedText
+                            text="Google Pay no disponible"
+                            english="Google Pay not available"
+                          />
+                        </p>
                         {isLocalhost ? (
                           <p className="mt-1">
-                            Google Pay is disabled on localhost (HTTP).
+                            <TranslatedText
+                              text="Google Pay está desactivado en localhost (HTTP)."
+                              english="Google Pay is disabled on localhost (HTTP)."
+                            />
                             <br />
-                            To test, please use the Credit Card option.
+                            <TranslatedText
+                              text="Para probarlo, utilice la opción de Tarjeta de Crédito."
+                              english="To test, please use the Credit Card option."
+                            />
                           </p>
                         ) : (
                           <p className="mt-1">
-                            Google Pay is not supported for your device or
-                            region.
+                            <TranslatedText
+                              text="Google Pay no es compatible con tu dispositivo o región."
+                              english="Google Pay is not supported for your device or region."
+                            />
                           </p>
                         )}
                       </div>
@@ -509,7 +570,10 @@ export default function CustomStripeForm({
                       <div className="flex justify-center items-center p-6">
                         <div className="w-6 h-6 border-3 border-[#6AAD3C] border-t-transparent rounded-full animate-spin"></div>
                         <span className="ml-3 text-sm text-gray-600 font-['Poppins']">
-                          Checking availability...
+                          <TranslatedText
+                            text="Comprobando disponibilidad..."
+                            english="Checking availability..."
+                          />
                         </span>
                       </div>
                     ) : paymentRequest && walletType === "applePay" ? (
@@ -518,17 +582,30 @@ export default function CustomStripeForm({
                       />
                     ) : (
                       <div className="p-4 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800 font-['Poppins']">
-                        <p className="font-bold">Apple Pay not available</p>
+                        <p className="font-bold">
+                          <TranslatedText
+                            text="Apple Pay no disponible"
+                            english="Apple Pay not available"
+                          />
+                        </p>
                         {isLocalhost ? (
                           <p className="mt-1">
-                            Apple Pay is disabled on localhost (HTTP).
+                            <TranslatedText
+                              text="Apple Pay está desactivado en localhost (HTTP)."
+                              english="Apple Pay is disabled on localhost (HTTP)."
+                            />
                             <br />
-                            To test, please use the Credit Card option.
+                            <TranslatedText
+                              text="Para probarlo, utilice la opción de Tarjeta de Crédito."
+                              english="To test, please use the Credit Card option."
+                            />
                           </p>
                         ) : (
                           <p className="mt-1">
-                            Apple Pay is not supported for your device or
-                            region.
+                            <TranslatedText
+                              text="Apple Pay no es compatible con tu dispositivo o región."
+                              english="Apple Pay is not supported for your device or region."
+                            />
                           </p>
                         )}
                       </div>
@@ -553,9 +630,17 @@ export default function CustomStripeForm({
                   }`}
                 >
                   <div className="text-center justify-start text-white text-sm md:text-base font-medium md:font-normal font-['Inter']">
-                    {isProcessing
-                      ? "Procesando..."
-                      : paymentData.text.confirmButton}
+                    {isProcessing ? (
+                      <TranslatedText
+                        text={paymentData.text.processingButton}
+                        english={paymentData.text.processingButtonEn}
+                      />
+                    ) : (
+                      <TranslatedText
+                        text={paymentData.text.confirmButton}
+                        english={paymentData.text.confirmButtonEn}
+                      />
+                    )}
                   </div>
                 </button>
               </div>

@@ -16,15 +16,12 @@ export interface SocialContactResponse {
 }
 
 // ========== Legal Pages Interfaces ==========
-export interface LegalPageContent {
-  en: string;
-  es: string;
-}
+export type LegalPageContent = string;
 
 export interface LegalPagesContent {
-  privacy: LegalPageContent;
-  cookie: LegalPageContent;
-  terms: LegalPageContent;
+  privacy: string;
+  cookie: string;
+  terms: string;
 }
 
 export interface LegalPagesResponse {
@@ -44,11 +41,11 @@ export const getSocialContactLinks =
 
 // PUT update social contact links
 export const updateSocialContactLinks = async (
-  links: Partial<SocialContactLinks>
+  links: Partial<SocialContactLinks>,
 ): Promise<SocialContactResponse> => {
   const response = await axiosClient.put(
     "/admin/settings/social-contact",
-    links
+    links,
   );
   return response.data;
 };
@@ -63,33 +60,30 @@ export const getLegalPages = async (): Promise<LegalPagesResponse> => {
 
 // PUT update privacy policy
 export const updatePrivacyPolicy = async (
-  content: LegalPageContent
+  content: LegalPageContent,
 ): Promise<LegalPagesResponse> => {
-  const response = await axiosClient.put(
-    "/admin/settings/legal/privacy",
-    content
-  );
+  const response = await axiosClient.put("/admin/settings/legal/privacy", {
+    content,
+  });
   return response.data;
 };
 
 // PUT update cookie policy
 export const updateCookiePolicy = async (
-  content: LegalPageContent
+  content: LegalPageContent,
 ): Promise<LegalPagesResponse> => {
-  const response = await axiosClient.put(
-    "/admin/settings/legal/cookie",
-    content
-  );
+  const response = await axiosClient.put("/admin/settings/legal/cookie", {
+    content,
+  });
   return response.data;
 };
 
 // PUT update terms and conditions
 export const updateTermsConditions = async (
-  content: LegalPageContent
+  content: LegalPageContent,
 ): Promise<LegalPagesResponse> => {
-  const response = await axiosClient.put(
-    "/admin/settings/legal/terms",
-    content
-  );
+  const response = await axiosClient.put("/admin/settings/legal/terms", {
+    content,
+  });
   return response.data;
 };

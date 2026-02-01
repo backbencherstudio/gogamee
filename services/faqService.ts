@@ -4,7 +4,9 @@ import axiosClient from "../lib/axiosClient";
 export interface FaqItem {
   id: string;
   question: string;
+  question_es?: string;
   answer: string;
+  answer_es?: string;
   sort_order: number;
 }
 
@@ -16,13 +18,17 @@ export interface FaqResponse {
 
 export interface FaqPayload {
   question: string;
+  question_es?: string;
   answer: string;
+  answer_es?: string;
   sort_order?: number;
 }
 
 export interface FaqUpdatePayload {
   question?: string;
+  question_es?: string;
   answer?: string;
+  answer_es?: string;
   sort_order?: number;
 }
 

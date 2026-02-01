@@ -3,9 +3,11 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface ITestimonial extends Document {
   name: string;
   role: string;
+  role_es?: string;
   image: string;
   rating: number;
   review: string;
+  review_es?: string;
   isActive: boolean;
   featured: boolean;
   sortOrder: number;
@@ -31,10 +33,16 @@ const TestimonialSchema = new Schema<ITestimonial>(
       trim: true,
       maxlength: 100,
     },
+    role_es: {
+      type: String,
+      trim: true,
+      maxlength: 100,
+    },
     image: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
+      default: "",
     },
     rating: {
       type: Number,
@@ -49,6 +57,11 @@ const TestimonialSchema = new Schema<ITestimonial>(
     review: {
       type: String,
       required: true,
+      trim: true,
+      maxlength: 1000,
+    },
+    review_es: {
+      type: String,
       trim: true,
       maxlength: 1000,
     },
@@ -87,7 +100,7 @@ const TestimonialSchema = new Schema<ITestimonial>(
   {
     timestamps: true,
     collection: "testimonials",
-  }
+  },
 );
 
 // Indexes for better query performance
@@ -133,7 +146,7 @@ TestimonialSchema.statics.findActive = function (
     limit?: number;
     featured?: boolean;
     minRating?: number;
-  } = {}
+  } = {},
 ) {
   const query: any = { deletedAt: { $exists: false }, isActive: true };
 

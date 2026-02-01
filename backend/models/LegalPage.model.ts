@@ -3,10 +3,7 @@ import mongoose, { Schema, Document } from "mongoose";
 export interface ILegalPage extends Document {
   type: "privacy" | "terms" | "cookie";
   title: string;
-  content: {
-    en: string;
-    es?: string;
-  };
+  content: string;
   version: string;
   isActive: boolean;
   effectiveDate?: Date;
@@ -29,14 +26,8 @@ const LegalPageSchema = new Schema<ILegalPage>(
       trim: true,
     },
     content: {
-      en: {
-        type: String,
-        required: true,
-      },
-      es: {
-        type: String,
-        default: "",
-      },
+      type: String,
+      required: true,
     },
     version: {
       type: String,
@@ -58,7 +49,7 @@ const LegalPageSchema = new Schema<ILegalPage>(
   {
     timestamps: true,
     collection: "legal_pages",
-  }
+  },
 );
 
 // Indexes
@@ -67,7 +58,7 @@ LegalPageSchema.index({ deletedAt: 1 });
 
 // Static method to get legal page by type
 LegalPageSchema.statics.getByType = function (
-  type: "privacy" | "terms" | "cookie"
+  type: "privacy" | "terms" | "cookie",
 ) {
   return this.findOne({
     type,

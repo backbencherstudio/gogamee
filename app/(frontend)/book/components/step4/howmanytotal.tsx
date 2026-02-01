@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import React, { useEffect, useCallback, useRef } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { HiMinus, HiPlus } from 'react-icons/hi2';
-import { useBooking } from '../../context/BookingContext';
-import { TranslatedText } from '../../../_components/TranslatedText';
+import React, { useEffect, useCallback, useRef } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { HiMinus, HiPlus } from "react-icons/hi2";
+import { useBooking } from "../../context/BookingContext";
+import { TranslatedText } from "../../../_components/TranslatedText";
+import { useLanguage } from "../../../../context/LanguageContext";
 
 // Types
 interface CounterFormData {
@@ -36,21 +37,21 @@ const MIN_ADULTS = 1;
 
 const COUNTER_CONFIG = [
   {
-    key: 'adults' as keyof CounterFormData,
-    title: 'Adults',
-    description: '12 years or more',
+    key: "adults" as keyof CounterFormData,
+    title: "Adults",
+    description: "12 years or more",
     minValue: MIN_ADULTS,
   },
   {
-    key: 'kids' as keyof CounterFormData,
-    title: 'Kids',
-    description: '2-11 years old',
+    key: "kids" as keyof CounterFormData,
+    title: "Kids",
+    description: "2-11 years old",
     minValue: 0,
   },
   {
-    key: 'babies' as keyof CounterFormData,
-    title: 'Baby',
-    description: '0 to 2 years old',
+    key: "babies" as keyof CounterFormData,
+    title: "Baby",
+    description: "0 to 2 years old",
     minValue: 0,
   },
 ] as const;
@@ -75,7 +76,7 @@ const CounterItem: React.FC<CounterItemProps> = ({
           {description}
         </div>
       </div>
-      
+
       <div className="flex justify-start items-center gap-3 xl:gap-4">
         {/* Decrement Button */}
         <button
@@ -83,35 +84,37 @@ const CounterItem: React.FC<CounterItemProps> = ({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🎯 Decrement button clicked for', title);
+            console.log("🎯 Decrement button clicked for", title);
             onDecrement();
           }}
           disabled={isMinimumReached}
           className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          <HiMinus 
-            className={`w-4 h-4 xl:w-3.5 xl:h-3.5 ${!isMinimumReached ? 'text-zinc-950' : 'text-neutral-300'}`} 
+          <HiMinus
+            className={`w-4 h-4 xl:w-3.5 xl:h-3.5 ${!isMinimumReached ? "text-zinc-950" : "text-neutral-300"}`}
           />
         </button>
-        
+
         {/* Count Display */}
         <div className="text-center justify-start text-zinc-950 text-lg font-medium font-['Poppins'] leading-loose min-w-[2ch] xl:min-w-[1ch]">
           {count}
         </div>
-        
+
         {/* Increment Button */}
         <button
           type="button"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log('🎯 Increment button clicked for', title);
+            console.log("🎯 Increment button clicked for", title);
             onIncrement();
           }}
           disabled={!canIncrement}
           className="w-8 h-8 xl:w-6 xl:h-6 p-0.5 rounded-xl outline-1 outline-offset-[-1px] outline-neutral-200 flex justify-center items-center gap-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          <HiPlus className={`w-4 h-4 xl:w-3.5 xl:h-3.5 ${canIncrement ? 'text-zinc-950' : 'text-neutral-300'}`} />
+          <HiPlus
+            className={`w-4 h-4 xl:w-3.5 xl:h-3.5 ${canIncrement ? "text-zinc-950" : "text-neutral-300"}`}
+          />
         </button>
       </div>
     </div>
@@ -121,30 +124,36 @@ const CounterItem: React.FC<CounterItemProps> = ({
 // Main Component
 export default function HowManyTotal() {
   const { formData, updateFormData, nextStep } = useBooking();
-  
+  const { language } = useLanguage();
+  const t = (es: string, en: string) => (language === "en" ? en : es);
+
   // Calculate default values from existing data or defaults
   const getDefaultValues = useCallback((): CounterFormData => {
-    if (formData.peopleCount.adults || formData.peopleCount.kids || formData.peopleCount.babies) {
+    if (
+      formData.peopleCount.adults ||
+      formData.peopleCount.kids ||
+      formData.peopleCount.babies
+    ) {
       return {
         adults: formData.peopleCount.adults,
         kids: formData.peopleCount.kids,
-        babies: formData.peopleCount.babies
-      }
+        babies: formData.peopleCount.babies,
+      };
     }
     return DEFAULT_VALUES;
-  }, [formData.peopleCount])
-  
+  }, [formData.peopleCount]);
+
   const { control, watch, setValue, handleSubmit } = useForm<CounterFormData>({
     defaultValues: getDefaultValues(),
-    mode: 'onChange',
+    mode: "onChange",
   });
 
   // Debug: Log the initial form state
   useEffect(() => {
     const initialValues = getDefaultValues();
-    console.log('🎯 HowManyTotal initialized with values:', initialValues);
-    console.log('🎯 FormData.peopleCount:', formData.peopleCount);
-    console.log('🎯 FromHero:', formData.fromHero);
+    console.log("🎯 HowManyTotal initialized with values:", initialValues);
+    console.log("🎯 FormData.peopleCount:", formData.peopleCount);
+    console.log("🎯 FromHero:", formData.fromHero);
   }, [formData.fromHero, formData.peopleCount, getDefaultValues]); // Only run once on mount
 
   const watchedValues = watch();
@@ -154,61 +163,90 @@ export default function HowManyTotal() {
   useEffect(() => {
     if (formData.fromHero && !hasSyncedFromHeroRef.current) {
       const contextPeopleCount = formData.peopleCount;
-      setValue('adults', contextPeopleCount.adults);
-      setValue('kids', contextPeopleCount.kids);
-      setValue('babies', contextPeopleCount.babies);
+      setValue("adults", contextPeopleCount.adults);
+      setValue("kids", contextPeopleCount.kids);
+      setValue("babies", contextPeopleCount.babies);
       hasSyncedFromHeroRef.current = true;
-      console.log('🎯 HowManyTotal - one-time sync from hero:', contextPeopleCount);
+      console.log(
+        "🎯 HowManyTotal - one-time sync from hero:",
+        contextPeopleCount,
+      );
     }
   }, [formData.fromHero, formData.peopleCount, setValue]);
 
   // Calculate total count from watched values
-  const totalCount = (watchedValues.adults ?? 0) + (watchedValues.kids ?? 0) + (watchedValues.babies ?? 0);
-  console.log('🎯 Current total count:', totalCount, 'Values:', watchedValues);
+  const totalCount =
+    (watchedValues.adults ?? 0) +
+    (watchedValues.kids ?? 0) +
+    (watchedValues.babies ?? 0);
+  console.log("🎯 Current total count:", totalCount, "Values:", watchedValues);
   const canAddMore = totalCount < MAX_TOTAL_PEOPLE;
 
   const updateCount = (
     field: keyof CounterFormData,
-    operation: 'increment' | 'decrement',
-    minValue: number
+    operation: "increment" | "decrement",
+    minValue: number,
   ) => {
     const currentValue = watchedValues[field];
-    console.log(`🎯 updateCount called: ${operation} ${field}, current: ${currentValue}, total: ${totalCount}, canAddMore: ${canAddMore}`);
-    
-    if (operation === 'increment') {
+    console.log(
+      `🎯 updateCount called: ${operation} ${field}, current: ${currentValue}, total: ${totalCount}, canAddMore: ${canAddMore}`,
+    );
+
+    if (operation === "increment") {
       if (totalCount >= MAX_TOTAL_PEOPLE) {
-        console.log(`🎯 Cannot increment - max people reached (${totalCount}/${MAX_TOTAL_PEOPLE})`);
+        console.log(
+          `🎯 Cannot increment - max people reached (${totalCount}/${MAX_TOTAL_PEOPLE})`,
+        );
         return;
       }
       const newValue = currentValue + 1;
       console.log(`🎯 Setting ${field} to ${newValue}`);
-      setValue(field, newValue, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-      console.log(`🎯 Successfully incremented ${field} from ${currentValue} to ${newValue}`);
+      setValue(field, newValue, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      console.log(
+        `🎯 Successfully incremented ${field} from ${currentValue} to ${newValue}`,
+      );
     } else {
       if (currentValue <= minValue) {
-        console.log(`🎯 Cannot decrement - minimum value reached (${currentValue} <= ${minValue})`);
+        console.log(
+          `🎯 Cannot decrement - minimum value reached (${currentValue} <= ${minValue})`,
+        );
         return;
       }
       const newValue = Math.max(minValue, currentValue - 1);
       console.log(`🎯 Setting ${field} to ${newValue}`);
-      setValue(field, newValue, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-      console.log(`🎯 Successfully decremented ${field} from ${currentValue} to ${newValue}`);
+      setValue(field, newValue, {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+      console.log(
+        `🎯 Successfully decremented ${field} from ${currentValue} to ${newValue}`,
+      );
     }
   };
 
   const onSubmit = (data: CounterFormData) => {
     const totalPeople = data.adults + data.kids + data.babies;
-    console.log('🎯 Form submitted - Current counts:', data, 'Total:', totalPeople);
-    
+    console.log(
+      "🎯 Form submitted - Current counts:",
+      data,
+      "Total:",
+      totalPeople,
+    );
+
     // Update the booking context with detailed people count
-    updateFormData({ 
+    updateFormData({
       peopleCount: {
         adults: data.adults,
         kids: data.kids,
-        babies: data.babies
-      }
+        babies: data.babies,
+      },
     });
-    
+
     // Move to next step
     nextStep();
   };
@@ -220,10 +258,13 @@ export default function HowManyTotal() {
           {/* Header */}
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
             <h2 className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-              <TranslatedText text="¿Cuántos fanáticos/as viajarán?" english="How many are you?" />
+              <TranslatedText
+                text="¿Cuántos fanáticos/as viajarán?"
+                english="How many are you?"
+              />
             </h2>
           </div>
-          
+
           {/* Content */}
           <div className="self-stretch flex-1 flex flex-col justify-between items-start gap-8 xl:gap-0">
             {/* Counter Section */}
@@ -236,22 +277,26 @@ export default function HowManyTotal() {
                   render={({ field }) => (
                     <CounterItem
                       title={
-                        key === 'adults'
-                          ? 'Adultos'
-                          : key === 'kids'
-                            ? 'Niños o niñas'
-                            : 'Bebés'
+                        key === "adults"
+                          ? t("Adultos", "Adults")
+                          : key === "kids"
+                            ? t("Niños o niñas", "Kids")
+                            : t("Bebés", "Baby")
                       }
                       description={
-                        key === 'adults'
-                          ? '12 años o más'
-                          : key === 'kids'
-                            ? 'De 2 a 11 años'
-                            : 'De 0 a 2 años'
+                        key === "adults"
+                          ? t("12 años o más", "12 years or more")
+                          : key === "kids"
+                            ? t("De 2 a 11 años", "2-11 years old")
+                            : t("De 0 a 2 años", "0 to 2 years old")
                       }
                       count={field.value}
-                      onIncrement={() => updateCount(key, 'increment', minValue)}
-                      onDecrement={() => updateCount(key, 'decrement', minValue)}
+                      onIncrement={() =>
+                        updateCount(key, "increment", minValue)
+                      }
+                      onDecrement={() =>
+                        updateCount(key, "decrement", minValue)
+                      }
                       canIncrement={canAddMore}
                       isMinimumReached={field.value <= minValue}
                     />
@@ -259,15 +304,21 @@ export default function HowManyTotal() {
                 />
               ))}
             </div>
-            
+
             {/* Next Button */}
             {totalCount === 1 && (
               <div className="w-full xl:w-[473px] p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900">
                 <div className="text-sm xl:text-base font-medium font-['Poppins']">
-                  Single traveler supplement: 50€ will be applied.
+                  <TranslatedText
+                    text="Suplemento de viajero individual: se aplicarán 50€."
+                    english="Single traveler supplement: 50€ will be applied."
+                  />
                 </div>
                 <div className="text-xs xl:text-sm text-zinc-600 font-['Poppins'] mt-1">
-                  This fee applies only when traveling alone and will appear in your final summary.
+                  <TranslatedText
+                    text="Esta tarifa solo se aplica cuando se viaja solo y aparecerá en su resumen final."
+                    english="This fee applies only when traveling alone and will appear in your final summary."
+                  />
                 </div>
               </div>
             )}

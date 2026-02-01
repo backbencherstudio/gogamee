@@ -8,32 +8,20 @@ export async function PUT(request: Request) {
   try {
     const payload = await request.json();
 
-    // Construct content object supporting en and es
-    const enContent =
-      payload.en ||
-      payload.content?.en ||
-      (typeof payload.content === "string" ? payload.content : " ");
-    const esContent = payload.es || payload.content?.es || "";
+    const content = payload.content || payload.en || payload.es || "";
 
     const legalPage = await SettingsService.createOrUpdateLegalPage({
       type: "terms",
       title: payload.title || "Terms and Conditions",
-      content: {
-        en: enContent,
-        es: esContent,
-      },
+      content: content,
       version: payload.version,
     });
 
-    // Manually constructed response to match legacy 'content' key structure
     return NextResponse.json({
       success: true,
       message: "Terms and conditions updated successfully",
       content: {
-        terms: {
-          en: legalPage.content.en,
-          es: legalPage.content.es || enContent,
-        },
+        terms: legalPage.content,
       },
     });
   } catch (error) {

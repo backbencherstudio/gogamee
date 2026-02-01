@@ -22,7 +22,7 @@ export default async function Page() {
 
   return (
     <>
-      <AboutTop />
+      <AboutTop headline={initialContent?.headline} />
       <AboutPage initialContent={initialContent as AboutContent} />
     </>
   );

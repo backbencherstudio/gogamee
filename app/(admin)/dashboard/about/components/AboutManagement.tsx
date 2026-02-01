@@ -8,13 +8,18 @@ import {
   editOurValue,
   addWhyChooseUs,
   editWhyChooseUs,
+  updateAboutHeadline,
   type MainSection,
   type OurValue,
   type WhyChooseUs,
   type MainSectionPayload,
   type OurValuePayload,
   type WhyChooseUsPayload,
+  type MainSectionUpdatePayload,
+  type OurValueUpdatePayload,
+  type WhyChooseUsUpdatePayload,
 } from "../../../../../services/aboutService";
+import { autoTranslateContent } from "../../../../../services/translationService";
 
 type TabId = "sections" | "values" | "whyChooseUs";
 
@@ -128,11 +133,11 @@ export default function AboutManagement() {
   const handleSave = async () => {
     try {
       if (editingId === "headline") {
-        // Update headline - for now, we'll just update local state
-        // In a real implementation, you'd need an API endpoint for updating headline
-        setHeadline(formData.text);
+        const response = await updateAboutHeadline(formData.text);
+        if (response.success) {
+          setHeadline(formData.text);
+        }
       } else if (isAdding) {
-        // Adding new items
         if (activeTab === "sections") {
           const payload: MainSectionPayload = {
             title: formData.title,
@@ -141,7 +146,7 @@ export default function AboutManagement() {
           };
           const response = await addMainSection(payload);
           if (response.success) {
-            await loadData(); // Reload data to get updated list
+            await loadData();
           }
         } else if (activeTab === "values") {
           const payload: OurValuePayload = {
@@ -151,7 +156,7 @@ export default function AboutManagement() {
           };
           const response = await addOurValue(payload);
           if (response.success) {
-            await loadData(); // Reload data to get updated list
+            await loadData();
           }
         } else if (activeTab === "whyChooseUs") {
           const payload: WhyChooseUsPayload = {
@@ -161,38 +166,40 @@ export default function AboutManagement() {
           };
           const response = await addWhyChooseUs(payload);
           if (response.success) {
-            await loadData(); // Reload data to get updated list
+            await loadData();
           }
         }
-      } else if (activeTab === "sections" && editingId) {
-        const payload: MainSectionPayload = {
-          title: formData.title,
-          description: formData.description,
-          order: formData.order,
-        };
-        const response = await editMainSection(editingId, payload);
-        if (response.success) {
-          await loadData(); // Reload data to get updated list
-        }
-      } else if (activeTab === "values" && editingId) {
-        const payload: OurValuePayload = {
-          title: formData.title,
-          description: formData.description,
-          order: formData.order,
-        };
-        const response = await editOurValue(editingId, payload);
-        if (response.success) {
-          await loadData(); // Reload data to get updated list
-        }
-      } else if (activeTab === "whyChooseUs" && editingId) {
-        const payload: WhyChooseUsPayload = {
-          title: formData.title,
-          description: formData.description,
-          order: formData.order,
-        };
-        const response = await editWhyChooseUs(editingId, payload);
-        if (response.success) {
-          await loadData(); // Reload data to get updated list
+      } else if (editingId) {
+        if (activeTab === "sections") {
+          const payload: MainSectionUpdatePayload = {
+            title: formData.title,
+            description: formData.description,
+            order: formData.order,
+          };
+          const response = await editMainSection(editingId, payload);
+          if (response.success) {
+            await loadData();
+          }
+        } else if (activeTab === "values") {
+          const payload: OurValueUpdatePayload = {
+            title: formData.title,
+            description: formData.description,
+            order: formData.order,
+          };
+          const response = await editOurValue(editingId, payload);
+          if (response.success) {
+            await loadData();
+          }
+        } else if (activeTab === "whyChooseUs") {
+          const payload: WhyChooseUsUpdatePayload = {
+            title: formData.title,
+            description: formData.description,
+            order: formData.order,
+          };
+          const response = await editWhyChooseUs(editingId, payload);
+          if (response.success) {
+            await loadData();
+          }
         }
       }
 

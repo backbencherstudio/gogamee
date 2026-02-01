@@ -12,7 +12,7 @@ import {
 } from "../../../../../services/testimonialService";
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 import { Pagination } from "../../../../../components/ui/Pagination";
-import { uploadImage } from "../../../../lib/utils";
+import { autoTranslateContent } from "../../../../../services/translationService";
 
 // Local interface matching the API response items
 interface ReviewItem extends TestimonialItem {}
@@ -33,12 +33,20 @@ export default function TestimonialPage() {
   const limit = 10;
 
   // Unified form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    role: string;
+    image: string; // URL string for preview/existing
+    rating: number;
+    review: string;
+    imageFile?: File | null; // New field for file object
+  }>({
     name: "",
     role: "",
     image: "/homepage/image/avatar1.png",
     rating: 5,
     review: "",
+    imageFile: null,
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -77,30 +85,30 @@ export default function TestimonialPage() {
     }
   };
 
-  // Handle image upload
-  const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const getImageSrc = (imagePath: string) => {
+    if (
+      !imagePath ||
+      imagePath === "" ||
+      imagePath === "/homepage/image/avatar1.png"
+    ) {
+      return null; // Will render User icon instead
+    }
+    return imagePath;
+  };
+
+  // Handle image selection (local preview only)
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Mock upload or implement actual upload if needed
-      // For now, we will just use a placeholder or previous logic if available
-      try {
-        const result = await uploadImage(file, "reviews");
+      // Create local preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
 
-        if (result.success && result.imagePath) {
-          setFormData((prev) => ({
-            ...prev,
-            image: result.imagePath as string,
-          }));
-          setImagePreview(result.imagePath);
-        } else {
-          alert(result.error || "Upload failed");
-        }
-      } catch (error) {
-        console.error("Upload error:", error);
-        alert("Upload failed. Please try again.");
-      }
+      // Update state with file object
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: file,
+      }));
     }
   };
 
@@ -108,28 +116,69 @@ export default function TestimonialPage() {
     if (formData.name && formData.role && formData.review) {
       setSaving(true);
       try {
-        const res = await addTestimonial({
-          name: formData.name.trim(),
-          role: formData.role.trim(),
-          image: formData.image,
-          rating: formData.rating,
-          review: formData.review.trim(),
-        });
+        // Auto-translate content
+        const [translatedRole, translatedReview] = await Promise.all([
+          autoTranslateContent(formData.role.trim()),
+          autoTranslateContent(formData.review.trim()),
+        ]);
+
+        const data = new FormData();
+        data.append("name", formData.name.trim());
+        data.append("role", formData.role.trim());
+        data.append("role_es", translatedRole.es);
+        data.append("rating", formData.rating.toString());
+        data.append("review", formData.review.trim());
+        data.append("review_es", translatedReview.es);
+
+        // Image is required - must be uploaded or selected
+        if (formData.imageFile) {
+          data.append("image", formData.imageFile);
+        } else if (
+          formData.image &&
+          formData.image !== "/homepage/image/avatar1.png"
+        ) {
+          data.append("image", formData.image);
+        } else {
+          throw new Error("Profile image is required");
+        }
+
+        const res = await addTestimonial(data);
         if (res.success) {
           await loadReviews(currentPage);
           resetForm();
           setShowAddForm(false);
+        } else {
+          // Handle API error response
+          console.error("Failed to add testimonial:", res.message);
         }
+      } catch (error) {
+        console.error("Error adding testimonial:", error);
+        alert(
+          error instanceof Error
+            ? error.message
+            : "Failed to add testimonial. Please upload an image.",
+        );
       } finally {
         setSaving(false);
       }
+    } else {
+      console.error("Missing required fields");
+      alert(
+        "Please fill in all required fields (name, role, review, and image).",
+      );
     }
   };
 
   const handleDeleteReview = async (id: string) => {
-    await deleteTestimonial(id);
-    await loadReviews(currentPage);
-    setDeleteConfirm(null);
+    // Delete API call
+    if (!id) return;
+    try {
+      await deleteTestimonial(id);
+      await loadReviews(currentPage);
+      setDeleteConfirm(null);
+    } catch (error) {
+      console.error("Delete failed", error);
+    }
   };
 
   const startEdit = (review: ReviewItem) => {
@@ -140,6 +189,7 @@ export default function TestimonialPage() {
       image: review.image,
       rating: review.rating,
       review: review.review,
+      imageFile: null, // Reset file input
     });
     setImagePreview(review.image);
     setShowAddForm(true);
@@ -149,14 +199,45 @@ export default function TestimonialPage() {
     if (editingId) {
       setSaving(true);
       try {
-        await updateTestimonial(editingId, formData);
-        await loadReviews(currentPage);
-        resetForm();
-        setEditingId(null);
-        setShowAddForm(false);
+        // Auto-translate content
+        const [translatedRole, translatedReview] = await Promise.all([
+          autoTranslateContent(formData.role.trim()),
+          autoTranslateContent(formData.review.trim()),
+        ]);
+
+        const data = new FormData();
+        data.append("name", formData.name.trim());
+        data.append("role", formData.role.trim());
+        data.append("role_es", translatedRole.es);
+        data.append("rating", formData.rating.toString());
+        data.append("review", formData.review.trim());
+        data.append("review_es", translatedReview.es);
+
+        // Only append image if a new file is selected, or if we want to send the existing URL
+        if (formData.imageFile) {
+          data.append("image", formData.imageFile);
+        } else {
+          // If no new file, send the existing image URL so backend knows to keep it
+          data.append("image", formData.image);
+        }
+
+        const res = await updateTestimonial(editingId, data);
+        if (res.success) {
+          await loadReviews(currentPage);
+          resetForm();
+          setEditingId(null);
+          setShowAddForm(false);
+        } else {
+          // Handle API error response
+          console.error("Failed to update testimonial:", res.message);
+        }
+      } catch (error) {
+        console.error("Error updating testimonial:", error);
       } finally {
         setSaving(false);
       }
+    } else {
+      console.error("No editing ID set");
     }
   };
 
@@ -167,6 +248,7 @@ export default function TestimonialPage() {
       image: "/homepage/image/avatar1.png",
       rating: 5,
       review: "",
+      imageFile: null,
     });
     setImagePreview(null);
   };
@@ -427,13 +509,19 @@ export default function TestimonialPage() {
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                          <Image
-                            src={review.image}
-                            alt={review.name}
-                            fill
-                            className="object-cover"
-                            onError={(e) => handleImageError(review.image, e)}
-                          />
+                          {getImageSrc(review.image) ? (
+                            <Image
+                              src={getImageSrc(review.image)!}
+                              alt={review.name}
+                              fill
+                              className="object-cover"
+                              onError={(e) => handleImageError(review.image, e)}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                              <User className="w-6 h-6 text-gray-400" />
+                            </div>
+                          )}
                         </div>
                         <div className="min-w-0 flex-1">
                           <h3 className="text-lg font-semibold font-['Geist'] text-lime-900 truncate">
@@ -486,15 +574,18 @@ export default function TestimonialPage() {
               ))}
         </div>
 
-        {/* Pagination Control */}
-        <div className="mt-4">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            isLoading={loading}
-          />
-        </div>
+        {/* View More Button (instead of pagination) */}
+        {totalPages > 1 && (
+          <div className="mt-4 flex justify-center">
+            <button
+              onClick={() => loadReviews(currentPage + 1)}
+              disabled={loading || currentPage >= totalPages}
+              className="px-6 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Loading..." : "View More"}
+            </button>
+          </div>
+        )}
 
         {/* Delete Confirmation Modal */}
         <DeleteConfirmationModal

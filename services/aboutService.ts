@@ -4,7 +4,9 @@ import axiosClient from "../lib/axiosClient";
 export interface MainSection {
   id: string;
   title: string;
+  title_es?: string;
   description: string;
+  description_es?: string;
   order: number;
   created_at: string;
   updated_at: string;
@@ -14,7 +16,9 @@ export interface MainSection {
 export interface OurValue {
   id: string;
   title: string;
+  title_es?: string;
   description: string;
+  description_es?: string;
   order: number;
   created_at: string;
   updated_at: string;
@@ -24,7 +28,9 @@ export interface OurValue {
 export interface WhyChooseUs {
   id: string;
   title: string;
+  title_es?: string;
   description: string;
+  description_es?: string;
   order: number;
   created_at: string;
   updated_at: string;
@@ -54,37 +60,49 @@ export interface AboutResponse {
 // ========== Payload Interfaces ==========
 export interface MainSectionPayload {
   title: string;
+  title_es?: string;
   description: string;
+  description_es?: string;
   order?: number;
 }
 
 export interface OurValuePayload {
   title: string;
+  title_es?: string;
   description: string;
+  description_es?: string;
   order?: number;
 }
 
 export interface WhyChooseUsPayload {
   title: string;
+  title_es?: string;
   description: string;
+  description_es?: string;
   order?: number;
 }
 
 export interface MainSectionUpdatePayload {
   title?: string;
+  title_es?: string;
   description?: string;
+  description_es?: string;
   order?: number;
 }
 
 export interface OurValueUpdatePayload {
   title?: string;
+  title_es?: string;
   description?: string;
+  description_es?: string;
   order?: number;
 }
 
 export interface WhyChooseUsUpdatePayload {
   title?: string;
+  title_es?: string;
   description?: string;
+  description_es?: string;
   order?: number;
 }
 
@@ -93,6 +111,16 @@ export interface WhyChooseUsUpdatePayload {
 // GET all about management data
 export const getAboutManagement = async (): Promise<AboutResponse> => {
   const response = await axiosClient.get("/admin/about/main_sections");
+  return response.data;
+};
+
+// PUT update headline
+export const updateAboutHeadline = async (
+  headline: string,
+): Promise<AboutResponse> => {
+  const response = await axiosClient.put("/admin/about/main_sections", {
+    headline,
+  });
   return response.data;
 };
 

@@ -15,40 +15,23 @@ export async function GET(request: Request) {
 
     // Map legal pages to expected content structure
     const content = {
-      privacy: { en: "", es: "" },
-      cookie: { en: "", es: "" },
-      terms: { en: "", es: "" },
+      privacy: "",
+      cookie: "",
+      terms: "",
     };
 
     pages.forEach((p) => {
-      // Assuming types match "privacy", "cookie", "terms".
-      // If content is just a string, we might need to adjust based on schema.
-      // Looking at previous GET /admin/settings/legal/_route.ts, it seemed content was a string.
-      // But multi-language support implies content structure or multiple entries.
-      // Let's assume for now the content is what we have.
-      // Actually, looking at SettingsService.getAllLegalPages return type:
-      // pages: ILegalPage[]
-      // ILegalPage usually has type and content.
-
-      // Let's replicate logic from admin/settings/legal/_route.ts but adapted for public API
       if (["privacy", "cookie", "terms"].includes(p.type)) {
         const key = p.type as "privacy" | "cookie" | "terms";
-        content[key].es = p.content.es || "";
-        content[key].en = p.content.en;
+        content[key] = p.content;
       }
     });
 
     if (page && ["privacy", "cookie", "terms"].includes(page)) {
       const key = page as "privacy" | "cookie" | "terms";
-      const pageContent = content[key];
-      // Return specific language content
       return NextResponse.json({
         success: true,
-        content:
-          pageContent[lang as "en" | "es"] ||
-          pageContent.es ||
-          pageContent.en ||
-          "",
+        content: content[key] || "",
       });
     }
 

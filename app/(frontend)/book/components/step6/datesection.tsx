@@ -3,6 +3,8 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useFormContext } from "react-hook-form";
 import { useBooking } from "../../context/BookingContext";
+import { TranslatedText } from "../../../_components/TranslatedText";
+import { useLanguage } from "../../../../context/LanguageContext";
 import { getAllDates } from "../../../../../services/dateManagementService";
 import {
   getStartingPrice,
@@ -68,7 +70,7 @@ const DURATION_OPTIONS: DurationOption[] = [
   { days: 5, nights: 4 },
 ];
 
-const MONTH_NAMES = [
+const MONTH_NAMES_ES = [
   "Enero",
   "Febrero",
   "Marzo",
@@ -83,7 +85,23 @@ const MONTH_NAMES = [
   "Diciembre",
 ];
 
-const WEEK_DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const MONTH_NAMES_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const WEEK_DAYS_ES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const WEEK_DAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // Dynamic pricing will be calculated based on sport, package, and nights
 
@@ -118,6 +136,11 @@ const isDateAllowedForCompetition = (
 
 export default function DateSection() {
   const { formData, updateFormData, nextStep } = useBooking();
+  const { language } = useLanguage();
+  const t = (es: string, en: string) => (language === "en" ? en : es);
+
+  const MONTH_NAMES = language === "en" ? MONTH_NAMES_EN : MONTH_NAMES_ES;
+  const WEEK_DAYS = language === "en" ? WEEK_DAYS_EN : WEEK_DAYS_ES;
 
   // Optional React Hook Form integration
   const formContext = useFormContext?.() || null;
@@ -971,7 +994,10 @@ export default function DateSection() {
     return (
       <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-center items-center gap-6 min-h-[600px]">
         <div className="text-center text-neutral-800 text-xl font-medium font-['Poppins']">
-          Loading available dates...
+          <TranslatedText
+            text="Loading available dates..."
+            english="Loading available dates..."
+          />
         </div>
       </div>
     );
@@ -982,7 +1008,10 @@ export default function DateSection() {
       <div className="self-stretch flex flex-col justify-center items-start gap-3">
         <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
           <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-            Escoge tu día perfecto
+            <TranslatedText
+              text="Escoge tu día perfecto"
+              english="Choose your perfect day"
+            />
           </div>
         </div>
 
@@ -993,17 +1022,17 @@ export default function DateSection() {
               <div className="flex flex-col gap-2">
                 <div className="text-sm text-gray-600 font-medium">
                   {formData.selectedPackage === "standard"
-                    ? "Paquete Estándar"
-                    : "Paquete Premium"}{" "}
+                    ? t("Paquete Estándar", "Standard Package")
+                    : t("Paquete Premium", "Premium Package")}{" "}
                   -{" "}
                   {formData.selectedSport === "football"
-                    ? "Fútbol"
+                    ? t("Fútbol", "Football")
                     : formData.selectedSport === "basketball"
-                      ? "Basket"
-                      : "Ambos"}
+                      ? t("Basket", "Basketball")
+                      : t("Ambos", "Both")}
                 </div>
                 <div className="text-lg font-bold text-lime-600">
-                  Desde{" "}
+                  <TranslatedText text="Desde" english="From" />{" "}
                   {calculatePrice(DURATION_OPTIONS[selectedDuration].nights)}
                 </div>
                 <div className="text-xs text-gray-500">
@@ -1044,14 +1073,18 @@ export default function DateSection() {
                       selectedDuration === index ? "text-white" : "text-black"
                     }`}
                   >
-                    {option.days} {option.days === 1 ? "día" : "días"}
+                    {option.days}{" "}
+                    {option.days === 1 ? t("día", "day") : t("días", "days")}
                   </div>
                   <div
                     className={`justify-center text-xs xl:text-sm font-normal font-['Poppins'] leading-relaxed ${
                       selectedDuration === index ? "text-white" : "text-black"
                     }`}
                   >
-                    {option.nights} {option.nights === 1 ? "noche" : "noches"}
+                    {option.nights}{" "}
+                    {option.nights === 1
+                      ? t("noche", "night")
+                      : t("noches", "nights")}
                   </div>
                 </div>
               ))}
@@ -1133,7 +1166,7 @@ export default function DateSection() {
           }`}
         >
           <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-            Next
+            <TranslatedText text="Next" english="Next" />
           </div>
         </button>
       </div>

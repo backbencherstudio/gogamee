@@ -4,9 +4,11 @@ export interface TestimonialItem {
   id: string;
   name: string;
   role: string;
+  role_es?: string;
   image: string;
   rating: number;
   review: string;
+  review_es?: string;
   created_at?: string;
   updated_at?: string;
   deleted_at?: string | null;
@@ -28,7 +30,7 @@ export interface TestimonialSingleResponse {
 export interface CreateTestimonialPayload {
   name: string;
   role: string;
-  image: string;
+  imageFile?: File; // allow File or string URL
   rating: number;
   review: string;
 }
@@ -36,7 +38,7 @@ export interface CreateTestimonialPayload {
 export interface UpdateTestimonialPayload {
   name?: string;
   role?: string;
-  image?: string;
+  image?: string | File; // allow File or string URL
   rating?: number;
   review?: string;
 }
@@ -66,18 +68,60 @@ export const getTestimonialById = async (
 
 // POST add
 export const addTestimonial = async (
-  payload: CreateTestimonialPayload,
+  payload: CreateTestimonialPayload | FormData,
 ): Promise<TestimonialSingleResponse> => {
-  const response = await axiosClient.post("/testimonials/add-review", payload);
+  let body: FormData;
+  if (payload instanceof FormData) {
+    body = payload;
+  } else {
+    body = new FormData();
+    body.append("name", payload.name);
+    body.append("role", payload.role);
+    body.append("review", payload.review);
+    body.append("rating", String(payload.rating));
+    if (payload.imageFile instanceof File) {
+      body.append("image", payload.imageFile);
+    } else if (typeof payload.imageFile === "string" && payload.imageFile) {
+      body.append("image", payload.imageFile);
+    }
+  }
+  const response = await axiosClient.post("/testimonials", body, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 
-// PATCH update
+// PUT update
 export const updateTestimonial = async (
   id: string,
-  payload: UpdateTestimonialPayload,
+  payload: UpdateTestimonialPayload | FormData,
 ): Promise<TestimonialSingleResponse> => {
-  const response = await axiosClient.patch(`/testimonials/${id}`, payload);
+  let body: FormData;
+  if (payload instanceof FormData) {
+    body = payload;
+  } else {
+    body = new FormData();
+    if (payload.name !== undefined) body.append("name", payload.name);
+    if (payload.role !== undefined) body.append("role", payload.role);
+    if (payload.review !== undefined) body.append("review", payload.review);
+    if (payload.rating !== undefined)
+      body.append("rating", String(payload.rating));
+    if (payload.image instanceof File) {
+      body.append("image", payload.image);
+    } else if (
+      typeof payload.image === "string" &&
+      payload.image !== undefined
+    ) {
+      body.append("image", payload.image);
+    }
+  }
+  const response = await axiosClient.put(`/testimonials/${id}`, body, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 

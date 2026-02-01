@@ -1,7 +1,7 @@
-"use client"
-import React, { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+"use client";
+import React, { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutGrid,
   HelpCircle,
@@ -18,22 +18,24 @@ import {
   Shield,
   ChevronDown,
   ChevronRight,
-} from "lucide-react"
-import { cn } from "@/app/lib/utils"
-import { logout } from "../../../../../services/authService"
+  Globe,
+} from "lucide-react";
+import { useLanguage } from "../../../../context/LanguageContext";
+import { cn } from "@/app/lib/utils";
+import { logout } from "../../../../../services/authService";
 
 interface SidebarMenuItem {
-  title: string
-  icon: React.ElementType
-  url: string
-  badge?: string
-  isLogout?: boolean
-  subItems?: SidebarMenuItem[]
+  title: string;
+  icon: React.ElementType;
+  url: string;
+  badge?: string;
+  isLogout?: boolean;
+  subItems?: SidebarMenuItem[];
 }
 
 interface SidebarSection {
-  title: string
-  items: SidebarMenuItem[]
+  title: string;
+  items: SidebarMenuItem[];
 }
 
 const sidebarData: SidebarSection[] = [
@@ -46,7 +48,11 @@ const sidebarData: SidebarSection[] = [
       { title: "Package", icon: Package, url: "/dashboard/package" },
       { title: "Testimonial", icon: Star, url: "/dashboard/testimonial" },
       { title: "About Page", icon: Info, url: "/dashboard/about" },
-      { title: "Date Management", icon: Calendar, url: "/dashboard/managedate" },
+      {
+        title: "Date Management",
+        icon: Calendar,
+        url: "/dashboard/managedate",
+      },
     ],
   },
   {
@@ -57,7 +63,11 @@ const sidebarData: SidebarSection[] = [
         icon: Share2,
         url: "/dashboard/settings/social-contact",
         subItems: [
-          { title: "Social Media & Contact", icon: Share2, url: "/dashboard/settings/social-contact" },
+          {
+            title: "Social Media & Contact",
+            icon: Share2,
+            url: "/dashboard/settings/social-contact",
+          },
         ],
       },
       {
@@ -65,258 +75,155 @@ const sidebarData: SidebarSection[] = [
         icon: Shield,
         url: "/dashboard/settings/legal",
         subItems: [
-          { title: "Overview", icon: FileText, url: "/dashboard/settings/legal" },
-          { title: "Privacy Policy", icon: FileText, url: "/dashboard/settings/legal/privacy" },
-          { title: "Cookie Policy", icon: FileText, url: "/dashboard/settings/legal/cookie" },
-          { title: "Terms & Conditions", icon: FileText, url: "/dashboard/settings/legal/terms" },
+          {
+            title: "Overview",
+            icon: FileText,
+            url: "/dashboard/settings/legal",
+          },
+          {
+            title: "Privacy Policy",
+            icon: FileText,
+            url: "/dashboard/settings/legal/privacy",
+          },
+          {
+            title: "Cookie Policy",
+            icon: FileText,
+            url: "/dashboard/settings/legal/cookie",
+          },
+          {
+            title: "Terms & Conditions",
+            icon: FileText,
+            url: "/dashboard/settings/legal/terms",
+          },
         ],
       },
     ],
   },
-]
+];
 
 export function Sidebar() {
-  const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set())
-  
+  const pathname = usePathname();
+  const { language, toggleLanguage } = useLanguage();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
   const toggleExpanded = (title: string) => {
     setExpandedItems((prev) => {
-      const next = new Set(prev)
+      const next = new Set(prev);
       if (next.has(title)) {
-        next.delete(title)
+        next.delete(title);
       } else {
-        next.add(title)
+        next.add(title);
       }
-      return next
-    })
-  }
-  
+      return next;
+    });
+  };
+
   const isItemActive = (item: SidebarMenuItem): boolean => {
-    if (pathname === item.url) return true
+    if (pathname === item.url) return true;
     if (item.subItems) {
-      return item.subItems.some((subItem) => pathname === subItem.url)
+      return item.subItems.some((subItem) => pathname === subItem.url);
     }
-    return false
-  }
+    return false;
+  };
 
   return (
     <>
-    {/* Desktop sidebar */}
-    <div className="hidden lg:flex fixed w-64 bg-white p-4 rounded-xl shadow-lg flex-col h-[calc(100vh-2rem)] my-4 ml-4 z-30">
-      {/* Logo */}
-      <div className="flex items-center gap-2 p-2 mb-6">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#76C043] text-white">
-          <GalleryVerticalEnd className="w-4 h-4" />
-        </div>
-        <span className="font-semibold text-lg text-gray-800">GoGame</span>
-      </div>
-
-      {/* Navigation Sections */}
-      <nav className="flex-1 overflow-y-auto">
-        {sidebarData.map((section, index) => (
-          <div key={section.title} className={cn("mb-6", index === 0 && "mt-2")}>
-            {section.title && (
-              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-                {section.title}
-              </h3>
-            )}
-            <ul>
-              {section.items.map((item) => {
-                const Icon = item.icon
-                const isActive = isItemActive(item)
-                const isExpanded = expandedItems.has(item.title)
-                const hasSubItems = item.subItems && item.subItems.length > 0
-                
-                return (
-                  <li key={item.title} className="mb-1">
-                    {hasSubItems ? (
-                      <>
-                        <button
-                          onClick={() => toggleExpanded(item.title)}
-                          className={cn(
-                            "flex items-center justify-between gap-3 p-2 rounded-lg transition-colors duration-200 w-full text-left",
-                            isActive 
-                              ? "bg-[#76C043] text-white" 
-                              : "text-gray-700 hover:bg-[#76C043]/20"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon
-                              className={cn(
-                                "w-5 h-5", 
-                                isActive && "text-white",
-                                !isActive && "text-gray-600"
-                              )}
-                            />
-                            <span className="font-medium">
-                              {item.title}
-                            </span>
-                          </div>
-                          {isExpanded ? (
-                            <ChevronDown className={cn("w-4 h-4", isActive && "text-white")} />
-                          ) : (
-                            <ChevronRight className={cn("w-4 h-4", isActive && "text-white")} />
-                          )}
-                        </button>
-                        {isExpanded && item.subItems && (
-                          <ul className="ml-8 mt-1 space-y-1">
-                            {item.subItems.map((subItem) => {
-                              const SubIcon = subItem.icon
-                              const isSubActive = pathname === subItem.url
-                              return (
-                                <li key={subItem.title}>
-                                  <Link
-                                    href={subItem.url}
-                                    className={cn(
-                                      "flex items-center gap-2 p-2 rounded-lg transition-colors duration-200 text-sm",
-                                      isSubActive 
-                                        ? "bg-[#76C043] text-white" 
-                                        : "text-gray-600 hover:bg-[#76C043]/20"
-                                    )}
-                                  >
-                                    <SubIcon
-                                      className={cn(
-                                        "w-4 h-4", 
-                                        isSubActive && "text-white",
-                                        !isSubActive && "text-gray-500"
-                                      )}
-                                    />
-                                    <span>{subItem.title}</span>
-                                  </Link>
-                                </li>
-                              )
-                            })}
-                          </ul>
-                        )}
-                      </>
-                    ) : (
-                      <Link
-                        href={item.url}
-                        className={cn(
-                          "flex items-center gap-3 p-2 rounded-lg transition-colors duration-200",
-                          isActive 
-                            ? "bg-[#76C043] text-white" 
-                            : "text-gray-700 hover:bg-[#76C043]/20"
-                        )}
-                      >
-                        <Icon
-                          className={cn(
-                            "w-5 h-5", 
-                            isActive && "text-white",
-                            !isActive && "text-gray-600"
-                          )}
-                        />
-                        <span className="font-medium">
-                          {item.title}
-                        </span>
-                      </Link>
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ))}
-      </nav>
-
-      {/* Logout Button at Bottom */}
-      <div className="mt-auto pt-4 border-t border-gray-200">
-        <button
-          onClick={() => {
-            console.log('Logging out...')
-            // Call logout function to remove token
-            logout()
-            // Clear admin login state for backward compatibility
-            localStorage.removeItem('adminLoggedIn')
-            localStorage.removeItem('adminEmail')
-            // Redirect to login page
-            window.location.href = '/admin-login'
-          }}
-          className="flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer duration-200 text-[#76C043] hover:bg-[#76C043]/20 w-full text-left"
-        >
-          <LogOut className="w-5 h-5 text-[#76C043]" />
-          <span className="font-medium text-[#76C043]">Log out</span>
-        </button>
-      </div>
-    </div>
-
-    {/* Mobile top bar with hamburger menu */}
-    <div className="lg:hidden sticky top-0 z-30 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-gray-200">
-      <div className="max-w-[1400px] mx-auto flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
+      {/* Desktop sidebar */}
+      <div className="hidden lg:flex fixed w-64 bg-white p-4 rounded-xl shadow-lg flex-col h-[calc(100vh-2rem)] my-4 ml-4 z-30">
+        {/* Logo */}
+        <div className="flex items-center gap-2 p-2 mb-6">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#76C043] text-white">
             <GalleryVerticalEnd className="w-4 h-4" />
           </div>
           <span className="font-semibold text-lg text-gray-800">GoGame</span>
         </div>
-        {/* Hamburger button */}
-        <button
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="inline-flex items-center justify-center w-10 h-10 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#76C043]"
-        >
-          {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
-      {/* Dropdown panel */}
-      {mobileOpen && (
-        <div className="px-4 pb-3 border-t border-gray-200 bg-white shadow-sm max-h-[calc(100vh-80px)] overflow-y-auto">
-          {sidebarData.map((section) => (
-            <div key={section.title} className="py-2">
+
+        {/* Navigation Sections */}
+        <nav className="flex-1 overflow-y-auto">
+          {sidebarData.map((section, index) => (
+            <div
+              key={section.title}
+              className={cn("mb-6", index === 0 && "mt-2")}
+            >
               {section.title && (
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
                   {section.title}
                 </h3>
               )}
-              <ul className="space-y-1">
+              <ul>
                 {section.items.map((item) => {
-                  const isActive = isItemActive(item)
-                  const Icon = item.icon
-                  const hasSubItems = item.subItems && item.subItems.length > 0
-                  const isExpanded = expandedItems.has(item.title)
-                  
+                  const Icon = item.icon;
+                  const isActive = isItemActive(item);
+                  const isExpanded = expandedItems.has(item.title);
+                  const hasSubItems = item.subItems && item.subItems.length > 0;
+
                   return (
-                    <li key={item.title}>
+                    <li key={item.title} className="mb-1">
                       {hasSubItems ? (
                         <>
                           <button
                             onClick={() => toggleExpanded(item.title)}
                             className={cn(
-                              "flex items-center justify-between gap-3 p-2 rounded-md w-full text-left",
-                              isActive ? "bg-[#76C043] text-white" : "text-gray-700 hover:bg-gray-100"
+                              "flex items-center justify-between gap-3 p-2 rounded-lg transition-colors duration-200 w-full text-left",
+                              isActive
+                                ? "bg-[#76C043] text-white"
+                                : "text-gray-700 hover:bg-[#76C043]/20",
                             )}
                           >
                             <div className="flex items-center gap-3">
-                              <Icon className={cn("w-5 h-5", isActive ? "text-white" : "text-gray-600")} />
+                              <Icon
+                                className={cn(
+                                  "w-5 h-5",
+                                  isActive && "text-white",
+                                  !isActive && "text-gray-600",
+                                )}
+                              />
                               <span className="font-medium">{item.title}</span>
                             </div>
                             {isExpanded ? (
-                              <ChevronDown className={cn("w-4 h-4", isActive && "text-white")} />
+                              <ChevronDown
+                                className={cn(
+                                  "w-4 h-4",
+                                  isActive && "text-white",
+                                )}
+                              />
                             ) : (
-                              <ChevronRight className={cn("w-4 h-4", isActive && "text-white")} />
+                              <ChevronRight
+                                className={cn(
+                                  "w-4 h-4",
+                                  isActive && "text-white",
+                                )}
+                              />
                             )}
                           </button>
                           {isExpanded && item.subItems && (
                             <ul className="ml-8 mt-1 space-y-1">
                               {item.subItems.map((subItem) => {
-                                const SubIcon = subItem.icon
-                                const isSubActive = pathname === subItem.url
+                                const SubIcon = subItem.icon;
+                                const isSubActive = pathname === subItem.url;
                                 return (
                                   <li key={subItem.title}>
                                     <Link
                                       href={subItem.url}
-                                      onClick={() => setMobileOpen(false)}
                                       className={cn(
-                                        "flex items-center gap-2 p-2 rounded-md text-sm",
-                                        isSubActive ? "bg-[#76C043] text-white" : "text-gray-600 hover:bg-gray-100"
+                                        "flex items-center gap-2 p-2 rounded-lg transition-colors duration-200 text-sm",
+                                        isSubActive
+                                          ? "bg-[#76C043] text-white"
+                                          : "text-gray-600 hover:bg-[#76C043]/20",
                                       )}
                                     >
-                                      <SubIcon className={cn("w-4 h-4", isSubActive ? "text-white" : "text-gray-500")} />
+                                      <SubIcon
+                                        className={cn(
+                                          "w-4 h-4",
+                                          isSubActive && "text-white",
+                                          !isSubActive && "text-gray-500",
+                                        )}
+                                      />
                                       <span>{subItem.title}</span>
                                     </Link>
                                   </li>
-                                )
+                                );
                               })}
                             </ul>
                           )}
@@ -324,25 +231,228 @@ export function Sidebar() {
                       ) : (
                         <Link
                           href={item.url}
-                          onClick={() => setMobileOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 p-2 rounded-md",
-                            isActive ? "bg-[#76C043] text-white" : "text-gray-700 hover:bg-gray-100"
+                            "flex items-center gap-3 p-2 rounded-lg transition-colors duration-200",
+                            isActive
+                              ? "bg-[#76C043] text-white"
+                              : "text-gray-700 hover:bg-[#76C043]/20",
                           )}
                         >
-                          <Icon className={cn("w-5 h-5", isActive ? "text-white" : "text-gray-600")} />
+                          <Icon
+                            className={cn(
+                              "w-5 h-5",
+                              isActive && "text-white",
+                              !isActive && "text-gray-600",
+                            )}
+                          />
                           <span className="font-medium">{item.title}</span>
                         </Link>
                       )}
                     </li>
-                  )
+                  );
                 })}
               </ul>
             </div>
           ))}
+        </nav>
+
+        {/* Language Toggle */}
+        <div className="px-2 mb-4">
+          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+            <div className="flex items-center gap-2 text-gray-700">
+              <Globe className="w-4 h-4" />
+              <span className="text-sm font-medium">Language</span>
+            </div>
+            <div className="flex bg-white border border-gray-200 rounded-md p-1 scale-90 origin-right">
+              <button
+                onClick={() => language !== "es" && toggleLanguage()}
+                className={cn(
+                  "px-2 py-0.5 text-xs rounded transition-colors cursor-pointer",
+                  language === "es"
+                    ? "bg-[#76C043] text-white"
+                    : "text-gray-500 hover:text-gray-700",
+                )}
+              >
+                ES
+              </button>
+              <button
+                onClick={() => language !== "en" && toggleLanguage()}
+                className={cn(
+                  "px-2 py-0.5 text-xs rounded transition-colors cursor-pointer",
+                  language === "en"
+                    ? "bg-[#76C043] text-white"
+                    : "text-gray-500 hover:text-gray-700",
+                )}
+              >
+                EN
+              </button>
+            </div>
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Logout Button at Bottom */}
+        <div className="mt-auto pt-4 border-t border-gray-200">
+          <button
+            onClick={() => {
+              console.log("Logging out...");
+              // Call logout function to remove token
+              logout();
+              // Clear admin login state for backward compatibility
+              localStorage.removeItem("adminLoggedIn");
+              localStorage.removeItem("adminEmail");
+              // Redirect to login page
+              window.location.href = "/admin-login";
+            }}
+            className="flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer duration-200 text-[#76C043] hover:bg-[#76C043]/20 w-full text-left"
+          >
+            <LogOut className="w-5 h-5 text-[#76C043]" />
+            <span className="font-medium text-[#76C043]">Log out</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile top bar with hamburger menu */}
+      <div className="lg:hidden sticky top-0 z-30 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 border-b border-gray-200">
+        <div className="max-w-[1400px] mx-auto flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#76C043] text-white">
+              <GalleryVerticalEnd className="w-4 h-4" />
+            </div>
+            <span className="font-semibold text-lg text-gray-800">GoGame</span>
+          </div>
+          {/* Hamburger button */}
+          <button
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="inline-flex items-center justify-center w-10 h-10 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-[#76C043]"
+          >
+            {mobileOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
+        </div>
+        {/* Dropdown panel */}
+        {mobileOpen && (
+          <div className="px-4 pb-3 border-t border-gray-200 bg-white shadow-sm max-h-[calc(100vh-80px)] overflow-y-auto">
+            {sidebarData.map((section) => (
+              <div key={section.title} className="py-2">
+                {section.title && (
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
+                    {section.title}
+                  </h3>
+                )}
+                <ul className="space-y-1">
+                  {section.items.map((item) => {
+                    const isActive = isItemActive(item);
+                    const Icon = item.icon;
+                    const hasSubItems =
+                      item.subItems && item.subItems.length > 0;
+                    const isExpanded = expandedItems.has(item.title);
+
+                    return (
+                      <li key={item.title}>
+                        {hasSubItems ? (
+                          <>
+                            <button
+                              onClick={() => toggleExpanded(item.title)}
+                              className={cn(
+                                "flex items-center justify-between gap-3 p-2 rounded-md w-full text-left",
+                                isActive
+                                  ? "bg-[#76C043] text-white"
+                                  : "text-gray-700 hover:bg-gray-100",
+                              )}
+                            >
+                              <div className="flex items-center gap-3">
+                                <Icon
+                                  className={cn(
+                                    "w-5 h-5",
+                                    isActive ? "text-white" : "text-gray-600",
+                                  )}
+                                />
+                                <span className="font-medium">
+                                  {item.title}
+                                </span>
+                              </div>
+                              {isExpanded ? (
+                                <ChevronDown
+                                  className={cn(
+                                    "w-4 h-4",
+                                    isActive && "text-white",
+                                  )}
+                                />
+                              ) : (
+                                <ChevronRight
+                                  className={cn(
+                                    "w-4 h-4",
+                                    isActive && "text-white",
+                                  )}
+                                />
+                              )}
+                            </button>
+                            {isExpanded && item.subItems && (
+                              <ul className="ml-8 mt-1 space-y-1">
+                                {item.subItems.map((subItem) => {
+                                  const SubIcon = subItem.icon;
+                                  const isSubActive = pathname === subItem.url;
+                                  return (
+                                    <li key={subItem.title}>
+                                      <Link
+                                        href={subItem.url}
+                                        onClick={() => setMobileOpen(false)}
+                                        className={cn(
+                                          "flex items-center gap-2 p-2 rounded-md text-sm",
+                                          isSubActive
+                                            ? "bg-[#76C043] text-white"
+                                            : "text-gray-600 hover:bg-gray-100",
+                                        )}
+                                      >
+                                        <SubIcon
+                                          className={cn(
+                                            "w-4 h-4",
+                                            isSubActive
+                                              ? "text-white"
+                                              : "text-gray-500",
+                                          )}
+                                        />
+                                        <span>{subItem.title}</span>
+                                      </Link>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            )}
+                          </>
+                        ) : (
+                          <Link
+                            href={item.url}
+                            onClick={() => setMobileOpen(false)}
+                            className={cn(
+                              "flex items-center gap-3 p-2 rounded-md",
+                              isActive
+                                ? "bg-[#76C043] text-white"
+                                : "text-gray-700 hover:bg-gray-100",
+                            )}
+                          >
+                            <Icon
+                              className={cn(
+                                "w-5 h-5",
+                                isActive ? "text-white" : "text-gray-600",
+                              )}
+                            />
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </>
-  )
+  );
 }

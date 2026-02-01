@@ -28,7 +28,7 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
   );
   const [headline, setHeadline] = useState(
     initialContent?.headline ||
-      "Disfruta de aventuras deportivas únicas y en directo",
+      "Experience unforgettable live sports adventures.",
   );
 
   const [translatedSections, setTranslatedSections] = useState<MainSection[]>(
@@ -56,7 +56,7 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
           setWhyChooseUs(content.whyChooseUs?.items || []);
           setHeadline(
             content.headline ||
-              "Disfruta de aventuras deportivas únicas y en directo",
+              "Experience unforgettable live sports adventures.",
           );
         } else {
           setError("Failed to fetch about page data");
@@ -75,52 +75,49 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
   // Translate content when language changes
   useEffect(() => {
     const translateContent = async () => {
-      if (language === "es") {
-        // If Spanish, use original content (no translation needed)
-        setTranslatedSections(sections);
-        setTranslatedValues(values);
-        setTranslatedWhyChooseUs(whyChooseUs);
-        setTranslatedHeadline(headline);
-      } else {
-        // If English, translate all content
-        const [
-          translatedHeadlineText,
-          translatedSectionsData,
-          translatedValuesData,
-          translatedWhyChooseUsData,
-        ] = await Promise.all([
-          translateText(headline),
-          Promise.all(
-            sections.map(async (section) => ({
-              ...section,
-              title: await translateText(section.title),
-              description: await translateText(section.description),
-            })),
-          ),
-          Promise.all(
-            values.map(async (value) => ({
-              ...value,
-              title: await translateText(value.title),
-              description: await translateText(value.description),
-            })),
-          ),
-          Promise.all(
-            whyChooseUs.map(async (item) => ({
-              ...item,
-              title: await translateText(item.title),
-              description: await translateText(item.description),
-            })),
-          ),
-        ]);
+      // Translate all content using auto-detection
+      const [
+        translatedHeadlineText,
+        translatedSectionsData,
+        translatedValuesData,
+        translatedWhyChooseUsData,
+      ] = await Promise.all([
+        translateText(headline),
+        Promise.all(
+          sections.map(async (section) => ({
+            ...section,
+            title: await translateText(section.title),
+            description: await translateText(section.description),
+          })),
+        ),
+        Promise.all(
+          values.map(async (value) => ({
+            ...value,
+            title: await translateText(value.title),
+            description: await translateText(value.description),
+          })),
+        ),
+        Promise.all(
+          whyChooseUs.map(async (item) => ({
+            ...item,
+            title: await translateText(item.title),
+            description: await translateText(item.description),
+          })),
+        ),
+      ]);
 
-        setTranslatedHeadline(translatedHeadlineText);
-        setTranslatedSections(translatedSectionsData);
-        setTranslatedValues(translatedValuesData);
-        setTranslatedWhyChooseUs(translatedWhyChooseUsData);
-      }
+      setTranslatedHeadline(translatedHeadlineText);
+      setTranslatedSections(translatedSectionsData);
+      setTranslatedValues(translatedValuesData);
+      setTranslatedWhyChooseUs(translatedWhyChooseUsData);
     };
 
-    if (sections.length > 0 || values.length > 0 || whyChooseUs.length > 0) {
+    if (
+      sections.length > 0 ||
+      values.length > 0 ||
+      whyChooseUs.length > 0 ||
+      headline
+    ) {
       translateContent();
     }
   }, [language, sections, values, whyChooseUs, headline, translateText]);
@@ -132,7 +129,7 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
         <div className="flex flex-col justify-start items-center gap-6 lg:gap-12 mb-8 lg:mb-12">
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="text-center text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              <TranslatedText text={headline} english={translatedHeadline} />
+              {translatedHeadline || headline}
             </div>
           </div>
         </div>

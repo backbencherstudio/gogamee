@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { Save, X } from "lucide-react";
 import { checkDuplicatePackage } from "../../../../../services/packageService";
+import { autoTranslateContent } from "../../../../../services/translationService";
 
 interface PackageData {
   sport: "football" | "basketball";
@@ -85,25 +86,6 @@ export default function AddPackage({
     return Object.keys(newErrors).length === 0;
   };
 
-  const translateText = async (text: string, targetLang: string = "es") => {
-    try {
-      const response = await fetch("/api/translate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text,
-          targetLanguage: targetLang,
-          sourceLanguage: "en",
-        }),
-      });
-      const data = await response.json();
-      return data.translatedText || text;
-    } catch (error) {
-      console.error("Translation failed", error);
-      return text;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -115,6 +97,13 @@ export default function AddPackage({
     setDuplicateError(null);
 
     try {
+      // 1. Auto-translate content before saving
+      const [translatedIncluded, translatedDescription] = await Promise.all([
+        autoTranslateContent(formData.included!),
+        autoTranslateContent(formData.description!),
+      ]);
+
+      // 2. Duplicate check
       const duplicateCheck = await checkDuplicatePackage({
         sport: formData.sport!,
         included: formData.included!,
@@ -135,20 +124,32 @@ export default function AddPackage({
         sport: formData.sport,
         plan: formData.plan,
         duration: formData.duration,
-        included: formData.included,
-        included_es: formData.included_es, // Optional - can be added manually later
-        description: formData.description,
-        description_es: formData.description_es, // Optional - can be added manually later
-        currency: formData.currency || "EUR",
+        included: translatedIncluded.es || formData.included, // Always save ES version
+        included_es: translatedIncluded.es,
+        description: translatedDescription.es || formData.description, // Always save ES version
+        description_es: translatedDescription.es,
+        // Also save English versions if we want to be explicit, but model uses included/description as primary (likely ES based on previous code)
+        // Wait, let's look at the model again.
+        // In Package.model.ts: included is required, included_es is optional.
+        // Usually 'included' is the primary (Spanish) and '_es' is redundant, or 'included' is English.
+        // Given the previous code, 'included' was the English input.
+        // So I should save English in 'included' and Spanish in 'included_es'.
+        included_en: translatedIncluded.en,
+        description_en: translatedDescription.en,
+      };
+
+      // Correction: Package.model.ts doesn't have _en fields. It has 'included' and 'included_es'.
+      // If the user inputs English, 'included' should store English and 'included_es' should store Spanish.
+      const finalPayload = {
+        ...dataToSubmit,
+        included: formData.included, // Keep original input in primary field
+        included_es: translatedIncluded.es,
+        description: formData.description, // Keep original input in primary field
+        description_es: translatedDescription.es,
       };
 
       setIsTranslating(false);
-      console.log("=== PACKAGE SUBMISSION DEBUG ===");
-      console.log("Form Data:", formData);
-      console.log("Data to Submit:", dataToSubmit);
-      console.log("Included field value:", dataToSubmit.included);
-      console.log("Description field value:", dataToSubmit.description);
-      onSubmit(dataToSubmit);
+      onSubmit(finalPayload);
     } catch (error: any) {
       console.error("Error during submission:", error);
       setDuplicateError(

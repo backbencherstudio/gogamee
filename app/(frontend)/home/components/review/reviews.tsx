@@ -13,6 +13,7 @@ import {
 } from "../../../../../services/testimonialService";
 import { useLanguage } from "../../../../context/LanguageContext";
 import { TranslatedText } from "../../../_components/TranslatedText";
+import { formatTimeAgo } from "../../../../lib/utils";
 
 // Import Swiper styles
 import "swiper/css";
@@ -156,14 +157,33 @@ export default function Reviews({ initialReviews = [] }: ReviewsProps) {
                 {/* Review Header */}
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                    <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden flex-shrink-0">
-                      <Image
-                        src={review.image}
-                        alt={review.name}
-                        fill
-                        className="object-cover"
-                        onError={(e) => handleImageError(review.image, e)}
-                      />
+                    <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden flex-shrink-0 bg-gray-100">
+                      {review.image &&
+                      review.image !== "/homepage/image/avatar1.png" &&
+                      !failedImages.has(review.image) ? (
+                        <Image
+                          src={review.image}
+                          alt={review.name}
+                          fill
+                          className="object-cover"
+                          onError={(e) => handleImageError(review.image, e)}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <svg
+                            className="w-6 h-6"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                        </div>
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="text-lg md:text-xl font-semibold font-['Geist'] text-lime-900 truncate">
@@ -191,8 +211,8 @@ export default function Reviews({ initialReviews = [] }: ReviewsProps) {
                     </div>
                     <p className="text-xs md:text-sm text-zinc-500 whitespace-nowrap">
                       <TranslatedText
-                        text="Hace 2 días"
-                        english="2 days ago"
+                        text={formatTimeAgo(review.created_at, "es")}
+                        english={formatTimeAgo(review.created_at, "en")}
                         as="span"
                       />
                     </p>

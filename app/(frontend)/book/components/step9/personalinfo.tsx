@@ -5,6 +5,8 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { FaPlane } from "react-icons/fa";
 import { useBooking } from "../../context/BookingContext";
+import { TranslatedText } from "../../../_components/TranslatedText";
+import { useLanguage } from "../../../../context/LanguageContext";
 import {
   personalInfoData,
   pricingData,
@@ -417,6 +419,8 @@ const loadFromStorage = (): PersonalInfoFormData | null => {
 export default function Personalinfo() {
   const { updateFormData, nextStep, formData } = useBooking();
   const { sumPerNight } = usePerNightPricing();
+  const { language } = useLanguage();
+  const t = (es: string, en: string) => (language === "en" ? en : es);
 
   // Check if we have people count data from howmanytotal page
   const hasMultipleTravelers =
@@ -755,7 +759,10 @@ export default function Personalinfo() {
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
             <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-              {personalInfoData.text.title}
+              <TranslatedText
+                text={personalInfoData.text.title}
+                english={personalInfoData.text.titleEn}
+              />
             </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
@@ -765,7 +772,10 @@ export default function Personalinfo() {
                 <div className="self-stretch flex flex-col justify-start items-start gap-5">
                   <div className="self-stretch inline-flex justify-start items-center gap-2">
                     <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                      {personalInfoData.text.primaryTravelerTitle}
+                      <TranslatedText
+                        text={personalInfoData.text.primaryTravelerTitle}
+                        english={personalInfoData.text.primaryTravelerTitleEn}
+                      />
                     </div>
                   </div>
                   <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -776,9 +786,10 @@ export default function Personalinfo() {
                         rules={{ required: "Traveler name is required" }}
                         render={({ field }) => (
                           <FormInput
-                            label={
-                              personalInfoData.formFields.travelerName.label
-                            }
+                            label={t(
+                              personalInfoData.formFields.travelerName.label,
+                              "Traveler Name (as in passport or ID)",
+                            )}
                             placeholder={
                               personalInfoData.formFields.travelerName
                                 .placeholder
@@ -793,15 +804,24 @@ export default function Personalinfo() {
                         name="primaryTraveler.email"
                         control={control}
                         rules={{
-                          required: "Email is required",
+                          required: t(
+                            "El correo electrónico es obligatorio",
+                            "Email is required",
+                          ),
                           pattern: {
                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: "Invalid email address",
+                            message: t(
+                              "Dirección de correo electrónico no válida",
+                              "Invalid email address",
+                            ),
                           },
                         }}
                         render={({ field }) => (
                           <FormInput
-                            label={personalInfoData.formFields.email.label}
+                            label={t(
+                              personalInfoData.formFields.email.label,
+                              "Traveler Email",
+                            )}
                             type="email"
                             placeholder={
                               personalInfoData.formFields.email.placeholder
@@ -820,7 +840,10 @@ export default function Personalinfo() {
                         rules={{ required: "Phone number is required" }}
                         render={({ field }) => (
                           <FormInput
-                            label={personalInfoData.formFields.phone.label}
+                            label={t(
+                              personalInfoData.formFields.phone.label,
+                              "Traveler Phone Number",
+                            )}
                             type="tel"
                             placeholder={
                               personalInfoData.formFields.phone.placeholder
@@ -837,9 +860,10 @@ export default function Personalinfo() {
                         rules={{ required: "Date of birth is required" }}
                         render={({ field }) => (
                           <FormInput
-                            label={
-                              personalInfoData.formFields.dateOfBirth.label
-                            }
+                            label={t(
+                              personalInfoData.formFields.dateOfBirth.label,
+                              "Date of Birth",
+                            )}
                             type="date"
                             value={field.value}
                             onChange={field.onChange}
@@ -852,7 +876,10 @@ export default function Personalinfo() {
                       <div className="self-stretch flex flex-col justify-center items-start gap-4">
                         <div className="self-stretch inline-flex justify-start items-center gap-2">
                           <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                            {personalInfoData.formFields.documentType.label}
+                            {t(
+                              personalInfoData.formFields.documentType.label,
+                              "Document Type",
+                            )}
                           </div>
                         </div>
                       </div>
@@ -870,9 +897,10 @@ export default function Personalinfo() {
                                   value="ID"
                                   selectedValue={field.value}
                                   onChange={field.onChange}
-                                  label={
-                                    personalInfoData.formFields.documentType.id
-                                  }
+                                  label={t(
+                                    personalInfoData.formFields.documentType.id,
+                                    "ID Card",
+                                  )}
                                 />
                                 <DocumentTypeRadio
                                   id="primaryPassport"
@@ -880,10 +908,11 @@ export default function Personalinfo() {
                                   value="Passport"
                                   selectedValue={field.value}
                                   onChange={field.onChange}
-                                  label={
+                                  label={t(
                                     personalInfoData.formFields.documentType
-                                      .passport
-                                  }
+                                      .passport,
+                                    "Passport",
+                                  )}
                                 />
                               </>
                             )}
@@ -896,7 +925,10 @@ export default function Personalinfo() {
                         </div>
                         <div className="self-stretch flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
-                            {personalInfoData.formFields.documentNumber.label}
+                            {t(
+                              personalInfoData.formFields.documentNumber.label,
+                              "Document Number",
+                            )}
                           </div>
                           <Controller
                             name="primaryTraveler.documentNumber"
@@ -936,7 +968,10 @@ export default function Personalinfo() {
                     {/* Previous Travel Information */}
                     <div className="self-stretch flex flex-col justify-start items-start gap-2">
                       <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
-                        {personalInfoData.formFields.previousTravelInfo.label}
+                        {t(
+                          personalInfoData.formFields.previousTravelInfo.label,
+                          "Previous travel information with GoGame (important details for flights/hotels)",
+                        )}
                       </div>
                       <Controller
                         name="previousTravelInfo"
@@ -964,8 +999,11 @@ export default function Personalinfo() {
                 <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
                   <div className="self-stretch inline-flex justify-start items-center gap-2">
                     <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                      {personalInfoData.text.extraTravelerTitle} (
-                      {reservationData.totalPeople - 1})
+                      <TranslatedText
+                        text={personalInfoData.text.extraTravelerTitle}
+                        english="Accompanying Fan"
+                      />{" "}
+                      ({reservationData.totalPeople - 1})
                     </div>
                   </div>
                   <div className="self-stretch flex flex-col justify-start items-start gap-6">
@@ -978,7 +1016,8 @@ export default function Personalinfo() {
                         >
                           <div className="self-stretch inline-flex justify-start items-center gap-2">
                             <div className="justify-start text-neutral-800 text-base font-semibold font-['Poppins'] leading-loose">
-                              Fanático/a {index + 2}
+                              <TranslatedText text="Fanático/a" english="Fan" />{" "}
+                              {index + 2}
                             </div>
                           </div>
                           <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -993,10 +1032,11 @@ export default function Personalinfo() {
                                 }}
                                 render={({ field }) => (
                                   <FormInput
-                                    label={
+                                    label={t(
                                       personalInfoData.formFields.travelerName
-                                        .label
-                                    }
+                                        .label,
+                                      "Traveler Name (as in passport or ID)",
+                                    )}
                                     placeholder={
                                       personalInfoData.formFields.travelerName
                                         .placeholder
@@ -1020,10 +1060,11 @@ export default function Personalinfo() {
                                 }}
                                 render={({ field }) => (
                                   <FormInput
-                                    label={
+                                    label={t(
                                       personalInfoData.formFields.dateOfBirth
-                                        .label
-                                    }
+                                        .label,
+                                      "Date of Birth",
+                                    )}
                                     type="date"
                                     value={field.value}
                                     onChange={field.onChange}
@@ -1039,10 +1080,11 @@ export default function Personalinfo() {
                               <div className="self-stretch flex flex-col justify-center items-start gap-4">
                                 <div className="self-stretch inline-flex justify-start items-center gap-2">
                                   <div className="justify-start text-neutral-800 text-base font-semibold font-['Poppins'] leading-loose">
-                                    {
+                                    {t(
                                       personalInfoData.formFields.documentType
-                                        .label
-                                    }
+                                        .label,
+                                      "Document Type",
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -1064,10 +1106,11 @@ export default function Personalinfo() {
                                           value="ID"
                                           selectedValue={field.value}
                                           onChange={field.onChange}
-                                          label={
+                                          label={t(
                                             personalInfoData.formFields
-                                              .documentType.id
-                                          }
+                                              .documentType.id,
+                                            "ID Card",
+                                          )}
                                         />
                                         <DocumentTypeRadio
                                           id={`extra${index}Passport`}
@@ -1075,10 +1118,11 @@ export default function Personalinfo() {
                                           value="Passport"
                                           selectedValue={field.value}
                                           onChange={field.onChange}
-                                          label={
+                                          label={t(
                                             personalInfoData.formFields
-                                              .documentType.passport
-                                          }
+                                              .documentType.passport,
+                                            "Passport",
+                                          )}
                                         />
                                       </>
                                     )}
@@ -1095,10 +1139,11 @@ export default function Personalinfo() {
                                 </div>
                                 <div className="self-stretch flex flex-col justify-start items-start gap-2">
                                   <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
-                                    {
+                                    {t(
                                       personalInfoData.formFields.documentNumber
-                                        .label
-                                    }
+                                        .label,
+                                      "Document Number",
+                                    )}
                                   </div>
                                   <Controller
                                     name={`extraTravelers.${index}.documentNumber`}
@@ -1152,7 +1197,10 @@ export default function Personalinfo() {
               <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
                 <div className="self-stretch inline-flex justify-start items-center gap-2">
                   <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                    {personalInfoData.text.reservationTitle}
+                    <TranslatedText
+                      text={personalInfoData.text.reservationTitle}
+                      english="Your Reservation Summary"
+                    />
                   </div>
                 </div>
                 <div className="w-full p-3 md:p-6 bg-white rounded-xl outline-1 outline-offset-[-1px] outline-green-50 flex flex-col justify-start items-start gap-3 md:gap-5">
@@ -1160,7 +1208,10 @@ export default function Personalinfo() {
                     <div className="flex-1 flex justify-start items-center gap-4">
                       <div className="flex-1 inline-flex flex-col justify-start items-start gap-1.5">
                         <div className="justify-center text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
-                          {personalInfoData.text.flightHotel}
+                          <TranslatedText
+                            text={personalInfoData.text.flightHotel}
+                            english={personalInfoData.text.flightHotelEn}
+                          />
                         </div>
                       </div>
                     </div>
@@ -1175,7 +1226,11 @@ export default function Personalinfo() {
                             </div>
                             <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
                               <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none whitespace-nowrap">
-                                Salida: {reservationData.departureCity}
+                                {t(
+                                  personalInfoData.text.departure,
+                                  personalInfoData.text.departureEn,
+                                )}
+                                : {reservationData.departureCity}
                               </div>
                               <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
                                 {reservationData.departureDate}
@@ -1197,7 +1252,15 @@ export default function Personalinfo() {
                             </div>
                             <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
                               <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none whitespace-nowrap">
-                                Llegada: De vuelta a{" "}
+                                {t(
+                                  personalInfoData.text.arrival,
+                                  personalInfoData.text.arrivalEn,
+                                )}
+                                :{" "}
+                                {t(
+                                  personalInfoData.text.backTo,
+                                  personalInfoData.text.backToEn,
+                                )}{" "}
                                 {reservationData.departureCity}
                               </div>
                               <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
@@ -1268,7 +1331,16 @@ export default function Personalinfo() {
                         {reservationData.flightScheduleTotal > 0 && (
                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                              Flight Schedule Adjustments
+                              <TranslatedText
+                                text={
+                                  personalInfoData.text
+                                    .flightScheduleAdjustments
+                                }
+                                english={
+                                  personalInfoData.text
+                                    .flightScheduleAdjustmentsEn
+                                }
+                              />
                             </span>
                             <div className="text-right">
                               <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -1287,7 +1359,12 @@ export default function Personalinfo() {
                         {reservationData.leagueTotal > 0 && (
                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                              European Competition
+                              <TranslatedText
+                                text={personalInfoData.text.europeanCompetition}
+                                english={
+                                  personalInfoData.text.europeanCompetitionEn
+                                }
+                              />
                             </span>
                             <div className="text-right">
                               <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -1305,7 +1382,10 @@ export default function Personalinfo() {
                         {reservationData.removalTotal > 0 && (
                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                              League removals
+                              <TranslatedText
+                                text={personalInfoData.text.leagueRemovals}
+                                english={personalInfoData.text.leagueRemovalsEn}
+                              />
                             </span>
                             <div className="text-right">
                               <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -1323,7 +1403,15 @@ export default function Personalinfo() {
                         {reservationData.singleTravelerSupplement > 0 && (
                           <div className="flex justify-between items-center py-2 border-b border-gray-100">
                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                              Single traveler supplement
+                              <TranslatedText
+                                text={
+                                  personalInfoData.text.singleTravelerSupplement
+                                }
+                                english={
+                                  personalInfoData.text
+                                    .singleTravelerSupplementEn
+                                }
+                              />
                             </span>
                             <div className="text-right">
                               <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -1342,7 +1430,10 @@ export default function Personalinfo() {
                         {/* Subtotal Row */}
                         <div className="flex justify-between items-center py-4 border-t-2 border-lime-400 bg-lime-50 rounded-lg px-3">
                           <span className="text-lg font-bold font-['Poppins'] text-gray-800">
-                            {personalInfoData.text.totalCost}
+                            <TranslatedText
+                              text={personalInfoData.text.totalCost}
+                              english="Total Cost"
+                            />
                           </span>
                           <div className="text-right">
                             <div className="text-xl font-bold font-['Poppins'] text-lime-700">
@@ -1356,13 +1447,22 @@ export default function Personalinfo() {
                       <div className="hidden md:block w-full">
                         <div className="w-full grid grid-cols-4 gap-4 border-b-2 border-gray-300 pb-4 mb-2">
                           <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
-                            Concepto
+                            <TranslatedText
+                              text={personalInfoData.text.concept}
+                              english={personalInfoData.text.conceptEn}
+                            />
                           </div>
                           <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
-                            Precio
+                            <TranslatedText
+                              text={personalInfoData.text.price}
+                              english={personalInfoData.text.priceEn}
+                            />
                           </div>
                           <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
-                            Cantidad
+                            <TranslatedText
+                              text={personalInfoData.text.quantity}
+                              english={personalInfoData.text.quantityEn}
+                            />
                           </div>
                           <div className="text-right text-base font-bold font-['Poppins'] leading-none text-gray-700">
                             Total
@@ -1422,7 +1522,16 @@ export default function Personalinfo() {
                         {reservationData.flightScheduleTotal > 0 && (
                           <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
                             <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                              Flight Schedule Adjustments
+                              <TranslatedText
+                                text={
+                                  personalInfoData.text
+                                    .flightScheduleAdjustments
+                                }
+                                english={
+                                  personalInfoData.text
+                                    .flightScheduleAdjustmentsEn
+                                }
+                              />
                             </div>
                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                               {reservationData.flightScheduleCost}€
@@ -1440,7 +1549,12 @@ export default function Personalinfo() {
                         {reservationData.leagueTotal > 0 && (
                           <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
                             <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                              European Competition
+                              <TranslatedText
+                                text={personalInfoData.text.europeanCompetition}
+                                english={
+                                  personalInfoData.text.europeanCompetitionEn
+                                }
+                              />
                             </div>
                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                               {reservationData.leagueCost}€
@@ -1458,7 +1572,10 @@ export default function Personalinfo() {
                         {reservationData.removalTotal > 0 && (
                           <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
                             <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                              League removals
+                              <TranslatedText
+                                text={personalInfoData.text.leagueRemovals}
+                                english={personalInfoData.text.leagueRemovalsEn}
+                              />
                             </div>
                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                               {reservationData.removalCostPerPerson}€
@@ -1476,7 +1593,15 @@ export default function Personalinfo() {
                         {reservationData.singleTravelerSupplement > 0 && (
                           <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
                             <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                              Single traveler supplement
+                              <TranslatedText
+                                text={
+                                  personalInfoData.text.singleTravelerSupplement
+                                }
+                                english={
+                                  personalInfoData.text
+                                    .singleTravelerSupplementEn
+                                }
+                              />
                             </div>
                             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                               50€
@@ -1496,7 +1621,10 @@ export default function Personalinfo() {
                         {/* Subtotal Row */}
                         <div className="w-full grid grid-cols-4 gap-4 py-3 border-t-2 border-gray-300">
                           <div className="text-left text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
-                            Subtotal
+                            <TranslatedText
+                              text={personalInfoData.text.subtotal}
+                              english={personalInfoData.text.subtotalEn}
+                            />
                           </div>
                           <div className="text-center text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
                             -
@@ -1515,14 +1643,20 @@ export default function Personalinfo() {
                       <div className="space-y-3">
                         <div className="text-center mb-4">
                           <h3 className="text-lg font-bold text-gray-800 font-['Poppins']">
-                            ¡Vamos que nos vamos!
+                            <TranslatedText
+                              text={personalInfoData.text.letsGo}
+                              english={personalInfoData.text.letsGoEn}
+                            />
                           </h3>
                         </div>
 
                         <div className="space-y-2">
                           <div className="flex justify-between items-center py-2 border-b border-lime-200">
                             <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                              Total del paquete:
+                              <TranslatedText
+                                text={personalInfoData.text.packageTotal}
+                                english={personalInfoData.text.packageTotalEn}
+                              />
                             </span>
                             <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                               {reservationData.packageTotal.toFixed(2)}€
@@ -1532,7 +1666,10 @@ export default function Personalinfo() {
                           {reservationData.extrasTotal > 0 && (
                             <div className="flex justify-between items-center py-2 border-b border-lime-200">
                               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                Total de extras:
+                                <TranslatedText
+                                  text={personalInfoData.text.extrasTotal}
+                                  english={personalInfoData.text.extrasTotalEn}
+                                />
                               </span>
                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                 {reservationData.extrasTotal.toFixed(2)}€
@@ -1543,7 +1680,14 @@ export default function Personalinfo() {
                           {reservationData.flightScheduleTotal > 0 && (
                             <div className="flex justify-between items-center py-2 border-b border-lime-200">
                               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                Total horarios de vuelo:
+                                <TranslatedText
+                                  text={
+                                    personalInfoData.text.flightScheduleTotal
+                                  }
+                                  english={
+                                    personalInfoData.text.flightScheduleTotalEn
+                                  }
+                                />
                               </span>
                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                 {reservationData.flightScheduleTotal.toFixed(2)}
@@ -1555,7 +1699,14 @@ export default function Personalinfo() {
                           {reservationData.leagueTotal > 0 && (
                             <div className="flex justify-between items-center py-2 border-b border-lime-200">
                               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                Competición europea:
+                                <TranslatedText
+                                  text={
+                                    personalInfoData.text.europeanCompetition
+                                  }
+                                  english={
+                                    personalInfoData.text.europeanCompetitionEn
+                                  }
+                                />
                               </span>
                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                 {reservationData.leagueTotal.toFixed(2)}€
@@ -1566,7 +1717,16 @@ export default function Personalinfo() {
                           {reservationData.singleTravelerSupplement > 0 && (
                             <div className="flex justify-between items-center py-2 border-b border-lime-200">
                               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                Suplemento viajero individual:
+                                <TranslatedText
+                                  text={
+                                    personalInfoData.text
+                                      .singleTravelerSupplement
+                                  }
+                                  english={
+                                    personalInfoData.text
+                                      .singleTravelerSupplementEn
+                                  }
+                                />
                               </span>
                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                 {reservationData.singleTravelerSupplement.toFixed(
@@ -1580,7 +1740,12 @@ export default function Personalinfo() {
                           {reservationData.removalTotal > 0 && (
                             <div className="flex justify-between items-center py-2 border-b border-lime-200">
                               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                Eliminación de ligas:
+                                <TranslatedText
+                                  text={personalInfoData.text.leagueRemovals}
+                                  english={
+                                    personalInfoData.text.leagueRemovalsEn
+                                  }
+                                />
                               </span>
                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                 {reservationData.removalTotal.toFixed(2)}€
@@ -1592,7 +1757,10 @@ export default function Personalinfo() {
                         <div className="border-t-2 border-lime-400 pt-4 mt-4">
                           <div className="flex justify-between items-center">
                             <span className=" text-xl font-bold font-['Poppins'] text-gray-800">
-                              {personalInfoData.text.totalCost}
+                              <TranslatedText
+                                text={personalInfoData.text.totalCost}
+                                english="Total Cost"
+                              />
                             </span>
                             <span className=" text-2xl font-bold font-['Poppins'] text-lime-700">
                               {reservationData.grandTotal.toFixed(2)}€
@@ -1702,7 +1870,10 @@ export default function Personalinfo() {
                 className="w-full md:w-44 h-12 md:h-11 px-4 md:px-3.5 py-2 md:py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
               >
                 <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-                  {personalInfoData.text.confirm}
+                  <TranslatedText
+                    text={personalInfoData.text.confirm}
+                    english="Confirm"
+                  />
                 </div>
               </button>
             </div>

@@ -17,10 +17,7 @@ export interface UpdateSocialContactData {
 export interface CreateLegalPageData {
   type: "privacy" | "terms" | "cookie";
   title: string;
-  content: {
-    en: string;
-    es?: string;
-  };
+  content: string;
   version?: string;
   isActive?: boolean;
   effectiveDate?: Date;
@@ -28,10 +25,7 @@ export interface CreateLegalPageData {
 
 export interface UpdateLegalPageData {
   title?: string;
-  content?: {
-    en?: string;
-    es?: string;
-  };
+  content?: string;
   version?: string;
   isActive?: boolean;
   effectiveDate?: Date;

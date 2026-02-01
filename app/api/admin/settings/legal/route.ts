@@ -9,9 +9,9 @@ export async function GET() {
     const { pages: legalPages } = await SettingsService.getAllLegalPages();
 
     const content = {
-      privacy: { en: "", es: "" },
-      cookie: { en: "", es: "" },
-      terms: { en: "", es: "" },
+      privacy: "",
+      cookie: "",
+      terms: "",
     };
 
     legalPages.forEach((page) => {
@@ -20,8 +20,7 @@ export async function GET() {
         page.type === "cookie" ||
         page.type === "terms"
       ) {
-        content[page.type].en = page.content.en;
-        content[page.type].es = page.content.es || "";
+        content[page.type] = page.content;
       }
     });
 
