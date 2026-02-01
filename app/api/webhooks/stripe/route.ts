@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
         try {
           // Update booking status
           const updatedBooking = await BookingService.updateById(bookingId, {
-            status: "confirmed", // Using 'confirmed' as it implies booked but not yet 'completed' (travelled)
+            status: "pending", // Keep pending until admin approves details
             payment_status: "paid",
             stripe_payment_intent_id: paymentIntent.id,
           });
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
       // Update booking status to "paid" and "completed"
       try {
         const updatedBooking = await BookingService.updateById(bookingId, {
-          status: "completed",
+          status: "pending",
           payment_status: "paid",
         });
 

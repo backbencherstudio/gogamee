@@ -38,7 +38,8 @@ class FAQService {
   }> {
     await connectToDatabase();
 
-    const { filters = {}, sort, limit = 50, skip = 0 } = options;
+    const { filters = {}, sort, limit = 50, page = 1 } = options;
+    const skip = options.skip ?? (page - 1) * limit;
 
     // Build query
     const query: any = { deletedAt: { $exists: false } };

@@ -1,28 +1,38 @@
-"use client"
-import React, { useRef, useState, useEffect } from 'react';
+"use client";
+import React, { useRef, useState, useEffect } from "react";
 import { AiFillStar } from "react-icons/ai";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
-import type { Swiper as SwiperType } from 'swiper';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
-import Image from 'next/image';
-import Link from 'next/link';
-import { getAllTestimonials, TestimonialItem } from '../../../../../services/testimonialService';
-import { useLanguage } from '../../../../context/LanguageContext';
-import { TranslatedText } from '../../../_components/TranslatedText';
+import type { Swiper as SwiperType } from "swiper";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  getAllTestimonials,
+  TestimonialItem,
+} from "../../../../../services/testimonialService";
+import { useLanguage } from "../../../../context/LanguageContext";
+import { TranslatedText } from "../../../_components/TranslatedText";
 
 // Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/navigation';
+import "swiper/css";
+import "swiper/css/navigation";
 
-export default function Reviews() {
+interface ReviewsProps {
+  initialReviews?: TestimonialItem[];
+}
+
+export default function Reviews({ initialReviews = [] }: ReviewsProps) {
   const { language, translateText } = useLanguage();
   const [swiper, setSwiper] = useState<SwiperType>();
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
-  const [apiReviews, setApiReviews] = useState<TestimonialItem[]>([]);
-  const [translatedReviews, setTranslatedReviews] = useState<TestimonialItem[]>([]);
+  const [apiReviews, setApiReviews] =
+    useState<TestimonialItem[]>(initialReviews);
+  const [translatedReviews, setTranslatedReviews] = useState<TestimonialItem[]>(
+    [],
+  );
 
   useEffect(() => {
     if (swiper && prevRef.current && nextRef.current) {
@@ -32,17 +42,20 @@ export default function Reviews() {
   }, [swiper]);
 
   useEffect(() => {
+    if (initialReviews.length > 0) return;
     const load = async () => {
-      const res = await getAllTestimonials();
-      if (res.success) setApiReviews(res.list);
+      const response = await getAllTestimonials();
+      if (response && response.success && Array.isArray(response.data)) {
+        setApiReviews(response.data);
+      }
     };
     load();
-  }, []);
+  }, [initialReviews]);
 
   // Translate reviews when language changes
   useEffect(() => {
     const translateReviews = async () => {
-      if (language === 'es') {
+      if (language === "es") {
         // If Spanish, use original reviews (no translation needed)
         setTranslatedReviews(apiReviews);
       } else {
@@ -53,7 +66,7 @@ export default function Reviews() {
             name: await translateText(review.name),
             role: await translateText(review.role),
             review: await translateText(review.review),
-          }))
+          })),
         );
         setTranslatedReviews(translated);
       }
@@ -64,10 +77,13 @@ export default function Reviews() {
     }
   }, [language, apiReviews, translateText]);
 
-  const handleImageError = (imagePath: string, e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+  const handleImageError = (
+    imagePath: string,
+    e: React.SyntheticEvent<HTMLImageElement, Event>,
+  ) => {
     // Only set fallback if we haven't already tried for this image
     if (!failedImages.has(imagePath)) {
-      setFailedImages(prev => new Set(prev).add(imagePath));
+      setFailedImages((prev) => new Set(prev).add(imagePath));
       e.currentTarget.src = "/homepage/image/avatar1.png";
     }
   };
@@ -77,7 +93,11 @@ export default function Reviews() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 lg:gap-24 mb-12">
         <h2 className="w-full lg:w-[533px] text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] text-zinc-950 leading-tight lg:leading-[57.60px]">
-          <TranslatedText text="Qué dicen nuestros viajeros" english="What our customers are saying" as="span" />
+          <TranslatedText
+            text="Qué dicen nuestros viajeros"
+            english="What our customers are saying"
+            as="span"
+          />
         </h2>
         <p className="flex-1 text-sm md:text-base font-normal font-['Poppins'] text-neutral-600 leading-relaxed lg:leading-7">
           <TranslatedText
@@ -91,13 +111,13 @@ export default function Reviews() {
       {/* Reviews Container */}
       <div className="relative review-slider-container">
         {/* Custom Navigation Buttons */}
-        <button 
+        <button
           ref={prevRef}
           className="absolute left-[-30px] md:left-[-60px] top-1/2 -translate-y-1/2 z-10 p-3 bg-[#D5EBC5] rounded-full rotate-180 hover:bg-[#76C043] transition-colors hidden lg:flex cursor-pointer"
         >
           <IoChevronBack className="w-6 h-6 text-white rotate-180" />
         </button>
-        <button 
+        <button
           ref={nextRef}
           className="absolute right-[-30px] md:right-[-60px] top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-[#D5EBC5] hover:bg-[#76C043] transition-colors hidden lg:flex cursor-pointer"
         >
@@ -112,21 +132,21 @@ export default function Reviews() {
           navigation={{
             prevEl: prevRef.current,
             nextEl: nextRef.current,
-            enabled: true
+            enabled: true,
           }}
           breakpoints={{
             320: {
               slidesPerView: 1,
-              spaceBetween: 20
+              spaceBetween: 20,
             },
             640: {
               slidesPerView: 2,
-              spaceBetween: 20
+              spaceBetween: 20,
             },
             1024: {
               slidesPerView: 3,
-              spaceBetween: 24
-            }
+              spaceBetween: 24,
+            },
           }}
           className="pb-12"
         >
@@ -157,14 +177,24 @@ export default function Reviews() {
                   <div className="text-right flex-shrink-0 ml-2">
                     <div className="flex gap-0.5 mb-1.5 justify-end">
                       {[...Array(review.rating)].map((_, i) => (
-                        <AiFillStar key={i} className="w-3 h-3 md:w-4 md:h-4 text-emerald-500" />
+                        <AiFillStar
+                          key={i}
+                          className="w-3 h-3 md:w-4 md:h-4 text-emerald-500"
+                        />
                       ))}
                       {[...Array(5 - review.rating)].map((_, i) => (
-                        <AiFillStar key={i + review.rating} className="w-3 h-3 md:w-4 md:h-4 text-gray-200" />
+                        <AiFillStar
+                          key={i + review.rating}
+                          className="w-3 h-3 md:w-4 md:h-4 text-gray-200"
+                        />
                       ))}
                     </div>
                     <p className="text-xs md:text-sm text-zinc-500 whitespace-nowrap">
-                      <TranslatedText text="Hace 2 días" english="2 days ago" as="span" />
+                      <TranslatedText
+                        text="Hace 2 días"
+                        english="2 days ago"
+                        as="span"
+                      />
                     </p>
                   </div>
                 </div>
@@ -184,9 +214,9 @@ export default function Reviews() {
       {/* Book Now Button */}
       <div className="flex justify-center mt-8">
         <Link href="/book">
-        <button className="w-full md:w-44 px-4 py-2.5 bg-[#76C043] rounded-full text-white text-lg font-['Inter'] hover:bg-lime-600 transition-colors cursor-pointer">
-          <TranslatedText text="Reserva ahora" english="Book Now" as="span" />
-        </button>
+          <button className="w-full md:w-44 px-4 py-2.5 bg-[#76C043] rounded-full text-white text-lg font-['Inter'] hover:bg-lime-600 transition-colors cursor-pointer">
+            <TranslatedText text="Reserva ahora" english="Book Now" as="span" />
+          </button>
         </Link>
       </div>
     </section>

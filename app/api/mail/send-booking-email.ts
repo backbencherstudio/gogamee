@@ -59,8 +59,15 @@ const STYLES = {
     "display: inline-block; background-color: #76C043; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 20px;",
 };
 
-function generateUserEmailContent(booking: BookingData) {
-  const subject = `🎉 Booking Confirmed! #${booking.id} - GoGame`;
+export function generateUserEmailContent(
+  booking: BookingData,
+  options?: { showReveal?: boolean },
+) {
+  const showReveal = options?.showReveal ?? true;
+  const subject =
+    showReveal && booking.destinationCity
+      ? `🎯 Your Trip Revealed! #${booking.id}`
+      : `🎉 Booking Confirmed! #${booking.id} - GoGame`;
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -78,15 +85,29 @@ function generateUserEmailContent(booking: BookingData) {
             <div style="${STYLES.container}">
               <!-- Header -->
               <div style="${STYLES.header}">
-                <h1 style="${STYLES.headerTitle}">Booking Confirmed!</h1>
-                <p style="color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 16px;">Get ready for your sports adventure 🎉</p>
+                <h1 style="${STYLES.headerTitle}">${
+                  showReveal && booking.destinationCity
+                    ? "Your Destination Revealed!"
+                    : "Booking Confirmed!"
+                }</h1>
+                <p style="color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 16px;">
+                  ${
+                    showReveal && booking.destinationCity
+                      ? "Get ready for " + booking.destinationCity + "!"
+                      : "Get ready for your sports adventure 🎉"
+                  }
+                </p>
               </div>
 
               <!-- Greeting -->
               <div style="${STYLES.section}">
                 <h2 style="margin: 0 0 15px; color: #333;">Hello ${booking.fullName},</h2>
                 <p style="margin: 0; line-height: 1.6; color: #555;">
-                  Thank you for booking with GoGame! We're thrilled to confirm your surprise trip. Below are the details of your upcoming adventure.
+                  ${
+                    showReveal && booking.destinationCity
+                      ? "The wait is over! We are excited to reveal your surprise destination and match details."
+                      : "Thank you for booking with GoGame! We're thrilled to confirm your surprise trip. Below are the details of your upcoming adventure."
+                  }
                 </p>
               </div>
 
@@ -130,7 +151,7 @@ function generateUserEmailContent(booking: BookingData) {
               <!-- Surprise Destination Section -->
               <div style="${STYLES.section}">
                 ${
-                  booking.destinationCity && booking.assignedMatch
+                  showReveal && booking.destinationCity && booking.assignedMatch
                     ? `
                   <div style="background-color: #fff8e1; border: 2px dashed #ffc107; border-radius: 12px; padding: 20px; text-align: center;">
                     <h3 style="margin: 0 0 10px; color: #f57f17;">🎯 Your Surprise Revealed!</h3>
@@ -193,7 +214,7 @@ function generateUserEmailContent(booking: BookingData) {
   return { subject, htmlContent };
 }
 
-function generateAdminEmailContent(booking: BookingData) {
+export function generateAdminEmailContent(booking: BookingData) {
   const subject = `📢 New Booking! #${booking.id} - ${booking.fullName}`;
 
   const htmlContent = `
@@ -313,6 +334,7 @@ function generateAdminEmailContent(booking: BookingData) {
 
 export async function sendBookingConfirmationEmail(
   booking: BookingData,
+  options?: { showReveal?: boolean },
 ): Promise<{ success: boolean; message: string; error?: string }> {
   try {
     if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
@@ -338,7 +360,7 @@ export async function sendBookingConfirmationEmail(
     console.log("📧 Processing detailed email for booking:", booking.id);
 
     // 1. Generate and Send User Email
-    const userEmailContent = generateUserEmailContent(booking);
+    const userEmailContent = generateUserEmailContent(booking, options);
 
     await transporter.sendMail({
       from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
@@ -385,7 +407,7 @@ export async function sendBookingConfirmationEmail(
     if (isTransient) {
       try {
         // Queue retry for USER email only (Admin is secondary)
-        const userContent = generateUserEmailContent(booking);
+        const userContent = generateUserEmailContent(booking, options);
         await emailQueue.addToQueue({
           to: booking.email,
           subject: userContent.subject,
@@ -412,5 +434,47 @@ export async function sendBookingConfirmationEmail(
       message: "Failed to send email",
       error: error instanceof Error ? error.message : "Unknown error",
     };
+  }
+}
+
+export async function queueBookingConfirmationEmails(
+  booking: BookingData,
+  options?: { showReveal?: boolean; delay?: number },
+) {
+  console.log("📨 Queuing confirmation emails for:", booking.id);
+
+  // 1. Queue User Email
+  const userContent = generateUserEmailContent(booking, options);
+  await emailQueue.addToQueue(
+    {
+      to: booking.email,
+      subject: userContent.subject,
+      html: userContent.htmlContent,
+      text: userContent.subject,
+      from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+      type: "booking",
+      bookingId: booking.id,
+    },
+    { delay: options?.delay },
+  );
+
+  // 2. Queue Admin Email (Immediate only)
+  // Only send admin email if it's an immediate action (no excessive delay)
+  // And avoid duplicate admin emails if this is a delayed job.
+  if (!options?.delay) {
+    const adminEmail = process.env.MAIL_TO ?? process.env.MAIL_USER;
+    if (adminEmail) {
+      const adminContent = generateAdminEmailContent(booking);
+      await emailQueue.addToQueue({
+        to: adminEmail,
+        subject: adminContent.subject,
+        html: adminContent.htmlContent,
+        text: `New Booking #${booking.id}`,
+        from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+        type: "booking",
+        bookingId: booking.id,
+        replyTo: booking.email,
+      });
+    }
   }
 }

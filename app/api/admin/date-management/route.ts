@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { DateManagementService } from "@/backend";
+import { sendResponse, sendError } from "@/app/lib/api-response";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -13,14 +14,26 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get("endDate") ?? undefined;
     const status = searchParams.get("status") ?? undefined;
 
-    const dates = await DateManagementService.getAll({
+    const allDates = await DateManagementService.getAll({
       sportname: sport,
       dateFrom: startDate,
       dateTo: endDate,
       status,
     });
 
-    const mappedDates = dates.map((date) => ({
+    const page = parseInt(searchParams.get("page") ?? "1");
+    // Limit defaults to 10 for pagination, or 1000 if not specified (legacy support)
+    // But since user asked for pagination, let's respect it if provided.
+    // If not provided, we keep it large to avoid breaking existing "get all" behavior without audit.
+    // Actually, explicit limit=0 or -1 could mean all?
+    // Let's stick to default 1000 to be safe for now, unless frontend sends limit.
+    const limit = parseInt(searchParams.get("limit") ?? "1000");
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedDates = allDates.slice(startIndex, endIndex);
+
+    const mappedDates = paginatedDates.map((date: any) => ({
       id: date._id.toString(),
       date: date.date,
       status: date.status,
@@ -49,20 +62,15 @@ export async function GET(request: NextRequest) {
       duration: date.duration || "1",
     }));
 
-    return NextResponse.json(mappedDates, {
-      headers: {
-        "Cache-Control":
-          "no-store, no-cache, must-revalidate, proxy-revalidate",
-        Pragma: "no-cache",
-        Expires: "0",
-      },
+    return sendResponse(mappedDates, "Dates fetched successfully", {
+      page,
+      limit,
+      total: allDates.length,
+      total_pages: Math.ceil(allDates.length / limit),
     });
   } catch (error) {
     console.error("API Error:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to fetch dates" },
-      { status: 500 },
-    );
+    return sendError("Failed to fetch dates", 500, error);
   }
 }
 

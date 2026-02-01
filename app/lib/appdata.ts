@@ -7,7 +7,7 @@ export interface TravelerInfo {
   email: string;
   phone: string;
   dateOfBirth: string;
-  documentType: 'ID' | 'Passport';
+  documentType: "ID" | "Passport";
   documentNumber: string;
   isPrimary?: boolean;
   travelerNumber?: number;
@@ -204,7 +204,7 @@ export interface FlightScheduleData {
     label: string;
     city: string;
     price: string;
-    icon: 'takeoff' | 'landing';
+    icon: "takeoff" | "landing";
     timeRange: {
       start: number;
       end: number;
@@ -250,432 +250,474 @@ export const AppData = {
     sports: [
       { id: "football", name: "Fútbol", label: "Fútbol", value: "Fútbol" },
       { id: "basketball", name: "Basket", label: "Basket", value: "Basket" },
-      { id: "both", name: "Ambos", label: "Ambos", value: "Ambos" }
+      { id: "both", name: "Ambos", label: "Ambos", value: "Ambos" },
     ],
-    
+
     packTypes: [
       { id: 1, name: "Estándar", basePrice: 299, currency: "EUR" },
-      { id: 2, name: "Premium", basePrice: 1399, currency: "EUR" }
+      { id: 2, name: "Premium", basePrice: 1399, currency: "EUR" },
     ],
-    
+
     departureCities: [
       { id: 1, name: "Madrid", country: "Spain" },
       { id: 2, name: "Barcelona", country: "Spain" },
       { id: 3, name: "Málaga", country: "Spain" },
       { id: 4, name: "Valencia", country: "Spain" },
       { id: 5, name: "Alicante", country: "Spain" },
-      { id: 6, name: "Bilbao", country: "Spain" }
+      { id: 6, name: "Bilbao", country: "Spain" },
     ],
-    
+
     peopleCategories: [
-      { 
-        id: "adults", 
-        name: "Adultos", 
-        minAge: 18, 
-        maxAge: 100, 
-        minCount: 1, 
-        maxCount: 10, 
-        defaultCount: 2 
+      {
+        id: "adults",
+        name: "Adultos",
+        minAge: 18,
+        maxAge: 100,
+        minCount: 1,
+        maxCount: 10,
+        defaultCount: 2,
       },
-      { 
-        id: "children", 
-        name: "Niños", 
-        minAge: 2, 
-        maxAge: 17, 
-        minCount: 0, 
-        maxCount: 10, 
-        defaultCount: 0 
+      {
+        id: "children",
+        name: "Niños",
+        minAge: 2,
+        maxAge: 17,
+        minCount: 0,
+        maxCount: 10,
+        defaultCount: 0,
       },
-      { 
-        id: "babies", 
-        name: "Bebés", 
-        minAge: 0, 
-        maxAge: 1, 
-        minCount: 0, 
-        maxCount: 10, 
-        defaultCount: 0 
-      }
+      {
+        id: "babies",
+        name: "Bebés",
+        minAge: 0,
+        maxAge: 1,
+        minCount: 0,
+        maxCount: 10,
+        defaultCount: 0,
+      },
     ],
-    
+
     maxTotalPeople: 10,
     minAdults: 1,
-    
+
     // Helper functions for hero section
-    getPackTypesBySport: function(sport: "Football" | "Basketball" | "Both", fromText: string) {
+    getPackTypesBySport: function (
+      sport: "Football" | "Basketball" | "Both",
+      fromText: string,
+    ) {
       const basePrices = {
-        "Football": { standard: 299, premium: 1399 },
-        "Basketball": { standard: 279, premium: 1279 },
-        "Both": { standard: 279, premium: 1279 } // Use lowest price for "Both"
+        Football: { standard: 299, premium: 1399 },
+        Basketball: { standard: 279, premium: 1279 },
+        Both: { standard: 279, premium: 1279 }, // Use lowest price for "Both"
       };
-      
+
       const sportPrices = basePrices[sport];
-      
-      return this.packTypes.map(pack => ({
+
+      return this.packTypes.map((pack) => ({
         ...pack,
-        price: `${fromText} ${sportPrices[pack.name.toLowerCase() as keyof typeof sportPrices]}€`
+        price: `${fromText} ${sportPrices[pack.name.toLowerCase() as keyof typeof sportPrices]}€`,
       }));
     },
-    
-    getSportById: function(id: string) {
-      return this.sports.find(sport => sport.id === id);
+
+    getSportById: function (id: string) {
+      return this.sports.find((sport) => sport.id === id);
     },
-    
-    getPackTypeById: function(id: number) {
-      return this.packTypes.find(pack => pack.id === id);
+
+    getPackTypeById: function (id: number) {
+      return this.packTypes.find((pack) => pack.id === id);
     },
-    
-    getCityById: function(id: number) {
-      return this.departureCities.find(city => city.id === id);
+
+    getCityById: function (id: number) {
+      return this.departureCities.find((city) => city.id === id);
     },
-    
-    getPeopleCategoryById: function(id: string) {
-      return this.peopleCategories.find(category => category.id === id);
-    }
+
+    getPeopleCategoryById: function (id: string) {
+      return this.peopleCategories.find((category) => category.id === id);
+    },
   },
 
   // Sports Preference Data
   sportsPreference: {
     sports: [
-      { value: 'football', label: 'Football', description: 'We always try to maximize the time at the destination' },
-      { value: 'basketball', label: 'Basketball', description: 'We always try to maximize the time at the destination' },
-      { value: 'both', label: 'Both', description: 'We always try to maximize the time at the destination' }
+      {
+        value: "football",
+        label: "Football",
+        description: "We always try to maximize the time at the destination",
+      },
+      {
+        value: "basketball",
+        label: "Basketball",
+        description: "We always try to maximize the time at the destination",
+      },
+      {
+        value: "both",
+        label: "Both",
+        description: "We always try to maximize the time at the destination",
+      },
     ],
-    
-    getSportByValue: function(value: string) {
-      return this.sports.find(sport => sport.value === value);
+
+    getSportByValue: function (value: string) {
+      return this.sports.find((sport) => sport.value === value);
     },
-    
-    getAllSports: function() {
+
+    getAllSports: function () {
       return this.sports;
-    }
+    },
   },
 
   // Package Type Data
   packageType: {
     packages: [
       {
-        value: 'standard',
-        label: 'Standard',
-        description: 'Perfect for budget-conscious travelers who want quality experiences',
+        value: "standard",
+        label: "Standard",
+        description:
+          "Perfect for budget-conscious travelers who want quality experiences",
         features: [
-          'Standard accommodation (3-star hotels)',
-          'Basic meals included',
-          'Public transport or shuttle service',
-          'Essential welcome pack',
-          'Standard match tickets'
+          "Standard accommodation (3-star hotels)",
+          "Basic meals included",
+          "Public transport or shuttle service",
+          "Essential welcome pack",
+          "Standard match tickets",
         ],
         basePrice: 299,
-        currency: 'EUR'
+        currency: "EUR",
       },
       {
-        value: 'premium',
-        label: 'Premium',
-        description: 'Luxury experience with exclusive access and premium services',
+        value: "premium",
+        label: "Premium",
+        description:
+          "Luxury experience with exclusive access and premium services",
         features: [
-          'Premium accommodation (4-5 star hotels)',
-          'Gourmet meals and dining experiences',
-          'Private transfers and VIP transport',
-          'Exclusive welcome pack with team merchandise',
-          'Premium match tickets with better seating',
-          'Personal guide and concierge service'
+          "Premium accommodation (4-5 star hotels)",
+          "Gourmet meals and dining experiences",
+          "Private transfers and VIP transport",
+          "Exclusive welcome pack with team merchandise",
+          "Premium match tickets with better seating",
+          "Personal guide and concierge service",
         ],
         basePrice: 1399,
-        currency: 'EUR'
-      }
+        currency: "EUR",
+      },
     ],
-    
-    getPackageByValue: function(value: string) {
-      return this.packages.find(pkg => pkg.value === value);
+
+    getPackageByValue: function (value: string) {
+      return this.packages.find((pkg) => pkg.value === value);
     },
-    
-    getAllPackages: function() {
+
+    getAllPackages: function () {
       return this.packages;
     },
-    
-    getPackageFeatures: function(value: string) {
+
+    getPackageFeatures: function (value: string) {
       const pkg = this.getPackageByValue(value);
       return pkg ? pkg.features : [];
     },
-    
-    getPackagePrice: function(value: string, sport?: string, nights?: number) {
+
+    getPackagePrice: function (value: string, sport?: string, nights?: number) {
       const pkg = this.getPackageByValue(value);
       if (!pkg) return 0;
-      
+
       // If sport and nights are provided, use the pricing logic from hero section
       if (sport && nights) {
         const sportPrices: Record<string, Record<string, number>> = {
-          "football": { standard: 299, premium: 1399 },
-          "basketball": { standard: 279, premium: 1279 }
+          football: { standard: 299, premium: 1399 },
+          basketball: { standard: 279, premium: 1279 },
         };
-        
+
         const sportData = sportPrices[sport.toLowerCase()];
         const basePrice = sportData?.[value] || pkg.basePrice;
-        
+
         // Apply night multiplier (basic logic - can be enhanced)
         if (nights > 1) {
           return basePrice + (nights - 1) * 80; // Additional 80€ per extra night
         }
-        
+
         return basePrice;
       }
-      
+
       return pkg.basePrice;
-    }
+    },
   },
 
   // Departure City Data
   departureCity: {
     cities: [
-      { 
-        value: 'madrid', 
-        label: 'Madrid',
-        gradient: 'from-slate-700 via-slate-600 to-slate-800',
-        accent: 'hover:from-slate-600 hover:via-slate-500 hover:to-slate-700',
-        country: 'Spain',
-        description: 'Capital city with rich cultural heritage and vibrant atmosphere'
+      {
+        value: "madrid",
+        label: "Madrid",
+        gradient: "from-slate-700 via-slate-600 to-slate-800",
+        accent: "hover:from-slate-600 hover:via-slate-500 hover:to-slate-700",
+        country: "Spain",
+        description:
+          "Capital city with rich cultural heritage and vibrant atmosphere",
       },
-      { 
-        value: 'barcelona', 
-        label: 'Barcelona',
-        gradient: 'from-emerald-600 via-emerald-500 to-emerald-700',
-        accent: 'hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-600',
-        country: 'Spain',
-        description: 'Coastal city known for stunning architecture and Mediterranean charm'
+      {
+        value: "barcelona",
+        label: "Barcelona",
+        gradient: "from-emerald-600 via-emerald-500 to-emerald-700",
+        accent:
+          "hover:from-emerald-500 hover:via-emerald-400 hover:to-emerald-600",
+        country: "Spain",
+        description:
+          "Coastal city known for stunning architecture and Mediterranean charm",
       },
-      { 
-        value: 'malaga', 
-        label: 'Málaga',
-        gradient: 'from-amber-600 via-amber-500 to-amber-700',
-        accent: 'hover:from-amber-500 hover:via-amber-400 hover:to-amber-600',
-        country: 'Spain',
-        description: 'Sunny coastal city with beautiful beaches and rich history'
+      {
+        value: "malaga",
+        label: "Málaga",
+        gradient: "from-amber-600 via-amber-500 to-amber-700",
+        accent: "hover:from-amber-500 hover:via-amber-400 hover:to-amber-600",
+        country: "Spain",
+        description:
+          "Sunny coastal city with beautiful beaches and rich history",
       },
-      { 
-        value: 'valencia', 
-        label: 'Valencia',
-        gradient: 'from-blue-600 via-blue-500 to-blue-700',
-        accent: 'hover:from-blue-500 hover:via-blue-400 hover:to-blue-600',
-        country: 'Spain',
-        description: 'Modern city with futuristic architecture and traditional charm'
+      {
+        value: "valencia",
+        label: "Valencia",
+        gradient: "from-blue-600 via-blue-500 to-blue-700",
+        accent: "hover:from-blue-500 hover:via-blue-400 hover:to-blue-600",
+        country: "Spain",
+        description:
+          "Modern city with futuristic architecture and traditional charm",
       },
-      { 
-        value: 'alicante', 
-        label: 'Alicante',
-        gradient: 'from-orange-600 via-orange-500 to-orange-700',
-        accent: 'hover:from-orange-500 hover:via-orange-400 hover:to-orange-600',
-        country: 'Spain',
-        description: 'Coastal gem with stunning beaches and Mediterranean lifestyle'
+      {
+        value: "alicante",
+        label: "Alicante",
+        gradient: "from-orange-600 via-orange-500 to-orange-700",
+        accent:
+          "hover:from-orange-500 hover:via-orange-400 hover:to-orange-600",
+        country: "Spain",
+        description:
+          "Coastal gem with stunning beaches and Mediterranean lifestyle",
       },
-      { 
-        value: 'bilbao', 
-        label: 'Bilbao',
-        gradient: 'from-red-600 via-red-500 to-red-700',
-        accent: 'hover:from-red-500 hover:via-red-400 hover:to-red-600',
-        country: 'Spain',
-        description: 'Industrial city transformed into a cultural and culinary destination'
-      }
+      {
+        value: "bilbao",
+        label: "Bilbao",
+        gradient: "from-red-600 via-red-500 to-red-700",
+        accent: "hover:from-red-500 hover:via-red-400 hover:to-red-600",
+        country: "Spain",
+        description:
+          "Industrial city transformed into a cultural and culinary destination",
+      },
     ],
-    
-    getCityByValue: function(value: string) {
-      return this.cities.find(city => city.value === value);
+
+    getCityByValue: function (value: string) {
+      return this.cities.find((city) => city.value === value);
     },
-    
-    getAllCities: function() {
+
+    getAllCities: function () {
       return this.cities;
     },
-    
-    getCityGradient: function(value: string) {
+
+    getCityGradient: function (value: string) {
       const city = this.getCityByValue(value);
-      return city ? city.gradient : '';
+      return city ? city.gradient : "";
     },
-    
-    getCityAccent: function(value: string) {
+
+    getCityAccent: function (value: string) {
       const city = this.getCityByValue(value);
-      return city ? city.accent : '';
+      return city ? city.accent : "";
     },
-    
-    getCityDescription: function(value: string) {
+
+    getCityDescription: function (value: string) {
       const city = this.getCityByValue(value);
-      return city ? city.description : '';
-    }
+      return city ? city.description : "";
+    },
   },
 
   // Remove League Data
   removeLeague: {
     leagues: [
-      { 
-        id: '1', 
-        name: 'La Liga', 
-        country: 'Spain', 
-        image: '/stepper/img1.png',
-        description: 'Spanish top-flight football league'
+      {
+        id: "1",
+        name: "La Liga",
+        country: "Spain",
+        image: "/stepper/img1.png",
+        description: "Spanish top-flight football league",
       },
-      { 
-        id: '2', 
-        name: 'Premier League', 
-        country: 'England', 
-        image: '/stepper/img2.png',
-        description: 'English top-flight football league'
+      {
+        id: "2",
+        name: "Premier League",
+        country: "England",
+        image: "/stepper/img2.png",
+        description: "English top-flight football league",
       },
-      { 
-        id: '3', 
-        name: 'Bundesliga', 
-        country: 'Germany', 
-        image: '/stepper/img3.png',
-        description: 'German top-flight football league'
+      {
+        id: "3",
+        name: "Bundesliga",
+        country: "Germany",
+        image: "/stepper/img3.png",
+        description: "German top-flight football league",
       },
-      { 
-        id: '4', 
-        name: 'Serie A', 
-        country: 'Italy', 
-        image: '/stepper/img4.png',
-        description: 'Italian top-flight football league'
+      {
+        id: "4",
+        name: "Serie A",
+        country: "Italy",
+        image: "/stepper/img4.png",
+        description: "Italian top-flight football league",
       },
-      { 
-        id: '5', 
-        name: 'Eredivisie', 
-        country: 'Netherlands', 
-        image: '/homepage/image/Eredivisie00.jpg',
-        description: 'Dutch top-flight football league'
+      {
+        id: "5",
+        name: "Eredivisie",
+        country: "Netherlands",
+        image: "/homepage/image/Eredivisie00.jpg",
+        description: "Dutch top-flight football league",
       },
-      { 
-        id: '6', 
-        name: 'Ligue 1', 
-        country: 'France', 
-        image: '/stepper/img6.png',
-        description: 'French top-flight football league'
-      }
+      {
+        id: "6",
+        name: "Ligue 1",
+        country: "France",
+        image: "/stepper/img6.png",
+        description: "French top-flight football league",
+      },
     ],
-    
+
     removalCost: 20,
     freeRemovals: 1,
-    
-    getLeagueById: function(id: string) {
-      return this.leagues.find(league => league.id === id);
+
+    getLeagueById: function (id: string) {
+      return this.leagues.find((league) => league.id === id);
     },
-    
-    getAllLeagues: function() {
+
+    getAllLeagues: function () {
       return this.leagues;
     },
-    
-    getLeagueByName: function(name: string) {
-      return this.leagues.find(league => league.name === name);
+
+    getLeagueByName: function (name: string) {
+      return this.leagues.find((league) => league.name === name);
     },
-    
-    getLeaguesByCountry: function(country: string) {
-      return this.leagues.filter(league => league.country === country);
+
+    getLeaguesByCountry: function (country: string) {
+      return this.leagues.filter((league) => league.country === country);
     },
-    
-    getRemovalCost: function() {
+
+    getRemovalCost: function () {
       return this.removalCost;
     },
-    
-    getFreeRemovals: function() {
+
+    getFreeRemovals: function () {
       return this.freeRemovals;
     },
-    
-    calculateTotalCost: function(removedCount: number) {
+
+    calculateTotalCost: function (removedCount: number) {
       const freeRemovals = this.freeRemovals;
       const paidRemovals = Math.max(0, removedCount - freeRemovals);
       return paidRemovals * this.removalCost;
-    }
+    },
   },
 
   // Flight Schedule Data
   flightSchedule: {
     timeSlots: {
       departure: [
-        { value: 360, label: '06:00' },   // 6:00 AM
-        { value: 660, label: '11:00' },   // 11:00 AM
-        { value: 840, label: '14:00' },   // 2:00 PM
-        { value: 1080, label: '18:00' },  // 6:00 PM
-        { value: 1440, label: '00:00(+1)' } // 12:00 AM next day
+        { value: 360, label: "06:00" }, // 6:00 AM
+        { value: 660, label: "11:00" }, // 11:00 AM
+        { value: 840, label: "14:00" }, // 2:00 PM
+        { value: 1080, label: "18:00" }, // 6:00 PM
+        { value: 1440, label: "00:00(+1)" }, // 12:00 AM next day
       ],
       arrival: [
-        { value: 660, label: '11:00' },   // 11:00 AM
-        { value: 840, label: '14:00' },   // 2:00 PM
-        { value: 1140, label: '19:00' },  // 7:00 PM
-        { value: 1440, label: '00:00(+1)' } // 12:00 AM next day
-      ]
+        { value: 660, label: "11:00" }, // 11:00 AM
+        { value: 840, label: "14:00" }, // 2:00 PM
+        { value: 1140, label: "19:00" }, // 7:00 PM
+        { value: 1440, label: "00:00(+1)" }, // 12:00 AM next day
+      ],
     },
-    
+
     defaultRanges: {
-      departure: { start: 360, end: 840 },  // 06:00 to 14:00
-      arrival: { start: 840, end: 1440 }   // 14:00 to 00:00(+1)
+      departure: { start: 360, end: 840 }, // 06:00 to 14:00
+      arrival: { start: 840, end: 1440 }, // 14:00 to 00:00(+1)
     },
-    
+
     pricing: {
       pricePerStep: 20,
-      currency: 'EUR'
+      currency: "EUR",
     },
-    
+
     constants: {
       minutesInDay: 1440, // 24 * 60
       extendedDayMinutes: 2160, // 36 * 60 (1.5 days)
-      hoursPerDay: 24
+      hoursPerDay: 24,
     },
-    
+
     initialFlightData: [
       {
-        label: 'Departure from',
-        city: 'Barcelona',
-        price: '0€', // No extra cost for default range
-        icon: 'takeoff',
-        timeRange: { start: 360, end: 840 } // 06:00 to 14:00
+        label: "Departure from",
+        city: "Barcelona",
+        price: "0€", // No extra cost for default range
+        icon: "takeoff",
+        timeRange: { start: 360, end: 840 }, // 06:00 to 14:00
       },
       {
-        label: 'Arrival',
-        city: 'Barcelona',
-        price: '0€', // No extra cost for default range
-        icon: 'landing',
-        timeRange: { start: 840, end: 1440 } // 14:00 to 00:00(+1)
-      }
+        label: "Arrival",
+        city: "Barcelona",
+        price: "0€", // No extra cost for default range
+        icon: "landing",
+        timeRange: { start: 840, end: 1440 }, // 14:00 to 00:00(+1)
+      },
     ],
-    
+
     // Helper functions for flight schedule
-    getTimeSlots: function(type: 'departure' | 'arrival') {
+    getTimeSlots: function (type: "departure" | "arrival") {
       return this.timeSlots[type];
     },
-    
-    getDefaultRange: function(type: 'departure' | 'arrival') {
+
+    getDefaultRange: function (type: "departure" | "arrival") {
       return this.defaultRanges[type];
     },
-    
-    getPricePerStep: function() {
+
+    getPricePerStep: function () {
       return this.pricing.pricePerStep;
     },
-    
-    getConstants: function() {
+
+    getConstants: function () {
       return this.constants;
     },
-    
-    getInitialFlightData: function() {
+
+    getInitialFlightData: function () {
       return this.initialFlightData;
     },
-    
+
     // Calculate price based on steps from default range
-    calculatePriceFromDefault: function(timeRange: { start: number; end: number }, isDeparture: boolean): number {
-      const defaultRange = isDeparture ? this.defaultRanges.departure : this.defaultRanges.arrival;
-      const timeSlots = isDeparture ? this.timeSlots.departure : this.timeSlots.arrival;
-      
+    calculatePriceFromDefault: function (
+      timeRange: { start: number; end: number },
+      isDeparture: boolean,
+    ): number {
+      const defaultRange = isDeparture
+        ? this.defaultRanges.departure
+        : this.defaultRanges.arrival;
+      const timeSlots = isDeparture
+        ? this.timeSlots.departure
+        : this.timeSlots.arrival;
+
       // Find the closest time slots for start and end
-      const startStep = timeSlots.findIndex(slot => Math.abs(slot.value - timeRange.start) < 30);
-      const endStep = timeSlots.findIndex(slot => Math.abs(slot.value - timeRange.end) < 30);
-      
+      const startStep = timeSlots.findIndex(
+        (slot) => Math.abs(slot.value - timeRange.start) < 30,
+      );
+      const endStep = timeSlots.findIndex(
+        (slot) => Math.abs(slot.value - timeRange.end) < 30,
+      );
+
       // Find the default start and end steps
-      const defaultStartStep = timeSlots.findIndex(slot => Math.abs(slot.value - defaultRange.start) < 30);
-      const defaultEndStep = timeSlots.findIndex(slot => Math.abs(slot.value - defaultRange.end) < 30);
-      
+      const defaultStartStep = timeSlots.findIndex(
+        (slot) => Math.abs(slot.value - defaultRange.start) < 30,
+      );
+      const defaultEndStep = timeSlots.findIndex(
+        (slot) => Math.abs(slot.value - defaultRange.end) < 30,
+      );
+
       // Calculate total steps moved from default
-      const totalStepsMoved = Math.abs(startStep - defaultStartStep) + Math.abs(endStep - defaultEndStep);
-      
+      const totalStepsMoved =
+        Math.abs(startStep - defaultStartStep) +
+        Math.abs(endStep - defaultEndStep);
+
       return totalStepsMoved * this.pricing.pricePerStep;
     },
-    
+
     // Get available time slots for a flight type
-    getAvailableTimeSlots: function(type: 'departure' | 'arrival') {
+    getAvailableTimeSlots: function (type: "departure" | "arrival") {
       return this.timeSlots[type];
-    }
+    },
   },
 
   // Booking related data
@@ -684,47 +726,47 @@ export const AppData = {
     pending: [] as BookingData[],
     completed: [] as BookingData[],
     cancelled: [] as BookingData[],
-    
+
     // Get bookings by status
-    getByStatus: function(status: "pending" | "completed" | "cancelled") {
-      return this.all.filter(booking => booking.status === status);
+    getByStatus: function (status: "pending" | "completed" | "cancelled") {
+      return this.all.filter((booking) => booking.status === status);
     },
-    
+
     // Get booking by ID
-    getById: function(id: number) {
-      return this.all.find(booking => booking.id === id);
+    getById: function (id: number) {
+      return this.all.find((booking) => booking.id === id);
     },
-    
+
     // Add new booking
-    add: function(booking: Omit<BookingData, 'id'>) {
-      const newId = Math.max(...this.all.map(b => b.id), 0) + 1;
+    add: function (booking: Omit<BookingData, "id">) {
+      const newId = Math.max(...this.all.map((b) => b.id), 0) + 1;
       const newBooking = { ...booking, id: newId };
       this.all.unshift(newBooking); // Add to beginning for easy access
       this.updateStatusArrays();
       return newBooking;
     },
-    
+
     // Update existing booking
-    update: function(id: number, updates: Partial<BookingData>) {
-      const index = this.all.findIndex(booking => booking.id === id);
+    update: function (id: number, updates: Partial<BookingData>) {
+      const index = this.all.findIndex((booking) => booking.id === id);
       if (index !== -1) {
         this.all[index] = { ...this.all[index], ...updates };
         this.updateStatusArrays();
       }
     },
-    
+
     // Delete booking
-    delete: function(id: number) {
-      this.all = this.all.filter(booking => booking.id !== id);
+    delete: function (id: number) {
+      this.all = this.all.filter((booking) => booking.id !== id);
       this.updateStatusArrays();
     },
-    
+
     // Update status arrays
-    updateStatusArrays: function() {
+    updateStatusArrays: function () {
       this.pending = this.getByStatus("pending");
       this.completed = this.getByStatus("completed");
       this.cancelled = this.getByStatus("cancelled");
-    }
+    },
   },
 
   // Sports data
@@ -740,88 +782,268 @@ export const AppData = {
       { id: "cricket", name: "Cricket", icon: "🏏" },
       { id: "golf", name: "Golf", icon: "⛳" },
       { id: "cycling", name: "Cycling", icon: "🚴" },
-      { id: "formula1", name: "Formula 1", icon: "🏎️" }
+      { id: "formula1", name: "Formula 1", icon: "🏎️" },
     ],
-    
-    getById: function(id: string) {
-      return this.list.find(sport => sport.id === id);
-    }
+
+    getById: function (id: string) {
+      return this.list.find((sport) => sport.id === id);
+    },
   },
 
   // Package types
   packages: {
     list: [
-      { id: "basic", name: "Basic", price: 280, features: ["Standard accommodation", "Basic meals"] },
-      { id: "standard", name: "Standard", price: 450, features: ["Comfortable accommodation", "Quality meals", "Transport"] },
-      { id: "premium", name: "Premium", price: 680, features: ["Luxury accommodation", "Premium meals", "VIP transport", "Personal guide"] },
-      { id: "luxury", name: "Luxury", price: 1200, features: ["5-star accommodation", "Gourmet meals", "Private transport", "Personal guide", "Exclusive access"] }
+      {
+        id: "basic",
+        name: "Basic",
+        price: 280,
+        features: ["Standard accommodation", "Basic meals"],
+      },
+      {
+        id: "standard",
+        name: "Standard",
+        price: 450,
+        features: ["Comfortable accommodation", "Quality meals", "Transport"],
+      },
+      {
+        id: "premium",
+        name: "Premium",
+        price: 680,
+        features: [
+          "Luxury accommodation",
+          "Premium meals",
+          "VIP transport",
+          "Personal guide",
+        ],
+      },
+      {
+        id: "luxury",
+        name: "Luxury",
+        price: 1200,
+        features: [
+          "5-star accommodation",
+          "Gourmet meals",
+          "Private transport",
+          "Personal guide",
+          "Exclusive access",
+        ],
+      },
     ],
-    
-    getById: function(id: string) {
-      return this.list.find(pkg => pkg.id === id);
-    }
+
+    getById: function (id: string) {
+      return this.list.find((pkg) => pkg.id === id);
+    },
   },
 
   // Travel Package Details
   travelPackages: {
     list: [
       // Football packages
-      { id: 'f1', sport: 'football', category: 'Match Ticket', standard: 'General or lateral section', premium: 'Premium or central tribune seat', standardPrice: 50, premiumPrice: 150, currency: 'EUR' },
-      { id: 'f2', sport: 'football', category: 'Flights', standard: 'Round-trip to a major city', premium: 'Round-trip to a major city', standardPrice: 200, premiumPrice: 400, currency: 'EUR' },
-      { id: 'f3', sport: 'football', category: 'Hotel', standard: '3-star hotel or apartment', premium: '4–5 star hotel near stadium or city center', standardPrice: 80, premiumPrice: 200, currency: 'EUR' },
-      { id: 'f4', sport: 'football', category: 'Transfers', standard: 'Public transport or shuttle', premium: 'Private transfers (airport & stadium)', standardPrice: 20, premiumPrice: 80, currency: 'EUR' },
-      { id: 'f5', sport: 'football', category: 'Welcome Pack', standard: 'Exclusive GoGame merchandise', premium: 'Official team jersey + premium goodies', standardPrice: 15, premiumPrice: 50, currency: 'EUR' },
-      { id: 'f6', sport: 'football', category: 'Surprise Reveal', standard: 'Destination revealed 48h before. A secret clue before revealing the destination.', premium: 'Destination revealed 48h before. A secret clue before revealing the destination.', standardPrice: 0, premiumPrice: 0, currency: 'EUR' },
-      { id: 'f7', sport: 'football', category: 'Starting Price', standard: 'From 299€', premium: 'From 1399€', standardPrice: 299, premiumPrice: 1399, currency: 'EUR' },
-      
+      {
+        id: "f1",
+        sport: "football",
+        category: "Match Ticket",
+        standard: "General or lateral section",
+        premium: "Premium or central tribune seat",
+        standardPrice: 50,
+        premiumPrice: 150,
+        currency: "EUR",
+      },
+      {
+        id: "f2",
+        sport: "football",
+        category: "Flights",
+        standard: "Round-trip to a major city",
+        premium: "Round-trip to a major city",
+        standardPrice: 200,
+        premiumPrice: 400,
+        currency: "EUR",
+      },
+      {
+        id: "f3",
+        sport: "football",
+        category: "Hotel",
+        standard: "3-star hotel or apartment",
+        premium: "4–5 star hotel near stadium or city center",
+        standardPrice: 80,
+        premiumPrice: 200,
+        currency: "EUR",
+      },
+      {
+        id: "f4",
+        sport: "football",
+        category: "Transfers",
+        standard: "Public transport or shuttle",
+        premium: "Private transfers (airport & stadium)",
+        standardPrice: 20,
+        premiumPrice: 80,
+        currency: "EUR",
+      },
+      {
+        id: "f5",
+        sport: "football",
+        category: "Welcome Pack",
+        standard: "Exclusive GoGame merchandise",
+        premium: "Official team jersey + premium goodies",
+        standardPrice: 15,
+        premiumPrice: 50,
+        currency: "EUR",
+      },
+      {
+        id: "f6",
+        sport: "football",
+        category: "Surprise Reveal",
+        standard:
+          "Destination revealed 48h before. A secret clue before revealing the destination.",
+        premium:
+          "Destination revealed 48h before. A secret clue before revealing the destination.",
+        standardPrice: 0,
+        premiumPrice: 0,
+        currency: "EUR",
+      },
+      {
+        id: "f7",
+        sport: "football",
+        category: "Starting Price",
+        standard: "From 299€",
+        premium: "From 1399€",
+        standardPrice: 299,
+        premiumPrice: 1399,
+        currency: "EUR",
+      },
+
       // Basketball packages
-      { id: 'b1', sport: 'basketball', category: 'Match Ticket', standard: 'Standard seat (upper and lateral seats)', premium: 'VIP seat', standardPrice: 40, premiumPrice: 120, currency: 'EUR' },
-      { id: 'b2', sport: 'basketball', category: 'Flights', standard: 'Round-trip to a major city', premium: 'Round-trip to a major city', standardPrice: 180, premiumPrice: 350, currency: 'EUR' },
-      { id: 'b3', sport: 'basketball', category: 'Hotel', standard: '3-star hotel or apartment', premium: '4–5 star hotel in premium location', standardPrice: 70, premiumPrice: 180, currency: 'EUR' },
-      { id: 'b4', sport: 'basketball', category: 'Transfers', standard: 'Public transport or shuttle', premium: 'Private transfers (airport & stadium)', standardPrice: 18, premiumPrice: 70, currency: 'EUR' },
-      { id: 'b5', sport: 'basketball', category: 'Welcome Pack', standard: 'Travel guide + surprise gift', premium: 'Official team jersey + premium goodies', standardPrice: 12, premiumPrice: 45, currency: 'EUR' },
-      { id: 'b6', sport: 'basketball', category: 'Surprise Reveal', standard: 'Destination revealed 48h before. A secret clue before revealing the destination.', premium: 'Destination revealed 48h before. A secret clue before revealing the destination.', standardPrice: 0, premiumPrice: 0, currency: 'EUR' },
-      { id: 'b7', sport: 'basketball', category: 'Starting Price', standard: 'From 279€', premium: 'From 1279€', standardPrice: 279, premiumPrice: 1279, currency: 'EUR' },
+      {
+        id: "b1",
+        sport: "basketball",
+        category: "Match Ticket",
+        standard: "Standard seat (upper and lateral seats)",
+        premium: "VIP seat",
+        standardPrice: 40,
+        premiumPrice: 120,
+        currency: "EUR",
+      },
+      {
+        id: "b2",
+        sport: "basketball",
+        category: "Flights",
+        standard: "Round-trip to a major city",
+        premium: "Round-trip to a major city",
+        standardPrice: 180,
+        premiumPrice: 350,
+        currency: "EUR",
+      },
+      {
+        id: "b3",
+        sport: "basketball",
+        category: "Hotel",
+        standard: "3-star hotel or apartment",
+        premium: "4–5 star hotel in premium location",
+        standardPrice: 70,
+        premiumPrice: 180,
+        currency: "EUR",
+      },
+      {
+        id: "b4",
+        sport: "basketball",
+        category: "Transfers",
+        standard: "Public transport or shuttle",
+        premium: "Private transfers (airport & stadium)",
+        standardPrice: 18,
+        premiumPrice: 70,
+        currency: "EUR",
+      },
+      {
+        id: "b5",
+        sport: "basketball",
+        category: "Welcome Pack",
+        standard: "Travel guide + surprise gift",
+        premium: "Official team jersey + premium goodies",
+        standardPrice: 12,
+        premiumPrice: 45,
+        currency: "EUR",
+      },
+      {
+        id: "b6",
+        sport: "basketball",
+        category: "Surprise Reveal",
+        standard:
+          "Destination revealed 48h before. A secret clue before revealing the destination.",
+        premium:
+          "Destination revealed 48h before. A secret clue before revealing the destination.",
+        standardPrice: 0,
+        premiumPrice: 0,
+        currency: "EUR",
+      },
+      {
+        id: "b7",
+        sport: "basketball",
+        category: "Starting Price",
+        standard: "From 279€",
+        premium: "From 1279€",
+        standardPrice: 279,
+        premiumPrice: 1279,
+        currency: "EUR",
+      },
     ],
-    
-    getBySport: function(sport: 'football' | 'basketball') {
-      return this.list.filter(pkg => pkg.sport === sport);
+
+    getBySport: function (sport: "football" | "basketball") {
+      return this.list.filter((pkg) => pkg.sport === sport);
     },
-    
-    getAll: function() {
+
+    getAll: function () {
       return this.list;
     },
-    
-    add: function(packageData: { sport: 'football' | 'basketball'; category: string; standard: string; premium: string; standardPrice?: number; premiumPrice?: number; currency?: string }) {
+
+    add: function (packageData: {
+      sport: "football" | "basketball";
+      category: string;
+      standard: string;
+      premium: string;
+      standardPrice?: number;
+      premiumPrice?: number;
+      currency?: string;
+    }) {
       const newId = `${packageData.sport}_${Date.now()}`;
-      const newPackage = { 
-        ...packageData, 
+      const newPackage = {
+        ...packageData,
         id: newId,
         standardPrice: packageData.standardPrice || 0,
         premiumPrice: packageData.premiumPrice || 0,
-        currency: packageData.currency || 'EUR'
+        currency: packageData.currency || "EUR",
       };
       this.list.unshift(newPackage); // Add to beginning for easy access
       return newPackage;
     },
-    
-    update: function(id: string, updates: Partial<{ sport: 'football' | 'basketball'; category: string; standard: string; premium: string; standardPrice?: number; premiumPrice?: number; currency?: string }>) {
-      const index = this.list.findIndex(pkg => pkg.id === id);
+
+    update: function (
+      id: string,
+      updates: Partial<{
+        sport: "football" | "basketball";
+        category: string;
+        standard: string;
+        premium: string;
+        standardPrice?: number;
+        premiumPrice?: number;
+        currency?: string;
+      }>,
+    ) {
+      const index = this.list.findIndex((pkg) => pkg.id === id);
       if (index !== -1) {
         this.list[index] = { ...this.list[index], ...updates };
         return this.list[index];
       }
       return null;
     },
-    
-    delete: function(id: string) {
-      const index = this.list.findIndex(pkg => pkg.id === id);
+
+    delete: function (id: string) {
+      const index = this.list.findIndex((pkg) => pkg.id === id);
       if (index !== -1) {
         this.list.splice(index, 1);
         return true;
       }
       return false;
-    }
+    },
   },
 
   // Cities
@@ -834,12 +1056,12 @@ export const AppData = {
       { id: "sevilla", name: "Sevilla", country: "Spain" },
       { id: "bilbao", name: "Bilbao", country: "Spain" },
       { id: "granada", name: "Granada", country: "Spain" },
-      { id: "malaga", name: "Malaga", country: "Spain" }
+      { id: "malaga", name: "Malaga", country: "Spain" },
     ],
-    
-    getById: function(id: string) {
-      return this.list.find(city => city.id === id);
-    }
+
+    getById: function (id: string) {
+      return this.list.find((city) => city.id === id);
+    },
   },
 
   // Leagues
@@ -853,16 +1075,16 @@ export const AppData = {
       { id: "amateur", name: "Amateur", level: 1 },
       { id: "youth", name: "Youth", level: 1 },
       { id: "junior", name: "Junior", level: 2 },
-      { id: "senior", name: "Senior", level: 3 }
+      { id: "senior", name: "Senior", level: 3 },
     ],
-    
-    getById: function(id: string) {
-      return this.list.find(league => league.id === id);
+
+    getById: function (id: string) {
+      return this.list.find((league) => league.id === id);
     },
-    
-    getByLevel: function(level: number) {
-      return this.list.filter(league => league.level === level);
-    }
+
+    getByLevel: function (level: number) {
+      return this.list.filter((league) => league.level === level);
+    },
   },
 
   // Leagues Data
@@ -873,181 +1095,192 @@ export const AppData = {
         name: "Premier League",
         image: "/homepage/image/premierleague.jpeg",
         country: "England",
-        description: "English top-flight football league"
+        description: "English top-flight football league",
       },
       {
         id: "la-liga",
         name: "La Liga",
         image: "/homepage/image/laliga.jpeg",
         country: "Spain",
-        description: "Spanish top-flight football league"
+        description: "Spanish top-flight football league",
       },
       {
         id: "bundesliga",
         name: "Bundesliga",
         image: "/homepage/image/bundesliga.jpeg",
         country: "Germany",
-        description: "German top-flight football league"
+        description: "German top-flight football league",
       },
       {
         id: "serie-a",
         name: "Serie A",
         image: "/homepage/image/seriea.jpeg",
         country: "Italy",
-        description: "Italian top-flight football league"
+        description: "Italian top-flight football league",
       },
       {
         id: "ligue-1",
         name: "Ligue 1",
         image: "/homepage/image/ligue1.jpg",
         country: "France",
-        description: "French top-flight football league"
+        description: "French top-flight football league",
       },
       {
         id: "eredivisie",
         name: "Eredivisie",
         image: "/homepage/image/Eredivisie00.jpg",
         country: "Netherlands",
-        description: "Dutch top-flight football league"
+        description: "Dutch top-flight football league",
       },
       {
         id: "european-competition",
         name: "Competición Europea",
         image: "/homepage/image/champions.jpeg",
         country: "Europe",
-        description: "European club competitions including Champions League and Europa League"
-      }
+        description:
+          "European club competitions including Champions League and Europa League",
+      },
     ],
-    
+
     basketball: [
       {
         id: "lnb pro a",
         name: "Lnb Pro A",
         image: "/homepage/image/lnbproa.jpg",
         country: "France",
-        description: "French top-flight basketball league"
+        description: "French top-flight basketball league",
       },
       {
         id: "basketbol-super-ligi",
         name: "Basketbol Süper Ligi",
         image: "/homepage/image/basketballsuperligi.jpg",
         country: "Turkey",
-        description: "Turkish top-flight basketball league"
+        description: "Turkish top-flight basketball league",
       },
       {
         id: "la liga acb",
         name: "La Liga ACB",
         image: "/homepage/image/laligaacb.jpg",
         country: "Spain",
-        description: "Spanish top-flight basketball league"
+        description: "Spanish top-flight basketball league",
       },
       {
         id: "lega-basket-serie-a",
         name: "Lega Basket Serie A",
         image: "/homepage/image/legaseriea.jpg",
         country: "Italy",
-        description: "Italian top-flight basketball league"
+        description: "Italian top-flight basketball league",
       },
       {
         id: "basketball-bundesliga",
         name: "Basketball Bundesliga",
         image: "/homepage/image/bundesligabasket.jpg",
         country: "Germany",
-        description: "German top-flight basketball league"
+        description: "German top-flight basketball league",
       },
       {
         id: "lietuvos-krepsinio-lyga",
         name: "Lietuvos krepšinio lyga",
         image: "/homepage/image/lietuvoskrepsinio.jpg",
         country: "Lithuania",
-        description: "Lithuanian top-flight basketball league"
+        description: "Lithuanian top-flight basketball league",
       },
       {
         id: "european-competition",
         name: "Competición Europea",
         image: "/homepage/image/euroleague.jpg",
         country: "Europe",
-        description: "European basketball competitions"
-      }
+        description: "European basketball competitions",
+      },
     ],
-    
+
     // Helper functions for homepage leagues
-    getFootballLeagues: function() {
+    getFootballLeagues: function () {
       return this.football;
     },
-    
-    getBasketballLeagues: function() {
+
+    getBasketballLeagues: function () {
       return this.basketball;
     },
-    
-    getLeaguesBySport: function(sport: 'football' | 'basketball') {
-      return sport === 'football' ? this.football : this.basketball;
+
+    getLeaguesBySport: function (sport: "football" | "basketball") {
+      return sport === "football" ? this.football : this.basketball;
     },
-    
-    getLeagueById: function(sport: 'football' | 'basketball', id: string) {
+
+    getLeagueById: function (sport: "football" | "basketball", id: string) {
       const leagues = this.getLeaguesBySport(sport);
-      return leagues.find(league => league.id === id);
+      return leagues.find((league) => league.id === id);
     },
-    
-    getLeagueByName: function(sport: 'football' | 'basketball', name: string) {
+
+    getLeagueByName: function (sport: "football" | "basketball", name: string) {
       const leagues = this.getLeaguesBySport(sport);
-      return leagues.find(league => league.name === name);
+      return leagues.find((league) => league.name === name);
     },
-    
-    getLeaguesByCountry: function(sport: 'football' | 'basketball', country: string) {
+
+    getLeaguesByCountry: function (
+      sport: "football" | "basketball",
+      country: string,
+    ) {
       const leagues = this.getLeaguesBySport(sport);
-      return leagues.filter(league => league.country === country);
+      return leagues.filter((league) => league.country === country);
     },
-    
+
     // Add new league
-    addLeague: function(sport: 'football' | 'basketball', leagueData: {
-      name: string;
-      image: string;
-      country: string;
-      description: string;
-    }) {
+    addLeague: function (
+      sport: "football" | "basketball",
+      leagueData: {
+        name: string;
+        image: string;
+        country: string;
+        description: string;
+      },
+    ) {
       const newId = `${sport}_${Date.now()}`;
       const newLeague = { ...leagueData, id: newId };
-      
-      if (sport === 'football') {
+
+      if (sport === "football") {
         this.football.push(newLeague);
       } else {
         this.basketball.push(newLeague);
       }
-      
+
       return newLeague;
     },
-    
+
     // Update existing league
-    updateLeague: function(sport: 'football' | 'basketball', id: string, updates: Partial<{
-      name: string;
-      image: string;
-      country: string;
-      description: string;
-    }>) {
+    updateLeague: function (
+      sport: "football" | "basketball",
+      id: string,
+      updates: Partial<{
+        name: string;
+        image: string;
+        country: string;
+        description: string;
+      }>,
+    ) {
       const leagues = this.getLeaguesBySport(sport);
-      const index = leagues.findIndex(league => league.id === id);
-      
+      const index = leagues.findIndex((league) => league.id === id);
+
       if (index !== -1) {
         leagues[index] = { ...leagues[index], ...updates };
         return leagues[index];
       }
-      
+
       return null;
     },
-    
+
     // Delete league
-    deleteLeague: function(sport: 'football' | 'basketball', id: string) {
+    deleteLeague: function (sport: "football" | "basketball", id: string) {
       const leagues = this.getLeaguesBySport(sport);
-      const index = leagues.findIndex(league => league.id === id);
-      
+      const index = leagues.findIndex((league) => league.id === id);
+
       if (index !== -1) {
         leagues.splice(index, 1);
         return true;
       }
-      
+
       return false;
-    }
+    },
   },
 
   // Extras
@@ -1056,29 +1289,32 @@ export const AppData = {
       {
         id: "breakfast",
         name: "Breakfast",
-        description: "Start your day full of energy with breakfast for only 10 euros per person",
+        description:
+          "Start your day full of energy with breakfast for only 10 euros per person",
         price: 10,
         icon: "/stepper/icon/icon1.svg",
         currency: "EUR",
-        maxQuantity: 10
+        maxQuantity: 10,
       },
       {
         id: "travel-insurance",
         name: "Travel Insurance",
-        description: "Cover yourself for delays or strikes as well as medical insurance in the country you are going to.",
+        description:
+          "Cover yourself for delays or strikes as well as medical insurance in the country you are going to.",
         price: 20,
         icon: "/stepper/icon/icon2.svg",
         currency: "EUR",
-        maxQuantity: 10
+        maxQuantity: 10,
       },
       {
         id: "underseat-bag",
         name: "Underseat bag",
-        description: "Check the measurements accepted by the airline you are flying with.",
+        description:
+          "Check the measurements accepted by the airline you are flying with.",
         price: 0,
         icon: "/stepper/icon/icon3.svg",
         currency: "EUR",
-        isIncluded: true
+        isIncluded: true,
       },
       {
         id: "extra-luggage",
@@ -1087,26 +1323,27 @@ export const AppData = {
         price: 40,
         icon: "/stepper/icon/icon4.svg",
         currency: "EUR",
-        maxQuantity: 5
+        maxQuantity: 5,
       },
       {
         id: "seats-together",
         name: "Seats together",
-        description: "Do you want to sit together on the flight? Otherwise the seats will be chosen randomly.",
+        description:
+          "Do you want to sit together on the flight? Otherwise the seats will be chosen randomly.",
         price: 20,
         icon: "/stepper/icon/icon5.svg",
         currency: "EUR",
-        maxQuantity: 10
-      }
+        maxQuantity: 10,
+      },
     ],
-    
-    getById: function(id: string) {
-      return this.list.find(extra => extra.id === id);
+
+    getById: function (id: string) {
+      return this.list.find((extra) => extra.id === id);
     },
-    
-    getIncluded: function() {
-      return this.list.filter(extra => extra.isIncluded);
-    }
+
+    getIncluded: function () {
+      return this.list.filter((extra) => extra.isIncluded);
+    },
   },
 
   // Payment methods
@@ -1115,12 +1352,12 @@ export const AppData = {
       { id: "card", name: "Credit/Debit Card", icon: "💳" },
       { id: "google", name: "Google Pay", icon: "📱" },
       { id: "apple", name: "Apple Pay", icon: "🍎" },
-      { id: "paypal", name: "PayPal", icon: "🔵" }
+      { id: "paypal", name: "PayPal", icon: "🔵" },
     ],
-    
-    getById: function(id: string) {
-      return this.list.find(method => method.id === id);
-    }
+
+    getById: function (id: string) {
+      return this.list.find((method) => method.id === id);
+    },
   },
 
   // FAQ data
@@ -1199,39 +1436,42 @@ export const AppData = {
           "We welcome travelers with reduced mobility. Please let us know your needs during booking so we can arrange accessible accommodation and transportation.",
       },
     ],
-    
-    getById: function(id: number) {
-      return this.list.find(faq => faq.id === id);
+
+    getById: function (id: number) {
+      return this.list.find((faq) => faq.id === id);
     },
-    
-    getAll: function() {
+
+    getAll: function () {
       return this.list;
     },
-    
-    add: function(faq: { question: string; answer: string }) {
-      const newId = Math.max(...this.list.map(item => item.id)) + 1;
+
+    add: function (faq: { question: string; answer: string }) {
+      const newId = Math.max(...this.list.map((item) => item.id)) + 1;
       const newFaq = { ...faq, id: newId };
       this.list.unshift(newFaq); // Add to beginning instead of end
       return newFaq;
     },
-    
-    update: function(id: number, updates: { question?: string; answer?: string }) {
-      const index = this.list.findIndex(faq => faq.id === id);
+
+    update: function (
+      id: number,
+      updates: { question?: string; answer?: string },
+    ) {
+      const index = this.list.findIndex((faq) => faq.id === id);
       if (index !== -1) {
         this.list[index] = { ...this.list[index], ...updates };
         return this.list[index];
       }
       return null;
     },
-    
-    delete: function(id: number) {
-      const index = this.list.findIndex(faq => faq.id === id);
+
+    delete: function (id: number) {
+      const index = this.list.findIndex((faq) => faq.id === id);
       if (index !== -1) {
         this.list.splice(index, 1);
         return true;
       }
       return false;
-    }
+    },
   },
 
   // Reviews/Testimonials data
@@ -1243,7 +1483,8 @@ export const AppData = {
         role: "Wellness Coach",
         image: "/homepage/image/avatar1.png",
         rating: 5,
-        review: "I've used several travel platforms for my sports trips, but GoGame completely blew me away. The concept of booking a surprise destination and match was amazing!"
+        review:
+          "I've used several travel platforms for my sports trips, but GoGame completely blew me away. The concept of booking a surprise destination and match was amazing!",
       },
       {
         id: 2,
@@ -1251,7 +1492,8 @@ export const AppData = {
         role: "Wellness Coach",
         image: "/homepage/image/avatar2.png",
         rating: 5,
-        review: "GoGame provided an unforgettable experience for me and my friends. We chose football as our sport, and they organized everything perfectly"
+        review:
+          "GoGame provided an unforgettable experience for me and my friends. We chose football as our sport, and they organized everything perfectly",
       },
       {
         id: 3,
@@ -1259,7 +1501,8 @@ export const AppData = {
         role: "Wellness Coach",
         image: "/homepage/image/avatar3.png",
         rating: 5,
-        review: "If you're a sports fan and love surprises, GoGame is for you! I booked a surprise football trip and was amazed by how well everything was organized."
+        review:
+          "If you're a sports fan and love surprises, GoGame is for you! I booked a surprise football trip and was amazed by how well everything was organized.",
       },
       {
         id: 4,
@@ -1267,7 +1510,8 @@ export const AppData = {
         role: "Sports Enthusiast",
         image: "/homepage/image/avatar1.png",
         rating: 4,
-        review: "The surprise element made the whole experience so exciting! The match we attended was incredible, though the hotel could have been better."
+        review:
+          "The surprise element made the whole experience so exciting! The match we attended was incredible, though the hotel could have been better.",
       },
       {
         id: 5,
@@ -1275,7 +1519,8 @@ export const AppData = {
         role: "Travel Blogger",
         image: "/homepage/image/avatar2.png",
         rating: 5,
-        review: "As someone who reviews travel experiences for a living, I can say GoGame offers something truly unique. Their attention to detail is impressive!"
+        review:
+          "As someone who reviews travel experiences for a living, I can say GoGame offers something truly unique. Their attention to detail is impressive!",
       },
       {
         id: 6,
@@ -1283,88 +1528,146 @@ export const AppData = {
         role: "Football Fan",
         image: "/homepage/image/avatar3.png",
         rating: 5,
-        review: "Watched my favorite team play in a stadium I never thought I'd visit! The surprise reveal was perfect, and the matchday experience was unforgettable."
-      }
+        review:
+          "Watched my favorite team play in a stadium I never thought I'd visit! The surprise reveal was perfect, and the matchday experience was unforgettable.",
+      },
     ],
-    
-    getById: function(id: number) {
-      return this.list.find(review => review.id === id);
+
+    getById: function (id: number) {
+      return this.list.find((review) => review.id === id);
     },
-    
-    getAll: function() {
+
+    getAll: function () {
       return this.list;
     },
-    
-    add: function(review: { name: string; role: string; image: string; rating: number; review: string }) {
-      const newId = Math.max(...this.list.map(item => item.id)) + 1;
+
+    add: function (review: {
+      name: string;
+      role: string;
+      image: string;
+      rating: number;
+      review: string;
+    }) {
+      const newId = Math.max(...this.list.map((item) => item.id)) + 1;
       const newReview = { ...review, id: newId };
       this.list.unshift(newReview); // Add to beginning for easy access
       return newReview;
     },
-    
-    update: function(id: number, updates: Partial<{ name: string; role: string; image: string; rating: number; review: string }>) {
-      const index = this.list.findIndex(review => review.id === id);
+
+    update: function (
+      id: number,
+      updates: Partial<{
+        name: string;
+        role: string;
+        image: string;
+        rating: number;
+        review: string;
+      }>,
+    ) {
+      const index = this.list.findIndex((review) => review.id === id);
       if (index !== -1) {
         this.list[index] = { ...this.list[index], ...updates };
         return this.list[index];
       }
       return null;
     },
-    
-    delete: function(id: number) {
-      const index = this.list.findIndex(review => review.id === id);
+
+    delete: function (id: number) {
+      const index = this.list.findIndex((review) => review.id === id);
       if (index !== -1) {
         this.list.splice(index, 1);
         return true;
       }
       return false;
-    }
+    },
   },
 
   // Time ranges for flights
   timeRanges: {
     departure: [
-      { id: "early", name: "Early Morning", start: 360, end: 720, label: "06:00 - 12:00" },
-      { id: "morning", name: "Morning", start: 480, end: 900, label: "08:00 - 15:00" },
-      { id: "midday", name: "Midday", start: 540, end: 840, label: "09:00 - 14:00" },
-      { id: "afternoon", name: "Afternoon", start: 600, end: 900, label: "10:00 - 15:00" }
+      {
+        id: "early",
+        name: "Early Morning",
+        start: 360,
+        end: 720,
+        label: "06:00 - 12:00",
+      },
+      {
+        id: "morning",
+        name: "Morning",
+        start: 480,
+        end: 900,
+        label: "08:00 - 15:00",
+      },
+      {
+        id: "midday",
+        name: "Midday",
+        start: 540,
+        end: 840,
+        label: "09:00 - 14:00",
+      },
+      {
+        id: "afternoon",
+        name: "Afternoon",
+        start: 600,
+        end: 900,
+        label: "10:00 - 15:00",
+      },
     ],
-    
+
     arrival: [
-      { id: "evening", name: "Evening", start: 1080, end: 1800, label: "18:00 - 06:00(+1)" },
-      { id: "night", name: "Night", start: 1020, end: 1440, label: "17:00 - 00:00" },
-      { id: "late", name: "Late Night", start: 1140, end: 1800, label: "19:00 - 06:00(+1)" }
-    ]
+      {
+        id: "evening",
+        name: "Evening",
+        start: 1080,
+        end: 1800,
+        label: "18:00 - 06:00(+1)",
+      },
+      {
+        id: "night",
+        name: "Night",
+        start: 1020,
+        end: 1440,
+        label: "17:00 - 00:00",
+      },
+      {
+        id: "late",
+        name: "Late Night",
+        start: 1140,
+        end: 1800,
+        label: "19:00 - 06:00(+1)",
+      },
+    ],
   },
 
   // League pricing data
   leaguePricing: {
     european: {
       additionalCost: 50,
-      currency: 'EUR',
-      description: 'European Competition surcharge'
+      currency: "EUR",
+      description: "European Competition surcharge",
     },
     national: {
       additionalCost: 0,
-      currency: 'EUR',
-      description: 'No additional cost for national leagues'
+      currency: "EUR",
+      description: "No additional cost for national leagues",
     },
-    
+
     // Helper function to get additional cost for selected league
-    getLeagueAdditionalCost: function(selectedLeague: string): number {
-      if (selectedLeague === 'european') {
+    getLeagueAdditionalCost: function (selectedLeague: string): number {
+      if (selectedLeague === "european") {
         return this.european.additionalCost;
       }
       return this.national.additionalCost;
     },
-    
+
     // Helper function to get league description
-    getLeagueDescription: function(selectedLeague: string): string {
-      if (selectedLeague === 'european') {
+    getLeagueDescription: function (selectedLeague: string): string {
+      if (selectedLeague === "european") {
         return this.european.description;
       }
       return this.national.description;
-    }
+    },
   },
 
   // Pricing data based on sport, package, and nights
@@ -1376,8 +1679,8 @@ export const AppData = {
           1: 299,
           2: 379,
           3: 459,
-          4: 529
-        }
+          4: 529,
+        },
       },
       premium: {
         name: "GoGame Legend",
@@ -1385,9 +1688,9 @@ export const AppData = {
           1: 1299,
           2: 1499,
           3: 1699,
-          4: 1899
-        }
-      }
+          4: 1899,
+        },
+      },
     },
     basketball: {
       standard: {
@@ -1396,8 +1699,8 @@ export const AppData = {
           1: 279,
           2: 359,
           3: 439,
-          4: 509
-        }
+          4: 509,
+        },
       },
       premium: {
         name: "GoGame MVP",
@@ -1405,32 +1708,39 @@ export const AppData = {
           1: 1279,
           2: 1479,
           3: 1679,
-          4: 1859
-        }
-      }
+          4: 1859,
+        },
+      },
     },
-    
+
     // Helper function to get price
-    getPrice: function(sport: 'football' | 'basketball', packageType: 'standard' | 'premium', nights: number): number {
+    getPrice: function (
+      sport: "football" | "basketball",
+      packageType: "standard" | "premium",
+      nights: number,
+    ): number {
       const sportData = this[sport];
       if (!sportData) return 0;
-      
+
       const packageData = sportData[packageType];
       if (!packageData) return 0;
-      
+
       return packageData.prices[nights as keyof typeof packageData.prices] || 0;
     },
-    
+
     // Helper function to get package name
-    getPackageName: function(sport: 'football' | 'basketball', packageType: 'standard' | 'premium'): string {
+    getPackageName: function (
+      sport: "football" | "basketball",
+      packageType: "standard" | "premium",
+    ): string {
       const sportData = this[sport];
-      if (!sportData) return '';
-      
+      if (!sportData) return "";
+
       const packageData = sportData[packageType];
-      if (!packageData) return '';
-      
+      if (!packageData) return "";
+
       return packageData.name;
-    }
+    },
   },
 
   // Extras Data
@@ -1442,49 +1752,52 @@ export const AppData = {
       add: "Añadir",
       remove: "Eliminar",
       confirm: "Confirmar",
-      totalCost: "Coste Extra de Comodidad"
+      totalCost: "Coste Extra de Comodidad",
     },
     constants: {
       currencySymbol: "€",
       defaultMaxQuantity: 10,
-      minQuantity: 1
+      minQuantity: 1,
     },
     initialExtras: [
       {
         id: "breakfast",
         name: "Desayuno",
-        description: "Empieza tu día lleno de energía con desayuno por sólo 10 euros por persona.",
+        description:
+          "Empieza tu día lleno de energía con desayuno por sólo 10 euros por persona.",
         price: 10,
         icon: "/stepper/icon/icon1.svg",
         isSelected: false, // Start with breakfast NOT selected
         quantity: 0,
         currency: "EUR",
         isIncluded: false, // Not included by default
-        isGroupOption: true // Group-only option
+        isGroupOption: true, // Group-only option
       },
       {
         id: "travel-insurance",
         name: "Seguro de Viaje",
-        description: "Cúbrete de retrasos en vuelos o vagas así como tener seguro médico en el país de destino.",
+        description:
+          "Cúbrete de retrasos en vuelos o vagas así como tener seguro médico en el país de destino.",
         price: 20,
         icon: "/stepper/icon/icon2.svg",
         isSelected: false,
         quantity: 0,
         currency: "EUR",
         isIncluded: false,
-        isGroupOption: true // Group-only option
+        isGroupOption: true, // Group-only option
       },
       {
         id: "underseat-bag",
         name: "Bolsa pequeña (debajo del asiento)",
-        description: "Comprueba las medidas aceptadas por la aerolínea con la que volarás.",
+        description:
+          "Comprueba las medidas aceptadas por la aerolínea con la que volarás.",
         price: 0,
-        icon: "/stepper/icon/icon3.svg",
+        icon: "",
         isSelected: true, // This is included by default
         quantity: 3, // 3 underseat bags included
         currency: "EUR",
         isIncluded: true, // This is included by default
-        isGroupOption: false // Individual option
+        isGroupOption: false, // Individual option
       },
       {
         id: "extra-luggage",
@@ -1497,12 +1810,13 @@ export const AppData = {
         currency: "EUR",
         isIncluded: false,
         maxQuantity: 5,
-        isGroupOption: false // Individual option
+        isGroupOption: false, // Individual option
       },
       {
         id: "seats-together",
         name: "¡Sentaros juntos!",
-        description: "¿Queréis sentaros juntos en el vuelo? Sinó los asientos serán asignados aleatoriamente.",
+        description:
+          "¿Queréis sentaros juntos en el vuelo? Sinó los asientos serán asignados aleatoriamente.",
         price: 20,
         icon: "/stepper/icon/icon5.svg",
         isSelected: false,
@@ -1510,9 +1824,9 @@ export const AppData = {
         currency: "EUR",
         isIncluded: false,
         maxQuantity: 10,
-        isGroupOption: true // Group-only option
-      }
-    ]
+        isGroupOption: true, // Group-only option
+      },
+    ],
   },
 
   // Personal Info Data
@@ -1526,105 +1840,106 @@ export const AppData = {
       confirm: "Confirm",
       clearForm: "Clear Form",
       flightHotel: "Vuelo + Hotel",
-      totalCost: "Coste Total:"
+      totalCost: "Coste Total:",
     },
     travelerFields: {
       name: {
         label: "Nombre del Viajero (como en el pasaporte o DNI)",
         placeholder: "Escribe tu nombre",
-        required: true
+        required: true,
       },
       email: {
         label: "Email del viajero",
         placeholder: "Escribe tu email",
         required: true,
-        onlyForPrimary: true
+        onlyForPrimary: true,
       },
       phone: {
         label: "Número de teléfono",
         placeholder: "Escribe tu número de teléfono",
         required: true,
-        onlyForPrimary: true
+        onlyForPrimary: true,
       },
       dateOfBirth: {
         label: "Fecha de nacimiento",
-        required: true
+        required: true,
       },
       documentType: {
         label: "Tipo de Documento",
         id: "DNI",
         passport: "Pasaporte",
-        required: true
+        required: true,
       },
       documentNumber: {
         label: "Número de Documento",
         placeholder: "Escribe tu número de documento",
-        required: true
-      }
+        required: true,
+      },
     },
     formFields: {
       travelerName: {
         label: "Nombre del Viajero (como en el pasaporte o DNI)",
-        placeholder: "Escribe tu nombre"
+        placeholder: "Escribe tu nombre",
       },
       email: {
         label: "Email del viajero",
-        placeholder: "Escribe tu email"
+        placeholder: "Escribe tu email",
       },
       phone: {
         label: "Número de teléfono",
-        placeholder: "Escribe tu número de teléfono"
+        placeholder: "Escribe tu número de teléfono",
       },
       dateOfBirth: {
-        label: "Fecha de nacimiento"
+        label: "Fecha de nacimiento",
       },
       documentType: {
         label: "Tipo de Documento",
         id: "DNI",
-        passport: "Pasaporte"
+        passport: "Pasaporte",
       },
       documentNumber: {
         label: "Número de Documento",
-        placeholder: "Escribe tu número de documento"
+        placeholder: "Escribe tu número de documento",
       },
       previousTravelInfo: {
         label: "Experiencia deportiva anterior",
-        placeholder: "¿Has viajado con nosotros antes? Si tu respuesta es SÍ, escríbenos a qué ciudad y a qué partido para que lo podamos tener en cuenta. ¡Muchas gracias!"
-      }
+        placeholder:
+          "¿Has viajado con nosotros antes? Si tu respuesta es SÍ, escríbenos a qué ciudad y a qué partido para que lo podamos tener en cuenta. ¡Muchas gracias!",
+      },
     },
     paymentMethods: [
       {
-        value: 'credit',
+        value: "credit",
         label: "Tarjeta de crédito/débito",
         icon: "/stepper/icon/visa.png",
         alt: "Visa",
         additionalIcon: "/stepper/icon/mastercard.png",
-        additionalAlt: "Mastercard"
+        additionalAlt: "Mastercard",
       },
       {
-        value: 'google',
+        value: "google",
         label: "Google Pay",
         icon: "/stepper/icon/gpay.png",
-        alt: "Google Pay"
+        alt: "Google Pay",
       },
       {
-        value: 'apple',
+        value: "apple",
         label: "Apple Pay",
         icon: "/stepper/icon/apay.png",
-        alt: "Apple Pay"
-      }
+        alt: "Apple Pay",
+      },
     ],
     reservationSummary: {
       title: "Ya escucho los cánticos de los aficionados…",
       departure: {
         city: "Barcelona",
         date: "20 July 2025",
-        label: "Salida: Barcelona"
+        label: "Salida: Barcelona",
       },
       return: {
         city: "Barcelona",
         date: "23 July 2025",
-        label: "Llegada: De vuelta a Barcelona"
+        label: "Llegada: De vuelta a Barcelona",
       },
       pricing: {
         concept: "Concepto",
@@ -1636,16 +1951,16 @@ export const AppData = {
         quantityValue: "x2",
         totalValue: "300.00€",
         returnPrice: "00.00€",
-        returnTotal: "00.00€"
+        returnTotal: "00.00€",
       },
-      totalCost: "300.00€"
+      totalCost: "300.00€",
     },
     storage: {
-      key: "personalinfo_form_data"
+      key: "personalinfo_form_data",
     },
-    
+
     // Helper functions for traveler management
-    createDefaultTraveler: function(): TravelerInfo {
+    createDefaultTraveler: function (): TravelerInfo {
       return {
         name: "",
         email: "",
@@ -1653,11 +1968,18 @@ export const AppData = {
         dateOfBirth: "",
         documentType: "ID",
         documentNumber: "",
-        isPrimary: false
+        isPrimary: false,
       };
     },
-    
-    createPrimaryTraveler: function(name: string, email: string, phone: string, dateOfBirth: string, documentType: 'ID' | 'Passport', documentNumber: string): TravelerInfo {
+
+    createPrimaryTraveler: function (
+      name: string,
+      email: string,
+      phone: string,
+      dateOfBirth: string,
+      documentType: "ID" | "Passport",
+      documentNumber: string,
+    ): TravelerInfo {
       return {
         name,
         email,
@@ -1665,11 +1987,17 @@ export const AppData = {
         dateOfBirth,
         documentType,
         documentNumber,
-        isPrimary: true
+        isPrimary: true,
       };
     },
-    
-    createExtraTraveler: function(name: string, dateOfBirth: string, documentType: 'ID' | 'Passport', documentNumber: string, travelerNumber: number): TravelerInfo {
+
+    createExtraTraveler: function (
+      name: string,
+      dateOfBirth: string,
+      documentType: "ID" | "Passport",
+      documentNumber: string,
+      travelerNumber: number,
+    ): TravelerInfo {
       return {
         name,
         email: "",
@@ -1678,67 +2006,83 @@ export const AppData = {
         documentType,
         documentNumber,
         isPrimary: false,
-        travelerNumber
+        travelerNumber,
       };
     },
-    
-    validateTraveler: function(traveler: TravelerInfo, isPrimary: boolean = false): { isValid: boolean; errors: string[] } {
+
+    validateTraveler: function (
+      traveler: TravelerInfo,
+      isPrimary: boolean = false,
+    ): { isValid: boolean; errors: string[] } {
       const errors: string[] = [];
-      
+
       if (!traveler.name.trim()) {
         errors.push("Traveler name is required");
       }
-      
+
       if (!traveler.dateOfBirth) {
         errors.push("Date of birth is required");
       }
-      
+
       if (!traveler.documentType) {
         errors.push("Document type is required");
       }
-      
+
       if (!traveler.documentNumber.trim()) {
         errors.push("Document number is required");
       }
-      
+
       if (isPrimary) {
         if (!traveler.email.trim()) {
           errors.push("Email is required for primary traveler");
-        } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(traveler.email)) {
+        } else if (
+          !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(traveler.email)
+        ) {
           errors.push("Invalid email format");
         }
-        
+
         if (!traveler.phone.trim()) {
           errors.push("Phone number is required for primary traveler");
         }
       }
-      
+
       return {
         isValid: errors.length === 0,
-        errors
+        errors,
       };
     },
-    
-    formatTravelerForDisplay: function(traveler: TravelerInfo): string {
-      const age = traveler.dateOfBirth ? 
-        Math.floor((Date.now() - new Date(traveler.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : 0;
-      
+
+    formatTravelerForDisplay: function (traveler: TravelerInfo): string {
+      const age = traveler.dateOfBirth
+        ? Math.floor(
+            (Date.now() - new Date(traveler.dateOfBirth).getTime()) /
+              (1000 * 60 * 60 * 24 * 365.25),
+          )
+        : 0;
+
       return `${traveler.name} (${age} years old, ${traveler.documentType}: ${traveler.documentNumber})`;
     },
-    
-    getTravelerAge: function(dateOfBirth: string): number {
+
+    getTravelerAge: function (dateOfBirth: string): number {
       if (!dateOfBirth) return 0;
-      return Math.floor((Date.now() - new Date(dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+      return Math.floor(
+        (Date.now() - new Date(dateOfBirth).getTime()) /
+          (1000 * 60 * 60 * 24 * 365.25),
+      );
     },
-    
-    categorizeTravelers: function(travelers: TravelerInfo[]): { adults: TravelerInfo[]; kids: TravelerInfo[]; babies: TravelerInfo[] } {
+
+    categorizeTravelers: function (travelers: TravelerInfo[]): {
+      adults: TravelerInfo[];
+      kids: TravelerInfo[];
+      babies: TravelerInfo[];
+    } {
       const adults: TravelerInfo[] = [];
       const kids: TravelerInfo[] = [];
       const babies: TravelerInfo[] = [];
-      
-      travelers.forEach(traveler => {
+
+      travelers.forEach((traveler) => {
         const age = this.getTravelerAge(traveler.dateOfBirth);
-        
+
         if (age >= 18) {
           adults.push(traveler);
         } else if (age >= 2) {
@@ -1747,9 +2091,9 @@ export const AppData = {
           babies.push(traveler);
         }
       });
-      
+
       return { adults, kids, babies };
-    }
+    },
   },
 
   // Payment Data
@@ -1769,35 +2113,35 @@ export const AppData = {
       confirmButton: "Confirm Payment",
       processingButton: "Processing...",
       successMessage: "Payment processed successfully!",
-      errorMessage: "Payment failed. Please try again."
+      errorMessage: "Payment failed. Please try again.",
     },
     paymentMethods: [
       {
-        value: 'credit' as const,
+        value: "credit" as const,
         label: "Tarjeta de crédito/débito",
         icon: "/stepper/icon/visa.png",
         alt: "Visa",
         additionalIcon: "/stepper/icon/mastercard.png",
         additionalAlt: "Mastercard",
         description: "Secure payment with Visa or Mastercard",
-        isAvailable: true
+        isAvailable: true,
       },
       {
-        value: 'google' as const,
+        value: "google" as const,
         label: "Google Pay",
         icon: "/stepper/icon/gpay.png",
         alt: "Google Pay",
         description: "Fast and secure payment with Google Pay",
-        isAvailable: true
+        isAvailable: true,
       },
       {
-        value: 'apple' as const,
+        value: "apple" as const,
         label: "Apple Pay",
         icon: "/stepper/icon/apay.png",
         alt: "Apple Pay",
         description: "Secure payment with Apple Pay",
-        isAvailable: true
-      }
+        isAvailable: true,
+      },
     ],
     creditCard: {
       supportedCards: [
@@ -1806,64 +2150,64 @@ export const AppData = {
           icon: "/stepper/icon/visa.png",
           alt: "Visa",
           width: 55,
-          height: 17
+          height: 17,
         },
         {
           name: "Mastercard",
           icon: "/stepper/icon/mastercard.png",
           alt: "Mastercard",
           width: 40,
-          height: 25
-        }
+          height: 25,
+        },
       ],
       validation: {
         cardNumberLength: 16,
         cvvMinLength: 3,
         cvvMaxLength: 4,
-        expiryFormat: "MM/YY"
+        expiryFormat: "MM/YY",
       },
       formatting: {
         cardNumberSpacing: 4,
-        expirySeparator: "/"
-      }
+        expirySeparator: "/",
+      },
     },
     processing: {
       delay: 2000,
       retryAttempts: 3,
-      timeout: 30000
+      timeout: 30000,
     },
     storage: {
-      key: "payment_form_data"
+      key: "payment_form_data",
     },
-    
+
     // Helper functions for payment processing
-    getPaymentMethodByValue: function(value: 'credit' | 'google' | 'apple') {
-      return this.paymentMethods.find(method => method.value === value);
+    getPaymentMethodByValue: function (value: "credit" | "google" | "apple") {
+      return this.paymentMethods.find((method) => method.value === value);
     },
-    
-    getAllPaymentMethods: function() {
-      return this.paymentMethods.filter(method => method.isAvailable);
+
+    getAllPaymentMethods: function () {
+      return this.paymentMethods.filter((method) => method.isAvailable);
     },
-    
-    getSupportedCards: function() {
+
+    getSupportedCards: function () {
       return this.creditCard.supportedCards;
     },
-    
-    getValidationRules: function() {
+
+    getValidationRules: function () {
       return this.creditCard.validation;
     },
-    
-    getFormattingRules: function() {
+
+    getFormattingRules: function () {
       return this.creditCard.formatting;
     },
-    
-    getProcessingConfig: function() {
+
+    getProcessingConfig: function () {
       return this.processing;
     },
-    
+
     // Payment processing simulation (replace with actual API calls)
-    processPayment: async function(paymentData: {
-      method: 'credit' | 'google' | 'apple';
+    processPayment: async function (paymentData: {
+      method: "credit" | "google" | "apple";
       creditCard?: {
         nameOnCard: string;
         cardNumber: string;
@@ -1876,38 +2220,40 @@ export const AppData = {
     }) {
       try {
         // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, this.processing.delay));
-        
+        await new Promise((resolve) =>
+          setTimeout(resolve, this.processing.delay),
+        );
+
         // TODO: Replace with actual payment API call
         // const response = await fetch('/api/payments/process', {
         //   method: 'POST',
         //   headers: { 'Content-Type': 'application/json' },
         //   body: JSON.stringify(paymentData)
         // });
-        // 
+        //
         // if (!response.ok) {
         //   throw new Error('Payment processing failed');
         // }
-        // 
+        //
         // return await response.json();
-        
+
         // Simulate successful payment
         return {
           success: true,
           transactionId: `TXN_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          status: 'completed',
+          status: "completed",
           amount: paymentData.amount,
           currency: paymentData.currency,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       } catch (error) {
-        console.error('Payment processing error:', error);
-        throw new Error('Payment processing failed');
+        console.error("Payment processing error:", error);
+        throw new Error("Payment processing failed");
       }
     },
-    
+
     // Validate credit card data
-    validateCreditCard: function(cardData: {
+    validateCreditCard: function (cardData: {
       nameOnCard: string;
       cardNumber: string;
       expiryDate: string;
@@ -1915,54 +2261,68 @@ export const AppData = {
     }) {
       const validation = this.creditCard.validation;
       const errors: string[] = [];
-      
+
       if (!cardData.nameOnCard.trim()) {
-        errors.push('Cardholder name is required');
+        errors.push("Cardholder name is required");
       }
-      
-      const cleanCardNumber = cardData.cardNumber.replace(/\s/g, '');
+
+      const cleanCardNumber = cardData.cardNumber.replace(/\s/g, "");
       if (cleanCardNumber.length !== validation.cardNumberLength) {
-        errors.push(`Card number must be ${validation.cardNumberLength} digits`);
+        errors.push(
+          `Card number must be ${validation.cardNumberLength} digits`,
+        );
       }
-      
-      if (cardData.expiryDate.length !== 5 || !cardData.expiryDate.includes('/')) {
-        errors.push('Expiry date must be in MM/YY format');
+
+      if (
+        cardData.expiryDate.length !== 5 ||
+        !cardData.expiryDate.includes("/")
+      ) {
+        errors.push("Expiry date must be in MM/YY format");
       }
-      
-      if (cardData.cvv.length < validation.cvvMinLength || cardData.cvv.length > validation.cvvMaxLength) {
-        errors.push(`CVV must be ${validation.cvvMinLength}-${validation.cvvMaxLength} digits`);
+
+      if (
+        cardData.cvv.length < validation.cvvMinLength ||
+        cardData.cvv.length > validation.cvvMaxLength
+      ) {
+        errors.push(
+          `CVV must be ${validation.cvvMinLength}-${validation.cvvMaxLength} digits`,
+        );
       }
-      
+
       return {
         isValid: errors.length === 0,
-        errors
+        errors,
       };
     },
-    
+
     // Format credit card input
-    formatCardNumber: function(cardNumber: string): string {
-      const cleaned = cardNumber.replace(/\D/g, '');
+    formatCardNumber: function (cardNumber: string): string {
+      const cleaned = cardNumber.replace(/\D/g, "");
       const spacing = this.creditCard.formatting.cardNumberSpacing;
-      const formatted = cleaned.replace(new RegExp(`(.{${spacing}})`, 'g'), '$1 ').trim();
+      const formatted = cleaned
+        .replace(new RegExp(`(.{${spacing}})`, "g"), "$1 ")
+        .trim();
       return formatted.substring(0, 19); // Limit to 16 digits + 3 spaces
     },
-    
-    formatExpiryDate: function(expiry: string): string {
-      const cleaned = expiry.replace(/\D/g, '');
+
+    formatExpiryDate: function (expiry: string): string {
+      const cleaned = expiry.replace(/\D/g, "");
       const separator = this.creditCard.formatting.expirySeparator;
       if (cleaned.length >= 2) {
         return `${cleaned.substring(0, 2)}${separator}${cleaned.substring(2, 4)}`;
       }
       return cleaned;
     },
-    
-    formatCvv: function(cvv: string): string {
-      return cvv.replace(/\D/g, '').substring(0, this.creditCard.validation.cvvMaxLength);
-    }
+
+    formatCvv: function (cvv: string): string {
+      return cvv
+        .replace(/\D/g, "")
+        .substring(0, this.creditCard.validation.cvvMaxLength);
+    },
   },
 
   // Initialize with dummy data
-  initialize: function() {
+  initialize: function () {
     // Add dummy bookings
     this.bookings.all = [
       {
@@ -1989,10 +2349,22 @@ export const AppData = {
         removedLeagues: [],
         removedLeaguesCount: 0,
         hasRemovedLeagues: false,
-        allExtras: this.extras.list.map(extra => ({ ...extra, isSelected: false, quantity: 1 })),
+        allExtras: this.extras.list.map((extra) => ({
+          ...extra,
+          isSelected: false,
+          quantity: 1,
+        })),
         selectedExtras: [
-          { ...this.extras.getById("underseat-bag")!, isSelected: true, quantity: 3 },
-          { ...this.extras.getById("extra-luggage")!, isSelected: true, quantity: 3 }
+          {
+            ...this.extras.getById("underseat-bag")!,
+            isSelected: true,
+            quantity: 3,
+          },
+          {
+            ...this.extras.getById("extra-luggage")!,
+            isSelected: true,
+            quantity: 3,
+          },
         ],
         selectedExtrasNames: ["Underseat bag", "Extra luggage"],
         totalExtrasCost: 120,
@@ -2016,7 +2388,8 @@ export const AppData = {
         requiresEuropeanLeagueHandling: false,
         destinationCity: "",
         assignedMatch: "",
-        previousTravelInfo: "Yes, I traveled to Barcelona for the Champions League match in 2021",
+        previousTravelInfo:
+          "Yes, I traveled to Barcelona for the Champions League match in 2021",
         // Traveler information
         primaryTraveler: {
           name: "Aut vitae perferendi",
@@ -2025,7 +2398,7 @@ export const AppData = {
           dateOfBirth: "1990-05-15",
           documentType: "Passport",
           documentNumber: "AB1234567",
-          isPrimary: true
+          isPrimary: true,
         },
         extraTravelers: [],
         allTravelers: [
@@ -2036,9 +2409,9 @@ export const AppData = {
             dateOfBirth: "1990-05-15",
             documentType: "Passport",
             documentNumber: "AB1234567",
-            isPrimary: true
-          }
-        ]
+            isPrimary: true,
+          },
+        ],
       },
       {
         id: 2,
@@ -2064,14 +2437,39 @@ export const AppData = {
         removedLeagues: ["local"],
         removedLeaguesCount: 1,
         hasRemovedLeagues: true,
-        allExtras: this.extras.list.map(extra => ({ ...extra, isSelected: false, quantity: 1 })),
+        allExtras: this.extras.list.map((extra) => ({
+          ...extra,
+          isSelected: false,
+          quantity: 1,
+        })),
         selectedExtras: [
-          { ...this.extras.getById("breakfast")!, isSelected: true, quantity: 3 },
-          { ...this.extras.getById("travel-insurance")!, isSelected: true, quantity: 3 },
-          { ...this.extras.getById("underseat-bag")!, isSelected: true, quantity: 3 },
-          { ...this.extras.getById("seats-together")!, isSelected: true, quantity: 3 }
+          {
+            ...this.extras.getById("breakfast")!,
+            isSelected: true,
+            quantity: 3,
+          },
+          {
+            ...this.extras.getById("travel-insurance")!,
+            isSelected: true,
+            quantity: 3,
+          },
+          {
+            ...this.extras.getById("underseat-bag")!,
+            isSelected: true,
+            quantity: 3,
+          },
+          {
+            ...this.extras.getById("seats-together")!,
+            isSelected: true,
+            quantity: 3,
+          },
         ],
-        selectedExtrasNames: ["Breakfast", "Travel Insurance", "Underseat bag", "Seats together"],
+        selectedExtrasNames: [
+          "Breakfast",
+          "Travel Insurance",
+          "Underseat bag",
+          "Seats together",
+        ],
         totalExtrasCost: 90,
         extrasCount: 4,
         firstName: "John",
@@ -2093,7 +2491,8 @@ export const AppData = {
         requiresEuropeanLeagueHandling: true,
         destinationCity: "",
         assignedMatch: "",
-        previousTravelInfo: "Yes, I traveled to Barcelona for the Champions League match in 2023",
+        previousTravelInfo:
+          "Yes, I traveled to Barcelona for the Champions League match in 2023",
         // Traveler information for 3 people (2 adults + 1 kid)
         primaryTraveler: {
           name: "John Doe",
@@ -2102,7 +2501,7 @@ export const AppData = {
           dateOfBirth: "1985-03-20",
           documentType: "Passport",
           documentNumber: "CD9876543",
-          isPrimary: true
+          isPrimary: true,
         },
         extraTravelers: [
           {
@@ -2113,7 +2512,7 @@ export const AppData = {
             documentType: "ID",
             documentNumber: "12345678A",
             isPrimary: false,
-            travelerNumber: 2
+            travelerNumber: 2,
           },
           {
             name: "Tommy Doe",
@@ -2123,8 +2522,8 @@ export const AppData = {
             documentType: "ID",
             documentNumber: "87654321B",
             isPrimary: false,
-            travelerNumber: 3
-          }
+            travelerNumber: 3,
+          },
         ],
         allTravelers: [
           {
@@ -2134,7 +2533,7 @@ export const AppData = {
             dateOfBirth: "1985-03-20",
             documentType: "Passport",
             documentNumber: "CD9876543",
-            isPrimary: true
+            isPrimary: true,
           },
           {
             name: "Jane Doe",
@@ -2144,7 +2543,7 @@ export const AppData = {
             documentType: "ID",
             documentNumber: "12345678A",
             isPrimary: false,
-            travelerNumber: 2
+            travelerNumber: 2,
           },
           {
             name: "Tommy Doe",
@@ -2154,9 +2553,9 @@ export const AppData = {
             documentType: "ID",
             documentNumber: "87654321B",
             isPrimary: false,
-            travelerNumber: 3
-          }
-        ]
+            travelerNumber: 3,
+          },
+        ],
       },
       {
         id: 3,
@@ -2182,9 +2581,17 @@ export const AppData = {
         removedLeagues: [],
         removedLeaguesCount: 0,
         hasRemovedLeagues: false,
-        allExtras: this.extras.list.map(extra => ({ ...extra, isSelected: false, quantity: 1 })),
+        allExtras: this.extras.list.map((extra) => ({
+          ...extra,
+          isSelected: false,
+          quantity: 1,
+        })),
         selectedExtras: [
-          { ...this.extras.getById("travel-insurance")!, isSelected: true, quantity: 2 }
+          {
+            ...this.extras.getById("travel-insurance")!,
+            isSelected: true,
+            quantity: 2,
+          },
         ],
         selectedExtrasNames: ["Travel Insurance"],
         totalExtrasCost: 20,
@@ -2216,7 +2623,7 @@ export const AppData = {
           dateOfBirth: "1992-07-10",
           documentType: "Passport",
           documentNumber: "EF4567890",
-          isPrimary: true
+          isPrimary: true,
         },
         extraTravelers: [
           {
@@ -2227,8 +2634,8 @@ export const AppData = {
             documentType: "Passport",
             documentNumber: "GH5678901",
             isPrimary: false,
-            travelerNumber: 2
-          }
+            travelerNumber: 2,
+          },
         ],
         allTravelers: [
           {
@@ -2239,7 +2646,7 @@ export const AppData = {
             documentType: "Passport",
             documentNumber: "EF4567890",
             isPrimary: true,
-            travelerNumber: 1
+            travelerNumber: 1,
           },
           {
             name: "Sarah Hassan",
@@ -2249,9 +2656,9 @@ export const AppData = {
             documentType: "Passport",
             documentNumber: "GH5678901",
             isPrimary: false,
-            travelerNumber: 2
-          }
-        ]
+            travelerNumber: 2,
+          },
+        ],
       },
       {
         id: 4,
@@ -2277,10 +2684,22 @@ export const AppData = {
         removedLeagues: [],
         removedLeaguesCount: 0,
         hasRemovedLeagues: false,
-        allExtras: this.extras.list.map(extra => ({ ...extra, isSelected: false, quantity: 1 })),
+        allExtras: this.extras.list.map((extra) => ({
+          ...extra,
+          isSelected: false,
+          quantity: 1,
+        })),
         selectedExtras: [
-          { ...this.extras.getById("breakfast")!, isSelected: true, quantity: 1 },
-          { ...this.extras.getById("extra-luggage")!, isSelected: true, quantity: 1 }
+          {
+            ...this.extras.getById("breakfast")!,
+            isSelected: true,
+            quantity: 1,
+          },
+          {
+            ...this.extras.getById("extra-luggage")!,
+            isSelected: true,
+            quantity: 1,
+          },
         ],
         selectedExtrasNames: ["Breakfast", "Extra luggage"],
         totalExtrasCost: 35,
@@ -2304,7 +2723,8 @@ export const AppData = {
         requiresEuropeanLeagueHandling: false,
         destinationCity: "Madrid",
         assignedMatch: "Real Madrid vs Barcelona",
-        previousTravelInfo: "Regular basketball fan, traveled to EuroLeague games before",
+        previousTravelInfo:
+          "Regular basketball fan, traveled to EuroLeague games before",
         primaryTraveler: {
           name: "Maria Rodriguez",
           email: "maria.rodriguez@example.com",
@@ -2312,7 +2732,7 @@ export const AppData = {
           dateOfBirth: "1988-04-12",
           documentType: "ID",
           documentNumber: "12345678A",
-          isPrimary: true
+          isPrimary: true,
         },
         extraTravelers: [],
         allTravelers: [
@@ -2324,9 +2744,9 @@ export const AppData = {
             documentType: "ID",
             documentNumber: "12345678A",
             isPrimary: true,
-            travelerNumber: 1
-          }
-        ]
+            travelerNumber: 1,
+          },
+        ],
       },
       {
         id: 5,
@@ -2352,13 +2772,33 @@ export const AppData = {
         removedLeagues: ["local", "regional"],
         removedLeaguesCount: 2,
         hasRemovedLeagues: true,
-        allExtras: this.extras.list.map(extra => ({ ...extra, isSelected: false, quantity: 1 })),
+        allExtras: this.extras.list.map((extra) => ({
+          ...extra,
+          isSelected: false,
+          quantity: 1,
+        })),
         selectedExtras: [
-          { ...this.extras.getById("travel-insurance")!, isSelected: true, quantity: 4 },
-          { ...this.extras.getById("seats-together")!, isSelected: true, quantity: 4 },
-          { ...this.extras.getById("breakfast")!, isSelected: true, quantity: 4 }
+          {
+            ...this.extras.getById("travel-insurance")!,
+            isSelected: true,
+            quantity: 4,
+          },
+          {
+            ...this.extras.getById("seats-together")!,
+            isSelected: true,
+            quantity: 4,
+          },
+          {
+            ...this.extras.getById("breakfast")!,
+            isSelected: true,
+            quantity: 4,
+          },
         ],
-        selectedExtrasNames: ["Travel Insurance", "Seats together", "Breakfast"],
+        selectedExtrasNames: [
+          "Travel Insurance",
+          "Seats together",
+          "Breakfast",
+        ],
         totalExtrasCost: 60,
         extrasCount: 3,
         firstName: "David",
@@ -2388,7 +2828,7 @@ export const AppData = {
           dateOfBirth: "1980-12-03",
           documentType: "Passport",
           documentNumber: "IJ9012345",
-          isPrimary: true
+          isPrimary: true,
         },
         extraTravelers: [
           {
@@ -2399,7 +2839,7 @@ export const AppData = {
             documentType: "Passport",
             documentNumber: "KL0123456",
             isPrimary: false,
-            travelerNumber: 2
+            travelerNumber: 2,
           },
           {
             name: "Tom Johnson",
@@ -2409,7 +2849,7 @@ export const AppData = {
             documentType: "Passport",
             documentNumber: "MN1234567",
             isPrimary: false,
-            travelerNumber: 3
+            travelerNumber: 3,
           },
           {
             name: "Sophie Johnson",
@@ -2419,8 +2859,8 @@ export const AppData = {
             documentType: "Passport",
             documentNumber: "OP2345678",
             isPrimary: false,
-            travelerNumber: 4
-          }
+            travelerNumber: 4,
+          },
         ],
         allTravelers: [
           {
@@ -2431,7 +2871,7 @@ export const AppData = {
             documentType: "Passport",
             documentNumber: "IJ9012345",
             isPrimary: true,
-            travelerNumber: 1
+            travelerNumber: 1,
           },
           {
             name: "Emma Johnson",
@@ -2441,7 +2881,7 @@ export const AppData = {
             documentType: "Passport",
             documentNumber: "KL0123456",
             isPrimary: false,
-            travelerNumber: 2
+            travelerNumber: 2,
           },
           {
             name: "Tom Johnson",
@@ -2451,7 +2891,7 @@ export const AppData = {
             documentType: "Passport",
             documentNumber: "MN1234567",
             isPrimary: false,
-            travelerNumber: 3
+            travelerNumber: 3,
           },
           {
             name: "Sophie Johnson",
@@ -2461,12 +2901,12 @@ export const AppData = {
             documentType: "Passport",
             documentNumber: "OP2345678",
             isPrimary: false,
-            travelerNumber: 4
-          }
-        ]
-      }
+            travelerNumber: 4,
+          },
+        ],
+      },
     ];
-    
+
     // Update status arrays
     this.bookings.updateStatusArrays();
   },
@@ -2474,7 +2914,7 @@ export const AppData = {
   // API integration methods (for future use)
   api: {
     // Fetch all data from backend
-    fetchAll: async function() {
+    fetchAll: async function () {
       // TODO: Replace with actual API call
       // const response = await fetch('/api/app-data');
       // const data = await response.json();
@@ -2482,9 +2922,9 @@ export const AppData = {
       console.log("API integration not yet implemented");
       return null;
     },
-    
+
     // Update specific section
-    updateSection: async function(section: string) {
+    updateSection: async function (section: string) {
       // TODO: Replace with actual API call
       // const response = await fetch(`/api/${section}`, {
       //   method: 'PUT',
@@ -2494,7 +2934,7 @@ export const AppData = {
       // return response.json();
       console.log(`API update for ${section} not yet implemented`);
       return null;
-    }
+    },
   },
 
   // About Page Data
@@ -2502,9 +2942,9 @@ export const AppData = {
     // Hero section
     hero: {
       title: "About us",
-      backgroundImage: "/homepage/packbg.png"
+      backgroundImage: "/homepage/packbg.png",
     },
-    
+
     // Main content sections
     content: {
       headline: "We turn sports into unforgettable surprise adventures.",
@@ -2512,29 +2952,33 @@ export const AppData = {
         {
           id: "who-we-are",
           title: "Who we are",
-          description: "GoGame is a sports travel platform with a twist: the destination and the match are a surprise until 48 hours before you travel. We organize everything — flights, hotel, and tickets — so you only need to enjoy the experience.",
-          order: 1
+          description:
+            "GoGame is a sports travel platform with a twist: the destination and the match are a surprise until 48 hours before you travel. We organize everything — flights, hotel, and tickets — so you only need to enjoy the experience.",
+          order: 1,
         },
         {
           id: "our-story",
           title: "Our Story",
-          description: "GoGame was born from our passion for sports and travel. After years of following matches across Europe, we realized that fans love both the adrenaline of the game and the adventure of discovering new places — so we decided to combine them.",
-          order: 2
+          description:
+            "GoGame was born from our passion for sports and travel. After years of following matches across Europe, we realized that fans love both the adrenaline of the game and the adventure of discovering new places — so we decided to combine them.",
+          order: 2,
         },
         {
           id: "mission",
           title: "Mission",
-          description: "To bring fans closer to live sports while adding the thrill of surprise. We create complete, worry-free trips that turn every match into a unique adventure.",
-          order: 3
+          description:
+            "To bring fans closer to live sports while adding the thrill of surprise. We create complete, worry-free trips that turn every match into a unique adventure.",
+          order: 3,
         },
         {
           id: "vision",
           title: "Vision",
-          description: "To become the leading platform for surprise sports travel in Europe, creating a global community of fans who explore new cities and live sports in a different, exciting way.",
-          order: 4
-        }
+          description:
+            "To become the leading platform for surprise sports travel in Europe, creating a global community of fans who explore new cities and live sports in a different, exciting way.",
+          order: 4,
+        },
       ],
-      
+
       // Values section
       values: {
         title: "Our Values",
@@ -2543,29 +2987,31 @@ export const AppData = {
             id: "passion-sports",
             title: "Passion for sports",
             description: "We believe live matches are unforgettable moments.",
-            order: 1
+            order: 1,
           },
           {
             id: "adventure-surprise",
             title: "Adventure & surprise",
-            description: "Every trip should feel as thrilling as the game itself.",
-            order: 2
+            description:
+              "Every trip should feel as thrilling as the game itself.",
+            order: 2,
           },
           {
             id: "trust-simplicity",
             title: "Trust & simplicity",
             description: "We take care of everything so you can just enjoy.",
-            order: 3
+            order: 3,
           },
           {
             id: "community",
             title: "Community",
-            description: "Sports are better when shared — we connect fans everywhere.",
-            order: 4
-          }
-        ]
+            description:
+              "Sports are better when shared — we connect fans everywhere.",
+            order: 4,
+          },
+        ],
       },
-      
+
       // Why choose us section
       whyChooseUs: {
         title: "Why choose us",
@@ -2574,128 +3020,144 @@ export const AppData = {
             id: "unique-concept",
             title: "Unique concept",
             description: "The destination is always a surprise.",
-            order: 1
+            order: 1,
           },
           {
             id: "all-in-one-packs",
             title: "All-in-one packs",
             description: "Flights, hotel, and tickets.",
-            order: 2
+            order: 2,
           },
           {
             id: "accessible",
             title: "Accessible",
             description: "Standard and Premium options for all budgets.",
-            order: 3
+            order: 3,
           },
           {
             id: "growing-community",
             title: "Growing community",
-            description: "A growing community of fans who love to travel and cheer together.",
-            order: 4
-          }
-        ]
+            description:
+              "A growing community of fans who love to travel and cheer together.",
+            order: 4,
+          },
+        ],
       },
-      
+
       // CTA section
       cta: {
         text: "Ready to play the game of your life? Discover your pack today.",
         buttonText: "Start the Game",
-        buttonLink: "/packages"
-      }
+        buttonLink: "/packages",
+      },
     },
-    
+
     // Helper functions
-    getHeroData: function() {
+    getHeroData: function () {
       return this.hero;
     },
-    
-    getContentData: function() {
+
+    getContentData: function () {
       return this.content;
     },
-    
-    getSections: function() {
+
+    getSections: function () {
       return this.content.sections.sort((a, b) => a.order - b.order);
     },
-    
-    getValues: function() {
+
+    getValues: function () {
       return this.content.values.items.sort((a, b) => a.order - b.order);
     },
-    
-    getWhyChooseUs: function() {
+
+    getWhyChooseUs: function () {
       return this.content.whyChooseUs.items.sort((a, b) => a.order - b.order);
     },
-    
-    getCtaData: function() {
+
+    getCtaData: function () {
       return this.content.cta;
     },
-    
+
     // Update functions
-    updateSection: function(sectionId: string, updates: Partial<{
-      title: string;
-      description: string;
-      order: number;
-    }>) {
-      const section = this.content.sections.find(s => s.id === sectionId);
+    updateSection: function (
+      sectionId: string,
+      updates: Partial<{
+        title: string;
+        description: string;
+        order: number;
+      }>,
+    ) {
+      const section = this.content.sections.find((s) => s.id === sectionId);
       if (section) {
         Object.assign(section, updates);
         return section;
       }
       return null;
     },
-    
-    updateValue: function(valueId: string, updates: Partial<{
-      title: string;
-      description: string;
-      order: number;
-    }>) {
-      const value = this.content.values.items.find(v => v.id === valueId);
+
+    updateValue: function (
+      valueId: string,
+      updates: Partial<{
+        title: string;
+        description: string;
+        order: number;
+      }>,
+    ) {
+      const value = this.content.values.items.find((v) => v.id === valueId);
       if (value) {
         Object.assign(value, updates);
         return value;
       }
       return null;
     },
-    
-    updateWhyChooseUs: function(itemId: string, updates: Partial<{
-      title: string;
-      description: string;
-      order: number;
-    }>) {
-      const item = this.content.whyChooseUs.items.find(i => i.id === itemId);
+
+    updateWhyChooseUs: function (
+      itemId: string,
+      updates: Partial<{
+        title: string;
+        description: string;
+        order: number;
+      }>,
+    ) {
+      const item = this.content.whyChooseUs.items.find((i) => i.id === itemId);
       if (item) {
         Object.assign(item, updates);
         return item;
       }
       return null;
     },
-    
-    updateCta: function(updates: Partial<{
-      text: string;
-      buttonText: string;
-      buttonLink: string;
-    }>) {
+
+    updateCta: function (
+      updates: Partial<{
+        text: string;
+        buttonText: string;
+        buttonLink: string;
+      }>,
+    ) {
       Object.assign(this.content.cta, updates);
       return this.content.cta;
     },
-    
-    updateHero: function(updates: Partial<{
-      title: string;
-      backgroundImage: string;
-    }>) {
+
+    updateHero: function (
+      updates: Partial<{
+        title: string;
+        backgroundImage: string;
+      }>,
+    ) {
       Object.assign(this.hero, updates);
       return this.hero;
     },
-    
-    updateContent: function(updates: Partial<{
-      headline: string;
-    }>) {
+
+    updateContent: function (
+      updates: Partial<{
+        headline: string;
+      }>,
+    ) {
       Object.assign(this.content, updates);
       return this.content;
     },
-    
+
     // Add new items
-    addSection: function(sectionData: {
+    addSection: function (sectionData: {
       title: string;
       description: string;
       order: number;
@@ -2705,8 +3167,8 @@ export const AppData = {
       this.content.sections.push(newSection);
       return newSection;
     },
-    
-    addValue: function(valueData: {
+
+    addValue: function (valueData: {
       title: string;
       description: string;
       order: number;
@@ -2716,8 +3178,8 @@ export const AppData = {
       this.content.values.items.push(newValue);
       return newValue;
     },
-    
-    addWhyChooseUs: function(itemData: {
+
+    addWhyChooseUs: function (itemData: {
       title: string;
       description: string;
       order: number;
@@ -2727,399 +3189,483 @@ export const AppData = {
       this.content.whyChooseUs.items.push(newItem);
       return newItem;
     },
-    
+
     // Delete items
-    deleteSection: function(sectionId: string) {
-      const index = this.content.sections.findIndex(s => s.id === sectionId);
+    deleteSection: function (sectionId: string) {
+      const index = this.content.sections.findIndex((s) => s.id === sectionId);
       if (index !== -1) {
         this.content.sections.splice(index, 1);
         return true;
       }
       return false;
     },
-    
-    deleteValue: function(valueId: string) {
-      const index = this.content.values.items.findIndex(v => v.id === valueId);
+
+    deleteValue: function (valueId: string) {
+      const index = this.content.values.items.findIndex(
+        (v) => v.id === valueId,
+      );
       if (index !== -1) {
         this.content.values.items.splice(index, 1);
         return true;
       }
       return false;
     },
-    
-    deleteWhyChooseUs: function(itemId: string) {
-      const index = this.content.whyChooseUs.items.findIndex(i => i.id === itemId);
+
+    deleteWhyChooseUs: function (itemId: string) {
+      const index = this.content.whyChooseUs.items.findIndex(
+        (i) => i.id === itemId,
+      );
       if (index !== -1) {
         this.content.whyChooseUs.items.splice(index, 1);
         return true;
       }
       return false;
-    }
+    },
   },
 
   // Date Restrictions Management - Calendar-based system
   dateRestrictions: {
     european: {
       enabledDates: [
-        '2025-09-22',
-        '2025-09-23',
-        '2025-09-25',
-        '2025-09-28',
-        '2025-09-30',
-        '2025-10-02',
-        '2025-10-05',
-        '2025-10-07',
-        '2025-10-10',
-        '2025-10-12',
-        '2025-10-14',
-        '2025-10-17',
-        '2025-10-19',
-        '2025-10-21',
-        '2025-10-24',
-        '2025-10-26',
-        '2025-10-28',
-        '2025-10-29',
-        '2025-10-30',
-        '2025-10-31'
+        "2025-09-22",
+        "2025-09-23",
+        "2025-09-25",
+        "2025-09-28",
+        "2025-09-30",
+        "2025-10-02",
+        "2025-10-05",
+        "2025-10-07",
+        "2025-10-10",
+        "2025-10-12",
+        "2025-10-14",
+        "2025-10-17",
+        "2025-10-19",
+        "2025-10-21",
+        "2025-10-24",
+        "2025-10-26",
+        "2025-10-28",
+        "2025-10-29",
+        "2025-10-30",
+        "2025-10-31",
       ], // Specific dates that are enabled
       blockedDates: [] as string[], // Specific dates that are blocked
       customPrices: {
-        '2025-09-30': {
+        "2025-09-30": {
           football: {
             standard: 429,
-            premium: 1529
+            premium: 1529,
           },
           basketball: {
             standard: 399,
-            premium: 1479
-          }
+            premium: 1479,
+          },
         },
-        '2025-10-14': {
+        "2025-10-14": {
           football: {
             standard: 479,
-            premium: 1579
-          }
+            premium: 1579,
+          },
         },
-        '2025-10-28': {
+        "2025-10-28": {
           basketball: {
             standard: 419,
-            premium: 1519
-          }
+            premium: 1519,
+          },
+        },
+      } as Record<
+        string,
+        {
+          football?: {
+            standard?: number;
+            premium?: number;
+          };
+          basketball?: {
+            standard?: number;
+            premium?: number;
+          };
         }
-      } as Record<string, {
-        football?: {
-          standard?: number;
-          premium?: number;
-        };
-        basketball?: {
-          standard?: number;
-          premium?: number;
-        };
-      }> // Date-specific pricing overrides
+      >, // Date-specific pricing overrides
     },
     national: {
       enabledDates: [
-        '2025-09-22',
-        '2025-09-24',
-        '2025-09-26',
-        '2025-09-29',
-        '2025-10-01',
-        '2025-10-03',
-        '2025-10-06',
-        '2025-10-08',
-        '2025-10-11',
-        '2025-10-13',
-        '2025-10-15',
-        '2025-10-18',
-        '2025-10-20',
-        '2025-10-22',
-        '2025-10-25',
-        '2025-10-27',
-        '2025-10-29',
-        '2025-10-31'
+        "2025-09-22",
+        "2025-09-24",
+        "2025-09-26",
+        "2025-09-29",
+        "2025-10-01",
+        "2025-10-03",
+        "2025-10-06",
+        "2025-10-08",
+        "2025-10-11",
+        "2025-10-13",
+        "2025-10-15",
+        "2025-10-18",
+        "2025-10-20",
+        "2025-10-22",
+        "2025-10-25",
+        "2025-10-27",
+        "2025-10-29",
+        "2025-10-31",
       ], // Specific dates that are enabled
       blockedDates: [] as string[], // Specific dates that are blocked
       customPrices: {
-        '2025-10-01': {
+        "2025-10-01": {
           football: {
             standard: 399,
-            premium: 1499
-          }
+            premium: 1499,
+          },
         },
-        '2025-10-15': {
+        "2025-10-15": {
           basketball: {
             standard: 379,
-            premium: 1479
-          }
+            premium: 1479,
+          },
         },
-        '2025-10-29': {
+        "2025-10-29": {
           football: {
             standard: 449,
-            premium: 1549
+            premium: 1549,
           },
           basketball: {
             standard: 429,
-            premium: 1529
-          }
+            premium: 1529,
+          },
+        },
+      } as Record<
+        string,
+        {
+          football?: {
+            standard?: number;
+            premium?: number;
+          };
+          basketball?: {
+            standard?: number;
+            premium?: number;
+          };
         }
-      } as Record<string, {
-        football?: {
-          standard?: number;
-          premium?: number;
-        };
-        basketball?: {
-          standard?: number;
-          premium?: number;
-        };
-      }> // Date-specific pricing overrides
+      >, // Date-specific pricing overrides
     },
-    
+
     // Helper functions for date restrictions
-    getRestrictions: function(competitionType: 'european' | 'national') {
+    getRestrictions: function (competitionType: "european" | "national") {
       return this[competitionType];
     },
-    
-    updateRestrictions: function(competitionType: 'european' | 'national', updates: {
-      enabledDates?: string[];
-      blockedDates?: string[];
-      customPrices?: Record<string, {
-        football?: {
-          standard?: number;
-          premium?: number;
-        };
-        basketball?: {
-          standard?: number;
-          premium?: number;
-        };
-      }>;
-    }) {
+
+    updateRestrictions: function (
+      competitionType: "european" | "national",
+      updates: {
+        enabledDates?: string[];
+        blockedDates?: string[];
+        customPrices?: Record<
+          string,
+          {
+            football?: {
+              standard?: number;
+              premium?: number;
+            };
+            basketball?: {
+              standard?: number;
+              premium?: number;
+            };
+          }
+        >;
+      },
+    ) {
       if (this[competitionType]) {
         this[competitionType] = { ...this[competitionType], ...updates };
         return this[competitionType];
       }
       return null;
     },
-    
-    getAllRestrictions: function() {
+
+    getAllRestrictions: function () {
       return this;
     },
-    
-    isDateAllowed: function(competitionType: 'european' | 'national', date: Date) {
+
+    isDateAllowed: function (
+      competitionType: "european" | "national",
+      date: Date,
+    ) {
       const restrictions = this.getRestrictions(competitionType);
       if (!restrictions) return false;
-      
-      const dateString = date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      
+
+      const dateString = date.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+
       // Check if date is explicitly blocked
       if (restrictions.blockedDates.includes(dateString)) {
         return false;
       }
-      
+
       // Check if date is explicitly enabled
       return restrictions.enabledDates.includes(dateString);
     },
-    
+
     // Helper function to format date for storage
-    formatDateForStorage: function(date: Date): string {
-      return date.toISOString().split('T')[0];
+    formatDateForStorage: function (date: Date): string {
+      return date.toISOString().split("T")[0];
     },
-    
+
     // Helper function to parse stored date
-    parseStoredDate: function(dateString: string): Date {
-      return new Date(dateString + 'T00:00:00.000Z');
+    parseStoredDate: function (dateString: string): Date {
+      return new Date(dateString + "T00:00:00.000Z");
     },
-    
+
     // Add a date to enabled dates
-    enableDate: function(competitionType: 'european' | 'national', date: Date) {
+    enableDate: function (
+      competitionType: "european" | "national",
+      date: Date,
+    ) {
       const restrictions = this.getRestrictions(competitionType);
       if (!restrictions) return false;
-      
+
       const dateString = this.formatDateForStorage(date);
-      
+
       // Remove from blocked dates if it exists there
       const blockedIndex = restrictions.blockedDates.indexOf(dateString);
       if (blockedIndex > -1) {
         restrictions.blockedDates.splice(blockedIndex, 1);
       }
-      
+
       // Add to enabled dates if not already there
       if (!restrictions.enabledDates.includes(dateString)) {
         restrictions.enabledDates.push(dateString);
         restrictions.enabledDates.sort(); // Keep sorted
       }
-      
+
       return true;
     },
-    
+
     // Add a date to blocked dates
-    blockDate: function(competitionType: 'european' | 'national', date: Date) {
+    blockDate: function (competitionType: "european" | "national", date: Date) {
       const restrictions = this.getRestrictions(competitionType);
       if (!restrictions) return false;
-      
+
       const dateString = this.formatDateForStorage(date);
-      
+
       // Remove from enabled dates if it exists there
       const enabledIndex = restrictions.enabledDates.indexOf(dateString);
       if (enabledIndex > -1) {
         restrictions.enabledDates.splice(enabledIndex, 1);
       }
-      
+
       // Add to blocked dates if not already there
       if (!restrictions.blockedDates.includes(dateString)) {
         restrictions.blockedDates.push(dateString);
         restrictions.blockedDates.sort(); // Keep sorted
       }
-      
+
       return true;
     },
-    
+
     // Remove a date from both enabled and blocked lists (neutral state)
-    removeDate: function(competitionType: 'european' | 'national', date: Date) {
+    removeDate: function (
+      competitionType: "european" | "national",
+      date: Date,
+    ) {
       const restrictions = this.getRestrictions(competitionType);
       if (!restrictions) return false;
-      
+
       const dateString = this.formatDateForStorage(date);
-      
+
       // Remove from both lists
       const enabledIndex = restrictions.enabledDates.indexOf(dateString);
       if (enabledIndex > -1) {
         restrictions.enabledDates.splice(enabledIndex, 1);
       }
-      
+
       const blockedIndex = restrictions.blockedDates.indexOf(dateString);
       if (blockedIndex > -1) {
         restrictions.blockedDates.splice(blockedIndex, 1);
       }
-      
+
       return true;
     },
-    
+
     // Get date status (enabled, blocked, or neutral)
-    getDateStatus: function(competitionType: 'european' | 'national', date: Date): 'enabled' | 'blocked' | 'neutral' {
+    getDateStatus: function (
+      competitionType: "european" | "national",
+      date: Date,
+    ): "enabled" | "blocked" | "neutral" {
       const restrictions = this.getRestrictions(competitionType);
-      if (!restrictions) return 'neutral';
-      
+      if (!restrictions) return "neutral";
+
       const dateString = this.formatDateForStorage(date);
-      
+
       if (restrictions.enabledDates.includes(dateString)) {
-        return 'enabled';
+        return "enabled";
       } else if (restrictions.blockedDates.includes(dateString)) {
-        return 'blocked';
+        return "blocked";
       } else {
-        return 'neutral';
+        return "neutral";
       }
     },
 
     // Pricing management functions
-    setCustomPrice: function(competitionType: 'european' | 'national', date: Date, sport: 'football' | 'basketball', packageType: 'standard' | 'premium', price: number) {
+    setCustomPrice: function (
+      competitionType: "european" | "national",
+      date: Date,
+      sport: "football" | "basketball",
+      packageType: "standard" | "premium",
+      price: number,
+    ) {
       const restrictions = this.getRestrictions(competitionType);
       if (!restrictions) return false;
-      
+
       const dateString = this.formatDateForStorage(date);
-      
+
       // Initialize customPrices if it doesn't exist
       if (!restrictions.customPrices[dateString]) {
         restrictions.customPrices[dateString] = {};
       }
-      
+
       // Initialize sport if it doesn't exist
       if (!restrictions.customPrices[dateString][sport]) {
         restrictions.customPrices[dateString][sport] = {};
       }
-      
+
       // Set the price
       restrictions.customPrices[dateString][sport]![packageType] = price;
-      
+
       return true;
     },
 
-    getCustomPrice: function(competitionType: 'european' | 'national', date: Date, sport: 'football' | 'basketball', packageType: 'standard' | 'premium'): number | null {
+    getCustomPrice: function (
+      competitionType: "european" | "national",
+      date: Date,
+      sport: "football" | "basketball",
+      packageType: "standard" | "premium",
+    ): number | null {
       const restrictions = this.getRestrictions(competitionType);
       if (!restrictions) return null;
-      
+
       const dateString = this.formatDateForStorage(date);
-      
-      return restrictions.customPrices[dateString]?.[sport]?.[packageType] || null;
+
+      return (
+        restrictions.customPrices[dateString]?.[sport]?.[packageType] || null
+      );
     },
 
-    removeCustomPrice: function(competitionType: 'european' | 'national', date: Date, sport: 'football' | 'basketball', packageType: 'standard' | 'premium') {
+    removeCustomPrice: function (
+      competitionType: "european" | "national",
+      date: Date,
+      sport: "football" | "basketball",
+      packageType: "standard" | "premium",
+    ) {
       const restrictions = this.getRestrictions(competitionType);
       if (!restrictions) return false;
-      
+
       const dateString = this.formatDateForStorage(date);
-      
+
       if (restrictions.customPrices[dateString]?.[sport]) {
         delete restrictions.customPrices[dateString][sport]![packageType];
-        
+
         // Clean up empty objects
-        if (Object.keys(restrictions.customPrices[dateString][sport]!).length === 0) {
+        if (
+          Object.keys(restrictions.customPrices[dateString][sport]!).length ===
+          0
+        ) {
           delete restrictions.customPrices[dateString][sport];
         }
         if (Object.keys(restrictions.customPrices[dateString]).length === 0) {
           delete restrictions.customPrices[dateString];
         }
       }
-      
+
       return true;
     },
 
-    getAllCustomPrices: function(competitionType: 'european' | 'national') {
+    getAllCustomPrices: function (competitionType: "european" | "national") {
       const restrictions = this.getRestrictions(competitionType);
       return restrictions ? restrictions.customPrices : {};
     },
 
     // Get effective price (custom price if exists, otherwise base price)
-    getEffectivePrice: function(competitionType: 'european' | 'national', date: Date, sport: 'football' | 'basketball', packageType: 'standard' | 'premium', basePrice: number): number {
-      const customPrice = this.getCustomPrice(competitionType, date, sport, packageType);
+    getEffectivePrice: function (
+      competitionType: "european" | "national",
+      date: Date,
+      sport: "football" | "basketball",
+      packageType: "standard" | "premium",
+      basePrice: number,
+    ): number {
+      const customPrice = this.getCustomPrice(
+        competitionType,
+        date,
+        sport,
+        packageType,
+      );
       return customPrice !== null ? customPrice : basePrice;
-    }
+    },
   },
 
   // Pricing utility functions for booking system
   pricing: {
     // Get base price from travel packages
-    getBasePrice: function(sport: 'football' | 'basketball', packageType: 'standard' | 'premium', nights: number): number {
+    getBasePrice: function (
+      sport: "football" | "basketball",
+      packageType: "standard" | "premium",
+      nights: number,
+    ): number {
       const packages = AppData.travelPackages.getBySport(sport);
-      const startingPricePackage = packages.find(pkg => pkg.category === 'Starting Price');
-      
+      const startingPricePackage = packages.find(
+        (pkg) => pkg.category === "Starting Price",
+      );
+
       if (!startingPricePackage) {
         // Fallback to hardcoded prices if no package found
-        const fallbackPrices: Record<string, Record<string, Record<number, number>>> = {
-          "football": {
-            "standard": { 1: 299, 2: 379, 3: 459, 4: 529 },
-            "premium": { 1: 1299, 2: 1499, 3: 1699, 4: 1899 }
+        const fallbackPrices: Record<
+          string,
+          Record<string, Record<number, number>>
+        > = {
+          football: {
+            standard: { 1: 299, 2: 379, 3: 459, 4: 529 },
+            premium: { 1: 1299, 2: 1499, 3: 1699, 4: 1899 },
           },
-          "basketball": {
-            "standard": { 1: 279, 2: 359, 3: 439, 4: 509 },
-            "premium": { 1: 1279, 2: 1479, 3: 1679, 4: 1859 }
-          }
+          basketball: {
+            standard: { 1: 279, 2: 359, 3: 439, 4: 509 },
+            premium: { 1: 1279, 2: 1479, 3: 1679, 4: 1859 },
+          },
         };
-        
+
         const sportData = fallbackPrices[sport];
         if (!sportData) return 0;
-        
+
         const packageData = sportData[packageType];
         if (!packageData) return 0;
-        
+
         const maxNights = Math.max(...Object.keys(packageData).map(Number));
         const nightsToUse = Math.min(nights, maxNights);
-        
+
         return packageData[nightsToUse] || 0;
       }
-      
+
       // Use package prices
-      const price = packageType === 'standard' ? startingPricePackage.standardPrice : startingPricePackage.premiumPrice;
+      const price =
+        packageType === "standard"
+          ? startingPricePackage.standardPrice
+          : startingPricePackage.premiumPrice;
       return price || 0;
     },
 
     // Get effective price considering date-specific pricing
-    getEffectivePrice: function(competitionType: 'european' | 'national', date: Date, sport: 'football' | 'basketball', packageType: 'standard' | 'premium', nights: number): number {
+    getEffectivePrice: function (
+      competitionType: "european" | "national",
+      date: Date,
+      sport: "football" | "basketball",
+      packageType: "standard" | "premium",
+      nights: number,
+    ): number {
       const basePrice = this.getBasePrice(sport, packageType, nights);
-      return AppData.dateRestrictions.getEffectivePrice(competitionType, date, sport, packageType, basePrice);
+      return AppData.dateRestrictions.getEffectivePrice(
+        competitionType,
+        date,
+        sport,
+        packageType,
+        basePrice,
+      );
     },
 
     // Calculate total package cost for a booking
-    calculatePackageCost: function(bookingData: {
+    calculatePackageCost: function (bookingData: {
       selectedSport: string;
       selectedPackage: string;
       selectedLeague: string;
@@ -3127,29 +3673,51 @@ export const AppData = {
       travelDuration: number;
     }): number {
       const sport = bookingData.selectedSport.toLowerCase();
-      const packageType = bookingData.selectedPackage.toLowerCase() as 'standard' | 'premium';
-      const competitionType = bookingData.selectedLeague.toLowerCase() as 'european' | 'national';
+      const packageType = bookingData.selectedPackage.toLowerCase() as
+        | "standard"
+        | "premium";
+      const competitionType = bookingData.selectedLeague.toLowerCase() as
+        | "european"
+        | "national";
       const date = new Date(bookingData.departureDate);
-      
+
       // Handle "Both" sport option - calculate combined cost
-      if (sport === 'both') {
-        const footballCost = this.getEffectivePrice(competitionType, date, 'football', packageType, bookingData.travelDuration);
-        const basketballCost = this.getEffectivePrice(competitionType, date, 'basketball', packageType, bookingData.travelDuration);
+      if (sport === "both") {
+        const footballCost = this.getEffectivePrice(
+          competitionType,
+          date,
+          "football",
+          packageType,
+          bookingData.travelDuration,
+        );
+        const basketballCost = this.getEffectivePrice(
+          competitionType,
+          date,
+          "basketball",
+          packageType,
+          bookingData.travelDuration,
+        );
         return footballCost + basketballCost;
       }
-      
+
       // Handle individual sports
-      const sportType = sport as 'football' | 'basketball';
-      return this.getEffectivePrice(competitionType, date, sportType, packageType, bookingData.travelDuration);
+      const sportType = sport as "football" | "basketball";
+      return this.getEffectivePrice(
+        competitionType,
+        date,
+        sportType,
+        packageType,
+        bookingData.travelDuration,
+      );
     },
 
     // Get league surcharge
-    getLeagueSurcharge: function(league: string): number {
-      return league.toLowerCase() === 'european' ? 50 : 0;
+    getLeagueSurcharge: function (league: string): number {
+      return league.toLowerCase() === "european" ? 50 : 0;
     },
 
     // Calculate total booking cost
-    calculateTotalCost: function(bookingData: {
+    calculateTotalCost: function (bookingData: {
       selectedSport: string;
       selectedPackage: string;
       selectedLeague: string;
@@ -3158,19 +3726,21 @@ export const AppData = {
       totalExtrasCost: number;
     }): number {
       const packageCost = this.calculatePackageCost(bookingData);
-      const leagueSurcharge = this.getLeagueSurcharge(bookingData.selectedLeague);
+      const leagueSurcharge = this.getLeagueSurcharge(
+        bookingData.selectedLeague,
+      );
       const extrasCost = bookingData.totalExtrasCost || 0;
-      
+
       return packageCost + leagueSurcharge + extrasCost;
-    }
+    },
   },
 
   // Email templates and functions
   emailTemplates: {
     // Generate confirmation email content
-    generateConfirmationEmail: function(booking: BookingData) {
+    generateConfirmationEmail: function (booking: BookingData) {
       const subject = `🎉 Your GoGame Adventure is Confirmed! Booking #${booking.id}`;
-      
+
       const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -3206,55 +3776,71 @@ export const AppData = {
               <div class="booking-details">
                 <h3>📋 Booking Summary</h3>
                 <p><strong>Booking ID:</strong> #${booking.id}</p>
-                <p><strong>Status:</strong> <span class="status-${booking.status}">${booking.status === 'completed' ? '✅ Confirmed' : booking.status === 'pending' ? '⏳ Pending' : '❌ Cancelled'}</span></p>
+                <p><strong>Status:</strong> <span class="status-${booking.status}">${booking.status === "completed" ? "✅ Confirmed" : booking.status === "pending" ? "⏳ Pending" : "❌ Cancelled"}</span></p>
                 <p><strong>Sport:</strong> ${booking.selectedSport}</p>
                 <p><strong>Package:</strong> ${booking.selectedPackage}</p>
                 <p><strong>Departure City:</strong> ${booking.selectedCity}</p>
                 <p><strong>Travel Dates:</strong> ${booking.departureDateFormatted} - ${booking.returnDateFormatted}</p>
                 <p><strong>Total Travelers:</strong> ${booking.totalPeople} (${booking.adults} adults, ${booking.kids} kids, ${booking.babies} babies)</p>
-                ${booking.allTravelers && booking.allTravelers.length > 0 ? `
+                ${
+                  booking.allTravelers && booking.allTravelers.length > 0
+                    ? `
                   <div style="margin-top: 15px;">
                     <h4>Traveler Details:</h4>
                     <ul style="margin: 10px 0; padding-left: 20px;">
-                      ${booking.allTravelers.map((traveler, index) => `
+                      ${booking.allTravelers
+                        .map(
+                          (traveler, index) => `
                         <li style="margin-bottom: 8px;">
                           <strong>Traveler ${index + 1}:</strong> ${traveler.name}<br>
                           <span style="color: #666; font-size: 14px;">
-                            ${traveler.isPrimary ? 'Primary Contact' : 'Additional Traveler'} | 
-                            ${traveler.dateOfBirth ? `DOB: ${traveler.dateOfBirth}` : ''} | 
+                            ${traveler.isPrimary ? "Primary Contact" : "Additional Traveler"} | 
+                            ${traveler.dateOfBirth ? `DOB: ${traveler.dateOfBirth}` : ""} | 
                             ${traveler.documentType}: ${traveler.documentNumber}
-                            ${traveler.isPrimary ? `<br>Email: ${traveler.email} | Phone: ${traveler.phone}` : ''}
+                            ${traveler.isPrimary ? `<br>Email: ${traveler.email} | Phone: ${traveler.phone}` : ""}
                           </span>
                         </li>
-                      `).join('')}
+                      `,
+                        )
+                        .join("")}
                     </ul>
                   </div>
-                ` : ''}
+                `
+                    : ""
+                }
               </div>
               
-              ${booking.destinationCity && booking.assignedMatch ? `
+              ${
+                booking.destinationCity && booking.assignedMatch
+                  ? `
                 <div class="highlight">
                   <h3>🎯 Your Surprise Destination & Match</h3>
                   <p><strong>Destination City:</strong> ${booking.destinationCity}</p>
                   <p><strong>Match:</strong> ${booking.assignedMatch}</p>
                   <p><em>Get ready for an incredible experience!</em></p>
                 </div>
-              ` : `
+              `
+                  : `
                 <div class="highlight">
                   <h3>🎯 Your Surprise Awaits!</h3>
                   <p>Your destination and match details will be revealed 48 hours before departure. We're working hard to create the perfect surprise for you!</p>
                 </div>
-              `}
+              `
+              }
               
-              ${booking.selectedExtras.length > 0 ? `
+              ${
+                booking.selectedExtras.length > 0
+                  ? `
                 <div class="booking-details">
                   <h3>🎁 Selected Extras</h3>
                   <ul>
-                    ${booking.selectedExtras.map(extra => `<li>${extra.name} (Qty: ${extra.quantity}) - ${extra.price === 0 ? 'Included' : extra.price + '€'}</li>`).join('')}
+                    ${booking.selectedExtras.map((extra) => `<li>${extra.name} (Qty: ${extra.quantity}) - ${extra.price === 0 ? "Included" : extra.price + "€"}</li>`).join("")}
                   </ul>
                   <p><strong>Total Extras Cost:</strong> ${booking.totalExtrasCost}€</p>
                 </div>
-              ` : ''}
+              `
+                  : ""
+              }
               
               <div class="booking-details">
                 <h3>📞 Contact Information</h3>
@@ -3282,7 +3868,7 @@ export const AppData = {
         </body>
         </html>
       `;
-      
+
       const textContent = `
         GoGame Adventure Confirmation - Booking #${booking.id}
         
@@ -3292,38 +3878,54 @@ export const AppData = {
         
         BOOKING SUMMARY:
         - Booking ID: #${booking.id}
-        - Status: ${booking.status === 'completed' ? 'Confirmed' : booking.status === 'pending' ? 'Pending' : 'Cancelled'}
+        - Status: ${booking.status === "completed" ? "Confirmed" : booking.status === "pending" ? "Pending" : "Cancelled"}
         - Sport: ${booking.selectedSport}
         - Package: ${booking.selectedPackage}
         - Departure City: ${booking.selectedCity}
         - Travel Dates: ${booking.departureDateFormatted} - ${booking.returnDateFormatted}
         - Total Travelers: ${booking.totalPeople}
         
-        ${booking.allTravelers && booking.allTravelers.length > 0 ? `
+        ${
+          booking.allTravelers && booking.allTravelers.length > 0
+            ? `
         TRAVELER DETAILS:
-        ${booking.allTravelers.map((traveler, index) => `
+        ${booking.allTravelers
+          .map(
+            (traveler, index) => `
         Traveler ${index + 1}: ${traveler.name}
-          ${traveler.isPrimary ? 'Primary Contact' : 'Additional Traveler'}
-          ${traveler.dateOfBirth ? `DOB: ${traveler.dateOfBirth}` : ''}
+          ${traveler.isPrimary ? "Primary Contact" : "Additional Traveler"}
+          ${traveler.dateOfBirth ? `DOB: ${traveler.dateOfBirth}` : ""}
           ${traveler.documentType}: ${traveler.documentNumber}
-          ${traveler.isPrimary ? `Email: ${traveler.email} | Phone: ${traveler.phone}` : ''}
-        `).join('')}
-        ` : ''}
+          ${traveler.isPrimary ? `Email: ${traveler.email} | Phone: ${traveler.phone}` : ""}
+        `,
+          )
+          .join("")}
+        `
+            : ""
+        }
         
-        ${booking.destinationCity && booking.assignedMatch ? `
+        ${
+          booking.destinationCity && booking.assignedMatch
+            ? `
         YOUR SURPRISE DESTINATION & MATCH:
         - Destination City: ${booking.destinationCity}
         - Match: ${booking.assignedMatch}
-        ` : `
+        `
+            : `
         YOUR SURPRISE AWAITS:
         Your destination and match details will be revealed 48 hours before departure.
-        `}
+        `
+        }
         
-        ${booking.selectedExtras.length > 0 ? `
+        ${
+          booking.selectedExtras.length > 0
+            ? `
         SELECTED EXTRAS:
-        ${booking.selectedExtras.map(extra => `- ${extra.name} (Qty: ${extra.quantity}) - ${extra.price === 0 ? 'Included' : extra.price + '€'}`).join('\n')}
+        ${booking.selectedExtras.map((extra) => `- ${extra.name} (Qty: ${extra.quantity}) - ${extra.price === 0 ? "Included" : extra.price + "€"}`).join("\n")}
         Total Extras Cost: ${booking.totalExtrasCost}€
-        ` : ''}
+        `
+            : ""
+        }
         
         CONTACT INFORMATION:
         - Email: ${booking.email}
@@ -3339,16 +3941,16 @@ export const AppData = {
         Thank you for choosing GoGame!
         © 2024 GoGame. All rights reserved.
       `;
-      
+
       return {
         subject,
         htmlContent,
-        textContent
+        textContent,
       };
     },
-    
+
     // Send confirmation email (placeholder for future API integration)
-    sendConfirmationEmail: async function(booking: BookingData) {
+    sendConfirmationEmail: async function (booking: BookingData) {
       try {
         // TODO: Replace with actual email API call
         // const emailContent = this.generateConfirmationEmail(booking);
@@ -3362,31 +3964,32 @@ export const AppData = {
         //     text: emailContent.textContent
         //   })
         // });
-        // 
+        //
         // if (!response.ok) {
         //   throw new Error('Failed to send email');
         // }
-        // 
+        //
         // return await response.json();
-        
+
         // For now, just log the email content
         const emailContent = this.generateConfirmationEmail(booking);
-        console.log('📧 Email would be sent to:', booking.email);
-        console.log('📧 Subject:', emailContent.subject);
-        console.log('📧 HTML Content length:', emailContent.htmlContent.length);
-        console.log('📧 Text Content length:', emailContent.textContent.length);
-        
+        console.log("📧 Email would be sent to:", booking.email);
+        console.log("📧 Subject:", emailContent.subject);
+        console.log("📧 HTML Content length:", emailContent.htmlContent.length);
+        console.log("📧 Text Content length:", emailContent.textContent.length);
+
         return {
           success: true,
-          message: 'Email content generated successfully (API integration pending)',
-          emailContent
+          message:
+            "Email content generated successfully (API integration pending)",
+          emailContent,
         };
       } catch (error) {
-        console.error('❌ Error sending confirmation email:', error);
-        throw new Error('Failed to send confirmation email');
+        console.error("❌ Error sending confirmation email:", error);
+        throw new Error("Failed to send confirmation email");
       }
-    }
-  }
+    },
+  },
 };
 
 // Initialize the data
@@ -3421,4 +4024,4 @@ export const homepageLeaguesData = AppData.homepageLeagues;
 export const aboutPageData = AppData.aboutPage;
 
 // Export the main object as default
-export default AppData; 
+export default AppData;

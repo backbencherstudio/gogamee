@@ -29,4 +29,5 @@ export interface FAQQueryOptions {
   };
   limit?: number;
   skip?: number;
+  page?: number;
 }

@@ -1,8 +1,11 @@
 export interface CreatePackageData {
   sport: string;
-  category: string;
-  standard: string;
-  premium: string;
+  included: string;
+  included_es?: string;
+  plan: "standard" | "premium" | "combined";
+  duration: 1 | 2 | 3 | 4;
+  description: string;
+  description_es?: string;
   standardPrice?: number;
   premiumPrice?: number;
   currency?: string;
@@ -11,9 +14,12 @@ export interface CreatePackageData {
 
 export interface UpdatePackageData {
   sport?: string;
-  category?: string;
-  standard?: string;
-  premium?: string;
+  included?: string;
+  included_es?: string;
+  plan?: "standard" | "premium" | "combined";
+  duration?: 1 | 2 | 3 | 4;
+  description?: string;
+  description_es?: string;
   standardPrice?: number;
   premiumPrice?: number;
   currency?: string;
@@ -23,7 +29,9 @@ export interface UpdatePackageData {
 
 export interface PackageFilters {
   sport?: string;
-  category?: string;
+  included?: string;
+  plan?: "standard" | "premium" | "combined";
+  duration?: 1 | 2 | 3 | 4;
   isActive?: boolean;
   minPrice?: number;
   maxPrice?: number;
@@ -37,4 +45,5 @@ export interface PackageQueryOptions {
   };
   limit?: number;
   skip?: number;
+  page?: number;
 }

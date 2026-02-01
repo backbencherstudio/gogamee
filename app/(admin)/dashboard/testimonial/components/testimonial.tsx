@@ -8,210 +8,177 @@ import {
   addTestimonial,
   updateTestimonial,
   deleteTestimonial,
+  type TestimonialItem,
 } from "../../../../../services/testimonialService";
-import { uploadImage } from "../../../../lib/utils";
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
+import { Pagination } from "../../../../../components/ui/Pagination";
+import { uploadImage } from "../../../../lib/utils";
 
-interface ReviewItem {
-  id: string;
-  name: string;
-  role: string;
-  image: string;
-  rating: number;
-  review: string;
-}
+// Local interface matching the API response items
+interface ReviewItem extends TestimonialItem {}
 
 export default function TestimonialPage() {
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingReview, setEditingReview] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
-  const [newReviewForm, setNewReviewForm] = useState({
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
+
+  // Unified form state
+  const [formData, setFormData] = useState({
     name: "",
     role: "",
     image: "/homepage/image/avatar1.png",
     rating: 5,
-    review: ""
+    review: "",
   });
-  const [editForm, setEditForm] = useState({
-    name: "",
-    role: "",
-    image: "",
-    rating: 5,
-    review: ""
-  });
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
 
   // Load review data from API
-  useEffect(() => {
-    const load = async () => {
-      const res = await getAllTestimonials();
-      if (res.success) {
-        const mapped: ReviewItem[] = res.list.map((r) => ({
-          id: r.id,
-          name: r.name,
-          role: r.role,
-          image: r.image,
-          rating: r.rating,
-          review: r.review,
-        }));
-        setReviews(mapped);
+  const loadReviews = async (page: number) => {
+    try {
+      setLoading(true);
+      const response = await getAllTestimonials(page, limit);
+      if (response.success && response.data) {
+        setReviews(response.data);
+        if (response.meta_data) {
+          setTotalPages(response.meta_data.total_pages);
+          setTotalItems(response.meta_data.total);
+          setCurrentPage(response.meta_data.page);
+        }
       }
-    };
-    load();
-  }, []);
+    } catch (error) {
+      console.error("Failed to load testimonials:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const handleImageError = (imagePath: string, e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-    // Only set fallback if we haven't already tried for this image
+  useEffect(() => {
+    loadReviews(currentPage);
+  }, [currentPage]);
+
+  const handleImageError = (
+    imagePath: string,
+    e: React.SyntheticEvent<HTMLImageElement, Event>,
+  ) => {
     if (!failedImages.has(imagePath)) {
-      setFailedImages(prev => new Set(prev).add(imagePath));
+      setFailedImages((prev) => new Set(prev).add(imagePath));
       e.currentTarget.src = "/homepage/image/avatar1.png";
     }
   };
 
-  // Handle image upload for new review
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle image upload
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Mock upload or implement actual upload if needed
+      // For now, we will just use a placeholder or previous logic if available
       try {
-        const result = await uploadImage(file, 'reviews');
+        const result = await uploadImage(file, "reviews");
 
         if (result.success && result.imagePath) {
-          // Store only the path
-          setNewReviewForm({
-            ...newReviewForm,
-            image: result.imagePath
-          });
+          setFormData((prev) => ({
+            ...prev,
+            image: result.imagePath as string,
+          }));
           setImagePreview(result.imagePath);
         } else {
-          alert(result.error || 'Upload failed');
+          alert(result.error || "Upload failed");
         }
       } catch (error) {
-        console.error('Upload error:', error);
-        alert('Upload failed. Please try again.');
+        console.error("Upload error:", error);
+        alert("Upload failed. Please try again.");
       }
     }
   };
 
-  // Handle image upload for edit form
-  const handleEditImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      try {
-        const result = await uploadImage(file, 'reviews');
-
-        if (result.success && result.imagePath) {
-          // Store only the path
-          setEditForm({
-            ...editForm,
-            image: result.imagePath
-          });
-          setEditImagePreview(result.imagePath);
-        } else {
-          alert(result.error || 'Upload failed');
-        }
-      } catch (error) {
-        console.error('Upload error:', error);
-        alert('Upload failed. Please try again.');
-      }
-    }
-  };
-
-  // Add new review
   const handleAddReview = async () => {
-    if (newReviewForm.name && newReviewForm.role && newReviewForm.review) {
-      const res = await addTestimonial({
-        name: newReviewForm.name.trim(),
-        role: newReviewForm.role.trim(),
-        image: newReviewForm.image,
-        rating: newReviewForm.rating,
-        review: newReviewForm.review.trim(),
-      });
-      if (res.success) {
-        const r = res.data;
-        setReviews([
-          {
-            id: r.id,
-            name: r.name,
-            role: r.role,
-            image: r.image,
-            rating: r.rating,
-            review: r.review,
-          },
-          ...reviews,
-        ]);
-        setNewReviewForm({
-          name: "",
-          role: "",
-          image: "/homepage/image/avatar1.png",
-          rating: 5,
-          review: "",
+    if (formData.name && formData.role && formData.review) {
+      setSaving(true);
+      try {
+        const res = await addTestimonial({
+          name: formData.name.trim(),
+          role: formData.role.trim(),
+          image: formData.image,
+          rating: formData.rating,
+          review: formData.review.trim(),
         });
-        setImagePreview(null);
-        setShowAddForm(false);
+        if (res.success) {
+          await loadReviews(currentPage);
+          resetForm();
+          setShowAddForm(false);
+        }
+      } finally {
+        setSaving(false);
       }
     }
   };
 
-  // Delete review
   const handleDeleteReview = async (id: string) => {
     await deleteTestimonial(id);
-    const res = await getAllTestimonials();
-    if (res.success) {
-      const mapped: ReviewItem[] = res.list.map((r) => ({
-        id: r.id,
-        name: r.name,
-        role: r.role,
-        image: r.image,
-        rating: r.rating,
-        review: r.review,
-      }));
-      setReviews(mapped);
-    }
+    await loadReviews(currentPage);
     setDeleteConfirm(null);
   };
 
-  // Start editing
   const startEdit = (review: ReviewItem) => {
-    setEditForm({
+    setEditingId(review.id);
+    setFormData({
       name: review.name,
       role: review.role,
       image: review.image,
       rating: review.rating,
-      review: review.review
+      review: review.review,
     });
-    setEditImagePreview(review.image);
-    setEditingReview(review.id);
+    setImagePreview(review.image);
+    setShowAddForm(true);
   };
 
-  // Save edit
   const saveEdit = async () => {
-    if (editingReview) {
-      await updateTestimonial(editingReview, editForm);
-      const res = await getAllTestimonials();
-      if (res.success) {
-        const mapped: ReviewItem[] = res.list.map((r) => ({
-          id: r.id,
-          name: r.name,
-          role: r.role,
-          image: r.image,
-          rating: r.rating,
-          review: r.review,
-        }));
-        setReviews(mapped);
+    if (editingId) {
+      setSaving(true);
+      try {
+        await updateTestimonial(editingId, formData);
+        await loadReviews(currentPage);
+        resetForm();
+        setEditingId(null);
+        setShowAddForm(false);
+      } finally {
+        setSaving(false);
       }
-      setEditingReview(null);
-      setEditImagePreview(null);
     }
   };
 
-  // Cancel edit
-  const cancelEdit = () => {
-    setEditingReview(null);
-    setEditImagePreview(null);
-    setEditForm({ name: "", role: "", image: "", rating: 5, review: "" });
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      role: "",
+      image: "/homepage/image/avatar1.png",
+      rating: 5,
+      review: "",
+    });
+    setImagePreview(null);
+  };
+
+  const handleCancel = () => {
+    setShowAddForm(false);
+    setEditingId(null);
+    resetForm();
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -223,7 +190,9 @@ export default function TestimonialPage() {
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
               Testimonial Management
             </h1>
-            <p className="text-gray-600 font-['Poppins']">Manage customer reviews and testimonials displayed on the website</p>
+            <p className="text-gray-600 font-['Poppins']">
+              Manage customer reviews and testimonials displayed on the website
+            </p>
           </div>
 
           {/* Add Review Button */}
@@ -244,12 +213,12 @@ export default function TestimonialPage() {
                 <Star className="w-6 h-6 text-[#76C043]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-800">{reviews.length}</p>
+                <p className="text-2xl font-bold text-gray-800">{totalItems}</p>
                 <p className="text-gray-600 font-['Poppins']">Total Reviews</p>
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-emerald-100 rounded-lg">
@@ -257,7 +226,8 @@ export default function TestimonialPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-800">
-                  {(reviews.reduce((acc, rev) => acc + rev.rating, 0) / reviews.length).toFixed(1)}
+                  {/* Simplified average since we don't fetch all pages, assume 5 for now or calculate from current page (imperfect) */}
+                  -
                 </p>
                 <p className="text-gray-600 font-['Poppins']">Average Rating</p>
               </div>
@@ -270,56 +240,54 @@ export default function TestimonialPage() {
                 <User className="w-6 h-6 text-yellow-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-800">
-                  {reviews.filter(rev => rev.rating === 5).length}
-                </p>
+                <p className="text-2xl font-bold text-gray-800">-</p>
                 <p className="text-gray-600 font-['Poppins']">5-Star Reviews</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Add Review Form */}
+        {/* Add/Edit Form */}
         {showAddForm && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold font-['Poppins'] text-gray-800">Add New Review</h2>
+              <h2 className="text-xl font-semibold font-['Poppins'] text-gray-800">
+                {editingId ? "Edit Review" : "Add New Review"}
+              </h2>
               <button
-                onClick={() => {
-                  setShowAddForm(false);
-                  setImagePreview(null);
-                  setNewReviewForm({
-                    name: "",
-                    role: "",
-                    image: "/homepage/image/avatar1.png",
-                    rating: 5,
-                    review: ""
-                  });
-                }}
+                onClick={handleCancel}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Customer Name
+                </label>
                 <input
                   type="text"
-                  value={newReviewForm.name}
-                  onChange={(e) => setNewReviewForm({...newReviewForm, name: e.target.value})}
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
                   placeholder="Enter customer name"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Role/Title</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Role/Title
+                </label>
                 <input
                   type="text"
-                  value={newReviewForm.role}
-                  onChange={(e) => setNewReviewForm({...newReviewForm, role: e.target.value})}
+                  value={formData.role}
+                  onChange={(e) =>
+                    setFormData({ ...formData, role: e.target.value })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
                   placeholder="Enter role or title"
                 />
@@ -328,37 +296,45 @@ export default function TestimonialPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
-                <div className="flex flex-col gap-3 h-[52px]">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#76C043] file:text-white hover:file:bg-lime-600"
-                  />
-                  {imagePreview && (
-                    <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 mt-2">
-                      <Image
-                        src={imagePreview}
-                        alt="Preview"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
-                </div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Profile Image
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="w-full p-2 border border-gray-300 rounded-lg text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#76C043]/10 file:text-[#76C043] hover:file:bg-[#76C043]/20"
+                />
+                {imagePreview && (
+                  <div className="mt-2 w-16 h-16 rounded-full overflow-hidden border border-gray-200">
+                    <Image
+                      src={imagePreview}
+                      alt="Preview"
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Rating
+                </label>
                 <select
-                  value={newReviewForm.rating}
-                  onChange={(e) => setNewReviewForm({...newReviewForm, rating: parseInt(e.target.value)})}
+                  value={formData.rating}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      rating: parseInt(e.target.value),
+                    })
+                  }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent appearance-none bg-white bg-no-repeat bg-right pr-10"
                   style={{
                     backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                    backgroundPosition: 'right 0.75rem center',
-                    backgroundSize: '1.5em 1.5em'
+                    backgroundPosition: "right 0.75rem center",
+                    backgroundSize: "1.5em 1.5em",
                   }}
                 >
                   <option value={5}>5 Stars</option>
@@ -371,10 +347,14 @@ export default function TestimonialPage() {
             </div>
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Review Content</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Review Content
+              </label>
               <textarea
-                value={newReviewForm.review}
-                onChange={(e) => setNewReviewForm({...newReviewForm, review: e.target.value})}
+                value={formData.review}
+                onChange={(e) =>
+                  setFormData({ ...formData, review: e.target.value })
+                }
                 rows={4}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
                 placeholder="Enter review content"
@@ -383,24 +363,15 @@ export default function TestimonialPage() {
 
             <div className="flex gap-3">
               <button
-                onClick={handleAddReview}
-                className="px-6 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium transition-colors"
+                onClick={editingId ? saveEdit : handleAddReview}
+                disabled={saving}
+                className="px-6 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium transition-colors flex items-center"
               >
                 <Save className="w-4 h-4 inline mr-2" />
-                Save Review
+                {editingId ? "Update Review" : "Save Review"}
               </button>
               <button
-                onClick={() => {
-                  setShowAddForm(false);
-                  setImagePreview(null);
-                  setNewReviewForm({
-                    name: "",
-                    role: "",
-                    image: "/homepage/image/avatar1.png",
-                    rating: 5,
-                    review: ""
-                  });
-                }}
+                onClick={handleCancel}
                 className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
               >
                 Cancel
@@ -411,90 +382,47 @@ export default function TestimonialPage() {
 
         {/* Reviews List */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {reviews.map((review) => (
-              <div key={review.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-              {editingReview === review.id ? (
-                /* Edit Form */
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold font-['Poppins']">Edit Review</h3>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={saveEdit}
-                        className="p-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg transition-colors"
-                      >
-                        <Save className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={cancelEdit}
-                        className="p-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <input
-                      type="text"
-                      value={editForm.name}
-                      onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#76C043] focus:border-transparent text-sm"
-                      placeholder="Name"
-                    />
-                    <input
-                      type="text"
-                      value={editForm.role}
-                      onChange={(e) => setEditForm({...editForm, role: e.target.value})}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#76C043] focus:border-transparent text-sm"
-                      placeholder="Role"
-                    />
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleEditImageUpload}
-                        className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#76C043] focus:border-transparent text-sm file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-medium file:bg-[#76C043] file:text-white hover:file:bg-lime-600"
-                      />
-                      {editImagePreview && (
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200 mt-2">
-                          <Image
-                            src={editImagePreview}
-                            alt="Preview"
-                            fill
-                            className="object-cover"
-                          />
+          {loading
+            ? Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+                >
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-12 h-12 rounded-full bg-gray-200 animate-pulse" />
+                        <div className="space-y-2 flex-1">
+                          <div className="h-5 w-32 bg-gray-200 animate-pulse rounded" />
+                          <div className="h-4 w-24 bg-gray-200 animate-pulse rounded" />
                         </div>
-                      )}
+                      </div>
+                      <div className="flex gap-1 ml-2">
+                        <div className="w-8 h-8 bg-gray-200 animate-pulse rounded-lg" />
+                        <div className="w-8 h-8 bg-gray-200 animate-pulse rounded-lg" />
+                      </div>
                     </div>
-                    <select
-                      value={editForm.rating}
-                      onChange={(e) => setEditForm({...editForm, rating: parseInt(e.target.value)})}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#76C043] focus:border-transparent text-sm appearance-none bg-white bg-no-repeat bg-right pr-8"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                        backgroundPosition: 'right 0.5rem center',
-                        backgroundSize: '1.25em 1.25em'
-                      }}
-                    >
-                      <option value={5}>5 Stars</option>
-                      <option value={4}>4 Stars</option>
-                      <option value={3}>3 Stars</option>
-                      <option value={2}>2 Stars</option>
-                      <option value={1}>1 Star</option>
-                    </select>
-                    <textarea
-                      value={editForm.review}
-                      onChange={(e) => setEditForm({...editForm, review: e.target.value})}
-                      rows={3}
-                      className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#76C043] focus:border-transparent text-sm"
-                      placeholder="Review content"
-                    />
+                    <div className="flex gap-1 mb-3">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <div
+                          key={i}
+                          className="w-4 h-4 bg-gray-200 animate-pulse rounded-sm"
+                        />
+                      ))}
+                    </div>
+                    <div className="p-3 bg-gray-50 rounded-lg h-24 animate-pulse">
+                      <div className="h-4 w-full bg-gray-200 rounded mb-2" />
+                      <div className="h-4 w-3/4 bg-gray-200 rounded mb-2" />
+                      <div className="h-4 w-1/2 bg-gray-200 rounded" />
+                    </div>
                   </div>
                 </div>
-              ) : (
-                /* Review Display */
-                <>
+              ))
+            : reviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                >
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -516,7 +444,7 @@ export default function TestimonialPage() {
                           </p>
                         </div>
                       </div>
-                      
+
                       <div className="flex gap-1 ml-2">
                         <button
                           onClick={() => startEdit(review)}
@@ -535,26 +463,40 @@ export default function TestimonialPage() {
 
                     <div className="flex gap-0.5 mb-3">
                       {[...Array(review.rating)].map((_, i) => (
-                        <AiFillStar key={i} className="w-4 h-4 text-emerald-500" />
+                        <AiFillStar
+                          key={i}
+                          className="w-4 h-4 text-emerald-500"
+                        />
                       ))}
                       {[...Array(5 - review.rating)].map((_, i) => (
-                        <AiFillStar key={i + review.rating} className="w-4 h-4 text-gray-200" />
+                        <AiFillStar
+                          key={i + review.rating}
+                          className="w-4 h-4 text-gray-200"
+                        />
                       ))}
                     </div>
 
                     <div className="p-3 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-neutral-600 font-['Poppins'] leading-6">
+                      <p className="text-sm text-neutral-600 font-['Poppins'] leading-6 line-clamp-4">
                         {review.review}
                       </p>
                     </div>
                   </div>
-                </>
-              )}
-            </div>
-          ))}
+                </div>
+              ))}
         </div>
 
-        {/* Delete Confirmation Modall */}
+        {/* Pagination Control */}
+        <div className="mt-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            isLoading={loading}
+          />
+        </div>
+
+        {/* Delete Confirmation Modal */}
         <DeleteConfirmationModal
           isOpen={!!deleteConfirm}
           onClose={() => setDeleteConfirm(null)}
@@ -563,6 +505,6 @@ export default function TestimonialPage() {
           message="Are you sure you want to delete this review? This action cannot be undone."
         />
       </div>
-  </div>
+    </div>
   );
 }

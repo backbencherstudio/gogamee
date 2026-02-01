@@ -1,4 +1,5 @@
 import axiosClient from "../lib/axiosClient";
+import { ApiResponse } from "@/app/lib/api-response";
 
 // ========== Booking Interfaces ==========
 export interface BookingExtra {
@@ -154,19 +155,48 @@ export interface UpdateBookingPayload {
   [key: string]: unknown;
 }
 
+export interface BookingStats {
+  total: number;
+  completed: number;
+  pending: number;
+  rejected: number;
+}
+
 // ========== Booking API Functions ==========
 
-// GET all bookings
-export const getAllBookings = async (): Promise<BookingResponse> => {
-  console.log("Booking Service - Fetching all bookings");
-  const response = await axiosClient.get("/admin/all-bookings/categorized");
+export const getBookingStats = async (): Promise<ApiResponse<BookingStats>> => {
+  const response = await axiosClient.get("/admin/all-bookings/stats");
+  return response.data;
+};
+
+export const getAllBookings = async (
+  page: number = 1,
+  limit: number = 10,
+  status: string = "all",
+  days: string = "alltime",
+): Promise<ApiResponse<BookingItem[]>> => {
+  console.log("Booking Service - Fetching all bookings", {
+    page,
+    limit,
+    status,
+    days,
+  });
+  // The API endpoint already supports page and limit query params
+  const response = await axiosClient.get(`/admin/all-bookings/categorized`, {
+    params: {
+      page,
+      limit,
+      status,
+      days,
+    },
+  });
   console.log("Booking Service - Bookings received:", response.data);
   return response.data;
 };
 
 // POST create booking and get Stripe session
 export const createBooking = async (
-  payload: CreateBookingPayload
+  payload: CreateBookingPayload,
 ): Promise<StripeSessionResponse> => {
   console.log("Booking Service - Creating booking with payload:", payload);
   const response = await axiosClient.post("/payment/stripe", payload);
@@ -176,18 +206,18 @@ export const createBooking = async (
 
 // PATCH update booking
 export const updateBooking = async (
-  payload: UpdateBookingPayload
+  payload: UpdateBookingPayload,
 ): Promise<BookingItem> => {
   console.log(
     "Booking Service - Updating booking:",
     payload.id,
     "with data:",
-    payload
+    payload,
   );
   const { id, ...updateData } = payload;
   const response = await axiosClient.patch(
     `/admin/all-bookings/${id}/status`,
-    updateData
+    updateData,
   );
   console.log("Booking Service - Booking updated:", response.data);
   return response.data;

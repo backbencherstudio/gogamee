@@ -9,21 +9,24 @@ import { useLanguage } from "../../../../context/LanguageContext";
 
 interface FaqProps {
   className?: string;
+  initialFaqs?: FaqItem[];
 }
 
-export default function Faq({ className = "" }: FaqProps) {
+export default function Faq({ className = "", initialFaqs = [] }: FaqProps) {
   const { language, translateText } = useLanguage();
   const [expandedItems, setExpandedItems] = useState<number[]>([0]);
-  const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [faqs, setFaqs] = useState<FaqItem[]>(initialFaqs);
   const [translatedFaqs, setTranslatedFaqs] = useState<FaqItem[]>([]);
 
   useEffect(() => {
+    if (initialFaqs.length > 0) return; // Skip fetch if data provided
     const fetchFaqs = async () => {
       try {
         const response = await getAllFaqs();
-        if (response.success) {
-          setFaqs(response.list);
-          if (response.list.length > 0) {
+        // Check for ApiResponse structure
+        if (response && response.success && Array.isArray(response.data)) {
+          setFaqs(response.data);
+          if (response.data.length > 0) {
             setExpandedItems([0]);
           }
         }
@@ -32,12 +35,12 @@ export default function Faq({ className = "" }: FaqProps) {
       }
     };
     fetchFaqs();
-  }, []);
+  }, [initialFaqs]);
 
   // Translate FAQs when language changes
   useEffect(() => {
     const translateFaqs = async () => {
-      if (language === 'es') {
+      if (language === "es") {
         // If Spanish, use original FAQs (no translation needed)
         setTranslatedFaqs(faqs);
       } else {
@@ -47,7 +50,7 @@ export default function Faq({ className = "" }: FaqProps) {
             ...faq,
             question: await translateText(faq.question),
             answer: await translateText(faq.answer),
-          }))
+          })),
         );
         setTranslatedFaqs(translated);
       }
@@ -75,7 +78,11 @@ export default function Faq({ className = "" }: FaqProps) {
           {/* Header Section */}
           <div className="self-stretch flex flex-col lg:flex-row justify-start items-start lg:items-center gap-6 lg:gap-24">
             <div className="w-full lg:w-[533px] text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              <TranslatedText text="Preguntas frecuentes" english="Frequently asked questions" as="span" />
+              <TranslatedText
+                text="Preguntas frecuentes"
+                english="Frequently asked questions"
+                as="span"
+              />
             </div>
             <div className="flex-1 text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed md:leading-7">
               <TranslatedText
@@ -91,56 +98,60 @@ export default function Faq({ className = "" }: FaqProps) {
             <div className="self-stretch bg-white flex flex-col justify-start items-start gap-6 w-full">
               <div className="self-stretch p-5 md:p-8 lg:p-10 rounded-lg outline-[6px] outline-offset-[-6px] outline-green-50 w-full">
                 <div className="flex flex-col gap-5 w-full">
-                  {(translatedFaqs.length > 0 ? translatedFaqs : faqs).slice(0, 5).map((item, index) => (
-                    <div
-                      key={item.id}
-                      className="flex flex-col gap-4 md:gap-5 w-full"
-                    >
-                      <div className="w-full">
-                        <div 
-                          onClick={() => toggleItem(index)}
-                          className="flex justify-between items-start gap-4 md:gap-6 w-full cursor-pointer"
-                        >
-                          <div className="flex items-center gap-2 md:gap-3 flex-1">
-                            <div className="w-5 h-5 md:w-6 md:h-6 relative overflow-hidden flex-shrink-0">
-                              <Image
-                                src="/homepage/icon/faq.svg"
-                                alt="FAQ icon"
-                                width={24}
-                                height={24}
-                                className="w-full h-full object-contain"
+                  {(translatedFaqs.length > 0 ? translatedFaqs : faqs)
+                    .slice(0, 5)
+                    .map((item, index) => (
+                      <div
+                        key={item.id}
+                        className="flex flex-col gap-4 md:gap-5 w-full"
+                      >
+                        <div className="w-full">
+                          <div
+                            onClick={() => toggleItem(index)}
+                            className="flex justify-between items-start gap-4 md:gap-6 w-full cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2 md:gap-3 flex-1">
+                              <div className="w-5 h-5 md:w-6 md:h-6 relative overflow-hidden flex-shrink-0">
+                                <Image
+                                  src="/homepage/icon/faq.svg"
+                                  alt="FAQ icon"
+                                  width={24}
+                                  height={24}
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                              <div
+                                onClick={() => toggleItem(index)}
+                                className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9 cursor-pointer flex-1 "
+                              >
+                                {item.question}
+                              </div>
+                            </div>
+                            <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center flex-shrink-0">
+                              <IoIosArrowDown
+                                className={`w-full h-full text-lime-900 transition-transform duration-200 ${
+                                  expandedItems.includes(index)
+                                    ? "rotate-180"
+                                    : ""
+                                }`}
                               />
                             </div>
-                            <div 
-                              onClick={() => toggleItem(index)}
-                              className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9 cursor-pointer flex-1 "
-                            >
-                              {item.question}
-                            </div>
-                          </div>
-                          <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center flex-shrink-0">
-                            <IoIosArrowDown 
-                              className={`w-full h-full text-lime-900 transition-transform duration-200 ${
-                                expandedItems.includes(index) ? 'rotate-180' : ''
-                              }`} 
-                            />
                           </div>
                         </div>
-                      </div>
 
-                      <div 
-                        className={`text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-7 md:pl-8 lg:pl-9 overflow-hidden transition-all duration-500 ease-in-out ${
-                          expandedItems.includes(index) 
-                            ? 'max-h-96 opacity-100' 
-                            : 'max-h-0 opacity-0'
-                        }`}
-                      >
-                        {item.answer}
-                      </div>
+                        <div
+                          className={`text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-7 md:pl-8 lg:pl-9 overflow-hidden transition-all duration-500 ease-in-out ${
+                            expandedItems.includes(index)
+                              ? "max-h-96 opacity-100"
+                              : "max-h-0 opacity-0"
+                          }`}
+                        >
+                          {item.answer}
+                        </div>
 
-                      <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
-                    </div>
-                  ))}
+                        <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>
@@ -152,7 +163,11 @@ export default function Faq({ className = "" }: FaqProps) {
                 href="/faqs"
                 className="px-4 py-2 md:py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] flex justify-center items-center gap-2.5 w-36 md:w-44 cursor-pointer"
               >
-                <TranslatedText text="Ver más" english="View more" className="text-center text-white text-base md:text-lg font-normal font-['Inter'] leading-normal md:leading-7" />
+                <TranslatedText
+                  text="Ver más"
+                  english="View more"
+                  className="text-center text-white text-base md:text-lg font-normal font-['Inter'] leading-normal md:leading-7"
+                />
               </Link>
             </div>
           </div>

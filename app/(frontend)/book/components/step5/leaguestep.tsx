@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { FaCheck } from 'react-icons/fa';
-import { useBooking } from '../../context/BookingContext';
-import { TranslatedText } from '../../../_components/TranslatedText';
+import React from "react";
+import { useForm, Controller } from "react-hook-form";
+import { FaCheck } from "react-icons/fa";
+import { useBooking } from "../../context/BookingContext";
+import { TranslatedText } from "../../../_components/TranslatedText";
 
 interface LeagueOption {
   id: string;
@@ -19,66 +19,72 @@ interface LeagueFormData {
 
 const LEAGUE_OPTIONS: LeagueOption[] = [
   {
-    id: 'national',
-    title: 'National Leagues',
-    price: '',
-    imagePath: '/stepper/league1.png'
+    id: "national",
+    title: "National Leagues",
+    price: "",
+    imagePath: "/stepper/league1.png",
   },
   {
-    id: 'european',
-    title: 'European Competition',
-    price: '+50€',
-    imagePath: '/stepper/league2.png'
-  }
+    id: "european",
+    title: "European Competition",
+    price: " ( + 50€ )",
+    imagePath: "/stepper/league2.png",
+  },
 ];
 
-const CONTAINER_STYLES = "w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0";
+const CONTAINER_STYLES =
+  "w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0";
 
-const CARD_BASE_STYLES = "flex-1 h-40 xl:h-48 py-4 xl:py-6 rounded inline-flex flex-col justify-center items-center gap-2.5 cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-lg group";
+const CARD_BASE_STYLES =
+  "flex-1 h-40 xl:h-48 py-4 xl:py-6 rounded inline-flex flex-col justify-center items-center gap-2.5 cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-lg group";
 
 const getCardStyles = (isSelected: boolean): string => {
   const overlayStyles = isSelected
     ? "outline outline-2 outline-offset-2 outline-[#6AAD3C]"
     : "hover:outline hover:outline-1 hover:outline-lime-300";
-  
+
   return `${CARD_BASE_STYLES} ${overlayStyles}`;
 };
 
 const getButtonStyles = (isDisabled: boolean): string => {
-  const baseStyles = "w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all";
+  const baseStyles =
+    "w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all";
   const conditionalStyles = isDisabled
     ? "bg-gray-400 cursor-not-allowed"
     : "bg-[#6AAD3C] hover:bg-lime-600 cursor-pointer";
-  
+
   return `${baseStyles} ${conditionalStyles}`;
 };
 
 export default function LeagueStep() {
   const { formData, updateFormData, nextStep } = useBooking();
-  
+
   const { control, watch, handleSubmit } = useForm<LeagueFormData>({
     defaultValues: {
-      selectedLeague: formData.selectedLeague || ''
-    }
+      selectedLeague: formData.selectedLeague || "",
+    },
   });
 
-  const selectedLeague = watch('selectedLeague');
+  const selectedLeague = watch("selectedLeague");
 
   const onSubmit = (data: LeagueFormData) => {
     if (data.selectedLeague) {
-      console.log('Selected league:', data.selectedLeague);
-      
+      console.log("Selected league:", data.selectedLeague);
+
       // Update the booking context with selected league
       updateFormData({ selectedLeague: data.selectedLeague });
-      
+
       // Pass the selected league data immediately to nextStep for conditional navigation
       nextStep({ selectedLeague: data.selectedLeague });
     }
   };
 
-  const renderLeagueCard = (option: LeagueOption, onChange: (value: string) => void) => {
+  const renderLeagueCard = (
+    option: LeagueOption,
+    onChange: (value: string) => void,
+  ) => {
     const isSelected = selectedLeague === option.id;
-    
+
     return (
       <div
         key={option.id}
@@ -86,21 +92,25 @@ export default function LeagueStep() {
         onClick={() => onChange(option.id)}
       >
         {/* Background Image Layer */}
-        <div 
+        <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat rounded transition-transform duration-300 group-hover:scale-110"
           style={{ backgroundImage: `url(${option.imagePath})` }}
         />
 
         {/* Background Overlay */}
         <div className="absolute inset-0 bg-black/40 rounded transition-colors duration-300 group-hover:bg-lime-900/40" />
-        
+
         {/* Hover Overlay */}
         <div className="absolute inset-0 bg-[#6AAD3C]/0 rounded transition-all duration-300 group-hover:bg-[#6AAD3C]/20" />
-        
+
         {/* League Title */}
         <div className="relative z-10 self-stretch text-center justify-start text-white text-base xl:text-lg font-bold font-['Poppins'] leading-loose drop-shadow-lg">
           <TranslatedText
-            text={option.id === 'national' ? 'Ligas nacionales' : 'Competiciones europeas'}
+            text={
+              option.id === "national"
+                ? "Ligas nacionales"
+                : "Competiciones europeas"
+            }
             english={`${option.title} ${option.price}`.trim()}
           />
         </div>
@@ -137,7 +147,9 @@ export default function LeagueStep() {
               control={control}
               render={({ field: { onChange } }) => (
                 <>
-                  {LEAGUE_OPTIONS.map((option) => renderLeagueCard(option, onChange))}
+                  {LEAGUE_OPTIONS.map((option) =>
+                    renderLeagueCard(option, onChange),
+                  )}
                 </>
               )}
             />

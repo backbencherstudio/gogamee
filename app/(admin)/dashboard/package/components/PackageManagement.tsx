@@ -1,57 +1,77 @@
-'use client'
-import React, { useState, useEffect } from 'react'
-import { Plus, Package as PackageIcon, Trash2, X, Edit, DollarSign } from 'lucide-react'
-import AddPackage from './addpackage'
-import FixedPriceCard from './FixedPriceCard'
-import { getAllPackages, addPackage, editPackage, deletePackage } from '../../../../../services/packageService'
-import DeleteConfirmationModal from '../../../../../components/ui/delete-confirmation-modal'
-
-// Package interface matching the frontend structure
-interface PackageData {
-  id: string;
-  sport: 'football' | 'basketball';
-  category: string;
-  standard: string;
-  premium: string;
-  standardPrice?: number;
-  premiumPrice?: number;
-  currency?: string;
-}
+"use client";
+import React, { useState, useEffect } from "react";
+import {
+  Plus,
+  Package as PackageIcon,
+  Trash2,
+  X,
+  Edit,
+  DollarSign,
+} from "lucide-react";
+import AddPackage from "./addpackage";
+import FixedPriceCard from "./FixedPriceCard";
+import {
+  getAllPackages,
+  addPackage,
+  editPackage,
+  deletePackage,
+  type PackageItem,
+} from "../../../../../services/packageService";
+import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
+import { Pagination } from "../../../../../components/ui/Pagination";
 
 interface PackageManagementProps {
-  initialPackages?: PackageData[];
-  onPackageAdd?: (packageData: PackageData) => void;
+  onPackageAdd?: (packageData: PackageItem) => void;
   onPackageDelete?: (id: string) => void;
-  onPackageUpdate?: (packageData: PackageData) => void;
 }
 
-export default function PackageManagement({ 
+export default function PackageManagement({
   onPackageAdd,
-  onPackageDelete
+  onPackageDelete,
 }: PackageManagementProps) {
-  const [packages, setPackages] = useState<PackageData[]>([]);
-  const [selectedSport, setSelectedSport] = useState<'football' | 'basketball' | 'all'>('all');
+  const [packages, setPackages] = useState<PackageItem[]>([]);
+  const [selectedDuration, setSelectedDuration] = useState<number | "all">(
+    "all",
+  );
   const [showAddForm, setShowAddForm] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
   const [editingPriceId, setEditingPriceId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const limit = 10;
 
   // Refresh packages from API
-  const refreshPackages = async () => {
+  const refreshPackages = async (page: number = 1) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getAllPackages();
-      if (response.success && response.list) {
-        setPackages(response.list as PackageData[]);
+      // Fetch all packages without sport filter
+      const response = await getAllPackages(undefined, page, limit);
+
+      if (response && response.success && Array.isArray(response.data)) {
+        setPackages(response.data);
+        if (response.meta_data) {
+          setTotalPages(response.meta_data.total_pages);
+          setTotalItems(response.meta_data.total);
+          setCurrentPage(response.meta_data.page);
+        }
       } else {
-        setError('Failed to fetch packages');
+        // Fallback for empty or error
+        setPackages([]);
+        if (!response.success) {
+          setError(response.message || "Failed to fetch packages");
+        }
       }
     } catch (err) {
-      console.error('Error fetching packages:', err);
-      setError('Failed to load packages. Please try again later.');
+      console.error("Error fetching packages:", err);
+      setError("Failed to load packages. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -59,119 +79,110 @@ export default function PackageManagement({
 
   // Load package data from API
   useEffect(() => {
-    refreshPackages();
-  }, []);
+    refreshPackages(currentPage);
+  }, [currentPage]);
 
-  // Filter packages by sport
-  const filteredPackages = selectedSport === 'all' 
-    ? packages 
-    : packages.filter(pkg => pkg.sport === selectedSport);
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   // Delete package function
   const handleDeletePackage = async (id: string) => {
     try {
       const response = await deletePackage(id);
-      console.log('Delete package response:', response);
-      
       if (response.success) {
-        // Refresh all packages from API
-        await refreshPackages();
-        
+        await refreshPackages(currentPage);
         if (onPackageDelete) {
           onPackageDelete(id);
         }
       } else {
-        setError(response.message || 'Failed to delete package');
+        setError(response.message || "Failed to delete package");
       }
     } catch (err) {
-      console.error('Error deleting package:', err);
-      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Failed to delete package. Please try again.';
-      setError(errorMessage);
+      console.error("Error deleting package:", err);
+      setError("Failed to delete package.");
     }
     setDeleteConfirm(null);
   };
 
   // Add new package function
-  const handleAddPackage = async (newPackage: Omit<PackageData, 'id'>) => {
+  // We accept 'any' here effectively to match the form data, then cast/validate
+  const handleAddPackage = async (newPackage: any) => {
     try {
-      console.log('Sending package data:', newPackage);
-      
+      // Logic from previous file:
+      console.log("Sending package data:", newPackage);
       const response = await addPackage(newPackage);
-      console.log('Add package response:', response);
-      
+
       if (response.success) {
-        // Refresh all packages from API to get the latest data
-        await refreshPackages();
+        await refreshPackages(currentPage);
         setShowAddForm(false);
-        
         if (response.data && onPackageAdd) {
-          onPackageAdd(response.data as PackageData);
+          onPackageAdd(response.data);
         }
       } else {
-        setError(response.message || 'Failed to add package');
+        setError(response.message || "Failed to add package");
       }
     } catch (err) {
-      console.error('Error adding package:', err);
-      console.error('Error details:', (err as { response?: { data?: unknown } })?.response?.data);
-      const errorMessage = (err as { response?: { data?: { message?: string; error?: string } }; message?: string })?.response?.data?.message || (err as { response?: { data?: { error?: string } } })?.response?.data?.error || (err as Error)?.message || 'Failed to add package. Please try again.';
-      setError(errorMessage);
+      console.error("Error adding package:", err);
+      setError("Failed to add package.");
     }
   };
 
   // Update existing package
-  const handleUpdatePackage = async (updated: Omit<PackageData, 'id'>) => {
+  const handleUpdatePackage = async (updated: any) => {
     if (!editingPackageId) return;
     try {
       const response = await editPackage(editingPackageId, updated);
-      console.log('Update package response:', response);
-      
+
       if (response.success) {
-        // Refresh all packages from API
-        await refreshPackages();
+        await refreshPackages(currentPage);
         setEditingPackageId(null);
       } else {
-        setError(response.message || 'Failed to update package');
+        setError(response.message || "Failed to update package");
       }
     } catch (err) {
-      console.error('Error updating package:', err);
-      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Failed to update package. Please try again.';
-      setError(errorMessage);
+      console.error("Error updating package:", err);
+      setError("Failed to update package.");
     }
   };
 
   // Update package prices
-  const handleUpdatePrices = async (priceData: { standardPrice: number; premiumPrice: number; currency: string }) => {
+  const handleUpdatePrices = async (priceData: {
+    standardPrice: number;
+    premiumPrice: number;
+    currency: string;
+  }) => {
     if (!editingPriceId) return;
     try {
       const response = await editPackage(editingPriceId, {
         standardPrice: priceData.standardPrice,
         premiumPrice: priceData.premiumPrice,
-        currency: priceData.currency
+        currency: priceData.currency,
       });
-      console.log('Update prices response:', response);
-      
+
       if (response.success) {
-        // Refresh all packages from API
-        await refreshPackages();
+        await refreshPackages(currentPage);
         setEditingPriceId(null);
       } else {
-        setError(response.message || 'Failed to update prices');
+        setError(response.message || "Failed to update prices");
       }
     } catch (err) {
-      console.error('Error updating prices:', err);
-      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Failed to update prices. Please try again.';
-      setError(errorMessage);
+      console.error("Error updating prices:", err);
+      setError("Failed to update prices.");
     }
   };
 
   // Handle price updates from FixedPriceCard
-  const handlePriceUpdate = async (sport: 'football' | 'basketball', prices: { standardPrice: number; premiumPrice: number; currency: string }) => {
+  const handlePriceUpdate = async (
+    sport: "football" | "basketball",
+    prices: { standardPrice: number; premiumPrice: number; currency: string },
+  ) => {
     try {
-      // Refresh all packages from API to ensure consistency
-        await refreshPackages();
+      // Refresh to ensure consistency
+      await refreshPackages(currentPage);
       console.log(`Price updated for ${sport}:`, prices);
     } catch (err) {
-      console.error('Error refreshing packages after price update:', err);
+      console.error("Error refreshing packages after price update:", err);
     }
   };
 
@@ -184,9 +195,11 @@ export default function PackageManagement({
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
               Package Management
             </h1>
-            <p className="text-gray-600 font-['Poppins']">Manage travel packages for football and basketball events</p>
-          </div> 
-          
+            <p className="text-gray-600 font-['Poppins']">
+              Manage travel packages for football and basketball events
+            </p>
+          </div>
+
           {/* Add Package Button */}
           <button
             onClick={() => setShowAddForm(true)}
@@ -197,40 +210,17 @@ export default function PackageManagement({
           </button>
         </div>
 
-        {/* Filter Section */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6 shadow-sm">
-          <div className="flex flex-col gap-3">
-            <span className="text-gray-700 font-medium font-['Poppins'] whitespace-nowrap">Filter by Sport</span>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { value: 'all', label: 'All Sports' },
-                { value: 'football', label: 'Football' },
-                { value: 'basketball', label: 'Basketball' }
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setSelectedSport(option.value as 'football' | 'basketball' | 'all')}
-                  className={`px-3 py-1.5 text-sm md:px-4 md:py-2 md:text-base rounded-md font-medium font-['Poppins'] transition-all duration-200 ${
-                    selectedSport === option.value
-                      ? 'bg-[#76C043] text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Fixed Price Card - Always Visible */}
-        <FixedPriceCard onPriceUpdate={handlePriceUpdate} />
+        <FixedPriceCard
+          onPriceUpdate={handlePriceUpdate}
+          onDurationChange={(duration) => setSelectedDuration(duration)}
+        />
 
         {/* Error Message */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="text-red-800 font-medium">{error}</div>
-            <button 
+            <button
               onClick={() => setError(null)}
               className="mt-2 text-red-600 hover:text-red-800 underline"
             >
@@ -241,121 +231,204 @@ export default function PackageManagement({
 
         {/* Loading State */}
         {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="text-gray-600 text-lg font-medium">Loading packages...</div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-lg border border-gray-200 p-6 overflow-hidden"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gray-200 animate-pulse rounded-lg" />
+                    <div className="space-y-2">
+                      <div className="h-6 w-32 bg-gray-200 animate-pulse rounded" />
+                      <div className="h-4 w-20 bg-gray-200 animate-pulse rounded" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="w-8 h-8 bg-gray-200 animate-pulse rounded-lg" />
+                    <div className="w-8 h-8 bg-gray-200 animate-pulse rounded-lg" />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <div className="h-4 w-32 bg-gray-200 animate-pulse rounded" />
+                      <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
+                    </div>
+                    <div className="h-12 w-full bg-gray-100 animate-pulse rounded-lg" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <div className="h-4 w-32 bg-gray-200 animate-pulse rounded" />
+                      <div className="h-4 w-16 bg-gray-200 animate-pulse rounded" />
+                    </div>
+                    <div className="h-12 w-full bg-gray-100 animate-pulse rounded-lg" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <>
             {/* Packages Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredPackages.map((pkg) => (
-            <div key={pkg.id} className="bg-white rounded-lg border border-gray-200 hover:border-[#76C043]/30 hover:shadow-lg transition-all duration-300 overflow-hidden">
-              {/* Package Header */}
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white ${
-                      pkg.sport === 'football' ? 'bg-green-500' : 'bg-blue-500'
-                    }`}>
-                      <PackageIcon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 font-['Poppins'] text-lg">{pkg.category}</h3>
-                      <span className={`text-sm px-2 py-1 rounded-full font-medium ${
-                        pkg.sport === 'football' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {pkg.sport === 'football' ? 'Football' : 'Basketball'}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    {/* Only show price edit button for Starting Price packages */}
-                    {pkg.category === 'Starting Price' && (
-                      <button
-                        onClick={() => setEditingPriceId(pkg.id)}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
-                        title="Update Prices"
-                      >
-                        <DollarSign className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setEditingPackageId(pkg.id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
-                      title="Edit Package"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button 
-                      onClick={() => setDeleteConfirm(pkg.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
-                      title="Delete Package"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+              {packages
+                .filter((pkg) => {
+                  if (
+                    selectedDuration !== "all" &&
+                    pkg.duration !== selectedDuration
+                  ) {
+                    return false;
+                  }
+                  return true;
+                })
+                .map((pkg) => (
+                  <div
+                    key={pkg.id}
+                    className="bg-white rounded-lg border border-gray-200 hover:border-[#76C043]/30 hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group"
+                    onClick={() => setEditingPackageId(pkg.id)}
+                  >
+                    {/* Package Header */}
+                    <div className="p-6 border-b border-gray-100">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900 font-['Poppins'] text-lg capitalize">
+                            {pkg.sport} - {pkg.plan} Plan
+                          </h3>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {pkg.duration} Night{pkg.duration > 1 ? "s" : ""}{" "}
+                            Package
+                          </p>
+                        </div>
 
-              {/* Package Content */}
-              <div className="p-6 space-y-4">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-700 font-['Poppins']">Standard Package:</h4>
-                    {/* Only show price for Starting Price packages */}
-                    {pkg.category === 'Starting Price' && pkg.standardPrice && (
-                      <span className="text-lg font-bold text-green-600 font-['Poppins']">
-                        {pkg.standardPrice}{pkg.currency || '€'}
-                      </span>
-                    )}
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingPackageId(pkg.id);
+                            }}
+                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                            title="Edit Package"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirm(pkg.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                            title="Delete Package"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Badges */}
+                      <div className="flex gap-2 flex-wrap">
+                        <span
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                            pkg.sport === "football"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-blue-100 text-blue-700"
+                          }`}
+                        >
+                          {pkg.sport === "football"
+                            ? "⚽ Football"
+                            : "🏀 Basketball"}
+                        </span>
+                        {pkg.plan && (
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                              pkg.plan === "standard"
+                                ? "bg-purple-100 text-purple-700"
+                                : pkg.plan === "premium"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-teal-100 text-teal-700"
+                            }`}
+                          >
+                            {pkg.plan === "standard"
+                              ? "📦 Standard"
+                              : pkg.plan === "premium"
+                                ? "⭐ Premium"
+                                : "🎯 Combined"}
+                          </span>
+                        )}
+                        {pkg.duration && (
+                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-orange-100 text-orange-700">
+                            🌙 {pkg.duration} Night
+                            {pkg.duration > 1 ? "s" : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Package Content */}
+                    <div className="p-6 space-y-4">
+                      {/* What's Included */}
+                      <div>
+                        <h4 className="font-medium text-gray-700 mb-2 font-['Poppins']">
+                          What's Included:
+                        </h4>
+                        <p className="text-gray-600 text-sm font-['Poppins'] bg-blue-50 p-3 rounded-lg border border-blue-100">
+                          {pkg.included || "Not specified"}
+                        </p>
+                      </div>
+
+                      {/* Package Description */}
+                      <div>
+                        <h4 className="font-medium text-gray-700 mb-2 font-['Poppins']">
+                          Description:
+                        </h4>
+                        <p className="text-gray-600 text-sm font-['Poppins'] bg-gray-50 p-3 rounded-lg">
+                          {pkg.description || "No description available"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-gray-600 text-sm font-['Poppins'] bg-gray-50 p-3 rounded-lg">{pkg.standard}</p>
-                </div>
-                
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-gray-700 font-['Poppins']">Premium Package:</h4>
-                    {/* Only show price for Starting Price packages */}
-                    {pkg.category === 'Starting Price' && pkg.premiumPrice && (
-                      <span className="text-lg font-bold text-blue-600 font-['Poppins']">
-                        {pkg.premiumPrice}{pkg.currency || '€'}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-gray-600 text-sm font-['Poppins'] bg-gray-50 p-3 rounded-lg">{pkg.premium}</p>
-                </div>
-              </div>
+                ))}
             </div>
-          ))}
-        </div>
 
-            {filteredPackages.length === 0 && (
+            {packages.length === 0 && (
               <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
                 <PackageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-500 font-['Poppins']">No packages found</h3>
-                <p className="text-gray-400 font-['Poppins']">Try adjusting your filter or add a new package</p>
+                <h3 className="text-lg font-medium text-gray-500 font-['Poppins']">
+                  No packages found
+                </h3>
+                <p className="text-gray-400 font-['Poppins']">
+                  Try adjusting your filter or add a new package
+                </p>
               </div>
             )}
+
+            {/* Pagination Control */}
+            <div className="mt-6">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                isLoading={loading}
+              />
+            </div>
           </>
         )}
       </div>
 
       {/* Add Package Modal */}
       {showAddForm && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/30 bg-opacity-20 flex items-center justify-center z-50 p-4"
           onClick={() => setShowAddForm(false)}
         >
-          <div 
+          <div
             className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">Add New Package</h2>
+              <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">
+                Add New Package
+              </h2>
               <button
                 onClick={() => setShowAddForm(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -364,7 +437,7 @@ export default function PackageManagement({
               </button>
             </div>
             <div className="p-6">
-              <AddPackage 
+              <AddPackage
                 onSubmit={handleAddPackage}
                 onCancel={() => setShowAddForm(false)}
               />
@@ -375,16 +448,18 @@ export default function PackageManagement({
 
       {/* Edit Package Modal */}
       {editingPackageId && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/30 bg-opacity-20 flex items-center justify-center z-50 p-4"
           onClick={() => setEditingPackageId(null)}
         >
-          <div 
+          <div
             className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">Edit Package</h2>
+              <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">
+                Edit Package
+              </h2>
               <button
                 onClick={() => setEditingPackageId(null)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -394,20 +469,18 @@ export default function PackageManagement({
             </div>
             <div className="p-6">
               {(() => {
-                const pkg = packages.find(p => p.id === editingPackageId);
+                const pkg = packages.find((p) => p.id === editingPackageId);
                 if (!pkg) return null;
                 const initial = {
-                  sport: pkg.sport,
-                  category: pkg.category,
-                  standard: pkg.standard,
-                  premium: pkg.premium
+                  ...pkg,
+                  sport: pkg.sport as "football" | "basketball",
                 };
                 return (
                   <AddPackage
                     initialData={initial}
                     submitLabel="Save Changes"
-                    showSport={false}
-                    showPrices={pkg.category === 'Starting Price'}
+                    showPrices={false}
+                    currentPackageId={pkg.id}
                     onSubmit={handleUpdatePackage}
                     onCancel={() => setEditingPackageId(null)}
                   />
@@ -420,16 +493,18 @@ export default function PackageManagement({
 
       {/* Price Edit Modal */}
       {editingPriceId && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/30 bg-opacity-20 flex items-center justify-center z-50 p-4"
           onClick={() => setEditingPriceId(null)}
         >
-          <div 
+          <div
             className="bg-white rounded-lg max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">Update Package Prices</h2>
+              <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">
+                Update Package Prices
+              </h2>
               <button
                 onClick={() => setEditingPriceId(null)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -439,9 +514,9 @@ export default function PackageManagement({
             </div>
             <div className="p-6">
               {(() => {
-                const pkg = packages.find(p => p.id === editingPriceId);
+                const pkg = packages.find((p) => p.id === editingPriceId);
                 if (!pkg) return null;
-                
+
                 return (
                   <PriceEditForm
                     packageData={pkg}
@@ -464,30 +539,44 @@ export default function PackageManagement({
         message="Are you sure you want to delete this package?"
       />
     </div>
-  )
+  );
 }
 
 // Price Edit Form Component
 interface PriceEditFormProps {
-  packageData: PackageData;
-  onSubmit: (priceData: { standardPrice: number; premiumPrice: number; currency: string }) => void;
+  packageData: PackageItem;
+  onSubmit: (priceData: {
+    standardPrice: number;
+    premiumPrice: number;
+    currency: string;
+  }) => void;
   onCancel: () => void;
 }
 
-function PriceEditForm({ packageData, onSubmit, onCancel }: PriceEditFormProps) {
+function PriceEditForm({
+  packageData,
+  onSubmit,
+  onCancel,
+}: PriceEditFormProps) {
   const [formData, setFormData] = useState({
     standardPrice: packageData.standardPrice || 0,
     premiumPrice: packageData.premiumPrice || 0,
-    currency: packageData.currency || 'EUR'
+    currency: packageData.currency || "EUR",
   });
 
-  const [errors, setErrors] = useState<{ standardPrice?: string; premiumPrice?: string }>({});
+  const [errors, setErrors] = useState<{
+    standardPrice?: string;
+    premiumPrice?: string;
+  }>({});
 
-  const handleInputChange = (field: keyof typeof formData, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (
+    field: keyof typeof formData,
+    value: string | number,
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
@@ -495,13 +584,14 @@ function PriceEditForm({ packageData, onSubmit, onCancel }: PriceEditFormProps) 
     const newErrors: { standardPrice?: string; premiumPrice?: string } = {};
 
     if (formData.standardPrice < 0) {
-      newErrors.standardPrice = 'Standard price must be positive';
+      newErrors.standardPrice = "Standard price must be positive";
     }
     if (formData.premiumPrice < 0) {
-      newErrors.premiumPrice = 'Premium price must be positive';
+      newErrors.premiumPrice = "Premium price must be positive";
     }
     if (formData.premiumPrice <= formData.standardPrice) {
-      newErrors.premiumPrice = 'Premium price must be higher than standard price';
+      newErrors.premiumPrice =
+        "Premium price must be higher than standard price";
     }
 
     setErrors(newErrors);
@@ -519,13 +609,17 @@ function PriceEditForm({ packageData, onSubmit, onCancel }: PriceEditFormProps) 
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Package Info */}
       <div className="bg-gray-50 p-4 rounded-lg">
-        <h3 className="font-medium text-gray-900 font-['Poppins'] mb-2">{packageData.category}</h3>
-        <span className={`text-sm px-2 py-1 rounded-full font-medium ${
-          packageData.sport === 'football' 
-            ? 'bg-green-100 text-green-700' 
-            : 'bg-blue-100 text-blue-700'
-        }`}>
-          {packageData.sport === 'football' ? 'Football' : 'Basketball'}
+        <h3 className="font-medium text-gray-900 font-['Poppins'] mb-2">
+          {packageData.included}
+        </h3>
+        <span
+          className={`text-sm px-2 py-1 rounded-full font-medium ${
+            packageData.sport === "football"
+              ? "bg-green-100 text-green-700"
+              : "bg-blue-100 text-blue-700"
+          }`}
+        >
+          {packageData.sport === "football" ? "Football" : "Basketball"}
         </span>
       </div>
 
@@ -536,7 +630,7 @@ function PriceEditForm({ packageData, onSubmit, onCancel }: PriceEditFormProps) 
         </label>
         <select
           value={formData.currency}
-          onChange={(e) => handleInputChange('currency', e.target.value)}
+          onChange={(e) => handleInputChange("currency", e.target.value)}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors"
         >
           <option value="EUR">EUR (€)</option>
@@ -547,7 +641,10 @@ function PriceEditForm({ packageData, onSubmit, onCancel }: PriceEditFormProps) 
 
       {/* Standard Price */}
       <div>
-        <label htmlFor="standardPrice" className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+        <label
+          htmlFor="standardPrice"
+          className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']"
+        >
           Standard Package Price *
         </label>
         <div className="relative">
@@ -557,24 +654,38 @@ function PriceEditForm({ packageData, onSubmit, onCancel }: PriceEditFormProps) 
             min="0"
             step="0.01"
             value={formData.standardPrice}
-            onChange={(e) => handleInputChange('standardPrice', parseFloat(e.target.value) || 0)}
+            onChange={(e) =>
+              handleInputChange(
+                "standardPrice",
+                parseFloat(e.target.value) || 0,
+              )
+            }
             placeholder="Enter standard package price"
             className={`w-full px-4 py-3 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors ${
-              errors.standardPrice ? 'border-red-500' : 'border-gray-300'
+              errors.standardPrice ? "border-red-500" : "border-gray-300"
             }`}
           />
           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-['Poppins']">
-            {formData.currency === 'EUR' ? '€' : formData.currency === 'USD' ? '$' : '£'}
+            {formData.currency === "EUR"
+              ? "€"
+              : formData.currency === "USD"
+                ? "$"
+                : "£"}
           </span>
         </div>
         {errors.standardPrice && (
-          <p className="mt-1 text-sm text-red-600 font-['Poppins']">{errors.standardPrice}</p>
+          <p className="mt-1 text-sm text-red-600 font-['Poppins']">
+            {errors.standardPrice}
+          </p>
         )}
       </div>
 
       {/* Premium Price */}
       <div>
-        <label htmlFor="premiumPrice" className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+        <label
+          htmlFor="premiumPrice"
+          className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']"
+        >
           Premium Package Price *
         </label>
         <div className="relative">
@@ -584,18 +695,26 @@ function PriceEditForm({ packageData, onSubmit, onCancel }: PriceEditFormProps) 
             min="0"
             step="0.01"
             value={formData.premiumPrice}
-            onChange={(e) => handleInputChange('premiumPrice', parseFloat(e.target.value) || 0)}
+            onChange={(e) =>
+              handleInputChange("premiumPrice", parseFloat(e.target.value) || 0)
+            }
             placeholder="Enter premium package price"
             className={`w-full px-4 py-3 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors ${
-              errors.premiumPrice ? 'border-red-500' : 'border-gray-300'
+              errors.premiumPrice ? "border-red-500" : "border-gray-300"
             }`}
           />
           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-['Poppins']">
-            {formData.currency === 'EUR' ? '€' : formData.currency === 'USD' ? '$' : '£'}
+            {formData.currency === "EUR"
+              ? "€"
+              : formData.currency === "USD"
+                ? "$"
+                : "£"}
           </span>
         </div>
         {errors.premiumPrice && (
-          <p className="mt-1 text-sm text-red-600 font-['Poppins']">{errors.premiumPrice}</p>
+          <p className="mt-1 text-sm text-red-600 font-['Poppins']">
+            {errors.premiumPrice}
+          </p>
         )}
       </div>
 
@@ -620,5 +739,3 @@ function PriceEditForm({ packageData, onSubmit, onCancel }: PriceEditFormProps) 
     </form>
   );
 }
-
-export type { PackageData, PackageManagementProps }

@@ -1,13 +1,13 @@
 // services/userService.ts
 
-import api from '../app/lib/api';
+import axiosClient from "../lib/axiosClient";
 
 export const getUsers = async () => {
-  const response = await api.get('/users');
-  return response.data;
+  const response = await axiosClient.get("/users");
+  return response.data.data || [];
 };
 
 export const createUser = async (payload: { name: string; email: string }) => {
-  const response = await api.post('/users', payload);
-  return response.data;
+  const response = await axiosClient.post("/users", payload);
+  return response.data.data;
 };

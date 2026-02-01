@@ -215,6 +215,63 @@ class BookingService {
     const diffTime = Math.abs(end.getTime() - start.getTime());
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
+
+  async getStats(): Promise<{
+    total: number;
+    completed: number;
+    pending: number;
+    rejected: number;
+  }> {
+    await connectToDatabase();
+
+    const stats = await Booking.aggregate([
+      { $match: { deletedAt: { $exists: false } } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          completed: {
+            $sum: {
+              $cond: [
+                {
+                  $or: [
+                    { $eq: ["$status", "completed"] },
+                    { $eq: ["$status", "approved"] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+          pending: {
+            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
+          },
+          rejected: {
+            $sum: {
+              $cond: [
+                {
+                  $or: [
+                    { $eq: ["$status", "rejected"] },
+                    { $eq: ["$status", "cancelled"] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    if (stats.length === 0) {
+      return { total: 0, completed: 0, pending: 0, rejected: 0 };
+    }
+
+    const { total, completed, pending, rejected } = stats[0];
+    return { total, completed, pending, rejected };
+  }
 }
 
 export default new BookingService();

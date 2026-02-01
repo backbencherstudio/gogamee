@@ -4,9 +4,12 @@ import axiosClient from "../lib/axiosClient";
 export interface PackageItem {
   id: string;
   sport: string;
-  category: string;
-  standard: string;
-  premium: string;
+  included: string;
+  included_es?: string;
+  plan: "standard" | "premium" | "combined";
+  duration: 1 | 2 | 3 | 4;
+  description: string;
+  description_es?: string;
   standardPrice?: number;
   premiumPrice?: number;
   currency?: string;
@@ -23,9 +26,12 @@ export interface PackageResponse {
 
 export interface PackagePayload {
   sport: string;
-  category: string;
-  standard: string;
-  premium: string;
+  included: string;
+  included_es?: string;
+  plan: "standard" | "premium" | "combined";
+  duration: 1 | 2 | 3 | 4;
+  description: string;
+  description_es?: string;
   standardPrice?: number;
   premiumPrice?: number;
   currency?: string;
@@ -33,9 +39,12 @@ export interface PackagePayload {
 
 export interface PackageUpdatePayload {
   sport?: string;
-  category?: string;
-  standard?: string;
-  premium?: string;
+  included?: string;
+  included_es?: string;
+  plan?: "standard" | "premium" | "combined";
+  duration?: 1 | 2 | 3 | 4;
+  description?: string;
+  description_es?: string;
   standardPrice?: number;
   premiumPrice?: number;
   currency?: string;
@@ -50,42 +59,81 @@ export interface SportsResponse {
 
 // ========== Package API Functions ==========
 
+import { ApiResponse } from "../app/lib/api-response";
+
 // GET all packages
-export const getAllPackages = async (sport?: string): Promise<PackageResponse> => {
-  const params = sport ? { sport } : {};
-  const response = await axiosClient.get("/package/all-packages", { params });
+export const getAllPackages = async (
+  sport?: string,
+  page: number = 1,
+  limit: number = 10,
+): Promise<ApiResponse<PackageItem[]>> => {
+  const params = { ...(sport ? { sport } : {}), page, limit };
+  const response = await axiosClient.get("/packages/all-packages", { params });
   return response.data;
 };
 
 // GET package by ID
 export const getPackageById = async (id: string): Promise<PackageResponse> => {
-  const response = await axiosClient.get(`/package/${id}`);
+  const response = await axiosClient.get(`/packages/${id}`);
   return response.data;
 };
 
 // POST add new package
-export const addPackage = async (payload: PackagePayload): Promise<PackageResponse> => {
-  console.log('Package Service - Sending payload:', payload);
-  const response = await axiosClient.post("/package/add-product", payload);
-  console.log('Package Service - Response received:', response.data);
+export const addPackage = async (
+  payload: PackagePayload,
+): Promise<PackageResponse> => {
+  console.log("Package Service - Sending payload:", payload);
+  const response = await axiosClient.post("/packages/add-product", payload);
+  console.log("Package Service - Response received:", response.data);
   return response.data;
 };
 
 // PATCH edit package
-export const editPackage = async (id: string, payload: PackageUpdatePayload): Promise<PackageResponse> => {
-  const response = await axiosClient.patch(`/package/${id}`, payload);
+export const editPackage = async (
+  id: string,
+  payload: PackageUpdatePayload,
+): Promise<PackageResponse> => {
+  const response = await axiosClient.patch(`/packages/${id}`, payload);
   return response.data;
 };
 
 // DELETE package
 export const deletePackage = async (id: string): Promise<PackageResponse> => {
-  const response = await axiosClient.delete(`/package/${id}`);
+  const response = await axiosClient.delete(`/packages/${id}`);
   return response.data;
 };
 
 // GET all available sports for filtering
 export const getAvailableSports = async (): Promise<SportsResponse> => {
-  const response = await axiosClient.get("/package/sports");
+  const response = await axiosClient.get("/packages/sports");
+  return response.data;
+};
+
+// CHECK for duplicate packages
+export interface CheckDuplicatePayload {
+  sport: string;
+  included: string;
+  plan: "standard" | "premium" | "combined";
+  duration: 1 | 2 | 3 | 4;
+  excludeId?: string;
+}
+
+export interface CheckDuplicateResponse {
+  success: boolean;
+  exists: boolean;
+  existingPackage?: {
+    id: string;
+    sport: string;
+    included: string;
+    plan: string;
+    duration: number;
+  };
+}
+
+export const checkDuplicatePackage = async (
+  payload: CheckDuplicatePayload,
+): Promise<CheckDuplicateResponse> => {
+  const response = await axiosClient.post("/packages/check-duplicate", payload);
   return response.data;
 };
 
@@ -93,15 +141,18 @@ export const getAvailableSports = async (): Promise<SportsResponse> => {
 
 export interface StartingPriceItem {
   id: string;
-  type: 'football' | 'basketball' | 'combined';
+  type: "football" | "basketball" | "combined";
   category?: string;
   standardDescription?: string;
   premiumDescription?: string;
   currency: string; // e.g. 'euro' from API
-  pricesByDuration: Record<'1' | '2' | '3' | '4', {
-    standard: number;
-    premium: number;
-  }>;
+  pricesByDuration: Record<
+    "1" | "2" | "3" | "4",
+    {
+      standard: number;
+      premium: number;
+    }
+  >;
   updatedAt: string;
 }
 
@@ -116,23 +167,29 @@ export interface UpdateStartingPricePayload {
   standardDescription?: string;
   premiumDescription?: string;
   currency: string; // API expects text like 'euro'
-  pricesByDuration: Record<'1' | '2' | '3' | '4', {
-    standard: number;
-    premium: number;
-  }>;
+  pricesByDuration: Record<
+    "1" | "2" | "3" | "4",
+    {
+      standard: number;
+      premium: number;
+    }
+  >;
 }
 
 export const getStartingPrice = async (
-  sport: 'football' | 'basketball' | 'combined'
+  sport: "football" | "basketball" | "combined",
 ): Promise<StartingPriceResponse> => {
-  const response = await axiosClient.get(`/package/starting-price/${sport}`);
+  const response = await axiosClient.get(`/packages/starting-price/${sport}`);
   return response.data;
 };
 
 export const updateStartingPrice = async (
-  sport: 'football' | 'basketball' | 'combined',
-  payload: UpdateStartingPricePayload
+  sport: "football" | "basketball" | "combined",
+  payload: UpdateStartingPricePayload,
 ): Promise<PackageResponse> => {
-  const response = await axiosClient.patch(`/package/starting-price/${sport}`, payload);
+  const response = await axiosClient.patch(
+    `/packages/starting-price/${sport}`,
+    payload,
+  );
   return response.data;
 };

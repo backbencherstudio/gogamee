@@ -1,158 +1,30 @@
-'use client'
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa'
-import { useFormContext } from 'react-hook-form'
-import { useBooking } from '../../context/BookingContext'
-import { getAllDates } from '../../../../../services/dateManagementService'
-import { getStartingPrice, StartingPriceItem } from '../../../../../services/packageService'
-import { formatDateForAPI, formatApiDateForComparison } from '../../../../../lib/dateUtils'
+"use client";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { useFormContext } from "react-hook-form";
+import { useBooking } from "../../context/BookingContext";
+import { getAllDates } from "../../../../../services/dateManagementService";
+import {
+  getStartingPrice,
+  StartingPriceItem,
+} from "../../../../../services/packageService";
+import {
+  formatDateForAPI,
+  formatApiDateForComparison,
+} from "../../../../../lib/dateUtils";
 
 // Types
 interface DurationOption {
-  days: number
-  nights: number
+  days: number;
+  nights: number;
 }
 
 interface DateRestrictions {
-  enabledDates: string[] // Array of date strings in YYYY-MM-DD format
-  blockedDates: string[]
-  customPrices: Record<string, {
-    football?: {
-      standard?: number;
-      premium?: number;
-    };
-    basketball?: {
-      standard?: number;
-      premium?: number;
-    };
-    both?: {
-      standard?: number;
-      premium?: number;
-    };
-  }>
-}
-
-interface ApiDateData {
-  date: string
-  status: string
-  football_standard_package_price: number
-  football_premium_package_price: number
-  baskatball_standard_package_price: number
-  baskatball_premium_package_price: number
-  updated_football_standard_package_price: number | null
-  updated_football_premium_package_price: number | null
-  updated_baskatball_standard_package_price: number | null
-  updated_baskatball_premium_package_price: number | null
-  sportname: string
-  league: string
-  duration?: '1' | '2' | '3' | '4'
-}
-
-type BaseSportKey = 'football' | 'basketball'
-type SportKey = BaseSportKey | 'combined'
-
-// Constants
-const DURATION_OPTIONS: DurationOption[] = [
-  { days: 2, nights: 1 },
-  { days: 3, nights: 2 },
-  { days: 4, nights: 3 },
-  { days: 5, nights: 4 }
-]
-
-const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'
-]
-
-const WEEK_DAYS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-
-// Dynamic pricing will be calculated based on sport, package, and nights
-
-// Utility functions
-const resetTimeToMidnight = (date: Date): Date => {
-  const newDate = new Date(date)
-  newDate.setHours(0, 0, 0, 0)
-  return newDate
-}
-
-
-
-const isDateInPast = (date: Date): boolean => {
-  const today = resetTimeToMidnight(new Date())
-  const checkDate = resetTimeToMidnight(date)
-  return checkDate < today
-}
-
-const isDateAllowedForCompetition = (date: Date, restrictions: DateRestrictions): boolean => {
-  // Use consistent date formatting
-  const dateString = formatDateForAPI(date)
-  
-  // Check if date is explicitly blocked
-  if (restrictions.blockedDates.includes(dateString)) {
-    return false
-  }
-  
-  // Check if date is explicitly enabled
-  return restrictions.enabledDates.includes(dateString)
-}
-
-export default function DateSection() {
-  const { formData, updateFormData, nextStep } = useBooking()
-  
-  // Optional React Hook Form integration
-  const formContext = useFormContext?.() || null
-  const setValue = formContext?.setValue
-
-  
-  // Consistent default values
-  const getDefaultValues = () => ({
-    selectedDuration: 1,
-    selectedStartDate: null as number | null,
-    selectedMonth: null as number | null,
-    selectedYear: null as number | null,
-    currentDate: new Date(2024, 0, 1) // Use a fixed date initially
-  })
-  
-  const defaultValues = getDefaultValues()
-  
-  // State
-  const [selectedDuration, setSelectedDuration] = useState(defaultValues.selectedDuration)
-  const [selectedStartDate, setSelectedStartDate] = useState<number | null>(defaultValues.selectedStartDate)
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(defaultValues.selectedMonth)
-  const [selectedYear, setSelectedYear] = useState<number | null>(defaultValues.selectedYear)
-  const [currentDate, setCurrentDate] = useState(defaultValues.currentDate)
-  const [isHydrated, setIsHydrated] = useState(false)
-  const [apiDateData, setApiDateData] = useState<ApiDateData[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  
-  // Package pricing state (from package API)
-  const [packagePrices, setPackagePrices] = useState<{
-    football: StartingPriceItem | null;
-    basketball: StartingPriceItem | null;
-    combined: StartingPriceItem | null;
-  }>({
-    football: null,
-    basketball: null,
-    combined: null
-  })
-  const [isLoadingPrices, setIsLoadingPrices] = useState(true)
-
-  const getDurationKey = (nights: number): '1' | '2' | '3' | '4' => {
-    if (nights <= 1) return '1'
-    if (nights === 2) return '2'
-    if (nights === 3) return '3'
-    return '4'
-  }
-
-  const selectedDurationOption = DURATION_OPTIONS[selectedDuration]
-  const selectedDurationKey = getDurationKey(selectedDurationOption.nights)
-
-  // Get date restrictions based on API data and competition type
-  const getDateRestrictions = useCallback((): DateRestrictions => {
-    const selectedLeague = formData.selectedLeague
-    const enabledDates: string[] = []
-    const blockedDates: string[] = []
-    const customPrices: Record<string, {
+  enabledDates: string[]; // Array of date strings in YYYY-MM-DD format
+  blockedDates: string[];
+  customPrices: Record<
+    string,
+    {
       football?: {
         standard?: number;
         premium?: number;
@@ -165,561 +37,934 @@ export default function DateSection() {
         standard?: number;
         premium?: number;
       };
-    }> = {}
+    }
+  >;
+}
+
+interface ApiDateData {
+  date: string;
+  status: string;
+  football_standard_package_price: number;
+  football_premium_package_price: number;
+  baskatball_standard_package_price: number;
+  baskatball_premium_package_price: number;
+  updated_football_standard_package_price: number | null;
+  updated_football_premium_package_price: number | null;
+  updated_baskatball_standard_package_price: number | null;
+  updated_baskatball_premium_package_price: number | null;
+  sportname: string;
+  league: string;
+  duration?: "1" | "2" | "3" | "4";
+}
+
+type BaseSportKey = "football" | "basketball";
+type SportKey = BaseSportKey | "combined";
+
+// Constants
+const DURATION_OPTIONS: DurationOption[] = [
+  { days: 2, nights: 1 },
+  { days: 3, nights: 2 },
+  { days: 4, nights: 3 },
+  { days: 5, nights: 4 },
+];
+
+const MONTH_NAMES = [
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Setiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
+];
+
+const WEEK_DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+
+// Dynamic pricing will be calculated based on sport, package, and nights
+
+// Utility functions
+const resetTimeToMidnight = (date: Date): Date => {
+  const newDate = new Date(date);
+  newDate.setHours(0, 0, 0, 0);
+  return newDate;
+};
+
+const isDateInPast = (date: Date): boolean => {
+  const today = resetTimeToMidnight(new Date());
+  const checkDate = resetTimeToMidnight(date);
+  return checkDate < today;
+};
+
+const isDateAllowedForCompetition = (
+  date: Date,
+  restrictions: DateRestrictions,
+): boolean => {
+  // Use consistent date formatting
+  const dateString = formatDateForAPI(date);
+
+  // Check if date is explicitly blocked
+  if (restrictions.blockedDates.includes(dateString)) {
+    return false;
+  }
+
+  // Check if date is explicitly enabled
+  return restrictions.enabledDates.includes(dateString);
+};
+
+export default function DateSection() {
+  const { formData, updateFormData, nextStep } = useBooking();
+
+  // Optional React Hook Form integration
+  const formContext = useFormContext?.() || null;
+  const setValue = formContext?.setValue;
+
+  // Consistent default values
+  const getDefaultValues = () => ({
+    selectedDuration: 1,
+    selectedStartDate: null as number | null,
+    selectedMonth: null as number | null,
+    selectedYear: null as number | null,
+    currentDate: new Date(2024, 0, 1), // Use a fixed date initially
+  });
+
+  const defaultValues = getDefaultValues();
+
+  // State
+  const [selectedDuration, setSelectedDuration] = useState(
+    defaultValues.selectedDuration,
+  );
+  const [selectedStartDate, setSelectedStartDate] = useState<number | null>(
+    defaultValues.selectedStartDate,
+  );
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(
+    defaultValues.selectedMonth,
+  );
+  const [selectedYear, setSelectedYear] = useState<number | null>(
+    defaultValues.selectedYear,
+  );
+  const [currentDate, setCurrentDate] = useState(defaultValues.currentDate);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [apiDateData, setApiDateData] = useState<ApiDateData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Package pricing state (from package API)
+  const [packagePrices, setPackagePrices] = useState<{
+    football: StartingPriceItem | null;
+    basketball: StartingPriceItem | null;
+    combined: StartingPriceItem | null;
+  }>({
+    football: null,
+    basketball: null,
+    combined: null,
+  });
+  const [isLoadingPrices, setIsLoadingPrices] = useState(true);
+
+  const getDurationKey = (nights: number): "1" | "2" | "3" | "4" => {
+    if (nights <= 1) return "1";
+    if (nights === 2) return "2";
+    if (nights === 3) return "3";
+    return "4";
+  };
+
+  const selectedDurationOption = DURATION_OPTIONS[selectedDuration];
+  const selectedDurationKey = getDurationKey(selectedDurationOption.nights);
+
+  // Get date restrictions based on API data and competition type
+  const getDateRestrictions = useCallback((): DateRestrictions => {
+    const selectedLeague = formData.selectedLeague;
+    const enabledDates: string[] = [];
+    const blockedDates: string[] = [];
+    const customPrices: Record<
+      string,
+      {
+        football?: {
+          standard?: number;
+          premium?: number;
+        };
+        basketball?: {
+          standard?: number;
+          premium?: number;
+        };
+        both?: {
+          standard?: number;
+          premium?: number;
+        };
+      }
+    > = {};
 
     // Filter API data based on selected league and sport
-    const filteredApiData = apiDateData.filter(item => {
-      const matchesLeague = !selectedLeague || item.league === selectedLeague
+    const filteredApiData = apiDateData.filter((item) => {
+      const matchesLeague = !selectedLeague || item.league === selectedLeague;
       const matchesSport = (() => {
-        if (!formData.selectedSport) return true
-        if (formData.selectedSport === 'both') {
-          return item.sportname === 'both'
+        if (!formData.selectedSport) return true;
+        if (formData.selectedSport === "both") {
+          return item.sportname === "both";
         }
-        return item.sportname === formData.selectedSport
-      })()
-      const matchesDuration = (item.duration ?? '1') === selectedDurationKey
-      return matchesLeague && matchesSport && matchesDuration
-    })
+        return item.sportname === formData.selectedSport;
+      })();
+      const matchesDuration = (item.duration ?? "1") === selectedDurationKey;
+      return matchesLeague && matchesSport && matchesDuration;
+    });
 
     // Process API data
-    filteredApiData.forEach(item => {
+    filteredApiData.forEach((item) => {
       // Use consistent date formatting
-      const dateString = formatApiDateForComparison(item.date)
-      
-      if (item.status === 'enabled') {
+      const dateString = formatApiDateForComparison(item.date);
+
+      if (item.status === "enabled") {
         if (!enabledDates.includes(dateString)) {
-          enabledDates.push(dateString)
+          enabledDates.push(dateString);
         }
-        
+
         // Store custom prices for this date
         // Only include custom prices if they are explicitly set (not null)
         // If custom price is null, don't include it so base price will be used
-        const hasCustomFootballStandard = item.updated_football_standard_package_price !== null && item.updated_football_standard_package_price !== undefined
-        const hasCustomFootballPremium = item.updated_football_premium_package_price !== null && item.updated_football_premium_package_price !== undefined
-        const hasCustomBasketballStandard = item.updated_baskatball_standard_package_price !== null && item.updated_baskatball_standard_package_price !== undefined
-        const hasCustomBasketballPremium = item.updated_baskatball_premium_package_price !== null && item.updated_baskatball_premium_package_price !== undefined
-        
-        // Only create custom price entry if at least one custom price exists
-        const entry = customPrices[dateString] ?? {}
+        const hasCustomFootballStandard =
+          item.updated_football_standard_package_price !== null &&
+          item.updated_football_standard_package_price !== undefined;
+        const hasCustomFootballPremium =
+          item.updated_football_premium_package_price !== null &&
+          item.updated_football_premium_package_price !== undefined;
+        const hasCustomBasketballStandard =
+          item.updated_baskatball_standard_package_price !== null &&
+          item.updated_baskatball_standard_package_price !== undefined;
+        const hasCustomBasketballPremium =
+          item.updated_baskatball_premium_package_price !== null &&
+          item.updated_baskatball_premium_package_price !== undefined;
 
-        if (item.sportname === 'football' && (hasCustomFootballStandard || hasCustomFootballPremium)) {
+        // Only create custom price entry if at least one custom price exists
+        const entry = customPrices[dateString] ?? {};
+
+        if (
+          item.sportname === "football" &&
+          (hasCustomFootballStandard || hasCustomFootballPremium)
+        ) {
           entry.football = {
-            ...(hasCustomFootballStandard && { standard: item.updated_football_standard_package_price! }),
-            ...(hasCustomFootballPremium && { premium: item.updated_football_premium_package_price! })
-          }
-        } else if (item.sportname === 'basketball' && (hasCustomBasketballStandard || hasCustomBasketballPremium)) {
+            ...(hasCustomFootballStandard && {
+              standard: item.updated_football_standard_package_price!,
+            }),
+            ...(hasCustomFootballPremium && {
+              premium: item.updated_football_premium_package_price!,
+            }),
+          };
+        } else if (
+          item.sportname === "basketball" &&
+          (hasCustomBasketballStandard || hasCustomBasketballPremium)
+        ) {
           entry.basketball = {
-            ...(hasCustomBasketballStandard && { standard: item.updated_baskatball_standard_package_price! }),
-            ...(hasCustomBasketballPremium && { premium: item.updated_baskatball_premium_package_price! })
-          }
-        } else if (item.sportname === 'both') {
+            ...(hasCustomBasketballStandard && {
+              standard: item.updated_baskatball_standard_package_price!,
+            }),
+            ...(hasCustomBasketballPremium && {
+              premium: item.updated_baskatball_premium_package_price!,
+            }),
+          };
+        } else if (item.sportname === "both") {
           const hasCustomBothStandard =
-            item.updated_football_standard_package_price !== null && item.updated_football_standard_package_price !== undefined ||
-            item.updated_baskatball_standard_package_price !== null && item.updated_baskatball_standard_package_price !== undefined
+            (item.updated_football_standard_package_price !== null &&
+              item.updated_football_standard_package_price !== undefined) ||
+            (item.updated_baskatball_standard_package_price !== null &&
+              item.updated_baskatball_standard_package_price !== undefined);
           const hasCustomBothPremium =
-            item.updated_football_premium_package_price !== null && item.updated_football_premium_package_price !== undefined ||
-            item.updated_baskatball_premium_package_price !== null && item.updated_baskatball_premium_package_price !== undefined
+            (item.updated_football_premium_package_price !== null &&
+              item.updated_football_premium_package_price !== undefined) ||
+            (item.updated_baskatball_premium_package_price !== null &&
+              item.updated_baskatball_premium_package_price !== undefined);
 
           if (hasCustomBothStandard || hasCustomBothPremium) {
             const standardBoth =
               item.updated_football_standard_package_price ??
-              item.updated_baskatball_standard_package_price
+              item.updated_baskatball_standard_package_price;
             const premiumBoth =
               item.updated_football_premium_package_price ??
-              item.updated_baskatball_premium_package_price
+              item.updated_baskatball_premium_package_price;
 
             entry.both = {
-              ...(hasCustomBothStandard && standardBoth != null && { standard: standardBoth }),
-              ...(hasCustomBothPremium && premiumBoth != null && { premium: premiumBoth })
-            }
+              ...(hasCustomBothStandard &&
+                standardBoth != null && { standard: standardBoth }),
+              ...(hasCustomBothPremium &&
+                premiumBoth != null && { premium: premiumBoth }),
+            };
           }
         }
 
         if (Object.keys(entry).length > 0) {
-          customPrices[dateString] = entry
+          customPrices[dateString] = entry;
         }
       } else {
-        blockedDates.push(dateString)
+        blockedDates.push(dateString);
       }
-    })
+    });
 
     return {
       enabledDates,
       blockedDates,
-      customPrices
-    }
-  }, [formData.selectedLeague, formData.selectedSport, apiDateData, selectedDurationKey])
-  
+      customPrices,
+    };
+  }, [
+    formData.selectedLeague,
+    formData.selectedSport,
+    apiDateData,
+    selectedDurationKey,
+  ]);
+
   const getCurrencySymbolFromCode = (currency?: string | null): string => {
-    if (currency === 'usd') return '$'
-    if (currency === 'gbp') return '£'
-    return '€'
-  }
+    if (currency === "usd") return "$";
+    if (currency === "gbp") return "£";
+    return "€";
+  };
 
-  const getItemCurrencySymbol = useCallback((item?: StartingPriceItem | null): string => getCurrencySymbolFromCode(item?.currency), [])
+  const getItemCurrencySymbol = useCallback(
+    (item?: StartingPriceItem | null): string =>
+      getCurrencySymbolFromCode(item?.currency),
+    [],
+  );
 
-  const getBaseNightPrice = useCallback((sport: SportKey, pkg: 'standard' | 'premium', nights: number): number => {
-    const item = packagePrices[sport]
-    if (!item) return 0
-    const durationKey = getDurationKey(nights)
-    const entry = item.pricesByDuration?.[durationKey]
-    if (!entry) return 0
-    return pkg === 'standard' ? entry.standard : entry.premium
-  }, [packagePrices])
+  const getBaseNightPrice = useCallback(
+    (sport: SportKey, pkg: "standard" | "premium", nights: number): number => {
+      const item = packagePrices[sport];
+      if (!item) return 0;
+      const durationKey = getDurationKey(nights);
+      const entry = item.pricesByDuration?.[durationKey];
+      if (!entry) return 0;
+      return pkg === "standard" ? entry.standard : entry.premium;
+    },
+    [packagePrices],
+  );
 
-  const calculatePrice = useCallback((nights: number, checkDate?: Date): string => {
-    const sport = formData.selectedSport
-    const packageType = formData.selectedPackage
-    if (!packageType) return '€'
+  const calculatePrice = useCallback(
+    (nights: number, checkDate?: Date): string => {
+      const sport = formData.selectedSport;
+      const packageType = formData.selectedPackage;
+      if (!packageType) return "€";
 
-    let totalPrice = 0
-    let currencySymbol = '€'
-    let hasCustomPrice = false
+      let totalPrice = 0;
+      let currencySymbol = "€";
+      let hasCustomPrice = false;
 
-    // Check for custom price if a specific date is provided
-    if (checkDate) {
-      const restrictions = getDateRestrictions()
-      const dateString = formatDateForAPI(checkDate)
-      const customPrice = restrictions.customPrices[dateString]
+      // Check for custom price if a specific date is provided
+      if (checkDate) {
+        const restrictions = getDateRestrictions();
+        const dateString = formatDateForAPI(checkDate);
+        const customPrice = restrictions.customPrices[dateString];
 
-      if (customPrice) {
-        if (sport === 'both') {
-          const combinedCustom = packageType === 'standard'
-            ? customPrice.both?.standard
-            : customPrice.both?.premium
+        if (customPrice) {
+          if (sport === "both") {
+            const combinedCustom =
+              packageType === "standard"
+                ? customPrice.both?.standard
+                : customPrice.both?.premium;
 
-          if (combinedCustom !== undefined) {
-            totalPrice = combinedCustom
-            currencySymbol = getItemCurrencySymbol(packagePrices.combined ?? packagePrices.football ?? packagePrices.basketball)
-            hasCustomPrice = true
-          } else {
-            const footballPrice = packageType === 'standard'
-              ? customPrice.football?.standard
-              : customPrice.football?.premium
-            const basketballPrice = packageType === 'standard'
-              ? customPrice.basketball?.standard
-              : customPrice.basketball?.premium
+            if (combinedCustom !== undefined) {
+              totalPrice = combinedCustom;
+              currencySymbol = getItemCurrencySymbol(
+                packagePrices.combined ??
+                  packagePrices.football ??
+                  packagePrices.basketball,
+              );
+              hasCustomPrice = true;
+            } else {
+              const footballPrice =
+                packageType === "standard"
+                  ? customPrice.football?.standard
+                  : customPrice.football?.premium;
+              const basketballPrice =
+                packageType === "standard"
+                  ? customPrice.basketball?.standard
+                  : customPrice.basketball?.premium;
 
-            if (footballPrice !== undefined && basketballPrice !== undefined) {
-              totalPrice = footballPrice + basketballPrice
-              currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
-              hasCustomPrice = true
-            } else if (footballPrice !== undefined || basketballPrice !== undefined) {
-              const footballFinal = footballPrice ?? getBaseNightPrice('football', packageType as 'standard' | 'premium', nights)
-              const basketballFinal = basketballPrice ?? getBaseNightPrice('basketball', packageType as 'standard' | 'premium', nights)
-              totalPrice = footballFinal + basketballFinal
-              currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
-              hasCustomPrice = true
+              if (
+                footballPrice !== undefined &&
+                basketballPrice !== undefined
+              ) {
+                totalPrice = footballPrice + basketballPrice;
+                currencySymbol = getItemCurrencySymbol(
+                  packagePrices.football ?? packagePrices.basketball,
+                );
+                hasCustomPrice = true;
+              } else if (
+                footballPrice !== undefined ||
+                basketballPrice !== undefined
+              ) {
+                const footballFinal =
+                  footballPrice ??
+                  getBaseNightPrice(
+                    "football",
+                    packageType as "standard" | "premium",
+                    nights,
+                  );
+                const basketballFinal =
+                  basketballPrice ??
+                  getBaseNightPrice(
+                    "basketball",
+                    packageType as "standard" | "premium",
+                    nights,
+                  );
+                totalPrice = footballFinal + basketballFinal;
+                currencySymbol = getItemCurrencySymbol(
+                  packagePrices.football ?? packagePrices.basketball,
+                );
+                hasCustomPrice = true;
+              }
+            }
+          } else if (sport === "football") {
+            const price =
+              packageType === "standard"
+                ? customPrice.football?.standard
+                : customPrice.football?.premium;
+
+            if (price !== undefined) {
+              totalPrice = price;
+              currencySymbol = getItemCurrencySymbol(packagePrices.football);
+              hasCustomPrice = true;
+            }
+          } else if (sport === "basketball") {
+            const price =
+              packageType === "standard"
+                ? customPrice.basketball?.standard
+                : customPrice.basketball?.premium;
+
+            if (price !== undefined) {
+              totalPrice = price;
+              currencySymbol = getItemCurrencySymbol(packagePrices.basketball);
+              hasCustomPrice = true;
             }
           }
-        } else if (sport === 'football') {
-          const price = packageType === 'standard'
-            ? (customPrice.football?.standard)
-            : (customPrice.football?.premium)
-          
-          if (price !== undefined) {
-            totalPrice = price
-            currencySymbol = getItemCurrencySymbol(packagePrices.football)
-            hasCustomPrice = true
-          }
-        } else if (sport === 'basketball') {
-          const price = packageType === 'standard'
-            ? (customPrice.basketball?.standard)
-            : (customPrice.basketball?.premium)
-          
-          if (price !== undefined) {
-            totalPrice = price
-            currencySymbol = getItemCurrencySymbol(packagePrices.basketball)
-            hasCustomPrice = true
-          }
-        }
 
-        // If custom price found and valid, return it
-        if (hasCustomPrice && totalPrice > 0) {
-          return `${totalPrice}${currencySymbol}`
+          // If custom price found and valid, return it
+          if (hasCustomPrice && totalPrice > 0) {
+            return `${totalPrice}${currencySymbol}`;
+          }
         }
       }
-    }
 
-    // Fallback to base price if no custom price found or no date provided
-    if (sport === 'both') {
-      const combinedBase = getBaseNightPrice('combined', packageType as 'standard' | 'premium', nights)
-      if (combinedBase > 0) {
-        totalPrice = combinedBase
-        currencySymbol = getItemCurrencySymbol(packagePrices.combined)
+      // Fallback to base price if no custom price found or no date provided
+      if (sport === "both") {
+        const combinedBase = getBaseNightPrice(
+          "combined",
+          packageType as "standard" | "premium",
+          nights,
+        );
+        if (combinedBase > 0) {
+          totalPrice = combinedBase;
+          currencySymbol = getItemCurrencySymbol(packagePrices.combined);
+        } else {
+          const footballBase = getBaseNightPrice(
+            "football",
+            packageType as "standard" | "premium",
+            nights,
+          );
+          const basketballBase = getBaseNightPrice(
+            "basketball",
+            packageType as "standard" | "premium",
+            nights,
+          );
+          totalPrice = footballBase + basketballBase;
+          currencySymbol = getItemCurrencySymbol(
+            packagePrices.football ?? packagePrices.basketball,
+          );
+        }
       } else {
-        const footballBase = getBaseNightPrice('football', packageType as 'standard' | 'premium', nights)
-        const basketballBase = getBaseNightPrice('basketball', packageType as 'standard' | 'premium', nights)
-        totalPrice = footballBase + basketballBase
-        currencySymbol = getItemCurrencySymbol(packagePrices.football ?? packagePrices.basketball)
+        totalPrice = getBaseNightPrice(
+          sport as BaseSportKey,
+          packageType as "standard" | "premium",
+          nights,
+        );
+        currencySymbol = getItemCurrencySymbol(
+          packagePrices[sport as BaseSportKey],
+        );
       }
-    } else {
-      totalPrice = getBaseNightPrice(sport as BaseSportKey, packageType as 'standard' | 'premium', nights)
-      currencySymbol = getItemCurrencySymbol(packagePrices[sport as BaseSportKey])
-    }
 
-    if (totalPrice <= 0) return currencySymbol
-    return `${totalPrice}${currencySymbol}`
-  }, [formData.selectedSport, formData.selectedPackage, packagePrices, getBaseNightPrice, getItemCurrencySymbol, getDateRestrictions])
-
+      if (totalPrice <= 0) return currencySymbol;
+      return `${totalPrice}${currencySymbol}`;
+    },
+    [
+      formData.selectedSport,
+      formData.selectedPackage,
+      packagePrices,
+      getBaseNightPrice,
+      getItemCurrencySymbol,
+      getDateRestrictions,
+    ],
+  );
 
   // Fetch API data
   useEffect(() => {
     const fetchDateData = async () => {
       try {
-        setIsLoading(true)
-        const data = await getAllDates()
+        setIsLoading(true);
+        const data = await getAllDates();
         setApiDateData(
           data.map((item) => ({
             ...item,
-            duration: (item.duration ?? '1') as '1' | '2' | '3' | '4'
-          }))
-        )
+            duration: (item.duration ?? "1") as "1" | "2" | "3" | "4",
+          })),
+        );
       } catch (error) {
-        console.error('Error fetching date data:', error)
+        console.error("Error fetching date data:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchDateData()
-  }, [])
+    fetchDateData();
+  }, []);
 
   // Fetch package pricing data
   useEffect(() => {
     const fetchPackagePrices = async () => {
       try {
-        setIsLoadingPrices(true)
+        setIsLoadingPrices(true);
         const [footballRes, basketballRes, combinedRes] = await Promise.all([
-          getStartingPrice('football'),
-          getStartingPrice('basketball'),
-          getStartingPrice('combined')
-        ])
-        
-        if (footballRes.success && basketballRes.success && combinedRes.success) {
+          getStartingPrice("football"),
+          getStartingPrice("basketball"),
+          getStartingPrice("combined"),
+        ]);
+
+        if (
+          footballRes.success &&
+          basketballRes.success &&
+          combinedRes.success
+        ) {
           setPackagePrices({
             football: footballRes.data?.[0] || null,
             basketball: basketballRes.data?.[0] || null,
-            combined: combinedRes.data?.[0] || null
-          })
+            combined: combinedRes.data?.[0] || null,
+          });
         }
       } catch (error) {
-        console.error('Error fetching package prices:', error)
+        console.error("Error fetching package prices:", error);
       } finally {
-        setIsLoadingPrices(false)
+        setIsLoadingPrices(false);
       }
-    }
-    
-    fetchPackagePrices()
-  }, [])
+    };
+
+    fetchPackagePrices();
+  }, []);
 
   // Set proper current date after hydration
   useEffect(() => {
-    setIsHydrated(true)
-    const today = new Date()
-    setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1))
-  }, [])
+    setIsHydrated(true);
+    const today = new Date();
+    setCurrentDate(new Date(today.getFullYear(), today.getMonth(), 1));
+  }, []);
 
   // Load existing data when component mounts or when BookingContext data changes
   useEffect(() => {
     if (isHydrated && formData.departureDate && formData.returnDate) {
-      const startDate = new Date(formData.departureDate)
-      const endDate = new Date(formData.returnDate)
-      
+      const startDate = new Date(formData.departureDate);
+      const endDate = new Date(formData.returnDate);
+
       // Calculate duration from date difference
-      const diffTime = endDate.getTime() - startDate.getTime()
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
-      
+      const diffTime = endDate.getTime() - startDate.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+
       // Find matching duration option
-      const durationIndex = DURATION_OPTIONS.findIndex(option => option.days === diffDays)
-      
-      setSelectedDuration(durationIndex >= 0 ? durationIndex : 1)
-      setSelectedStartDate(startDate.getDate())
-      setSelectedMonth(startDate.getMonth())
-      setSelectedYear(startDate.getFullYear())
-      setCurrentDate(new Date(startDate.getFullYear(), startDate.getMonth(), 1))
+      const durationIndex = DURATION_OPTIONS.findIndex(
+        (option) => option.days === diffDays,
+      );
+
+      setSelectedDuration(durationIndex >= 0 ? durationIndex : 1);
+      setSelectedStartDate(startDate.getDate());
+      setSelectedMonth(startDate.getMonth());
+      setSelectedYear(startDate.getFullYear());
+      setCurrentDate(
+        new Date(startDate.getFullYear(), startDate.getMonth(), 1),
+      );
     }
-  }, [formData.departureDate, formData.returnDate, isHydrated])
+  }, [formData.departureDate, formData.returnDate, isHydrated]);
 
   // Ensure current month or later on mount
   useEffect(() => {
     if (isHydrated) {
-      const today = new Date()
-      const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-      const displayedMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
-      
+      const today = new Date();
+      const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const displayedMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1,
+      );
+
       if (displayedMonth < currentMonth) {
-        setCurrentDate(currentMonth)
+        setCurrentDate(currentMonth);
       }
     }
-  }, [currentDate, isHydrated])
+  }, [currentDate, isHydrated]);
 
   // Update form data when selection changes (only if form context is available)
   useEffect(() => {
-    if (setValue && selectedStartDate && selectedMonth !== null && selectedYear !== null) {
-      const startDate = new Date(selectedYear, selectedMonth, selectedStartDate)
-      const duration = DURATION_OPTIONS[selectedDuration]
-      const endDate = new Date(startDate)
-      endDate.setDate(startDate.getDate() + duration.days - 1)
-      
-      setValue('dateSelection', {
+    if (
+      setValue &&
+      selectedStartDate &&
+      selectedMonth !== null &&
+      selectedYear !== null
+    ) {
+      const startDate = new Date(
+        selectedYear,
+        selectedMonth,
+        selectedStartDate,
+      );
+      const duration = DURATION_OPTIONS[selectedDuration];
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + duration.days - 1);
+
+      setValue("dateSelection", {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         duration: duration,
-        nights: duration.nights
-      })
+        nights: duration.nights,
+      });
     }
-  }, [selectedStartDate, selectedMonth, selectedYear, selectedDuration, setValue])
+  }, [
+    selectedStartDate,
+    selectedMonth,
+    selectedYear,
+    selectedDuration,
+    setValue,
+  ]);
 
   // Memoized calculations
   const nextMonth = useMemo(() => {
-    const next = new Date(currentDate)
-    next.setMonth(next.getMonth() + 1)
-    return next
-  }, [currentDate])
+    const next = new Date(currentDate);
+    next.setMonth(next.getMonth() + 1);
+    return next;
+  }, [currentDate]);
 
   const selectedDateRange = useMemo(() => {
     if (!selectedStartDate || selectedMonth === null || selectedYear === null) {
-      return null
+      return null;
     }
-    
-    const startDate = new Date(selectedYear, selectedMonth, selectedStartDate)
-    const duration = DURATION_OPTIONS[selectedDuration].days
-    const endDate = new Date(startDate)
-    endDate.setDate(startDate.getDate() + duration - 1)
-    
-    return { startDate, endDate }
-  }, [selectedStartDate, selectedMonth, selectedYear, selectedDuration])
+
+    const startDate = new Date(selectedYear, selectedMonth, selectedStartDate);
+    const duration = DURATION_OPTIONS[selectedDuration].days;
+    const endDate = new Date(startDate);
+    endDate.setDate(startDate.getDate() + duration - 1);
+
+    return { startDate, endDate };
+  }, [selectedStartDate, selectedMonth, selectedYear, selectedDuration]);
 
   // Event handlers
-  const handleDateClick = useCallback((day: number, monthIndex: number, year: number) => {
-    const selectedDate = new Date(year, monthIndex, day)
-    
-    if (!isDateInPast(selectedDate)) {
-      setSelectedStartDate(day)
-      setSelectedMonth(monthIndex)
-      setSelectedYear(year)
-    }
-  }, [])
+  const handleDateClick = useCallback(
+    (day: number, monthIndex: number, year: number) => {
+      const selectedDate = new Date(year, monthIndex, day);
+
+      if (!isDateInPast(selectedDate)) {
+        setSelectedStartDate(day);
+        setSelectedMonth(monthIndex);
+        setSelectedYear(year);
+      }
+    },
+    [],
+  );
 
   const handleDurationChange = useCallback((index: number) => {
-    setSelectedDuration(index)
+    setSelectedDuration(index);
     // Clear selection when duration changes
-    setSelectedStartDate(null)
-    setSelectedMonth(null)
-    setSelectedYear(null)
-  }, [])
+    setSelectedStartDate(null);
+    setSelectedMonth(null);
+    setSelectedYear(null);
+  }, []);
 
-  const navigateMonth = useCallback((direction: 'prev' | 'next') => {
-    setCurrentDate(prevDate => {
-      const newDate = new Date(prevDate)
-      newDate.setMonth(newDate.getMonth() + (direction === 'prev' ? -1 : 1))
-      
+  const navigateMonth = useCallback((direction: "prev" | "next") => {
+    setCurrentDate((prevDate) => {
+      const newDate = new Date(prevDate);
+      newDate.setMonth(newDate.getMonth() + (direction === "prev" ? -1 : 1));
+
       // Don't allow navigation to past months
-      const today = new Date()
-      const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-      const targetMonth = new Date(newDate.getFullYear(), newDate.getMonth(), 1)
-      
-      return targetMonth >= currentMonth ? newDate : prevDate
-    })
-  }, [])
+      const today = new Date();
+      const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const targetMonth = new Date(
+        newDate.getFullYear(),
+        newDate.getMonth(),
+        1,
+      );
+
+      return targetMonth >= currentMonth ? newDate : prevDate;
+    });
+  }, []);
 
   // Helper functions
   const getDaysInMonth = useCallback((date: Date): number => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
-  }, [])
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  }, []);
 
   const getFirstDayOfMonth = useCallback((date: Date): number => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay()
-  }, [])
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+  }, []);
 
-  const generateCalendarDays = useCallback((date: Date): (number | null)[] => {
-    const daysInMonth = getDaysInMonth(date)
-    const firstDay = getFirstDayOfMonth(date)
-    const days: (number | null)[] = []
+  const generateCalendarDays = useCallback(
+    (date: Date): (number | null)[] => {
+      const daysInMonth = getDaysInMonth(date);
+      const firstDay = getFirstDayOfMonth(date);
+      const days: (number | null)[] = [];
 
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null)
-    }
-
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(day)
-    }
-
-    // Add empty cells to complete the last week
-    const remainder = days.length % 7
-    if (remainder !== 0) {
-      const cellsToAdd = 7 - remainder
-      for (let i = 0; i < cellsToAdd; i++) {
-        days.push(null)
+      // Add empty cells for days before the first day of the month
+      for (let i = 0; i < firstDay; i++) {
+        days.push(null);
       }
-    }
 
-    return days
-  }, [getDaysInMonth, getFirstDayOfMonth])
+      // Add days of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        days.push(day);
+      }
 
-  const getDateStatus = useCallback((day: number | null, monthIndex: number, year: number) => {
-    if (!day) {
-      return { isSelected: false, isInRange: false, isDisabled: false }
-    }
+      // Add empty cells to complete the last week
+      const remainder = days.length % 7;
+      if (remainder !== 0) {
+        const cellsToAdd = 7 - remainder;
+        for (let i = 0; i < cellsToAdd; i++) {
+          days.push(null);
+        }
+      }
 
-    const currentCheckDate = new Date(year, monthIndex, day)
-    const restrictions = getDateRestrictions()
-    
-    // Check if date is in the past
-    const isPast = isDateInPast(currentCheckDate)
-    
-    // Check if date is allowed for the competition type
-    const isAllowed = isDateAllowedForCompetition(currentCheckDate, restrictions)
-    
-    // Date is disabled if it's in the past OR not allowed for competition
-    const isDisabled = isPast || !isAllowed
-    
-    // Check selection status
-    if (!selectedDateRange) {
-      return { isSelected: false, isInRange: false, isDisabled }
-    }
+      return days;
+    },
+    [getDaysInMonth, getFirstDayOfMonth],
+  );
 
-    const { startDate, endDate } = selectedDateRange
-    const isSelected = currentCheckDate >= startDate && currentCheckDate <= endDate
-    const isInRange = currentCheckDate > startDate && currentCheckDate < endDate
+  const getDateStatus = useCallback(
+    (day: number | null, monthIndex: number, year: number) => {
+      if (!day) {
+        return { isSelected: false, isInRange: false, isDisabled: false };
+      }
 
-    return { isSelected, isInRange, isDisabled }
-  }, [selectedDateRange, getDateRestrictions])
+      const currentCheckDate = new Date(year, monthIndex, day);
+      const restrictions = getDateRestrictions();
+
+      // Check if date is in the past
+      const isPast = isDateInPast(currentCheckDate);
+
+      // Check if date is allowed for the competition type
+      const isAllowed = isDateAllowedForCompetition(
+        currentCheckDate,
+        restrictions,
+      );
+
+      // Date is disabled if it's in the past OR not allowed for competition
+      const isDisabled = isPast || !isAllowed;
+
+      // Check selection status
+      if (!selectedDateRange) {
+        return { isSelected: false, isInRange: false, isDisabled };
+      }
+
+      const { startDate, endDate } = selectedDateRange;
+      const isSelected =
+        currentCheckDate >= startDate && currentCheckDate <= endDate;
+      const isInRange =
+        currentCheckDate > startDate && currentCheckDate < endDate;
+
+      return { isSelected, isInRange, isDisabled };
+    },
+    [selectedDateRange, getDateRestrictions],
+  );
 
   // Render functions
-  const renderEmptyDay = useCallback(() => (
-    <div className="w-12 h-12 inline-flex flex-col justify-center items-center">
-      <div className="text-center text-zinc-950 text-sm font-medium font-['Poppins'] leading-tight"> </div>
-      <div className="text-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed"> </div>
-    </div>
-  ), [])
+  const renderEmptyDay = useCallback(
+    () => (
+      <div className="w-12 h-12 inline-flex flex-col justify-center items-center">
+        <div className="text-center text-zinc-950 text-sm font-medium font-['Poppins'] leading-tight">
+          {" "}
+        </div>
+        <div className="text-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed">
+          {" "}
+        </div>
+      </div>
+    ),
+    [],
+  );
 
-  const renderCalendarDay = useCallback((day: number | null, monthIndex: number, year: number, isCurrentMonth: boolean = true) => {
-    if (!day) return renderEmptyDay()
+  const renderCalendarDay = useCallback(
+    (
+      day: number | null,
+      monthIndex: number,
+      year: number,
+      isCurrentMonth: boolean = true,
+    ) => {
+      if (!day) return renderEmptyDay();
 
-    const currentCheckDate = new Date(year, monthIndex, day)
-    const { isSelected, isInRange, isDisabled } = getDateStatus(day, monthIndex, year)
-    const textColor = isDisabled ? 'text-zinc-400' : 'text-zinc-950'
-    const cursorClass = isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
+      const currentCheckDate = new Date(year, monthIndex, day);
+      const { isSelected, isInRange, isDisabled } = getDateStatus(
+        day,
+        monthIndex,
+        year,
+      );
+      const textColor = isDisabled ? "text-zinc-400" : "text-zinc-950";
+      const cursorClass = isDisabled ? "cursor-not-allowed" : "cursor-pointer";
 
-    const handleClick = () => {
-      if (isCurrentMonth && !isDisabled) {
-        handleDateClick(day, monthIndex, year)
+      const handleClick = () => {
+        if (isCurrentMonth && !isDisabled) {
+          handleDateClick(day, monthIndex, year);
+        }
+      };
+
+      // Calculate price for the selected duration and this specific date
+      // Pass the current date to check for custom prices
+      const currentPrice = calculatePrice(
+        DURATION_OPTIONS[selectedDuration].nights,
+        currentCheckDate,
+      );
+
+      if (isSelected) {
+        const bgColor = isInRange ? "bg-[#D5EBC5]" : "bg-[#76C043]";
+        const textColorSelected = isInRange ? "text-lime-600" : "text-white";
+        const outline =
+          "rounded outline-1 outline-offset-[-1px] outline-[#6AAD3C] overflow-hidden";
+
+        // Check if this is the start date (main selection) - only show price on start date
+        const isStartDate =
+          selectedDateRange &&
+          currentCheckDate.getTime() === selectedDateRange.startDate.getTime();
+
+        return (
+          <div className={outline}>
+            <div
+              className={`w-12 h-12 ${bgColor} rounded inline-flex flex-col justify-center items-center cursor-pointer`}
+              onClick={handleClick}
+            >
+              <div
+                className={`text-center ${textColorSelected} text-sm font-medium font-['Poppins'] leading-tight`}
+              >
+                {day}
+              </div>
+              {isStartDate && (
+                <div
+                  className={`text-center ${textColorSelected} text-sm font-normal font-['Poppins'] leading-relaxed`}
+                >
+                  {currentPrice}
+                </div>
+              )}
+            </div>
+          </div>
+        );
       }
-    }
-
-    // Calculate price for the selected duration and this specific date
-    // Pass the current date to check for custom prices
-    const currentPrice = calculatePrice(DURATION_OPTIONS[selectedDuration].nights, currentCheckDate)
-    
-
-    if (isSelected) {
-      const bgColor = isInRange ? 'bg-[#D5EBC5]' : 'bg-[#76C043]'
-      const textColorSelected = isInRange ? 'text-lime-600' : 'text-white'
-      const outline = "rounded outline-1 outline-offset-[-1px] outline-[#6AAD3C] overflow-hidden"
-      
-      // Check if this is the start date (main selection) - only show price on start date
-      const isStartDate = selectedDateRange && 
-        currentCheckDate.getTime() === selectedDateRange.startDate.getTime()
 
       return (
-        <div className={outline}>
-          <div className={`w-12 h-12 ${bgColor} rounded inline-flex flex-col justify-center items-center cursor-pointer`} 
-               onClick={handleClick}>
-            <div className={`text-center ${textColorSelected} text-sm font-medium font-['Poppins'] leading-tight`}>
-              {day}
-            </div>
-            {isStartDate && (
-              <div className={`text-center ${textColorSelected} text-sm font-normal font-['Poppins'] leading-relaxed`}>
-                {currentPrice}
-              </div>
-            )}
-          </div>
-        </div>
-      )
-    }
-
-    return (
-      <div className={`w-12 h-12 rounded inline-flex flex-col justify-center items-center ${cursorClass}`} 
-           onClick={handleClick}>
-        <div className={`text-center ${textColor} text-sm font-medium font-['Poppins'] leading-tight`}>
-          {day}
-        </div>
-        {!isDisabled && (
-          <div className="text-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed">
-            {currentPrice}
-          </div>
-        )}
-      </div>
-    )
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getDateStatus, handleDateClick, renderEmptyDay, calculatePrice, selectedDuration])
-
-  const renderCalendarWeeks = useCallback((days: (number | null)[], monthIndex: number, year: number) => {
-    const weeks: (number | null)[][] = []
-    for (let i = 0; i < days.length; i += 7) {
-      weeks.push(days.slice(i, i + 7))
-    }
-
-    return weeks.map((week, weekIndex) => (
-      <div key={weekIndex} className="self-stretch inline-flex justify-start items-center">
-        {week.map((day, dayIndex) => {
-          const { isSelected, isInRange } = getDateStatus(day, monthIndex, year)
-          
-          if (isSelected && isInRange && day) {
-            return (
-              <div key={dayIndex} className="rounded outline-1 outline-offset-[-1px] outline-[#6AAD3C] overflow-hidden">
-                {renderCalendarDay(day, monthIndex, year, true)}
-              </div>
-            )
-          }
-
-          return (
-            <div key={dayIndex}>
-              {renderCalendarDay(day, monthIndex, year, true)}
-            </div>
-          )
-        })}
-      </div>
-    ))
-  }, [getDateStatus, renderCalendarDay])
-
-  const renderCalendarHeader = useCallback((date: Date, showPrevNav: boolean, showNextNav: boolean) => (
-    <div className="self-stretch inline-flex justify-between items-center">
-      <div className={`w-8 h-8 bg-white rounded-full border border-white ${showPrevNav ? 'cursor-pointer hover:bg-gray-50' : ''} flex items-center justify-center`} 
-           onClick={showPrevNav ? () => navigateMonth('prev') : undefined}>
-        {showPrevNav && <FaChevronLeft size={12} className="text-zinc-950" />}
-      </div>
-      <div className="px-2 py-[5px] rounded-xl flex justify-start items-start gap-2.5">
-        <div className="justify-center text-zinc-950 text-sm font-medium font-['Poppins'] leading-tight">
-          {MONTH_NAMES[date.getMonth()]} {date.getFullYear()}
-        </div>
-      </div>
-      <div className={`w-8 h-8 bg-white rounded-full border border-white ${showNextNav ? 'cursor-pointer hover:bg-gray-50' : ''} flex items-center justify-center`} 
-           onClick={showNextNav ? () => navigateMonth('next') : undefined}>
-        {showNextNav && <FaChevronRight size={12} className="text-zinc-950" />}
-      </div>
-    </div>
-  ), [navigateMonth])
-
-  const renderWeekDaysHeader = useCallback(() => (
-    <div className="self-stretch py-3 inline-flex justify-start items-center gap-6">
-      {WEEK_DAYS.map((day) => (
-        <div key={day} className="w-7 h-4 relative">
-          <div className="w-7 h-4 left-0 top-0 absolute text-center justify-center text-zinc-950 text-xs font-medium font-['Poppins'] leading-none">
+        <div
+          className={`w-12 h-12 rounded inline-flex flex-col justify-center items-center ${cursorClass}`}
+          onClick={handleClick}
+        >
+          <div
+            className={`text-center ${textColor} text-sm font-medium font-['Poppins'] leading-tight`}
+          >
             {day}
           </div>
+          {!isDisabled && (
+            <div className="text-center text-lime-600 text-sm font-normal font-['Poppins'] leading-relaxed">
+              {currentPrice}
+            </div>
+          )}
         </div>
-      ))}
-    </div>
-  ), [])
+      );
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [
+      getDateStatus,
+      handleDateClick,
+      renderEmptyDay,
+      calculatePrice,
+      selectedDuration,
+    ],
+  );
+
+  const renderCalendarWeeks = useCallback(
+    (days: (number | null)[], monthIndex: number, year: number) => {
+      const weeks: (number | null)[][] = [];
+      for (let i = 0; i < days.length; i += 7) {
+        weeks.push(days.slice(i, i + 7));
+      }
+
+      return weeks.map((week, weekIndex) => (
+        <div
+          key={weekIndex}
+          className="self-stretch inline-flex justify-start items-center"
+        >
+          {week.map((day, dayIndex) => {
+            const { isSelected, isInRange } = getDateStatus(
+              day,
+              monthIndex,
+              year,
+            );
+
+            if (isSelected && isInRange && day) {
+              return (
+                <div
+                  key={dayIndex}
+                  className="rounded outline-1 outline-offset-[-1px] outline-[#6AAD3C] overflow-hidden"
+                >
+                  {renderCalendarDay(day, monthIndex, year, true)}
+                </div>
+              );
+            }
+
+            return (
+              <div key={dayIndex}>
+                {renderCalendarDay(day, monthIndex, year, true)}
+              </div>
+            );
+          })}
+        </div>
+      ));
+    },
+    [getDateStatus, renderCalendarDay],
+  );
+
+  const renderCalendarHeader = useCallback(
+    (date: Date, showPrevNav: boolean, showNextNav: boolean) => (
+      <div className="self-stretch inline-flex justify-between items-center">
+        <div
+          className={`w-8 h-8 bg-white rounded-full border border-white ${showPrevNav ? "cursor-pointer hover:bg-gray-50" : ""} flex items-center justify-center`}
+          onClick={showPrevNav ? () => navigateMonth("prev") : undefined}
+        >
+          {showPrevNav && <FaChevronLeft size={12} className="text-zinc-950" />}
+        </div>
+        <div className="px-2 py-[5px] rounded-xl flex justify-start items-start gap-2.5">
+          <div className="justify-center text-zinc-950 text-sm font-medium font-['Poppins'] leading-tight">
+            {MONTH_NAMES[date.getMonth()]} {date.getFullYear()}
+          </div>
+        </div>
+        <div
+          className={`w-8 h-8 bg-white rounded-full border border-white ${showNextNav ? "cursor-pointer hover:bg-gray-50" : ""} flex items-center justify-center`}
+          onClick={showNextNav ? () => navigateMonth("next") : undefined}
+        >
+          {showNextNav && (
+            <FaChevronRight size={12} className="text-zinc-950" />
+          )}
+        </div>
+      </div>
+    ),
+    [navigateMonth],
+  );
+
+  const renderWeekDaysHeader = useCallback(
+    () => (
+      <div className="self-stretch py-3 inline-flex justify-start items-center gap-6">
+        {WEEK_DAYS.map((day) => (
+          <div key={day} className="w-7 h-4 relative">
+            <div className="w-7 h-4 left-0 top-0 absolute text-center justify-center text-zinc-950 text-xs font-medium font-['Poppins'] leading-none">
+              {day}
+            </div>
+          </div>
+        ))}
+      </div>
+    ),
+    [],
+  );
 
   // Memoized calendar data
-  const currentMonthDays = useMemo(() => generateCalendarDays(currentDate), [generateCalendarDays, currentDate])
-  const nextMonthDays = useMemo(() => generateCalendarDays(nextMonth), [generateCalendarDays, nextMonth])
+  const currentMonthDays = useMemo(
+    () => generateCalendarDays(currentDate),
+    [generateCalendarDays, currentDate],
+  );
+  const nextMonthDays = useMemo(
+    () => generateCalendarDays(nextMonth),
+    [generateCalendarDays, nextMonth],
+  );
 
   // Show loading state
   if (isLoading || isLoadingPrices) {
@@ -729,29 +974,41 @@ export default function DateSection() {
           Loading available dates...
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="w-full xl:w-[894px] xl:min-h-[754px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C] inline-flex flex-col justify-start items-start gap-6 min-h-[600px]">
       <div className="self-stretch flex flex-col justify-center items-start gap-3">
         <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
-          <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">Escoge tu día perfecto</div>
+          <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
+            Escoge tu día perfecto
+          </div>
         </div>
-        
+
         <div className="self-stretch flex flex-col justify-start items-start gap-3">
           {/* Package and Price Info */}
           {formData.selectedSport && formData.selectedPackage && (
             <div className="w-full p-4 bg-white rounded-lg border border-gray-200">
               <div className="flex flex-col gap-2">
                 <div className="text-sm text-gray-600 font-medium">
-                  {formData.selectedPackage === 'standard' ? 'Paquete Estándar' : 'Paquete Premium'} - {formData.selectedSport === 'football' ? 'Fútbol' : formData.selectedSport === 'basketball' ? 'Basket' : 'Ambos'}
+                  {formData.selectedPackage === "standard"
+                    ? "Paquete Estándar"
+                    : "Paquete Premium"}{" "}
+                  -{" "}
+                  {formData.selectedSport === "football"
+                    ? "Fútbol"
+                    : formData.selectedSport === "basketball"
+                      ? "Basket"
+                      : "Ambos"}
                 </div>
                 <div className="text-lg font-bold text-lime-600">
-                  Desde {calculatePrice(DURATION_OPTIONS[selectedDuration].nights)}
+                  Desde{" "}
+                  {calculatePrice(DURATION_OPTIONS[selectedDuration].nights)}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {DURATION_OPTIONS[selectedDuration].days} días, {DURATION_OPTIONS[selectedDuration].nights} noches
+                  {DURATION_OPTIONS[selectedDuration].days} días,{" "}
+                  {DURATION_OPTIONS[selectedDuration].nights} noches
                 </div>
               </div>
             </div>
@@ -778,19 +1035,23 @@ export default function DateSection() {
                 <div
                   key={index}
                   className={`w-32 xl:w-36 px-4 xl:px-6 py-3 rounded-lg flex flex-col justify-start items-center cursor-pointer flex-shrink-0 ${
-                    selectedDuration === index ? 'bg-[#76C043]' : 'bg-white'
+                    selectedDuration === index ? "bg-[#76C043]" : "bg-white"
                   }`}
                   onClick={() => handleDurationChange(index)}
                 >
-                  <div className={`justify-center text-base xl:text-lg font-medium font-['Poppins'] leading-loose ${
-                    selectedDuration === index ? 'text-white' : 'text-black'
-                  }`}>
-                    {option.days} {option.days === 1 ? 'día' : 'días'}
+                  <div
+                    className={`justify-center text-base xl:text-lg font-medium font-['Poppins'] leading-loose ${
+                      selectedDuration === index ? "text-white" : "text-black"
+                    }`}
+                  >
+                    {option.days} {option.days === 1 ? "día" : "días"}
                   </div>
-                  <div className={`justify-center text-xs xl:text-sm font-normal font-['Poppins'] leading-relaxed ${
-                    selectedDuration === index ? 'text-white' : 'text-black'
-                  }`}>
-                    {option.nights} {option.nights === 1 ? 'noche' : 'noches'}
+                  <div
+                    className={`justify-center text-xs xl:text-sm font-normal font-['Poppins'] leading-relaxed ${
+                      selectedDuration === index ? "text-white" : "text-black"
+                    }`}
+                  >
+                    {option.nights} {option.nights === 1 ? "noche" : "noches"}
                   </div>
                 </div>
               ))}
@@ -807,18 +1068,26 @@ export default function DateSection() {
                   <div className="self-stretch flex flex-col justify-start items-start gap-3">
                     {renderWeekDaysHeader()}
                     <div className="self-stretch flex flex-col justify-start items-start gap-3">
-                      {renderCalendarWeeks(currentMonthDays, currentDate.getMonth(), currentDate.getFullYear())}
+                      {renderCalendarWeeks(
+                        currentMonthDays,
+                        currentDate.getMonth(),
+                        currentDate.getFullYear(),
+                      )}
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Next Month Calendar */}
                 <div className="w-full xl:w-96 flex flex-col justify-start items-center gap-4 xl:gap-6">
                   {renderCalendarHeader(nextMonth, false, true)}
                   <div className="self-stretch flex flex-col justify-start items-start gap-3">
                     {renderWeekDaysHeader()}
                     <div className="self-stretch flex flex-col justify-start items-start gap-3">
-                      {renderCalendarWeeks(nextMonthDays, nextMonth.getMonth(), nextMonth.getFullYear())}
+                      {renderCalendarWeeks(
+                        nextMonthDays,
+                        nextMonth.getMonth(),
+                        nextMonth.getFullYear(),
+                      )}
                     </div>
                   </div>
                 </div>
@@ -827,136 +1096,47 @@ export default function DateSection() {
           </div>
         </div>
 
-        {/* Package Pricing Debugger */}
-        <div className="self-stretch flex flex-col justify-start items-start gap-4">
-          <div className="w-full p-4 bg-gray-100 rounded-lg border border-gray-300">
-            <div className="flex flex-col gap-3">
-              <div className="text-lg font-semibold text-gray-800 font-['Poppins']">
-                Package Pricing Data (From Package API)
-              </div>
-              <div className="text-sm text-gray-600 font-['Poppins']">
-                Dynamic pricing data from package service - same as package table
-              </div>
-              
-              {/* Package Pricing Content */}
-              <div className="w-full border border-gray-200 rounded-lg bg-white p-4">
-                {isLoadingPrices ? (
-                  <div className="text-center text-gray-500 font-['Poppins']">
-                    Loading package prices...
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-6">
-                    {/* Football Pricing */}
-                    <div className="flex flex-col gap-2">
-                      <div className="font-medium text-gray-700 font-['Poppins']">Football</div>
-                      {packagePrices.football ? (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-600 font-['Poppins']">Standard:</span>
-                            <span className="font-semibold text-lime-600 font-['Poppins']">
-                              {packagePrices.football.pricesByDuration?.[selectedDurationKey]?.standard ?? 0}
-                              {getItemCurrencySymbol(packagePrices.football)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-600 font-['Poppins']">Premium:</span>
-                            <span className="font-semibold text-lime-600 font-['Poppins']">
-                              {packagePrices.football.pricesByDuration?.[selectedDurationKey]?.premium ?? 0}
-                              {getItemCurrencySymbol(packagePrices.football)}
-                            </span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-gray-500 text-sm">No football pricing data</div>
-                      )}
-                    </div>
-                    
-                    {/* Basketball Pricing */}
-                    <div className="flex flex-col gap-2">
-                      <div className="font-medium text-gray-700 font-['Poppins']">Basketball</div>
-                      {packagePrices.basketball ? (
-                        <>
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-600 font-['Poppins']">Standard:</span>
-                            <span className="font-semibold text-lime-600 font-['Poppins']">
-                              {packagePrices.basketball.pricesByDuration?.[selectedDurationKey]?.standard ?? 0}
-                              {getItemCurrencySymbol(packagePrices.basketball)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-600 font-['Poppins']">Premium:</span>
-                            <span className="font-semibold text-lime-600 font-['Poppins']">
-                              {packagePrices.basketball.pricesByDuration?.[selectedDurationKey]?.premium ?? 0}
-                              {getItemCurrencySymbol(packagePrices.basketball)}
-                            </span>
-                          </div>
-                        </>
-                      ) : (
-                        <div className="text-gray-500 text-sm">No basketball pricing data</div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-               {/* Current Selection Info */}
-               <div className="text-sm text-gray-600 font-['Poppins']">
-                 Current selection: {formData.selectedSport} - {formData.selectedPackage} package
-                 {formData.selectedSport && formData.selectedPackage && (
-                   <span className="ml-2 font-semibold text-lime-600">
-                     {formData.selectedSport === 'both' ? (
-                       packagePrices.combined ? (
-                         <>
-                           (Combined base price: {formData.selectedPackage === 'standard'
-                             ? (packagePrices.combined.pricesByDuration?.[selectedDurationKey]?.standard ?? 0)
-                             : (packagePrices.combined.pricesByDuration?.[selectedDurationKey]?.premium ?? 0)}
-                           {getItemCurrencySymbol(packagePrices.combined)})
-                         </>
-                       ) : 'Loading...'
-                     ) : (
-                       packagePrices[formData.selectedSport as BaseSportKey] && (
-                         <>
-                           (Base price: {formData.selectedPackage === 'standard' 
-                             ? packagePrices[formData.selectedSport as BaseSportKey]?.pricesByDuration?.[selectedDurationKey]?.standard
-                             : packagePrices[formData.selectedSport as BaseSportKey]?.pricesByDuration?.[selectedDurationKey]?.premium}
-                           {getItemCurrencySymbol(packagePrices[formData.selectedSport as BaseSportKey])})
-                         </>
-                       )
-                     )}
-                   </span>
-                 )}
-               </div>
-            </div>
-          </div>
-        </div>
-
         {/* Next Button */}
-        <button 
+        <button
           onClick={() => {
-            if (selectedStartDate && selectedMonth !== null && selectedYear !== null) {
-              const startDate = new Date(selectedYear, selectedMonth, selectedStartDate)
-              const duration = DURATION_OPTIONS[selectedDuration]
-              const endDate = new Date(startDate)
-              endDate.setDate(startDate.getDate() + duration.days - 1)
-              
-              updateFormData({ 
+            if (
+              selectedStartDate &&
+              selectedMonth !== null &&
+              selectedYear !== null
+            ) {
+              const startDate = new Date(
+                selectedYear,
+                selectedMonth,
+                selectedStartDate,
+              );
+              const duration = DURATION_OPTIONS[selectedDuration];
+              const endDate = new Date(startDate);
+              endDate.setDate(startDate.getDate() + duration.days - 1);
+
+              updateFormData({
                 departureDate: startDate.toISOString(),
-                returnDate: endDate.toISOString()
-              })
-              
-              nextStep()
+                returnDate: endDate.toISOString(),
+              });
+
+              nextStep();
             }
           }}
-          disabled={!selectedStartDate || selectedMonth === null || selectedYear === null}
+          disabled={
+            !selectedStartDate ||
+            selectedMonth === null ||
+            selectedYear === null
+          }
           className={`w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-colors ${
             selectedStartDate && selectedMonth !== null && selectedYear !== null
-              ? 'bg-[#76C043] hover:bg-lime-600 cursor-pointer'
-              : 'bg-gray-400 cursor-not-allowed'
+              ? "bg-[#76C043] hover:bg-lime-600 cursor-pointer"
+              : "bg-gray-400 cursor-not-allowed"
           }`}
         >
-          <div className="text-center justify-start text-white text-base font-normal font-['Inter']">Next</div>
+          <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
+            Next
+          </div>
         </button>
       </div>
     </div>
-  )
+  );
 }

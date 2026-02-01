@@ -14,8 +14,55 @@ import type {
 } from "./package.types";
 
 class PackageService {
+  /**
+   * Check if a package with the same combination already exists
+   */
+  async checkDuplicate(data: {
+    sport: string;
+    included: string;
+    plan: string;
+    duration: number;
+    excludeId?: string;
+  }): Promise<{ exists: boolean; existingPackage?: IPackage }> {
+    await connectToDatabase();
+
+    const query: any = {
+      sport: new RegExp(`^${data.sport}$`, "i"),
+      included: new RegExp(`^${data.included}$`, "i"),
+      plan: data.plan,
+      duration: data.duration,
+      isActive: true,
+    };
+
+    // Exclude specific ID when updating
+    if (data.excludeId) {
+      query._id = { $ne: data.excludeId };
+    }
+
+    const existingPackage = await Package.findOne(query);
+
+    return {
+      exists: !!existingPackage,
+      existingPackage: existingPackage || undefined,
+    };
+  }
+
   async create(data: CreatePackageData): Promise<IPackage> {
     await connectToDatabase();
+
+    // Check for duplicates
+    const duplicateCheck = await this.checkDuplicate({
+      sport: data.sport,
+      included: data.included,
+      plan: data.plan,
+      duration: data.duration,
+    });
+
+    if (duplicateCheck.exists) {
+      throw new Error(
+        `A package already exists for ${data.sport} - ${data.plan} plan - ${data.duration} night(s) - ${data.included}. Please update the existing package or delete it first.`,
+      );
+    }
 
     const packageData = {
       ...data,
@@ -39,7 +86,8 @@ class PackageService {
   }> {
     await connectToDatabase();
 
-    const { filters = {}, sort, limit = 50, skip = 0 } = options;
+    const { filters = {}, sort, limit = 50, page = 1 } = options;
+    const skip = options.skip ?? (page - 1) * limit;
 
     const query: any = {};
 
@@ -47,8 +95,16 @@ class PackageService {
       query.sport = new RegExp(`^${filters.sport}$`, "i");
     }
 
-    if (filters.category) {
-      query.category = new RegExp(`^${filters.category}$`, "i");
+    if (filters.included) {
+      query.included = new RegExp(`^${filters.included}$`, "i");
+    }
+
+    if (filters.plan) {
+      query.plan = filters.plan;
+    }
+
+    if (filters.duration) {
+      query.duration = filters.duration;
     }
 
     if (filters.isActive !== undefined) {

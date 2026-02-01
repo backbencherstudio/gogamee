@@ -2,9 +2,12 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IPackage extends Document {
   sport: string;
-  category: string;
-  standard: string;
-  premium: string;
+  included: string;
+  included_es?: string;
+  plan: "standard" | "premium" | "combined";
+  duration: 1 | 2 | 3 | 4;
+  description: string;
+  description_es?: string;
   standardPrice?: number;
   premiumPrice?: number;
   currency?: string;
@@ -22,20 +25,36 @@ const PackageSchema = new Schema<IPackage>(
       trim: true,
       index: true,
     },
-    category: {
+    included: {
       type: String,
       required: true,
       trim: true,
       index: true,
     },
-    standard: {
+    included_es: {
+      type: String,
+      trim: true,
+    },
+    plan: {
+      type: String,
+      required: true,
+      enum: ["standard", "premium", "combined"],
+      index: true,
+    },
+    duration: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 4,
+      index: true,
+    },
+    description: {
       type: String,
       required: true,
       trim: true,
     },
-    premium: {
+    description_es: {
       type: String,
-      required: true,
       trim: true,
     },
     standardPrice: {
@@ -64,13 +83,20 @@ const PackageSchema = new Schema<IPackage>(
   {
     timestamps: true,
     collection: "packages",
-  }
+  },
 );
 
 // Compound indexes for better query performance
-PackageSchema.index({ sport: 1, category: 1 });
+PackageSchema.index({ sport: 1, included: 1 });
+PackageSchema.index({ sport: 1, plan: 1, duration: 1 });
 PackageSchema.index({ isActive: 1, sortOrder: 1 });
 PackageSchema.index({ createdAt: -1 });
+
+// Unique compound index to prevent duplicate packages
+PackageSchema.index(
+  { sport: 1, included: 1, plan: 1, duration: 1 },
+  { unique: true },
+);
 
 // Virtual for price range
 PackageSchema.virtual("priceRange").get(function () {
@@ -85,7 +111,7 @@ PackageSchema.virtual("priceRange").get(function () {
 
 // Instance method to get formatted price
 PackageSchema.methods.getFormattedPrice = function (
-  type: "standard" | "premium"
+  type: "standard" | "premium",
 ) {
   const price = type === "standard" ? this.standardPrice : this.premiumPrice;
   if (!price) return "Price not set";

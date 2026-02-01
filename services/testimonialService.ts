@@ -41,34 +41,50 @@ export interface UpdateTestimonialPayload {
   review?: string;
 }
 
+import { ApiResponse } from "../app/lib/api-response";
+
+// ... (existing interfaces)
+
 // GET all
-export const getAllTestimonials = async (): Promise<TestimonialListResponse> => {
-  const response = await axiosClient.get("/testimonial-management");
+export const getAllTestimonials = async (
+  page: number = 1,
+  limit: number = 10,
+): Promise<ApiResponse<TestimonialItem[]>> => {
+  const response = await axiosClient.get(
+    `/testimonials?page=${page}&limit=${limit}`,
+  );
   return response.data;
 };
 
 // GET by id
-export const getTestimonialById = async (id: string): Promise<TestimonialSingleResponse> => {
-  const response = await axiosClient.get(`/testimonial-management/${id}`);
+export const getTestimonialById = async (
+  id: string,
+): Promise<TestimonialSingleResponse> => {
+  const response = await axiosClient.get(`/testimonials/${id}`);
   return response.data;
 };
 
 // POST add
-export const addTestimonial = async (payload: CreateTestimonialPayload): Promise<TestimonialSingleResponse> => {
-  const response = await axiosClient.post("/testimonial-management/add-review", payload);
+export const addTestimonial = async (
+  payload: CreateTestimonialPayload,
+): Promise<TestimonialSingleResponse> => {
+  const response = await axiosClient.post("/testimonials/add-review", payload);
   return response.data;
 };
 
 // PATCH update
-export const updateTestimonial = async (id: string, payload: UpdateTestimonialPayload): Promise<TestimonialSingleResponse> => {
-  const response = await axiosClient.patch(`/testimonial-management/${id}`, payload);
+export const updateTestimonial = async (
+  id: string,
+  payload: UpdateTestimonialPayload,
+): Promise<TestimonialSingleResponse> => {
+  const response = await axiosClient.patch(`/testimonials/${id}`, payload);
   return response.data;
 };
 
 // DELETE
-export const deleteTestimonial = async (id: string): Promise<TestimonialSingleResponse> => {
-  const response = await axiosClient.delete(`/testimonial-management/${id}`);
+export const deleteTestimonial = async (
+  id: string,
+): Promise<TestimonialSingleResponse> => {
+  const response = await axiosClient.delete(`/testimonials/${id}`);
   return response.data;
 };
-
-

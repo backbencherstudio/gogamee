@@ -1,10 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-
-// Google Cloud Translation API
-const GOOGLE_TRANSLATE_API_KEY = process.env.GOOGLE_TRANSLATE_API_KEY;
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-  let text = '';
+  let text = "";
   try {
     const body = await request.json();
     text = body.text;
@@ -13,8 +10,8 @@ export async function POST(request: NextRequest) {
     // Validate input
     if (!text || !targetLanguage) {
       return NextResponse.json(
-        { error: 'Missing required fields: text and targetLanguage' },
-        { status: 400 }
+        { error: "Missing required fields: text and targetLanguage" },
+        { status: 400 },
       );
     }
 
@@ -23,42 +20,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ translatedText: text });
     }
 
-    // If no API key is set, return original text (fallback)
-    if (!GOOGLE_TRANSLATE_API_KEY) {
-      console.warn('GOOGLE_TRANSLATE_API_KEY not set. Using original text.');
-      return NextResponse.json({ translatedText: text });
-    }
+    // Use free Google Translate endpoint (client=gtx)
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLanguage || "auto"}&tl=${targetLanguage}&dt=t&q=${encodeURIComponent(text)}`;
 
-    // Call Google Cloud Translation API
-    const url = `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_TRANSLATE_API_KEY}`;
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        q: text,
-        source: sourceLanguage || 'es',
-        target: targetLanguage,
-        format: 'text',
-      }),
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error(`Translation API error: ${response.statusText}`);
     }
 
     const data = await response.json();
-    const translatedText = data.data?.translations?.[0]?.translatedText || text;
 
-    return NextResponse.json({ translatedText });
+    // Parse 'gtx' response format: [[["Hola","Hello",null,null,1]], ... ]
+    // It returns an array of arrays. The first element is an array of translated sentences.
+    let translatedText = "";
+    if (data && data[0]) {
+      data[0].forEach((sentence: any) => {
+        if (sentence[0]) translatedText += sentence[0];
+      });
+    }
+
+    return NextResponse.json({ translatedText: translatedText || text });
   } catch (error) {
-    console.error('Translation error:', error);
+    console.error("Translation error:", error);
     return NextResponse.json(
-      { error: 'Translation failed', translatedText: text },
-      { status: 500 }
+      { error: "Translation failed", translatedText: text },
+      { status: 500 },
     );
   }
 }
-

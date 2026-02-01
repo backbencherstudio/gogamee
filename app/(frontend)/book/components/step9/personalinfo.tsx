@@ -40,7 +40,7 @@ const formatTime = (minutes: number): string => {
 
 const calculateDuration = (
   departureDate: string,
-  returnDate: string
+  returnDate: string,
 ): number => {
   if (!departureDate || !returnDate) return 0;
   const start = new Date(departureDate);
@@ -88,7 +88,7 @@ const usePerNightPricing = () => {
           (datesRes || []).map((item) => ({
             ...item,
             duration: (item.duration ?? "1") as "1" | "2" | "3" | "4",
-          }))
+          })),
         );
       } catch (e) {
         console.error("Pricing bootstrap failed:", e);
@@ -137,7 +137,7 @@ const usePerNightPricing = () => {
 
       return { enabledDates, blockedDates, customPrices };
     },
-    [apiDateData]
+    [apiDateData],
   );
 
   const getDurationKey = (nights: number): "1" | "2" | "3" | "4" => {
@@ -162,7 +162,7 @@ const usePerNightPricing = () => {
       // nights = days - 1; iterate over nights from start to day before end
       const nights = Math.max(
         0,
-        Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+        Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)),
       );
       const durationKey = getDurationKey(nights);
       const restrictions = getDateRestrictionsForDuration(durationKey);
@@ -215,7 +215,7 @@ const usePerNightPricing = () => {
 
       return 0;
     },
-    [getDateRestrictionsForDuration]
+    [getDateRestrictionsForDuration],
   );
 
   return { sumPerNight };
@@ -227,7 +227,7 @@ const calculateExtrasCost = (
     isIncluded?: boolean;
     price: number;
     quantity: number;
-  }>
+  }>,
 ): number => {
   if (!extras || !Array.isArray(extras)) return 0;
 
@@ -240,17 +240,17 @@ const calculateFlightScheduleCost = (
   flightSchedule: {
     departure: { start: number; end: number };
     arrival: { start: number; end: number };
-  } | null
+  } | null,
 ): number => {
   if (!flightSchedule) return 0;
 
   const departureCost = flightScheduleData.calculatePriceFromDefault(
     flightSchedule.departure,
-    true
+    true,
   );
   const arrivalCost = flightScheduleData.calculatePriceFromDefault(
     flightSchedule.arrival,
-    false
+    false,
   );
 
   return departureCost + arrivalCost;
@@ -435,7 +435,7 @@ export default function Personalinfo() {
 
     const duration = calculateDuration(
       formData.departureDate || "",
-      formData.returnDate || ""
+      formData.returnDate || "",
     );
     const nights = Math.max(0, duration - 1);
 
@@ -452,7 +452,7 @@ export default function Personalinfo() {
 
     const extrasCost = calculateExtrasCost(formData.extras || []);
     const flightScheduleCost = calculateFlightScheduleCost(
-      formData.flightSchedule
+      formData.flightSchedule,
     );
     const leagueCost = calculateLeagueCost(formData.selectedLeague || "");
 
@@ -467,7 +467,7 @@ export default function Personalinfo() {
       ? 0
       : removedLeaguesCount;
     const removalCostPerPerson = removeLeagueData.calculateTotalCost(
-      effectiveRemovedLeaguesCount
+      effectiveRemovedLeaguesCount,
     );
     const removalTotal = removalCostPerPerson * totalPeople;
 
@@ -515,12 +515,12 @@ export default function Personalinfo() {
       totalPeople,
       departureTimeRange: formData.flightSchedule
         ? `${formatTime(
-            formData.flightSchedule.departure.start
+            formData.flightSchedule.departure.start,
           )} - ${formatTime(formData.flightSchedule.departure.end)}`
         : "",
       arrivalTimeRange: formData.flightSchedule
         ? `${formatTime(formData.flightSchedule.arrival.start)} - ${formatTime(
-            formData.flightSchedule.arrival.end
+            formData.flightSchedule.arrival.end,
           )}`
         : "",
     };
@@ -531,7 +531,7 @@ export default function Personalinfo() {
     console.log("🎯 PersonalInfo - People Count Data:", formData.peopleCount);
     console.log(
       "🎯 PersonalInfo - Has Multiple Travelers:",
-      hasMultipleTravelers
+      hasMultipleTravelers,
     );
     console.log("🎯 PersonalInfo - Reservation Data:", reservationData);
 
@@ -543,17 +543,17 @@ export default function Personalinfo() {
           console.log(
             `  - ${extra.name}: ${extra.price}€ × ${extra.quantity} = ${(
               extra.price * extra.quantity
-            ).toFixed(2)}€`
+            ).toFixed(2)}€`,
           );
         }
       });
       console.log(
-        `  Total Extras Cost: ${reservationData.extrasCost.toFixed(2)}€`
+        `  Total Extras Cost: ${reservationData.extrasCost.toFixed(2)}€`,
       );
       console.log(
         `  Extras Total (×${
           reservationData.totalPeople
-        }): ${reservationData.extrasTotal.toFixed(2)}€`
+        }): ${reservationData.extrasTotal.toFixed(2)}€`,
       );
     }
 
@@ -561,35 +561,35 @@ export default function Personalinfo() {
     console.log(
       `  Package: ${reservationData.basePrice}€ × ${
         reservationData.totalPeople
-      } = ${reservationData.packageTotal.toFixed(2)}€`
+      } = ${reservationData.packageTotal.toFixed(2)}€`,
     );
     console.log(
       `  Extras: ${
         reservationData.extrasCost
-      }€ (fixed for group) = ${reservationData.extrasTotal.toFixed(2)}€`
+      }€ (fixed for group) = ${reservationData.extrasTotal.toFixed(2)}€`,
     );
     console.log(
       `  Flight Schedule: ${reservationData.flightScheduleCost}€ × ${
         reservationData.totalPeople
-      } = ${reservationData.flightScheduleTotal.toFixed(2)}€`
+      } = ${reservationData.flightScheduleTotal.toFixed(2)}€`,
     );
     console.log(
       `  League: ${reservationData.leagueCost}€ × ${
         reservationData.totalPeople
-      } = ${reservationData.leagueTotal.toFixed(2)}€`
+      } = ${reservationData.leagueTotal.toFixed(2)}€`,
     );
     if (formData.removedLeagues && formData.removedLeagues.length > 0) {
       console.log(
         `  League Removal: ${reservationData.removalCostPerPerson}€ × ${
           reservationData.totalPeople
-        } = ${reservationData.removalTotal.toFixed(2)}€`
+        } = ${reservationData.removalTotal.toFixed(2)}€`,
       );
     }
     if (reservationData.singleTravelerSupplement > 0) {
       console.log(
         `  Single Traveler Supplement: ${reservationData.singleTravelerSupplement.toFixed(
-          2
-        )}€`
+          2,
+        )}€`,
       );
     }
     console.log(`  Grand Total: ${reservationData.grandTotal.toFixed(2)}€`);
@@ -678,7 +678,7 @@ export default function Personalinfo() {
           traveler.name ||
           traveler.dateOfBirth ||
           traveler.documentType ||
-          traveler.documentNumber
+          traveler.documentNumber,
       )
     ) {
       saveToStorage(currentValues);
@@ -1142,7 +1142,7 @@ export default function Personalinfo() {
                             </div>
                           </div>
                         </div>
-                      )
+                      ),
                     )}
                   </div>
                 </div>
@@ -1223,7 +1223,9 @@ export default function Personalinfo() {
                               formData.selectedSport as
                                 | "football"
                                 | "basketball",
-                              formData.selectedPackage as "standard" | "premium"
+                              formData.selectedPackage as
+                                | "standard"
+                                | "premium",
                             ) || "Package"}
                           </span>
                           <div className="text-right">
@@ -1241,7 +1243,7 @@ export default function Personalinfo() {
                         {formData.extras &&
                           formData.extras
                             .filter(
-                              (extra) => extra.isSelected && !extra.isIncluded
+                              (extra) => extra.isSelected && !extra.isIncluded,
                             )
                             .map((extra) => (
                               <div
@@ -1329,7 +1331,7 @@ export default function Personalinfo() {
                               </div>
                               <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
                                 {reservationData.singleTravelerSupplement.toFixed(
-                                  2
+                                  2,
                                 )}
                                 €
                               </div>
@@ -1374,7 +1376,9 @@ export default function Personalinfo() {
                               formData.selectedSport as
                                 | "football"
                                 | "basketball",
-                              formData.selectedPackage as "standard" | "premium"
+                              formData.selectedPackage as
+                                | "standard"
+                                | "premium",
                             ) || "Package"}
                           </div>
                           <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
@@ -1392,7 +1396,7 @@ export default function Personalinfo() {
                         {formData.extras &&
                           formData.extras
                             .filter(
-                              (extra) => extra.isSelected && !extra.isIncluded
+                              (extra) => extra.isSelected && !extra.isIncluded,
                             )
                             .map((extra) => (
                               <div
@@ -1482,7 +1486,7 @@ export default function Personalinfo() {
                             </div>
                             <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
                               {reservationData.singleTravelerSupplement.toFixed(
-                                2
+                                2,
                               )}
                               €
                             </div>
@@ -1566,7 +1570,7 @@ export default function Personalinfo() {
                               </span>
                               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                                 {reservationData.singleTravelerSupplement.toFixed(
-                                  2
+                                  2,
                                 )}
                                 €
                               </span>
@@ -1601,7 +1605,7 @@ export default function Personalinfo() {
                 </div>
               </div>
 
-              {/* Payment Methods */}
+              {/* Payment Methods
               <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
                 <div className="self-stretch inline-flex justify-start items-center gap-2">
                   <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
@@ -1615,7 +1619,6 @@ export default function Personalinfo() {
                   rules={{ required: "Payment method is required" }}
                   render={({ field }) => (
                     <>
-                      {/* Credit Card Option */}
                       <PaymentMethodCard
                         value="credit"
                         selectedValue={field.value}
@@ -1644,7 +1647,6 @@ export default function Personalinfo() {
                         </div>
                       </PaymentMethodCard>
 
-                      {/* Google Pay Option */}
                       <PaymentMethodCard
                         value="google"
                         selectedValue={field.value}
@@ -1665,7 +1667,6 @@ export default function Personalinfo() {
                         </div>
                       </PaymentMethodCard>
 
-                      {/* Apple Pay Option */}
                       <PaymentMethodCard
                         value="apple"
                         selectedValue={field.value}
@@ -1693,7 +1694,7 @@ export default function Personalinfo() {
                     {errors.paymentMethod.message}
                   </div>
                 )}
-              </div>
+              </div> */}
             </div>
             <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-full md:w-auto">
               <button

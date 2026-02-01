@@ -47,9 +47,16 @@ class EmailQueueService {
   /**
    * Add email to queue
    */
-  async addToQueue(emailData: QueuedEmail): Promise<string> {
-    const job = await mailQueue.add(emailData.type, emailData);
-    console.log(`📧 Email queued: ${job.id} (${emailData.type})`);
+  async addToQueue(
+    emailData: QueuedEmail,
+    options?: { delay?: number },
+  ): Promise<string> {
+    const job = await mailQueue.add(emailData.type, emailData, {
+      delay: options?.delay,
+    });
+    console.log(
+      `📧 Email queued: ${job.id} (${emailData.type}) ${options?.delay ? `(delayed by ${Math.round(options.delay / 1000 / 60)}m)` : ""}`,
+    );
     return job.id || "";
   }
 

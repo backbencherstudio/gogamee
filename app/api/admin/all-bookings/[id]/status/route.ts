@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { BookingService } from "@/backend";
 import { toErrorMessage } from "@/backend/lib/errors";
+import { queueBookingConfirmationEmails } from "@/app/api/mail/send-booking-email";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -25,6 +26,49 @@ export async function PATCH(request: Request, context: RouteContext) {
         { message: "Booking not found" },
         { status: 404 },
       );
+    }
+
+    // Handle Email Scheduling on Approval
+    if (updated && payload.status === "confirmed") {
+      try {
+        const departureDate = new Date(updated.departureDate);
+        const now = new Date();
+        // 48 hours in milliseconds
+        const revealTime = new Date(
+          departureDate.getTime() - 48 * 60 * 60 * 1000,
+        );
+        const delay = revealTime.getTime() - now.getTime();
+
+        console.log(
+          `📅 Booking Confirmed. Departure: ${departureDate.toISOString()}, Reveal: ${revealTime.toISOString()}, Delay: ${delay}ms`,
+        );
+
+        if (delay > 0) {
+          // 1. Send Immediate Confirmation (Hidden) + Admin Notification
+          await queueBookingConfirmationEmails(updated as any, {
+            showReveal: false,
+          });
+
+          // 2. Schedule Reveal Email (User Only)
+          await queueBookingConfirmationEmails(updated as any, {
+            showReveal: true,
+            delay,
+          });
+
+          console.log(`✅ Reveal email scheduled`);
+        } else {
+          console.log(
+            `⚡ Late confirmation (within 48h), queuing reveal email immediately`,
+          );
+          // Already within 48h, send Revealed version immediately
+          await queueBookingConfirmationEmails(updated as any, {
+            showReveal: true,
+          });
+        }
+      } catch (emailError) {
+        console.error("❌ Error handling approval emails:", emailError);
+        // Don't fail the request, just log
+      }
     }
 
     const mappedBooking = {

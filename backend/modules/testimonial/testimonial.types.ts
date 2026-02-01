@@ -39,4 +39,5 @@ export interface TestimonialQueryOptions {
   };
   limit?: number;
   skip?: number;
+  page?: number;
 }

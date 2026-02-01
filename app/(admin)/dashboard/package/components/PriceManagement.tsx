@@ -1,217 +1,255 @@
-'use client'
-import React, { useState, useEffect, useCallback } from 'react'
-import { DollarSign, Save, RefreshCw, Edit, X } from 'lucide-react'
-import { getAllPackages, editPackage, addPackage } from '../../../../../services/packageService'
-import { useToast } from '../../../../../components/ui/toast'
+"use client";
+import React, { useState, useEffect, useCallback } from "react";
+import { DollarSign, Save, RefreshCw, Edit, X } from "lucide-react";
+import {
+  getAllPackages,
+  editPackage,
+  addPackage,
+} from "../../../../../services/packageService";
+import { useToast } from "../../../../../components/ui/toast";
 
 interface PriceData {
-  id: string
-  sport: 'football' | 'basketball'
-  standardPrice: number
-  premiumPrice: number
-  currency: string
+  id: string;
+  sport: "football" | "basketball";
+  standardPrice: number;
+  premiumPrice: number;
+  currency: string;
 }
 
 interface PriceManagementProps {
-  onPriceUpdate?: (sport: 'football' | 'basketball', prices: { standardPrice: number; premiumPrice: number; currency: string }) => void
+  onPriceUpdate?: (
+    sport: "football" | "basketball",
+    prices: { standardPrice: number; premiumPrice: number; currency: string },
+  ) => void;
 }
 
-export default function PriceManagement({ onPriceUpdate }: PriceManagementProps) {
-  const { addToast } = useToast()
+export default function PriceManagement({
+  onPriceUpdate,
+}: PriceManagementProps) {
+  const { addToast } = useToast();
   const [priceData, setPriceData] = useState<{
-    football: PriceData | null
-    basketball: PriceData | null
+    football: PriceData | null;
+    basketball: PriceData | null;
   }>({
     football: null,
-    basketball: null
-  })
-  const [editingSport, setEditingSport] = useState<'football' | 'basketball' | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+    basketball: null,
+  });
+  const [editingSport, setEditingSport] = useState<
+    "football" | "basketball" | null
+  >(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadPriceData = useCallback(async () => {
     try {
-      setLoading(true)
-      setError(null)
-      
-      const response = await getAllPackages()
-      if (response.success && response.list) {
-        const packages = response.list
-        
-        // Find Starting Price packages for each sport
-        const footballPricePackage = packages.find(pkg => 
-          pkg.sport === 'football' && pkg.category === 'Starting Price'
-        )
-        const basketballPricePackage = packages.find(pkg => 
-          pkg.sport === 'basketball' && pkg.category === 'Starting Price'
-        )
+      setLoading(true);
+      setError(null);
+
+      const response = await getAllPackages();
+      if (response && response.success && Array.isArray(response.data)) {
+        const packages = response.data;
+        // Price management should use StartingPrice model, not regular packages
+        // This logic is kept for backward compatibility but should be refactored
+        const footballPricePackage = packages.find(
+          (pkg) =>
+            pkg.sport === "football" && pkg.included === "Starting Price",
+        );
+        const basketballPricePackage = packages.find(
+          (pkg) =>
+            pkg.sport === "basketball" && pkg.included === "Starting Price",
+        );
 
         // If Starting Price packages don't exist, create them with default values
         if (!footballPricePackage) {
-          await createStartingPricePackage('football')
+          await createStartingPricePackage("football");
         }
         if (!basketballPricePackage) {
-          await createStartingPricePackage('basketball')
+          await createStartingPricePackage("basketball");
         }
 
         // Reload packages to get the newly created ones
-        const updatedResponse = await getAllPackages()
-        if (updatedResponse.success && updatedResponse.list) {
-          const updatedPackages = updatedResponse.list
-          const updatedFootballPackage = updatedPackages.find(pkg => 
-            pkg.sport === 'football' && pkg.category === 'Starting Price'
-          )
-          const updatedBasketballPackage = updatedPackages.find(pkg => 
-            pkg.sport === 'basketball' && pkg.category === 'Starting Price'
-          )
+        const updatedResponse = await getAllPackages();
+        if (
+          updatedResponse &&
+          updatedResponse.success &&
+          Array.isArray(updatedResponse.data)
+        ) {
+          const updatedPackages = updatedResponse.data;
+          const updatedFootballPackage = updatedPackages.find(
+            (pkg) =>
+              pkg.sport === "football" && pkg.included === "Starting Price",
+          );
+          const updatedBasketballPackage = updatedPackages.find(
+            (pkg) =>
+              pkg.sport === "basketball" && pkg.included === "Starting Price",
+          );
 
           setPriceData({
-            football: updatedFootballPackage ? {
-              id: updatedFootballPackage.id,
-              sport: 'football',
-              standardPrice: updatedFootballPackage.standardPrice || 379,
-              premiumPrice: updatedFootballPackage.premiumPrice || 1499,
-              currency: updatedFootballPackage.currency || 'EUR'
-            } : null,
-            basketball: updatedBasketballPackage ? {
-              id: updatedBasketballPackage.id,
-              sport: 'basketball',
-              standardPrice: updatedBasketballPackage.standardPrice || 359,
-              premiumPrice: updatedBasketballPackage.premiumPrice || 1479,
-              currency: updatedBasketballPackage.currency || 'EUR'
-            } : null
-          })
+            football: updatedFootballPackage
+              ? {
+                  id: updatedFootballPackage.id,
+                  sport: "football",
+                  standardPrice: updatedFootballPackage.standardPrice || 379,
+                  premiumPrice: updatedFootballPackage.premiumPrice || 1499,
+                  currency: updatedFootballPackage.currency || "EUR",
+                }
+              : null,
+            basketball: updatedBasketballPackage
+              ? {
+                  id: updatedBasketballPackage.id,
+                  sport: "basketball",
+                  standardPrice: updatedBasketballPackage.standardPrice || 359,
+                  premiumPrice: updatedBasketballPackage.premiumPrice || 1479,
+                  currency: updatedBasketballPackage.currency || "EUR",
+                }
+              : null,
+          });
         }
       } else {
-        setError('Failed to load price data')
+        setError("Failed to load price data");
       }
     } catch (err) {
-      console.error('Error loading price data:', err)
-      setError('Failed to load price data. Please try again.')
+      console.error("Error loading price data:", err);
+      setError("Failed to load price data. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   // Load price data from packages
   useEffect(() => {
-    loadPriceData()
-  }, [loadPriceData])
+    loadPriceData();
+  }, [loadPriceData]);
 
   // Create Starting Price package for a sport
-  const createStartingPricePackage = async (sport: 'football' | 'basketball') => {
+  const createStartingPricePackage = async (
+    sport: "football" | "basketball",
+  ) => {
     try {
       const defaultPrices = {
         football: { standardPrice: 379, premiumPrice: 1499 },
-        basketball: { standardPrice: 359, premiumPrice: 1479 }
-      }
+        basketball: { standardPrice: 359, premiumPrice: 1479 },
+      };
 
       const packageData = {
         sport: sport,
-        category: 'Starting Price',
-        standard: `Base pricing for ${sport} packages - includes standard accommodation and basic amenities`,
-        premium: `Premium pricing for ${sport} packages - includes luxury accommodation and premium amenities`,
+        included: "Starting Price",
+        plan: "combined" as const,
+        duration: 1 as const,
+        description: `Base pricing for ${sport} packages - includes standard and premium options with accommodation and amenities`,
         standardPrice: defaultPrices[sport].standardPrice,
         premiumPrice: defaultPrices[sport].premiumPrice,
-        currency: 'EUR'
-      }
+        currency: "EUR",
+      };
 
-      const response = await addPackage(packageData)
+      const response = await addPackage(packageData);
       if (response.success) {
-        console.log(`Created Starting Price package for ${sport}`)
+        console.log(`Created Starting Price package for ${sport}`);
       } else {
-        console.error(`Failed to create Starting Price package for ${sport}:`, response.message)
+        console.error(
+          `Failed to create Starting Price package for ${sport}:`,
+          response.message,
+        );
       }
     } catch (err) {
-      console.error(`Error creating Starting Price package for ${sport}:`, err)
+      console.error(`Error creating Starting Price package for ${sport}:`, err);
     }
-  }
+  };
 
-  const handleEditPrices = (sport: 'football' | 'basketball') => {
-    setEditingSport(sport)
-  }
+  const handleEditPrices = (sport: "football" | "basketball") => {
+    setEditingSport(sport);
+  };
 
-  const handleSavePrices = async (sport: 'football' | 'basketball', newPrices: { standardPrice: number; premiumPrice: number; currency: string }) => {
-    const currentData = priceData[sport]
+  const handleSavePrices = async (
+    sport: "football" | "basketball",
+    newPrices: {
+      standardPrice: number;
+      premiumPrice: number;
+      currency: string;
+    },
+  ) => {
+    const currentData = priceData[sport];
     if (!currentData) {
       addToast({
-        type: 'error',
-        title: 'Error',
+        type: "error",
+        title: "Error",
         description: `No price package found for ${sport}`,
-        duration: 4000
-      })
-      return
+        duration: 4000,
+      });
+      return;
     }
 
-    setIsSaving(true)
+    setIsSaving(true);
     try {
       const response = await editPackage(currentData.id, {
         standardPrice: newPrices.standardPrice,
         premiumPrice: newPrices.premiumPrice,
-        currency: newPrices.currency
-      })
+        currency: newPrices.currency,
+      });
 
       if (response.success) {
         // Update local state
-        setPriceData(prev => ({
+        setPriceData((prev) => ({
           ...prev,
           [sport]: {
             ...prev[sport]!,
             standardPrice: newPrices.standardPrice,
             premiumPrice: newPrices.premiumPrice,
-            currency: newPrices.currency
-          }
-        }))
+            currency: newPrices.currency,
+          },
+        }));
 
-        setEditingSport(null)
-        
+        setEditingSport(null);
+
         addToast({
-          type: 'success',
-          title: 'Success!',
+          type: "success",
+          title: "Success!",
           description: `${sport.charAt(0).toUpperCase() + sport.slice(1)} prices updated successfully!`,
-          duration: 4000
-        })
+          duration: 4000,
+        });
 
         if (onPriceUpdate) {
-          onPriceUpdate(sport, newPrices)
+          onPriceUpdate(sport, newPrices);
         }
-        
+
         // Reload price data to ensure consistency
-        loadPriceData()
+        loadPriceData();
       } else {
         addToast({
-          type: 'error',
-          title: 'Error',
-          description: response.message || 'Failed to update prices',
-          duration: 4000
-        })
+          type: "error",
+          title: "Error",
+          description: response.message || "Failed to update prices",
+          duration: 4000,
+        });
       }
     } catch (err) {
-      console.error('Error updating prices:', err)
+      console.error("Error updating prices:", err);
       addToast({
-        type: 'error',
-        title: 'Error',
-        description: 'Failed to update prices. Please try again.',
-        duration: 4000
-      })
+        type: "error",
+        title: "Error",
+        description: "Failed to update prices. Please try again.",
+        duration: 4000,
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleCancelEdit = () => {
-    setEditingSport(null)
-  }
+    setEditingSport(null);
+  };
 
   if (loading) {
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
         <div className="flex justify-center items-center py-8">
-          <div className="text-gray-600 text-lg font-medium">Loading price data...</div>
+          <div className="text-gray-600 text-lg font-medium">
+            Loading price data...
+          </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -226,7 +264,7 @@ export default function PriceManagement({ onPriceUpdate }: PriceManagementProps)
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <div className="text-red-800 font-medium">{error}</div>
-          <button 
+          <button
             onClick={() => setError(null)}
             className="mt-2 text-red-600 hover:text-red-800 underline"
           >
@@ -244,14 +282,18 @@ export default function PriceManagement({ onPriceUpdate }: PriceManagementProps)
                 <span className="text-white font-bold text-lg">⚽</span>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">Football</h3>
-                <span className="text-sm text-green-600 font-medium">Package Prices</span>
+                <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">
+                  Football
+                </h3>
+                <span className="text-sm text-green-600 font-medium">
+                  Package Prices
+                </span>
               </div>
             </div>
-            
-            {editingSport !== 'football' && (
+
+            {editingSport !== "football" && (
               <button
-                onClick={() => handleEditPrices('football')}
+                onClick={() => handleEditPrices("football")}
                 className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors duration-200"
                 title="Edit Football Prices"
               >
@@ -260,11 +302,11 @@ export default function PriceManagement({ onPriceUpdate }: PriceManagementProps)
             )}
           </div>
 
-          {editingSport === 'football' ? (
+          {editingSport === "football" ? (
             <PriceEditForm
               sport="football"
               currentData={priceData.football}
-              onSave={(prices) => handleSavePrices('football', prices)}
+              onSave={(prices) => handleSavePrices("football", prices)}
               onCancel={handleCancelEdit}
               isSaving={isSaving}
             />
@@ -272,18 +314,24 @@ export default function PriceManagement({ onPriceUpdate }: PriceManagementProps)
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-4 border border-green-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600 font-['Poppins']">Standard Package</span>
+                  <span className="text-sm font-medium text-gray-600 font-['Poppins']">
+                    Standard Package
+                  </span>
                   <span className="text-lg font-bold text-green-600 font-['Poppins']">
-                    {priceData.football?.standardPrice || 379}{priceData.football?.currency || '€'}
+                    {priceData.football?.standardPrice || 379}
+                    {priceData.football?.currency || "€"}
                   </span>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg p-4 border border-green-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600 font-['Poppins']">Premium Package</span>
+                  <span className="text-sm font-medium text-gray-600 font-['Poppins']">
+                    Premium Package
+                  </span>
                   <span className="text-lg font-bold text-blue-600 font-['Poppins']">
-                    {priceData.football?.premiumPrice || 1499}{priceData.football?.currency || '€'}
+                    {priceData.football?.premiumPrice || 1499}
+                    {priceData.football?.currency || "€"}
                   </span>
                 </div>
               </div>
@@ -299,14 +347,18 @@ export default function PriceManagement({ onPriceUpdate }: PriceManagementProps)
                 <span className="text-white font-bold text-lg">🏀</span>
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">Basketball</h3>
-                <span className="text-sm text-blue-600 font-medium">Package Prices</span>
+                <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">
+                  Basketball
+                </h3>
+                <span className="text-sm text-blue-600 font-medium">
+                  Package Prices
+                </span>
               </div>
             </div>
-            
-            {editingSport !== 'basketball' && (
+
+            {editingSport !== "basketball" && (
               <button
-                onClick={() => handleEditPrices('basketball')}
+                onClick={() => handleEditPrices("basketball")}
                 className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
                 title="Edit Basketball Prices"
               >
@@ -315,11 +367,11 @@ export default function PriceManagement({ onPriceUpdate }: PriceManagementProps)
             )}
           </div>
 
-          {editingSport === 'basketball' ? (
+          {editingSport === "basketball" ? (
             <PriceEditForm
               sport="basketball"
               currentData={priceData.basketball}
-              onSave={(prices) => handleSavePrices('basketball', prices)}
+              onSave={(prices) => handleSavePrices("basketball", prices)}
               onCancel={handleCancelEdit}
               isSaving={isSaving}
             />
@@ -327,18 +379,24 @@ export default function PriceManagement({ onPriceUpdate }: PriceManagementProps)
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-4 border border-blue-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600 font-['Poppins']">Standard Package</span>
-                  <span className="text-lg font-bold text-green-600 font-['Poppins']">
-                    {priceData.basketball?.standardPrice || 359}{priceData.basketball?.currency || '€'}
+                  <span className="text-sm font-medium text-gray-600 font-['Poppins']">
+                    Standard Package
+                  </span>
+                  <span className="text-lg font-bold text-blue-600 font-['Poppins']">
+                    {priceData.basketball?.standardPrice || 359}
+                    {priceData.basketball?.currency || "€"}
                   </span>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg p-4 border border-blue-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600 font-['Poppins']">Premium Package</span>
+                  <span className="text-sm font-medium text-gray-600 font-['Poppins']">
+                    Premium Package
+                  </span>
                   <span className="text-lg font-bold text-blue-600 font-['Poppins']">
-                    {priceData.basketball?.premiumPrice || 1479}{priceData.basketball?.currency || '€'}
+                    {priceData.basketball?.premiumPrice || 1479}
+                    {priceData.basketball?.currency || "€"}
                   </span>
                 </div>
               </div>
@@ -349,68 +407,88 @@ export default function PriceManagement({ onPriceUpdate }: PriceManagementProps)
 
       <div className="mt-6 bg-blue-50 p-4 rounded-lg">
         <p className="text-sm text-blue-800 font-['Poppins']">
-          <strong>Note:</strong> These prices control the base pricing for all packages in the application. 
-          Changes will affect the booking system immediately.
+          <strong>Note:</strong> These prices control the base pricing for all
+          packages in the application. Changes will affect the booking system
+          immediately.
         </p>
       </div>
     </div>
-  )
+  );
 }
 
 // Price Edit Form Component
 interface PriceEditFormProps {
-  sport: 'football' | 'basketball'
-  currentData: PriceData | null
-  onSave: (prices: { standardPrice: number; premiumPrice: number; currency: string }) => void
-  onCancel: () => void
-  isSaving: boolean
+  sport: "football" | "basketball";
+  currentData: PriceData | null;
+  onSave: (prices: {
+    standardPrice: number;
+    premiumPrice: number;
+    currency: string;
+  }) => void;
+  onCancel: () => void;
+  isSaving: boolean;
 }
 
-function PriceEditForm({ sport, currentData, onSave, onCancel, isSaving }: PriceEditFormProps) {
+function PriceEditForm({
+  sport,
+  currentData,
+  onSave,
+  onCancel,
+  isSaving,
+}: PriceEditFormProps) {
   const defaultPrices = {
     football: { standardPrice: 379, premiumPrice: 1499 },
-    basketball: { standardPrice: 359, premiumPrice: 1479 }
-  }
+    basketball: { standardPrice: 359, premiumPrice: 1479 },
+  };
 
   const [formData, setFormData] = useState({
-    standardPrice: currentData?.standardPrice || defaultPrices[sport].standardPrice,
-    premiumPrice: currentData?.premiumPrice || defaultPrices[sport].premiumPrice,
-    currency: currentData?.currency || 'EUR'
-  })
+    standardPrice:
+      currentData?.standardPrice || defaultPrices[sport].standardPrice,
+    premiumPrice:
+      currentData?.premiumPrice || defaultPrices[sport].premiumPrice,
+    currency: currentData?.currency || "EUR",
+  });
 
-  const [errors, setErrors] = useState<{ standardPrice?: string; premiumPrice?: string }>({})
+  const [errors, setErrors] = useState<{
+    standardPrice?: string;
+    premiumPrice?: string;
+  }>({});
 
-  const handleInputChange = (field: keyof typeof formData, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+  const handleInputChange = (
+    field: keyof typeof formData,
+    value: string | number,
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
-  }
+  };
 
   const validateForm = (): boolean => {
-    const newErrors: { standardPrice?: string; premiumPrice?: string } = {}
+    const newErrors: { standardPrice?: string; premiumPrice?: string } = {};
 
     if (formData.standardPrice <= 0) {
-      newErrors.standardPrice = 'Standard price must be greater than 0'
+      newErrors.standardPrice = "Standard price must be greater than 0";
     }
     if (formData.premiumPrice <= 0) {
-      newErrors.premiumPrice = 'Premium price must be greater than 0'
+      newErrors.premiumPrice = "Premium price must be greater than 0";
     }
     if (formData.premiumPrice <= formData.standardPrice) {
-      newErrors.premiumPrice = 'Premium price must be higher than standard price'
+      newErrors.premiumPrice =
+        "Premium price must be higher than standard price";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (validateForm()) {
-      onSave(formData)
+      onSave(formData);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -421,7 +499,7 @@ function PriceEditForm({ sport, currentData, onSave, onCancel, isSaving }: Price
         </label>
         <select
           value={formData.currency}
-          onChange={(e) => handleInputChange('currency', e.target.value)}
+          onChange={(e) => handleInputChange("currency", e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
         >
           <option value="EUR">EUR (€)</option>
@@ -441,18 +519,29 @@ function PriceEditForm({ sport, currentData, onSave, onCancel, isSaving }: Price
             min="0"
             step="0.01"
             value={formData.standardPrice}
-            onChange={(e) => handleInputChange('standardPrice', parseFloat(e.target.value) || 0)}
+            onChange={(e) =>
+              handleInputChange(
+                "standardPrice",
+                parseFloat(e.target.value) || 0,
+              )
+            }
             placeholder="Enter standard package price"
             className={`w-full px-3 py-2 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-              errors.standardPrice ? 'border-red-500' : 'border-gray-300'
+              errors.standardPrice ? "border-red-500" : "border-gray-300"
             }`}
           />
           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-['Poppins']">
-            {formData.currency === 'EUR' ? '€' : formData.currency === 'USD' ? '$' : '£'}
+            {formData.currency === "EUR"
+              ? "€"
+              : formData.currency === "USD"
+                ? "$"
+                : "£"}
           </span>
         </div>
         {errors.standardPrice && (
-          <p className="mt-1 text-sm text-red-600 font-['Poppins']">{errors.standardPrice}</p>
+          <p className="mt-1 text-sm text-red-600 font-['Poppins']">
+            {errors.standardPrice}
+          </p>
         )}
       </div>
 
@@ -467,18 +556,26 @@ function PriceEditForm({ sport, currentData, onSave, onCancel, isSaving }: Price
             min="0"
             step="0.01"
             value={formData.premiumPrice}
-            onChange={(e) => handleInputChange('premiumPrice', parseFloat(e.target.value) || 0)}
+            onChange={(e) =>
+              handleInputChange("premiumPrice", parseFloat(e.target.value) || 0)
+            }
             placeholder="Enter premium package price"
             className={`w-full px-3 py-2 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-              errors.premiumPrice ? 'border-red-500' : 'border-gray-300'
+              errors.premiumPrice ? "border-red-500" : "border-gray-300"
             }`}
           />
           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-['Poppins']">
-            {formData.currency === 'EUR' ? '€' : formData.currency === 'USD' ? '$' : '£'}
+            {formData.currency === "EUR"
+              ? "€"
+              : formData.currency === "USD"
+                ? "$"
+                : "£"}
           </span>
         </div>
         {errors.premiumPrice && (
-          <p className="mt-1 text-sm text-red-600 font-['Poppins']">{errors.premiumPrice}</p>
+          <p className="mt-1 text-sm text-red-600 font-['Poppins']">
+            {errors.premiumPrice}
+          </p>
         )}
       </div>
 
@@ -497,10 +594,10 @@ function PriceEditForm({ sport, currentData, onSave, onCancel, isSaving }: Price
           disabled={isSaving}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium font-['Poppins'] transition-all duration-200 ${
             isSaving
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : sport === 'football'
-              ? 'bg-green-600 hover:bg-green-700 text-white'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : sport === "football"
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
           }`}
         >
           {isSaving ? (
@@ -517,5 +614,5 @@ function PriceEditForm({ sport, currentData, onSave, onCancel, isSaving }: Price
         </button>
       </div>
     </form>
-  )
+  );
 }
