@@ -23,6 +23,7 @@ import {
 import { useLanguage } from "../../../../context/LanguageContext";
 import { cn } from "@/app/lib/utils";
 import { logout } from "../../../../../services/authService";
+import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
 
 interface SidebarMenuItem {
   title: string;
@@ -148,7 +149,7 @@ export function Sidebar() {
             >
               {section.title && (
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-                  {section.title}
+                  <TranslatedText text={section.title} />
                 </h3>
               )}
               <ul>
@@ -179,7 +180,9 @@ export function Sidebar() {
                                   !isActive && "text-gray-600",
                                 )}
                               />
-                              <span className="font-medium">{item.title}</span>
+                              <span className="font-medium">
+                                <TranslatedText text={item.title} />
+                              </span>
                             </div>
                             {isExpanded ? (
                               <ChevronDown
@@ -220,7 +223,9 @@ export function Sidebar() {
                                           !isSubActive && "text-gray-500",
                                         )}
                                       />
-                                      <span>{subItem.title}</span>
+                                      <span>
+                                        <TranslatedText text={subItem.title} />
+                                      </span>
                                     </Link>
                                   </li>
                                 );
@@ -245,7 +250,9 @@ export function Sidebar() {
                               !isActive && "text-gray-600",
                             )}
                           />
-                          <span className="font-medium">{item.title}</span>
+                          <span className="font-medium">
+                            <TranslatedText text={item.title} />
+                          </span>
                         </Link>
                       )}
                     </li>
@@ -306,7 +313,9 @@ export function Sidebar() {
             className="flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer duration-200 text-[#76C043] hover:bg-[#76C043]/20 w-full text-left"
           >
             <LogOut className="w-5 h-5 text-[#76C043]" />
-            <span className="font-medium text-[#76C043]">Log out</span>
+            <span className="font-medium text-[#76C043]">
+              <TranslatedText text="Log out" />
+            </span>
           </button>
         </div>
       </div>
@@ -340,7 +349,7 @@ export function Sidebar() {
               <div key={section.title} className="py-2">
                 {section.title && (
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-                    {section.title}
+                    <TranslatedText text={section.title} />
                   </h3>
                 )}
                 <ul className="space-y-1">
@@ -372,7 +381,7 @@ export function Sidebar() {
                                   )}
                                 />
                                 <span className="font-medium">
-                                  {item.title}
+                                  <TranslatedText text={item.title} />
                                 </span>
                               </div>
                               {isExpanded ? (
@@ -416,7 +425,11 @@ export function Sidebar() {
                                               : "text-gray-500",
                                           )}
                                         />
-                                        <span>{subItem.title}</span>
+                                        <span>
+                                          <TranslatedText
+                                            text={subItem.title}
+                                          />
+                                        </span>
                                       </Link>
                                     </li>
                                   );
@@ -441,7 +454,9 @@ export function Sidebar() {
                                 isActive ? "text-white" : "text-gray-600",
                               )}
                             />
-                            <span className="font-medium">{item.title}</span>
+                            <span className="font-medium">
+                              <TranslatedText text={item.title} />
+                            </span>
                           </Link>
                         )}
                       </li>

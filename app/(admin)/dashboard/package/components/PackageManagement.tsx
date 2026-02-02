@@ -19,6 +19,7 @@ import {
 } from "../../../../../services/packageService";
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 import { Pagination } from "../../../../../components/ui/Pagination";
+import { TranslatedText } from "../../../../(frontend)/_components/TranslatedText";
 
 interface PackageManagementProps {
   onPackageAdd?: (packageData: PackageItem) => void;
@@ -295,11 +296,14 @@ export default function PackageManagement({
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-900 font-['Poppins'] text-lg capitalize">
-                            {pkg.sport} - {pkg.plan} Plan
+                            <TranslatedText
+                              text={`${pkg.sport} - ${pkg.plan} Plan`}
+                            />
                           </h3>
                           <p className="text-sm text-gray-500 mt-1">
-                            {pkg.duration} Night{pkg.duration > 1 ? "s" : ""}{" "}
-                            Package
+                            <TranslatedText
+                              text={`${pkg.duration} Night${pkg.duration > 1 ? "s" : ""} Package`}
+                            />
                           </p>
                         </div>
 
@@ -372,7 +376,9 @@ export default function PackageManagement({
                           What's Included:
                         </h4>
                         <p className="text-gray-600 text-sm font-['Poppins'] bg-blue-50 p-3 rounded-lg border border-blue-100">
-                          {pkg.included || "Not specified"}
+                          <TranslatedText
+                            text={pkg.included || "Not specified"}
+                          />
                         </p>
                       </div>
 
@@ -382,7 +388,9 @@ export default function PackageManagement({
                           Description:
                         </h4>
                         <p className="text-gray-600 text-sm font-['Poppins'] bg-gray-50 p-3 rounded-lg">
-                          {pkg.description || "No description available"}
+                          <TranslatedText
+                            text={pkg.description || "No description available"}
+                          />
                         </p>
                       </div>
                     </div>

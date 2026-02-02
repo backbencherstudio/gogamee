@@ -1,13 +1,13 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState } from 'react'
-import { useLanguage } from '../../context/LanguageContext'
+import React, { useEffect, useState } from "react";
+import { useLanguage } from "../../context/LanguageContext";
 
 interface TranslatedTextProps {
-  text: string
-  english?: string // Optional English fallback to bypass API calls
-  as?: keyof React.JSX.IntrinsicElements
-  className?: string
+  text: string;
+  english?: string; // Optional English fallback to bypass API calls
+  as?: keyof React.JSX.IntrinsicElements;
+  className?: string;
 }
 
 /**
@@ -18,26 +18,43 @@ interface TranslatedTextProps {
 export const TranslatedText: React.FC<TranslatedTextProps> = ({
   text,
   english,
-  as: Component = 'span',
-  className = '',
+  as: Component = "span",
+  className = "",
 }) => {
-  const { language, translateText } = useLanguage()
-  const [displayText, setDisplayText] = useState(text)
+  const { language, translateText } = useLanguage();
+  const [displayText, setDisplayText] = useState(text);
 
   useEffect(() => {
     const translate = async () => {
-      if (language === 'es') {
-        setDisplayText(text)
-      } else if (english) {
-        setDisplayText(english)
+      // Logic update:
+      // If 'english' prop is missing, we treat it as dynamic source content.
+      // We call translateText for dynamic content to handle mixed source languages,
+      // relying on the backend's 'auto' detection logic.
+      // The Redis cache handles efficiency.
+
+      const isDynamicSource = !english;
+
+      if (isDynamicSource) {
+        // Always attempt translation for dynamic content to support auto-detection
+        // even when target matches presumed source, because we don't actually know the source.
+        const translated = await translateText(text);
+        setDisplayText(translated);
       } else {
-        const translated = await translateText(text)
-        setDisplayText(translated)
+        // Source is Spanish (Legacy Frontend Pattern) where 'text' is ES and 'english' is EN fallback
+        if (language === "es") {
+          setDisplayText(text);
+        } else if (english) {
+          setDisplayText(english);
+        } else {
+          // Provide fallback if language is neither ES nor EN or if we want to force API
+          const translated = await translateText(text);
+          setDisplayText(translated);
+        }
       }
-    }
+    };
 
-    translate()
-  }, [text, english, language, translateText])
+    translate();
+  }, [text, english, language, translateText]);
 
-  return <Component className={className}>{displayText}</Component>
-}
+  return <Component className={className}>{displayText}</Component>;
+};

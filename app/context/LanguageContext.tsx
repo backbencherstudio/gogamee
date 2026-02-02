@@ -29,6 +29,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     const saved = localStorage.getItem("preferredLanguage") as Language;
     if (saved === "en" || saved === "es") {
       setLanguage(saved);
+      document.cookie = `user_lang=${saved}; path=/; max-age=31536000`;
     }
   }, []);
 
@@ -36,6 +37,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     const newLang = language === "es" ? "en" : "es";
     setLanguage(newLang);
     localStorage.setItem("preferredLanguage", newLang);
+    // Set cookie for SSR (expires in 1 year)
+    document.cookie = `user_lang=${newLang}; path=/; max-age=31536000`;
   };
 
   const translateText = async (text: string): Promise<string> => {

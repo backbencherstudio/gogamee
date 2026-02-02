@@ -13,6 +13,7 @@ import {
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 import { Pagination } from "../../../../../components/ui/Pagination";
 import { autoTranslateContent } from "../../../../../services/translationService";
+import { TranslatedText } from "../../../../(frontend)/_components/TranslatedText";
 
 // Local type aligned with API
 type FAQItem = ApiFaqItem;
@@ -323,7 +324,7 @@ export default function FaqAdd() {
                                 />
                               </div>
                               <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9 flex-1">
-                                {item.question}
+                                <TranslatedText text={item.question} />
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -357,7 +358,7 @@ export default function FaqAdd() {
 
                         {expandedItems.includes(index) && (
                           <div className="text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-7 md:pl-8 lg:pl-9">
-                            {item.answer}
+                            <TranslatedText text={item.answer} />
                           </div>
                         )}
                       </>

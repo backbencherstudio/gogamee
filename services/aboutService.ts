@@ -155,6 +155,12 @@ export const editMainSection = async (
   return response.data;
 };
 
+// DELETE main section
+export const deleteMainSection = async (id: string): Promise<AboutResponse> => {
+  const response = await axiosClient.delete(`/admin/about/main_sections/${id}`);
+  return response.data;
+};
+
 // ========== Our Values API ==========
 
 // POST add new our value
@@ -174,6 +180,12 @@ export const editOurValue = async (
     `/admin/about/our_values/${id}`,
     payload,
   );
+  return response.data;
+};
+
+// DELETE our value
+export const deleteOurValue = async (id: string): Promise<AboutResponse> => {
+  const response = await axiosClient.delete(`/admin/about/our_values/${id}`);
   return response.data;
 };
 
@@ -199,5 +211,11 @@ export const editWhyChooseUs = async (
     `/admin/about/why_choose_us/${id}`,
     payload,
   );
+  return response.data;
+};
+
+// DELETE why choose us
+export const deleteWhyChooseUs = async (id: string): Promise<AboutResponse> => {
+  const response = await axiosClient.delete(`/admin/about/why_choose_us/${id}`);
   return response.data;
 };

@@ -32,13 +32,17 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
   );
 
   const [translatedSections, setTranslatedSections] = useState<MainSection[]>(
-    [],
+    initialContent?.sections || [],
   );
-  const [translatedValues, setTranslatedValues] = useState<OurValue[]>([]);
+  const [translatedValues, setTranslatedValues] = useState<OurValue[]>(
+    initialContent?.values?.items || [],
+  );
   const [translatedWhyChooseUs, setTranslatedWhyChooseUs] = useState<
     WhyChooseUs[]
-  >([]);
-  const [translatedHeadline, setTranslatedHeadline] = useState("");
+  >(initialContent?.whyChooseUs?.items || []);
+  const [translatedHeadline, setTranslatedHeadline] = useState(
+    initialContent?.headline || "",
+  );
   const [loading, setLoading] = useState<boolean>(!initialContent);
   const [error, setError] = useState<string | null>(null);
 

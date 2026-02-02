@@ -13,6 +13,7 @@ import {
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 import { Pagination } from "../../../../../components/ui/Pagination";
 import { autoTranslateContent } from "../../../../../services/translationService";
+import { TranslatedText } from "../../../../(frontend)/_components/TranslatedText";
 
 // Local interface matching the API response items
 interface ReviewItem extends TestimonialItem {}
@@ -525,10 +526,10 @@ export default function TestimonialPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <h3 className="text-lg font-semibold font-['Geist'] text-lime-900 truncate">
-                            {review.name}
+                            <TranslatedText text={review.name} />
                           </h3>
                           <p className="text-sm text-zinc-500 font-['Poppins'] truncate">
-                            {review.role}
+                            <TranslatedText text={review.role} />
                           </p>
                         </div>
                       </div>
@@ -566,7 +567,7 @@ export default function TestimonialPage() {
 
                     <div className="p-3 bg-gray-50 rounded-lg">
                       <p className="text-sm text-neutral-600 font-['Poppins'] leading-6 line-clamp-4">
-                        {review.review}
+                        <TranslatedText text={review.review} />
                       </p>
                     </div>
                   </div>
