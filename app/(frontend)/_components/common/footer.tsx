@@ -1,10 +1,47 @@
 "use client";
 import { Mail, Heart, Instagram, MessageCircle, Linkedin } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
 import { TranslatedText } from "../TranslatedText";
+import { useEffect, useState } from "react";
+import {
+  getPublicSocialLinks,
+  SocialContactLinks,
+} from "../../../../services/settingsService";
 
 export default function Footer() {
+  const [links, setLinks] = useState<SocialContactLinks>({
+    whatsapp: "",
+    instagram: "",
+    tiktok: "",
+    linkedin: "",
+    email: "",
+  });
+
+  useEffect(() => {
+    const fetchLinks = async () => {
+      try {
+        const response = await getPublicSocialLinks();
+        if (response.success && response.links) {
+          setLinks(response.links);
+        }
+      } catch (error) {
+        console.error("Failed to fetch social links:", error);
+      }
+    };
+    fetchLinks();
+  }, []);
+
+  const getWhatsAppLink = (input: string) => {
+    if (!input) return "#";
+    // If it's already a link, return it
+    if (input.startsWith("http")) return input;
+    // Otherwise assume it's a number, strip non-numeric chars (except +)
+    const cleanNumber = input.replace(/[^\d+]/g, "");
+    return `https://wa.me/${cleanNumber}`;
+  };
+
   return (
     <div className="w-full bg-[#060606] mt-5">
       <div className="max-w-[1200px] mx-auto">
@@ -27,24 +64,30 @@ export default function Footer() {
                 />
               </p>
               <div className="space-y-4">
-                <Link
-                  href="mailto:info@gogame2025.com"
-                  className="flex items-center gap-2 hover:text-white/80 transition-colors"
-                >
-                  <Mail className="w-6 h-6 text-white" />
-                  <span className="text-white text-base font-medium font-['Inter']">
-                    info@gogame2025.com
-                  </span>
-                </Link>
-                <Link
-                  href="https://wa.me/34123456789"
-                  className="flex items-center gap-2 hover:text-white/80 transition-colors"
-                >
-                  <MessageCircle className="w-6 h-6 text-white" />
-                  <span className="text-white text-base font-medium font-['Inter']">
-                    WhatsApp
-                  </span>
-                </Link>
+                {links.email && (
+                  <Link
+                    href={`mailto:${links.email}`}
+                    className="flex items-center gap-2 hover:text-white/80 transition-colors"
+                  >
+                    <Mail className="w-6 h-6 text-white" />
+                    <span className="text-white text-base font-medium font-['Inter']">
+                      {links.email}
+                    </span>
+                  </Link>
+                )}
+                {links.whatsapp && (
+                  <Link
+                    href={getWhatsAppLink(links.whatsapp)}
+                    className="flex items-center gap-2 hover:text-white/80 transition-colors"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MessageCircle className="w-6 h-6 text-white" />
+                    <span className="text-white text-base font-medium font-['Inter']">
+                      WhatsApp
+                    </span>
+                  </Link>
+                )}
               </div>
             </div>
 
@@ -118,52 +161,83 @@ export default function Footer() {
                   />
                 </h3>
                 <div className="space-y-4 flex flex-col items-center sm:items-start">
-                  <Link
-                    href="#"
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
-                      <Heart className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="text-white text-lg font-normal font-['Inter']">
-                      <TranslatedText
-                        text="TikTok"
-                        english="TikTok"
-                        as="span"
-                      />
-                    </span>
-                  </Link>
-                  <Link
-                    href="#"
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
-                      <Instagram className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="text-white text-lg font-normal font-['Inter']">
-                      <TranslatedText
-                        text="Instagram"
-                        english="Instagram"
-                        as="span"
-                      />
-                    </span>
-                  </Link>
+                  {links.whatsapp && (
+                    <Link
+                      href={getWhatsAppLink(links.whatsapp)}
+                      className="flex items-center gap-2 cursor-pointer"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
+                        <FaWhatsapp className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-white text-lg font-normal font-['Inter']">
+                        <TranslatedText
+                          text="WhatsApp"
+                          english="WhatsApp"
+                          as="span"
+                        />
+                      </span>
+                    </Link>
+                  )}
+                  {links.tiktok && (
+                    <Link
+                      href={links.tiktok}
+                      className="flex items-center gap-2 cursor-pointer"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
+                        <Heart className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-white text-lg font-normal font-['Inter']">
+                        <TranslatedText
+                          text="TikTok"
+                          english="TikTok"
+                          as="span"
+                        />
+                      </span>
+                    </Link>
+                  )}
+                  {links.instagram && (
+                    <Link
+                      href={links.instagram}
+                      className="flex items-center gap-2 cursor-pointer"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
+                        <Instagram className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-white text-lg font-normal font-['Inter']">
+                        <TranslatedText
+                          text="Instagram"
+                          english="Instagram"
+                          as="span"
+                        />
+                      </span>
+                    </Link>
+                  )}
 
-                  <Link
-                    href="#"
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
-                      <Linkedin className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="text-white text-lg font-normal font-['Inter']">
-                      <TranslatedText
-                        text="LinkedIn"
-                        english="LinkedIn"
-                        as="span"
-                      />
-                    </span>
-                  </Link>
+                  {links.linkedin && (
+                    <Link
+                      href={links.linkedin}
+                      className="flex items-center gap-2 cursor-pointer"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
+                        <Linkedin className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-white text-lg font-normal font-['Inter']">
+                        <TranslatedText
+                          text="LinkedIn"
+                          english="LinkedIn"
+                          as="span"
+                        />
+                      </span>
+                    </Link>
+                  )}
                 </div>
               </div>
             </div>

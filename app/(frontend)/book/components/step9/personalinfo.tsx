@@ -1337,7 +1337,14 @@ export default function Personalinfo() {
                               formData.selectedPackage as
                                 | "standard"
                                 | "premium",
-                            ) || "Package"}
+                            ) || (
+                              <TranslatedText
+                                text={personalInfoData.text.packageFallback}
+                                english={
+                                  personalInfoData.text.packageFallbackEn
+                                }
+                              />
+                            )}
                           </span>
                           <div className="text-right">
                             <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -1362,7 +1369,11 @@ export default function Personalinfo() {
                                 className="flex justify-between items-center py-2 border-b border-gray-100"
                               >
                                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                                  {extra.name} x{extra.quantity}
+                                  <TranslatedText
+                                    text={extra.name}
+                                    english={extra.nameEn}
+                                  />{" "}
+                                  x{extra.quantity}
                                 </span>
                                 <div className="text-right">
                                   <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -1480,7 +1491,7 @@ export default function Personalinfo() {
                           <span className="text-lg font-bold font-['Poppins'] text-gray-800">
                             <TranslatedText
                               text={personalInfoData.text.totalCost}
-                              english="Total Cost"
+                              english={personalInfoData.text.totalCostEn}
                             />
                           </span>
                           <div className="text-right">
@@ -1513,7 +1524,10 @@ export default function Personalinfo() {
                             />
                           </div>
                           <div className="text-right text-base font-bold font-['Poppins'] leading-none text-gray-700">
-                            Total
+                            <TranslatedText
+                              text={personalInfoData.text.total}
+                              english={personalInfoData.text.totalEn}
+                            />
                           </div>
                         </div>
 
@@ -1527,7 +1541,14 @@ export default function Personalinfo() {
                               formData.selectedPackage as
                                 | "standard"
                                 | "premium",
-                            ) || "Package"}
+                            ) || (
+                              <TranslatedText
+                                text={personalInfoData.text.packageFallback}
+                                english={
+                                  personalInfoData.text.packageFallbackEn
+                                }
+                              />
+                            )}
                           </div>
                           <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                             {reservationData.basePrice}€
@@ -1552,7 +1573,10 @@ export default function Personalinfo() {
                                 className="w-full grid grid-cols-4 gap-4 py-2 border-b border-gray-100"
                               >
                                 <div className="text-left text-neutral-800 text-sm font-medium font-['Poppins'] leading-none">
-                                  {extra.name}
+                                  <TranslatedText
+                                    text={extra.name}
+                                    english={extra.nameEn}
+                                  />
                                 </div>
                                 <div className="text-center text-neutral-800 text-sm font-normal font-['Poppins'] leading-none">
                                   {extra.price}€
@@ -1807,7 +1831,7 @@ export default function Personalinfo() {
                             <span className=" text-xl font-bold font-['Poppins'] text-gray-800">
                               <TranslatedText
                                 text={personalInfoData.text.totalCost}
-                                english="Total Cost"
+                                english={personalInfoData.text.totalCostEn}
                               />
                             </span>
                             <span className=" text-2xl font-bold font-['Poppins'] text-lime-700">

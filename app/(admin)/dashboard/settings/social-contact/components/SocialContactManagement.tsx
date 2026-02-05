@@ -124,16 +124,19 @@ export default function SocialContactManagement() {
                 htmlFor="whatsapp"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                WhatsApp
+                WhatsApp Number
               </label>
               <input
-                type="url"
+                type="text"
                 id="whatsapp"
                 value={links.whatsapp}
                 onChange={(e) => handleChange("whatsapp", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
-                placeholder="https://wa.me/..."
+                placeholder="e.g. +34123456789"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter number with country code (e.g., +34 for Spain).
+              </p>
             </div>
 
             {/* Instagram */}

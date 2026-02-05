@@ -32,11 +32,28 @@ export interface LegalPagesResponse {
 
 // ========== Social Media & Contact Links API Functions ==========
 
-// GET social contact links
+// GET social contact links (Admin)
 export const getSocialContactLinks =
   async (): Promise<SocialContactResponse> => {
     const response = await axiosClient.get("/admin/settings/social-contact");
     return response.data;
+  };
+
+// GET active social contact links (Public)
+export const getPublicSocialLinks =
+  async (): Promise<SocialContactResponse> => {
+    // Determine the base URL based on environment
+    const isServer = typeof window === "undefined";
+    const baseUrl = isServer
+      ? process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+      : "";
+
+    // Use fetch for public data to allow caching options if needed, or use axiosClient if consistent
+    // Using fetch here to avoid axiom interceptors if they require auth
+    const response = await fetch(`${baseUrl}/api/social-contact`, {
+      next: { revalidate: 60 }, // Revalidate every minute
+    });
+    return response.json();
   };
 
 // PUT update social contact links

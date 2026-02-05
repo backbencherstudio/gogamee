@@ -1888,6 +1888,10 @@ export const AppData = {
       conceptEn: "Concept",
       price: "Precio",
       priceEn: "Price",
+      total: "Total",
+      totalEn: "Total",
+      packageFallback: "Paquete",
+      packageFallbackEn: "Package",
     },
     travelerFields: {
       name: {
