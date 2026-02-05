@@ -4,10 +4,14 @@ import { getLegalPageContent } from "../../../../../services/publicSettingsServi
 import { useLanguage } from "../../../../context/LanguageContext";
 import { translateText } from "../../../../../services/translationService";
 
-export default function Terms() {
+interface TermProps {
+  initialContent?: string;
+}
+
+export default function Terms({ initialContent = "" }: TermProps) {
   const { language } = useLanguage();
-  const [content, setContent] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [content, setContent] = useState<string>(initialContent);
+  const [loading, setLoading] = useState<boolean>(!initialContent);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

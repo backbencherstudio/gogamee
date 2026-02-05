@@ -132,3 +132,20 @@ export const deleteTestimonial = async (
   const response = await axiosClient.delete(`/testimonials/${id}`);
   return response.data;
 };
+
+// GET stats
+export interface TestimonialStatsResponse {
+  success: boolean;
+  message: string;
+  data: {
+    total: number;
+    averageRating: number;
+    ratingDistribution: { rating: number; count: number }[];
+  };
+}
+
+export const getTestimonialStats =
+  async (): Promise<TestimonialStatsResponse> => {
+    const response = await axiosClient.get(`/testimonials/stats`);
+    return response.data;
+  };

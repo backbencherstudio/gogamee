@@ -668,6 +668,7 @@ export default function HeroSection() {
               >
                 <TranslatedText
                   text="Empieza el juego"
+                  english="Start your game"
                   className="text-center text-white text-base font-normal font-['Inter']"
                 />
               </button>

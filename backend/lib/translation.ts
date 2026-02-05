@@ -6,12 +6,13 @@ export async function translateTextBackend(
   sourceLanguage: string = "auto",
 ): Promise<string> {
   if (!text) return "";
-  if (sourceLanguage === targetLanguage) return text;
+  const textStr = String(text); // Ensure it is a string
+  if (sourceLanguage === targetLanguage) return textStr;
 
   // Generate cache key
   const cacheKey = `translate:${
     sourceLanguage || "auto"
-  }:${targetLanguage}:${text.trim()}`;
+  }:${targetLanguage}:${textStr.trim()}`;
 
   try {
     // 1. Check Redis Cache
@@ -25,7 +26,7 @@ export async function translateTextBackend(
     // 2. Use free Google Translate endpoint (client=gtx)
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${
       sourceLanguage || "auto"
-    }&tl=${targetLanguage}&dt=t&q=${encodeURIComponent(text)}`;
+    }&tl=${targetLanguage}&dt=t&q=${encodeURIComponent(textStr)}`;
 
     const response = await fetch(url);
 
@@ -43,7 +44,7 @@ export async function translateTextBackend(
       });
     }
 
-    const finalResult = translatedText || text;
+    const finalResult = translatedText || textStr;
 
     // 3. Save to Redis Cache (TTL: 7 days)
     if (redis && finalResult) {
@@ -53,6 +54,6 @@ export async function translateTextBackend(
     return finalResult;
   } catch (error) {
     console.error("Backend Translation error:", error);
-    return text; // Fallback to original
+    return textStr; // Fallback to original
   }
 }

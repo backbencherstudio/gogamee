@@ -961,7 +961,7 @@ export default function DateSection() {
         </div>
       </div>
     ),
-    [navigateMonth],
+    [navigateMonth, MONTH_NAMES],
   );
 
   const renderWeekDaysHeader = useCallback(
@@ -976,7 +976,7 @@ export default function DateSection() {
         ))}
       </div>
     ),
-    [],
+    [WEEK_DAYS],
   );
 
   // Memoized calendar data
@@ -1094,11 +1094,11 @@ export default function DateSection() {
           {/* Calendar Sectioon */}
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             <div className="w-full p-4 xl:p-6 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-gray-200 flex justify-center items-start overflow-x-auto">
-              <div className="flex flex-col xl:flex-row justify-start items-start gap-6 xl:gap-8 min-w-full xl:min-w-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 justify-start items-start gap-6 xl:gap-8 min-w-full xl:min-w-0">
                 {/* Current Month Calendar */}
-                <div className="w-full xl:w-96 flex flex-col justify-start items-center gap-4 xl:gap-6">
+                <div className="xl:w-96 flex flex-col justify-start items-start gap-4 xl:gap-6">
                   {renderCalendarHeader(currentDate, true, false)}
-                  <div className="self-stretch flex flex-col justify-start items-start gap-3">
+                  <div className="mx-auto self-stretch flex flex-col justify-start items-start gap-3">
                     {renderWeekDaysHeader()}
                     <div className="self-stretch flex flex-col justify-start items-start gap-3">
                       {renderCalendarWeeks(
@@ -1111,9 +1111,9 @@ export default function DateSection() {
                 </div>
 
                 {/* Next Month Calendar */}
-                <div className="w-full xl:w-96 flex flex-col justify-start items-center gap-4 xl:gap-6">
+                <div className="w-full xl:w-96 flex flex-col justify-start items-start gap-4 xl:gap-6">
                   {renderCalendarHeader(nextMonth, false, true)}
-                  <div className="self-stretch flex flex-col justify-start items-start gap-3">
+                  <div className="mx-auto self-stretch flex flex-col justify-start items-start gap-3">
                     {renderWeekDaysHeader()}
                     <div className="self-stretch flex flex-col justify-start items-start gap-3">
                       {renderCalendarWeeks(
@@ -1166,7 +1166,7 @@ export default function DateSection() {
           }`}
         >
           <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-            <TranslatedText text="Next" english="Next" />
+            <TranslatedText text="Siguiente" english="Next" />
           </div>
         </button>
       </div>

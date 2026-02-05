@@ -16,7 +16,7 @@ export default function Faq({ className = "", initialFaqs = [] }: FaqProps) {
   const { language, translateText } = useLanguage();
   const [expandedItems, setExpandedItems] = useState<number[]>([0]);
   const [faqs, setFaqs] = useState<FaqItem[]>(initialFaqs);
-  const [translatedFaqs, setTranslatedFaqs] = useState<FaqItem[]>([]);
+  const [translatedFaqs, setTranslatedFaqs] = useState<FaqItem[]>(initialFaqs);
 
   useEffect(() => {
     if (initialFaqs.length > 0) return; // Skip fetch if data provided

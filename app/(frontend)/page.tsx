@@ -7,6 +7,8 @@ import Reviews from "./home/components/review/reviews";
 import Mailus from "./home/components/mailus/mailus";
 import PaymentNotification from "./_components/PaymentNotification";
 import { FAQService, TestimonialService } from "@/backend";
+import { cookies } from "next/headers";
+import { translateTextBackend } from "@/backend/lib/translation";
 
 export const dynamic = "force-dynamic";
 
@@ -41,8 +43,40 @@ async function getInitialData() {
   }
 }
 
+async function translateFaqs(faqs: any[], targetLang: string) {
+  if (targetLang === "es") return faqs;
+  return Promise.all(
+    faqs.map(async (f) => ({
+      ...f,
+      question: await translateTextBackend(f.question, targetLang),
+      answer: await translateTextBackend(f.answer, targetLang),
+    })),
+  );
+}
+
+async function translateReviews(reviews: any[], targetLang: string) {
+  if (targetLang === "es") return reviews;
+  return Promise.all(
+    reviews.map(async (r) => ({
+      ...r,
+      role: await translateTextBackend(r.role, targetLang),
+      review: await translateTextBackend(r.review, targetLang),
+    })),
+  );
+}
+
 export default async function HomePage() {
-  const { initialFaqs, initialReviews } = await getInitialData();
+  const cookieStore = await cookies();
+  const userLang = cookieStore.get("user_lang")?.value || "es";
+
+  let { initialFaqs, initialReviews } = await getInitialData();
+
+  if (userLang !== "es") {
+    [initialFaqs, initialReviews] = await Promise.all([
+      translateFaqs(initialFaqs, userLang),
+      translateReviews(initialReviews, userLang),
+    ]);
+  }
 
   return (
     <Suspense

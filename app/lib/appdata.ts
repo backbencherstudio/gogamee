@@ -1770,8 +1770,11 @@ export const AppData = {
       {
         id: "breakfast",
         name: "Desayuno",
+        nameEn: "Breakfast",
         description:
           "Empieza tu día lleno de energía con desayuno por sólo 10 euros por persona.",
+        descriptionEn:
+          "Start your day full of energy with breakfast for only 10 euros per person.",
         price: 10,
         icon: "/stepper/icon/icon1.svg",
         isSelected: false, // Start with breakfast NOT selected
@@ -1784,7 +1787,7 @@ export const AppData = {
         id: "travel-insurance",
         name: "Seguro de Viaje",
         description:
-          "Cúbrete de retrasos en vuelos o vagas así como tener seguro médico en el país de destino.",
+          "Añade un seguro de viaje para mayor tranquilidad durante tu viaje.",
         price: 20,
         icon: "/stepper/icon/icon2.svg",
         isSelected: false,
@@ -1823,7 +1826,7 @@ export const AppData = {
         id: "seats-together",
         name: "¡Sentaros juntos!",
         description:
-          "¿Queréis sentaros juntos en el vuelo? Sinó los asientos serán asignados aleatoriamente.",
+          "¿Queréis sentaros juntos en el vuelo? Si no, los asientos se asignarán aleatoriamente.",
         price: 20,
         icon: "/stepper/icon/icon5.svg",
         isSelected: false,
@@ -1979,14 +1982,14 @@ export const AppData = {
     reservationSummary: {
       title: "Ya escucho los cánticos de los aficionados…",
       departure: {
-        city: "Barcelona",
+        city: "Madrid",
         date: "20 July 2025",
-        label: "Salida: Barcelona",
+        label: "Salida: Madrid",
       },
       return: {
-        city: "Barcelona",
+        city: "Madrid",
         date: "23 July 2025",
-        label: "Llegada: De vuelta a Barcelona",
+        label: "Llegada: De vuelta a Madrid",
       },
       pricing: {
         concept: "Concepto",

@@ -31,9 +31,8 @@ export default function Reviews({ initialReviews = [] }: ReviewsProps) {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [apiReviews, setApiReviews] =
     useState<TestimonialItem[]>(initialReviews);
-  const [translatedReviews, setTranslatedReviews] = useState<TestimonialItem[]>(
-    [],
-  );
+  const [translatedReviews, setTranslatedReviews] =
+    useState<TestimonialItem[]>(initialReviews);
 
   useEffect(() => {
     if (swiper && prevRef.current && nextRef.current) {

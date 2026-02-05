@@ -6,12 +6,16 @@ import { getAllFaqs, FaqItem } from "../../../../../services/faqService";
 import { useLanguage } from "../../../../context/LanguageContext";
 import { TranslatedText } from "../../../_components/TranslatedText";
 
-export default function Questions() {
+interface QuestionsProps {
+  initialFaqs?: FaqItem[];
+}
+
+export default function Questions({ initialFaqs = [] }: QuestionsProps) {
   const { language, translateText } = useLanguage();
   const [expandedItems, setExpandedItems] = useState<number[]>([0]);
-  const [faqs, setFaqs] = useState<FaqItem[]>([]);
-  const [translatedFaqs, setTranslatedFaqs] = useState<FaqItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [faqs, setFaqs] = useState<FaqItem[]>(initialFaqs);
+  const [translatedFaqs, setTranslatedFaqs] = useState<FaqItem[]>(initialFaqs);
+  const [loading, setLoading] = useState<boolean>(initialFaqs.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);

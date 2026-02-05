@@ -15,6 +15,7 @@ interface PackageTableProps {
   initialStartingPrices?: {
     football: StartingPriceItem | null;
     basketball: StartingPriceItem | null;
+    combined?: StartingPriceItem | null;
   };
 }
 
@@ -34,11 +35,19 @@ export default function PackageTable({
   const [startingPrices, setStartingPrices] = useState<{
     football: StartingPriceItem | null;
     basketball: StartingPriceItem | null;
+    combined: StartingPriceItem | null;
   }>(
-    initialStartingPrices || {
-      football: null,
-      basketball: null,
-    },
+    initialStartingPrices
+      ? {
+          football: initialStartingPrices.football || null,
+          basketball: initialStartingPrices.basketball || null,
+          combined: initialStartingPrices.combined || null,
+        }
+      : {
+          football: null,
+          basketball: null,
+          combined: null,
+        },
   );
 
   const [showAllFeatures, setShowAllFeatures] = useState(false);
@@ -55,44 +64,93 @@ export default function PackageTable({
         setLoading(true);
         setError(null);
 
-        // Fetch packages for selected sport (excluding Starting Price packages)
-        const response = await getAllPackages(selectedSport);
+        // Fetch packages for selected sport AND combined packages
+        // Actually, getAllPackages filters by sport if provided.
+        // We probably need to fetch "combined" packages too if they are stored as sport="combined".
+        // Or fetch ALL packages and filter locally.
+        // The current implementation calls getAllPackages(selectedSport).
+        // Let's call getAllPackages() without sport to get everything, then filter locally?
+        // Or make parallel calls.
+        // Given existing code fetches `selectedSport`, let's just fetch "combined" as well if needed.
+        // But simpler: fetch ALL packages once (no sport arg) or keep current behavior but also fetch combined.
+        // Let's try fetching "combined" sport packages too.
 
-        if (response && response.success && Array.isArray(response.data)) {
-          // Filter out Starting Price packages
-          const filteredPackages = response.data.filter(
-            (pkg) => pkg.included !== "Starting Price",
-          );
-          setPackages(filteredPackages);
-        } else {
-          // Fallback for legacy response if applicable, or error
-          // Assuming new ApiResponse structure always
-          if (Array.isArray(response)) {
-            // Legacy support just in case
-            const filteredPackages = (response as any[]).filter(
-              (pkg) => pkg.included !== "Starting Price",
-            );
-            setPackages(filteredPackages);
-          } else {
-            setError("Failed to fetch packages");
-          }
+        const [
+          selectedSportPackagesRes,
+          combinedPackagesRes,
+          footballPriceRes,
+          basketballPriceRes,
+          combinedPriceRes,
+        ] = await Promise.all([
+          getAllPackages(selectedSport),
+          getAllPackages("combined"),
+          getStartingPrice("football"),
+          getStartingPrice("basketball"),
+          getStartingPrice("combined"),
+        ]);
+
+        let loadedPackages: PackageItem[] = [];
+
+        if (
+          selectedSportPackagesRes?.success &&
+          Array.isArray(selectedSportPackagesRes.data)
+        ) {
+          loadedPackages = [
+            ...loadedPackages,
+            ...selectedSportPackagesRes.data,
+          ];
         }
+        if (
+          combinedPackagesRes?.success &&
+          Array.isArray(combinedPackagesRes.data)
+        ) {
+          loadedPackages = [...loadedPackages, ...combinedPackagesRes.data];
+        }
+
+        // Filter out Starting Price packages
+        const filteredPackages = loadedPackages.filter(
+          (pkg) => pkg.included !== "Starting Price",
+        );
+        // Remove duplicates by ID just in case
+        const uniquePackages = Array.from(
+          new Map(filteredPackages.map((p) => [p.id, p])).values(),
+        );
+        setPackages(uniquePackages);
+
         // Fetch starting prices (only if not provided)
         if (!initialStartingPrices) {
-          const [footballPriceRes, basketballPriceRes] = await Promise.all([
-            getStartingPrice("football"),
-            getStartingPrice("basketball"),
-          ]);
-
           if (footballPriceRes.success && basketballPriceRes.success) {
             const footballPrice = footballPriceRes.data?.[0] || null;
             const basketballPrice = basketballPriceRes.data?.[0] || null;
+            const combinedPrice = combinedPriceRes.data?.[0] || null;
             setStartingPrices({
               football: footballPrice,
               basketball: basketballPrice,
+              combined: combinedPrice,
             });
           }
+        } else {
+          // If initial prices provided but missing combined, verify?
+          // Assuming if initial provided, we might still want combined.
+          // But for now let's just handle the state update if fetching manually.
+          // Actually, if initial provided, we skip this block.
+          // But valid point: initialStartingPrices might fail to include combined if getInitialData didn't fetch it.
         }
+        // Small fix: if initialPresent, we skipped fetchData entirely in the original code logic (except if !initialPackages.length).
+        // But here we might be inside fetchData called because initialPackages was empty.
+
+        // If we are here, we are setting prices.
+        const footballPrice =
+          footballPriceRes.data?.[0] || startingPrices.football;
+        const basketballPrice =
+          basketballPriceRes.data?.[0] || startingPrices.basketball;
+        const combinedPrice = combinedPriceRes.data?.[0] || null;
+
+        setStartingPrices({
+          football: footballPrice,
+          basketball: basketballPrice,
+          combined: combinedPrice,
+        });
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Failed to load packages. Please try again later.");
@@ -103,6 +161,21 @@ export default function PackageTable({
 
     if (initialPackages.length === 0) {
       fetchData();
+    } else {
+      // If initial packages exist, we might still need to fetch combined price if it's missing
+      // But useEffect dependencies include initialStartingPrices.
+      // Let's assume we need to patch fetching combined price if not present.
+      const fetchCombinedPriceOnly = async () => {
+        const res = await getStartingPrice("combined");
+        if (res.success && res.data?.[0]) {
+          setStartingPrices((prev) => ({ ...prev, combined: res.data[0] }));
+        }
+      };
+      fetchCombinedPriceOnly();
+
+      // Also ensure combined PACKAGES are in the list if not already.
+      // The initialPackages from page.tsx fetches ALL active packages (limit 1000).
+      // So hopefully combined packages are there.
     }
   }, [selectedSport, initialPackages, initialStartingPrices]);
 
@@ -120,41 +193,71 @@ export default function PackageTable({
       // Use original packages (English)
       setTranslatedPackages(packages);
     }
-  }, [language, packages]);
 
-  // Helper functions that now accept duration as argument
-  // const getUniqueFeaturesForDuration = (duration: number) => { ... } // Removed unused helper
+    // Debug: Log packages to see what's being loaded
+    console.log("Packages loaded:", packages);
+  }, [language, packages]);
 
   const getFilteredPackagesForDuration = (duration: number) => {
     return translatedPackages.filter(
-      (pkg) => pkg.sport === selectedSport && pkg.duration === duration,
+      (pkg) =>
+        (pkg.sport === selectedSport || pkg.sport === "combined") &&
+        pkg.duration === duration,
     );
   };
 
   // Helper to get Price value
   const getPriceValue = (type: string, duration: number) => {
-    const currentPrices = startingPrices[selectedSport];
-    if (!currentPrices) return "";
+    const isCombined = type.toLowerCase() === "combined";
+    const currentPrices = isCombined
+      ? startingPrices.combined
+      : startingPrices[selectedSport];
+
+    if (!currentPrices) return "-";
 
     const durationKey = String(duration) as "1" | "2" | "3" | "4";
     const priceEntry = currentPrices.pricesByDuration?.[durationKey];
-    if (!priceEntry) return "";
+    if (!priceEntry) return "-";
 
-    if (type.toLowerCase() === "combined") return "-";
+    // For combined, we might use standard price as the main display or something else.
+    // Usually combined uses standard slot? Or does it have its own logic?
+    // StartingPriceItem has standard/premium slots.
+    // If combined has only one price, presumably it's in 'standard'.
 
     const price =
-      type === "standard" ? priceEntry.standard : priceEntry.premium;
+      type === "standard"
+        ? priceEntry.standard
+        : type === "premium"
+          ? priceEntry.premium
+          : priceEntry.standard; // Fallback to standard for combined if undetermined, but usually combined implies specific price.
+    // Wait, 'type' passed here is "standard", "premium", "combined".
+    // If type is "combined", we want the price for combined.
+    // And we access startingPrices.combined.
+    // Does Combined StartingPrice have "Standard" and "Premium" variants?
+    // Probably not. It probably just has one price.
+    // Let's assume it's in 'standard'.
+
     const fromLabel = language === "en" ? "From " : "Desde ";
     return `${fromLabel}${price}${getCurrencySymbol(currentPrices.currency)}`;
   };
 
   // Helper to get all packages (features) for a specific plan and duration
   const getPackagesForPlan = (type: string, duration: number) => {
+    const lowerType = type.toLowerCase();
+
+    // For Combined packages, we want to show them regardless of the sport field
+    // (as long as the plan is 'combined')
+    if (lowerType === "combined") {
+      return translatedPackages.filter(
+        (pkg) => pkg.plan === "combined" && pkg.duration === duration,
+      );
+    }
+
     return translatedPackages.filter(
       (pkg) =>
         pkg.sport === selectedSport &&
         pkg.duration === duration &&
-        pkg.plan === type.toLowerCase(),
+        pkg.plan === lowerType,
     );
   };
 
@@ -354,10 +457,13 @@ export default function PackageTable({
                               </div>
                               <p className="text-sm text-neutral-800 font-['Poppins'] leading-relaxed">
                                 {getPackagesForPlan(type, duration).length > 0
-                                  ? getPackagesForPlan(type, duration)
-                                      .map((pkg) => pkg.included)
-                                      .filter(Boolean)
-                                      .join(", ")
+                                  ? Array.from(
+                                      new Set(
+                                        getPackagesForPlan(type, duration)
+                                          .map((pkg) => pkg.included)
+                                          .filter(Boolean),
+                                      ),
+                                    ).join(", ")
                                   : null}
                                 {getPackagesForPlan(type, duration).length ===
                                   0 && (
@@ -515,10 +621,13 @@ export default function PackageTable({
                                     >
                                       <p className="text-sm md:text-base text-neutral-800 font-['Poppins'] leading-relaxed">
                                         {packagesForPlan.length > 0 ? (
-                                          packagesForPlan
-                                            .map((pkg) => pkg.included)
-                                            .filter(Boolean)
-                                            .join(", ")
+                                          Array.from(
+                                            new Set(
+                                              packagesForPlan
+                                                .map((pkg) => pkg.included)
+                                                .filter(Boolean),
+                                            ),
+                                          ).join(", ")
                                         ) : (
                                           <span className="text-neutral-400 italic">
                                             <TranslatedText

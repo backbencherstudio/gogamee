@@ -4,10 +4,16 @@ import { getLegalPageContent } from "../../../../../services/publicSettingsServi
 import { useLanguage } from "../../../../context/LanguageContext";
 import { translateText } from "../../../../../services/translationService";
 
-export default function PrivacyPolicy() {
+interface PrivacyPolicyProps {
+  initialContent?: string;
+}
+
+export default function PrivacyPolicy({
+  initialContent = "",
+}: PrivacyPolicyProps) {
   const { language } = useLanguage();
-  const [content, setContent] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [content, setContent] = useState<string>(initialContent);
+  const [loading, setLoading] = useState<boolean>(!initialContent);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {

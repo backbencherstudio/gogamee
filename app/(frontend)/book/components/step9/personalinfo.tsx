@@ -21,10 +21,10 @@ import {
 } from "../../../../../lib/dateUtils";
 
 // Utility functions for dynamic data calculation
-const formatDate = (dateString: string): string => {
+const formatDate = (dateString: string, language: string): string => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(language === "en" ? "en-US" : "es-ES", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -63,7 +63,38 @@ type DateRestrictions = {
   >;
 };
 
-// Local pricing helpers (mirror Date step logic)
+// Validation Error Keys and Messages
+const ERROR_MESSAGES = {
+  REQUIRED_NAME: {
+    es: "El nombre del viajero es obligatorio",
+    en: "Traveler name is required",
+  },
+  REQUIRED_EMAIL: {
+    es: "El correo electrónico es obligatorio",
+    en: "Email is required",
+  },
+  INVALID_EMAIL: {
+    es: "Dirección de correo electrónico no válida",
+    en: "Invalid email address",
+  },
+  REQUIRED_PHONE: {
+    es: "El teléfono es obligatorio",
+    en: "Phone number is required",
+  },
+  REQUIRED_DOB: {
+    es: "La fecha de nacimiento es obligatoria",
+    en: "Date of birth is required",
+  },
+  REQUIRED_DOC_TYPE: {
+    es: "El tipo de documento es obligatorio",
+    en: "Document type is required",
+  },
+  REQUIRED_DOC_NUM: {
+    es: "El número de documento es obligatorio",
+    en: "Document number is required",
+  },
+};
+
 const usePerNightPricing = () => {
   interface ApiDateData {
     date: string;
@@ -422,6 +453,15 @@ export default function Personalinfo() {
   const { language } = useLanguage();
   const t = (es: string, en: string) => (language === "en" ? en : es);
 
+  const getTranslatedError = (errorKey: string | undefined) => {
+    if (!errorKey) return undefined;
+    const messageObj = ERROR_MESSAGES[errorKey as keyof typeof ERROR_MESSAGES];
+    if (messageObj) {
+      return t(messageObj.es, messageObj.en);
+    }
+    return errorKey;
+  };
+
   // Check if we have people count data from howmanytotal page
   const hasMultipleTravelers =
     formData.peopleCount &&
@@ -499,9 +539,11 @@ export default function Personalinfo() {
       singleTravelerSupplement;
 
     return {
-      departureCity: formData.selectedCity || "Barcelona",
-      departureDate: formatDate(formData.departureDate || ""),
-      returnDate: formatDate(formData.returnDate || ""),
+      departureCity:
+        formData.selectedCity?.charAt(0).toUpperCase() +
+          formData.selectedCity?.slice(1) || "Madrid",
+      departureDate: formatDate(formData.departureDate || "", language),
+      returnDate: formatDate(formData.returnDate || "", language),
       duration,
       nights,
       basePrice,
@@ -783,7 +825,9 @@ export default function Personalinfo() {
                       <Controller
                         name="primaryTraveler.name"
                         control={control}
-                        rules={{ required: "Traveler name is required" }}
+                        rules={{
+                          required: "REQUIRED_NAME",
+                        }}
                         render={({ field }) => (
                           <FormInput
                             label={t(
@@ -796,7 +840,9 @@ export default function Personalinfo() {
                             }
                             value={field.value}
                             onChange={field.onChange}
-                            error={errors.primaryTraveler?.name?.message}
+                            error={getTranslatedError(
+                              errors.primaryTraveler?.name?.message,
+                            )}
                           />
                         )}
                       />
@@ -804,16 +850,10 @@ export default function Personalinfo() {
                         name="primaryTraveler.email"
                         control={control}
                         rules={{
-                          required: t(
-                            "El correo electrónico es obligatorio",
-                            "Email is required",
-                          ),
+                          required: "REQUIRED_EMAIL",
                           pattern: {
                             value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: t(
-                              "Dirección de correo electrónico no válida",
-                              "Invalid email address",
-                            ),
+                            message: "INVALID_EMAIL",
                           },
                         }}
                         render={({ field }) => (
@@ -828,7 +868,9 @@ export default function Personalinfo() {
                             }
                             value={field.value}
                             onChange={field.onChange}
-                            error={errors.primaryTraveler?.email?.message}
+                            error={getTranslatedError(
+                              errors.primaryTraveler?.email?.message,
+                            )}
                           />
                         )}
                       />
@@ -837,7 +879,9 @@ export default function Personalinfo() {
                       <Controller
                         name="primaryTraveler.phone"
                         control={control}
-                        rules={{ required: "Phone number is required" }}
+                        rules={{
+                          required: "REQUIRED_PHONE",
+                        }}
                         render={({ field }) => (
                           <FormInput
                             label={t(
@@ -850,14 +894,18 @@ export default function Personalinfo() {
                             }
                             value={field.value}
                             onChange={field.onChange}
-                            error={errors.primaryTraveler?.phone?.message}
+                            error={getTranslatedError(
+                              errors.primaryTraveler?.phone?.message,
+                            )}
                           />
                         )}
                       />
                       <Controller
                         name="primaryTraveler.dateOfBirth"
                         control={control}
-                        rules={{ required: "Date of birth is required" }}
+                        rules={{
+                          required: "REQUIRED_DOB",
+                        }}
                         render={({ field }) => (
                           <FormInput
                             label={t(
@@ -867,7 +915,9 @@ export default function Personalinfo() {
                             type="date"
                             value={field.value}
                             onChange={field.onChange}
-                            error={errors.primaryTraveler?.dateOfBirth?.message}
+                            error={getTranslatedError(
+                              errors.primaryTraveler?.dateOfBirth?.message,
+                            )}
                           />
                         )}
                       />
@@ -888,7 +938,9 @@ export default function Personalinfo() {
                           <Controller
                             name="primaryTraveler.documentType"
                             control={control}
-                            rules={{ required: "Document type is required" }}
+                            rules={{
+                              required: "REQUIRED_DOC_TYPE",
+                            }}
                             render={({ field }) => (
                               <>
                                 <DocumentTypeRadio
@@ -919,7 +971,9 @@ export default function Personalinfo() {
                           />
                           {errors.primaryTraveler?.documentType && (
                             <div className="text-red-500 text-sm font-normal font-['Poppins']">
-                              {errors.primaryTraveler.documentType.message}
+                              {getTranslatedError(
+                                errors.primaryTraveler.documentType.message,
+                              )}
                             </div>
                           )}
                         </div>
@@ -933,7 +987,9 @@ export default function Personalinfo() {
                           <Controller
                             name="primaryTraveler.documentNumber"
                             control={control}
-                            rules={{ required: "Document number is required" }}
+                            rules={{
+                              required: "REQUIRED_DOC_NUM",
+                            }}
                             render={({ field }) => (
                               <>
                                 <input
@@ -952,10 +1008,10 @@ export default function Personalinfo() {
                                 />
                                 {errors.primaryTraveler?.documentNumber && (
                                   <div className="text-red-500 text-sm font-normal font-['Poppins']">
-                                    {
+                                    {getTranslatedError(
                                       errors.primaryTraveler.documentNumber
-                                        .message
-                                    }
+                                        .message,
+                                    )}
                                   </div>
                                 )}
                               </>
@@ -1026,9 +1082,7 @@ export default function Personalinfo() {
                                 name={`extraTravelers.${index}.name`}
                                 control={control}
                                 rules={{
-                                  required: `Traveler ${
-                                    index + 2
-                                  } name is required`,
+                                  required: "REQUIRED_NAME",
                                 }}
                                 render={({ field }) => (
                                   <FormInput
@@ -1043,10 +1097,10 @@ export default function Personalinfo() {
                                     }
                                     value={field.value}
                                     onChange={field.onChange}
-                                    error={
+                                    error={getTranslatedError(
                                       errors.extraTravelers?.[index]?.name
-                                        ?.message
-                                    }
+                                        ?.message,
+                                    )}
                                   />
                                 )}
                               />
@@ -1054,9 +1108,7 @@ export default function Personalinfo() {
                                 name={`extraTravelers.${index}.dateOfBirth`}
                                 control={control}
                                 rules={{
-                                  required: `Traveler ${
-                                    index + 2
-                                  } date of birth is required`,
+                                  required: "REQUIRED_DOB",
                                 }}
                                 render={({ field }) => (
                                   <FormInput
@@ -1068,10 +1120,10 @@ export default function Personalinfo() {
                                     type="date"
                                     value={field.value}
                                     onChange={field.onChange}
-                                    error={
+                                    error={getTranslatedError(
                                       errors.extraTravelers?.[index]
-                                        ?.dateOfBirth?.message
-                                    }
+                                        ?.dateOfBirth?.message,
+                                    )}
                                   />
                                 )}
                               />
@@ -1094,9 +1146,7 @@ export default function Personalinfo() {
                                     name={`extraTravelers.${index}.documentType`}
                                     control={control}
                                     rules={{
-                                      required: `Traveler ${
-                                        index + 2
-                                      } document type is required`,
+                                      required: "REQUIRED_DOC_TYPE",
                                     }}
                                     render={({ field }) => (
                                       <>
@@ -1130,10 +1180,10 @@ export default function Personalinfo() {
                                   {errors.extraTravelers?.[index]
                                     ?.documentType && (
                                     <div className="text-red-500 text-sm font-normal font-['Poppins']">
-                                      {
+                                      {getTranslatedError(
                                         errors.extraTravelers?.[index]
-                                          ?.documentType?.message
-                                      }
+                                          ?.documentType?.message,
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -1149,9 +1199,7 @@ export default function Personalinfo() {
                                     name={`extraTravelers.${index}.documentNumber`}
                                     control={control}
                                     rules={{
-                                      required: `Traveler ${
-                                        index + 2
-                                      } document number is required`,
+                                      required: "REQUIRED_DOC_NUM",
                                     }}
                                     render={({ field }) => (
                                       <>
@@ -1173,10 +1221,10 @@ export default function Personalinfo() {
                                         {errors.extraTravelers?.[index]
                                           ?.documentNumber && (
                                           <div className="text-red-500 text-sm font-normal font-['Poppins']">
-                                            {
+                                            {getTranslatedError(
                                               errors.extraTravelers?.[index]
-                                                ?.documentNumber?.message
-                                            }
+                                                ?.documentNumber?.message,
+                                            )}
                                           </div>
                                         )}
                                       </>

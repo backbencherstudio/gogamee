@@ -8,6 +8,7 @@ import {
   addTestimonial,
   updateTestimonial,
   deleteTestimonial,
+  getTestimonialStats,
   type TestimonialItem,
 } from "../../../../../services/testimonialService";
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
@@ -26,6 +27,13 @@ export default function TestimonialPage() {
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Stats State
+  const [stats, setStats] = useState({
+    total: 0,
+    averageRating: 0,
+    fiveStarCount: 0,
+  });
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,11 +60,35 @@ export default function TestimonialPage() {
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  // Load stats from API
+  const loadStats = async () => {
+    try {
+      const response = await getTestimonialStats();
+      if (response.success && response.data) {
+        const { total, averageRating, ratingDistribution } = response.data;
+        const fiveStar =
+          ratingDistribution.find((r) => r.rating === 5)?.count || 0;
+        setStats({
+          total,
+          averageRating: Number(averageRating.toFixed(1)),
+          fiveStarCount: fiveStar,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to load stats:", error);
+    }
+  };
+
   // Load review data from API
   const loadReviews = async (page: number) => {
     try {
       setLoading(true);
-      const response = await getAllTestimonials(page, limit);
+      const [response] = await Promise.all([
+        getAllTestimonials(page, limit),
+        // Load stats only on first page load or when explicit refresh needed,
+        // but putting it here ensures it's fresh.
+      ]);
+
       if (response.success && response.data) {
         setReviews(response.data);
         if (response.meta_data) {
@@ -74,6 +106,7 @@ export default function TestimonialPage() {
 
   useEffect(() => {
     loadReviews(currentPage);
+    loadStats();
   }, [currentPage]);
 
   const handleImageError = (
@@ -131,7 +164,7 @@ export default function TestimonialPage() {
         data.append("review", formData.review.trim());
         data.append("review_es", translatedReview.es);
 
-        // Image is required - must be uploaded or selected
+        // Image is optional
         if (formData.imageFile) {
           data.append("image", formData.imageFile);
         } else if (
@@ -139,13 +172,12 @@ export default function TestimonialPage() {
           formData.image !== "/homepage/image/avatar1.png"
         ) {
           data.append("image", formData.image);
-        } else {
-          throw new Error("Profile image is required");
         }
 
         const res = await addTestimonial(data);
         if (res.success) {
           await loadReviews(currentPage);
+          await loadStats(); // Refresh stats
           resetForm();
           setShowAddForm(false);
         } else {
@@ -155,9 +187,7 @@ export default function TestimonialPage() {
       } catch (error) {
         console.error("Error adding testimonial:", error);
         alert(
-          error instanceof Error
-            ? error.message
-            : "Failed to add testimonial. Please upload an image.",
+          error instanceof Error ? error.message : "Failed to add testimonial.",
         );
       } finally {
         setSaving(false);
@@ -176,6 +206,7 @@ export default function TestimonialPage() {
     try {
       await deleteTestimonial(id);
       await loadReviews(currentPage);
+      await loadStats(); // Refresh stats
       setDeleteConfirm(null);
     } catch (error) {
       console.error("Delete failed", error);
@@ -225,6 +256,7 @@ export default function TestimonialPage() {
         const res = await updateTestimonial(editingId, data);
         if (res.success) {
           await loadReviews(currentPage);
+          await loadStats(); // Refresh stats
           resetForm();
           setEditingId(null);
           setShowAddForm(false);
@@ -296,7 +328,9 @@ export default function TestimonialPage() {
                 <Star className="w-6 h-6 text-[#76C043]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-800">{totalItems}</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.total}
+                </p>
                 <p className="text-gray-600 font-['Poppins']">Total Reviews</p>
               </div>
             </div>
@@ -309,8 +343,7 @@ export default function TestimonialPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-800">
-                  {/* Simplified average since we don't fetch all pages, assume 5 for now or calculate from current page (imperfect) */}
-                  -
+                  {stats.averageRating}
                 </p>
                 <p className="text-gray-600 font-['Poppins']">Average Rating</p>
               </div>
@@ -323,7 +356,9 @@ export default function TestimonialPage() {
                 <User className="w-6 h-6 text-yellow-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-800">-</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {stats.fiveStarCount}
+                </p>
                 <p className="text-gray-600 font-['Poppins']">5-Star Reviews</p>
               </div>
             </div>
@@ -380,7 +415,7 @@ export default function TestimonialPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Profile Image
+                  Profile Image (Optional)
                 </label>
                 <input
                   type="file"
