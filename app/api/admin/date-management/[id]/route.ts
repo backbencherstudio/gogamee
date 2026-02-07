@@ -13,7 +13,21 @@ export async function PATCH(request: Request, context: RouteContext) {
     const { id } = await context.params;
     const payload = await request.json();
 
-    const dateEntry = await DateManagementService.updateById(id, payload);
+    let dateEntry;
+
+    if (payload.prices) {
+      dateEntry = await DateManagementService.updateSportPrice(id, payload);
+    } else if (payload.status) {
+      dateEntry = await DateManagementService.updateSportStatus(id, payload);
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid payload: 'prices' or 'status' required",
+        },
+        { status: 400 },
+      );
+    }
 
     if (!dateEntry) {
       return NextResponse.json(
@@ -24,54 +38,40 @@ export async function PATCH(request: Request, context: RouteContext) {
 
     return NextResponse.json(
       {
-        id: dateEntry._id.toString(),
-        date: dateEntry.date,
-        status: dateEntry.status,
-        football_standard_package_price:
-          dateEntry.football_standard_package_price,
-        football_premium_package_price:
-          dateEntry.football_premium_package_price,
-        baskatball_standard_package_price:
-          dateEntry.baskatball_standard_package_price,
-        baskatball_premium_package_price:
-          dateEntry.baskatball_premium_package_price,
-        updated_football_standard_package_price:
-          dateEntry.updated_football_standard_package_price || null,
-        updated_football_premium_package_price:
-          dateEntry.updated_football_premium_package_price || null,
-        updated_baskatball_standard_package_price:
-          dateEntry.updated_baskatball_standard_package_price || null,
-        updated_baskatball_premium_package_price:
-          dateEntry.updated_baskatball_premium_package_price || null,
-        package: dateEntry.package || null,
-        sportname: dateEntry.sportname,
-        league: dateEntry.league || "national",
-        notes: dateEntry.notes || null,
-        destinationCity: dateEntry.destinationCity || null,
-        assignedMatch: dateEntry.assignedMatch || null,
-        approve_status: dateEntry.approve_status || "pending",
-        created_at: dateEntry.createdAt,
-        updated_at: dateEntry.updatedAt,
-        deleted_at: null,
-        duration: dateEntry.duration || "1",
+        success: true,
+        message: "Date updated successfully",
       },
       {
         headers: { "Cache-Control": "no-store" },
       },
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("API Error:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to update date" },
+      { success: false, message: error.message || "Failed to update date" },
       { status: 500 },
     );
   }
 }
 
-export async function DELETE(_: Request, context: RouteContext) {
+export async function DELETE(request: Request, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const deleted = await DateManagementService.deleteById(id);
+    const payload = await request.json();
+    const sportName = payload.sportName;
+    if (
+      !sportName ||
+      !["football", "basketball", "combined"].includes(sportName)
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Invalid payload" },
+        { status: 400 },
+      );
+    }
+    const deleted = await DateManagementService.deleteWithIdAndSportName(
+      id,
+      sportName,
+    );
 
     if (!deleted) {
       return NextResponse.json(

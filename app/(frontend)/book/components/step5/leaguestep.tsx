@@ -4,7 +4,10 @@ import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { FaCheck } from "react-icons/fa";
 import { useBooking } from "../../context/BookingContext";
+import { BOOKING_CONSTANTS } from "../../context/BookingContext";
+import { ContinueButton } from "../shared/buttons/ContinueButton";
 import { TranslatedText } from "../../../_components/TranslatedText";
+import { removeLeagueData } from "../../../../lib/appdata";
 
 interface LeagueOption {
   id: string;
@@ -27,7 +30,7 @@ const LEAGUE_OPTIONS: LeagueOption[] = [
   {
     id: "european",
     title: "European Competition",
-    price: " ( + 50€ )",
+    price: ` ( + ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`,
     imagePath: "/stepper/league2.png",
   },
 ];
@@ -46,22 +49,14 @@ const getCardStyles = (isSelected: boolean): string => {
   return `${CARD_BASE_STYLES} ${overlayStyles}`;
 };
 
-const getButtonStyles = (isDisabled: boolean): string => {
-  const baseStyles =
-    "w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all";
-  const conditionalStyles = isDisabled
-    ? "bg-gray-400 cursor-not-allowed"
-    : "bg-[#6AAD3C] hover:bg-lime-600 cursor-pointer";
-
-  return `${baseStyles} ${conditionalStyles}`;
-};
+// Button styles moved to ContinueButton component
 
 export default function LeagueStep() {
   const { formData, updateFormData, nextStep } = useBooking();
 
   const { control, watch, handleSubmit } = useForm<LeagueFormData>({
     defaultValues: {
-      selectedLeague: formData.selectedLeague || "",
+      selectedLeague: "", // Not used anymore, keeping for form compatibility
     },
   });
 
@@ -69,13 +64,36 @@ export default function LeagueStep() {
 
   const onSubmit = (data: LeagueFormData) => {
     if (data.selectedLeague) {
-      console.log("Selected league:", data.selectedLeague);
+      let leagues = [];
+      if (data.selectedLeague === "national") {
+        // Populate with all national leagues (default selected)
+        // Assuming removeLeagueData.leagues has { id, name, country ... }
+        leagues = removeLeagueData.leagues.map((l) => ({
+          id: l.id,
+          name: l.name,
+          group: "National" as const,
+          country: l.country,
+          isSelected: true,
+        }));
+      } else {
+        // European competition
+        leagues = [
+          {
+            id: "european",
+            name: "European Competition",
+            group: "European" as const,
+            isSelected: true,
+          },
+        ];
+      }
 
-      // Update the booking context with selected league
-      updateFormData({ selectedLeague: data.selectedLeague });
+      // Update the booking context with populated leagues array
+      updateFormData({
+        leagues: leagues,
+      });
 
-      // Pass the selected league data immediately to nextStep for conditional navigation
-      nextStep({ selectedLeague: data.selectedLeague });
+      // Move to next step
+      nextStep();
     }
   };
 
@@ -156,16 +174,13 @@ export default function LeagueStep() {
           </div>
 
           {/* Submit Button */}
-          <button
+          <ContinueButton
             onClick={handleSubmit(onSubmit)}
             disabled={!selectedLeague}
-            className={getButtonStyles(!selectedLeague)}
-            type="button"
-          >
-            <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-              <TranslatedText text="Siguiente" english="Next" />
-            </div>
-          </button>
+            text="Siguiente"
+            englishText="Next"
+            className="w-full xl:w-44"
+          />
         </div>
       </div>
     </div>

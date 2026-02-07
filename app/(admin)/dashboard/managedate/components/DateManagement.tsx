@@ -9,6 +9,7 @@ import {
   DollarSign,
   X,
 } from "lucide-react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import AppData from "../../../../lib/appdata";
 import { useToast } from "../../../../../components/ui/toast";
 import {
@@ -63,9 +64,12 @@ type SportOption = "football" | "basketball" | "both";
 
 interface PriceEditData {
   date: string;
-  sport: SportOption;
-  standardPrice: number;
-  premiumPrice: number;
+  // We now support editing all sports at once
+  prices: {
+    football: { standard: number | null; premium: number | null };
+    basketball: { standard: number | null; premium: number | null };
+    combined: { standard: number | null; premium: number | null };
+  };
   apiItemId?: string;
 }
 
@@ -95,16 +99,48 @@ const FALLBACK_DURATION_PRICES = {
 
 export default function DateManagement() {
   const { addToast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Helper to update URL
+  const updateFilter = useCallback(
+    (key: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, pathname, router],
+  );
+
   const [competitionTypes, setCompetitionTypes] = useState<CompetitionType[]>(
     [],
   );
-  const [selectedCompetition, setSelectedCompetition] =
-    useState<string>("national");
-  const [selectedSport, setSelectedSport] = useState<SportOption>("football");
+
+  const [selectedCompetition, setSelectedCompetition] = useState<string>(
+    searchParams.get("league") || "national",
+  );
+
+  const [selectedSport, setSelectedSport] = useState<SportOption>(
+    (searchParams.get("sport") as SportOption) || "football",
+  );
+
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    const param = searchParams.get("month");
+    if (param) {
+      const date = new Date(param + "-02"); // Avoid timezone issues
+      if (!isNaN(date.getTime())) return date;
+    }
+    return new Date();
+  });
   const [showPriceModal, setShowPriceModal] = useState(false);
   const [priceEditData, setPriceEditData] = useState<PriceEditData | null>(
     null,
@@ -112,7 +148,7 @@ export default function DateManagement() {
   const [editingPrices, setEditingPrices] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<
     "1" | "2" | "3" | "4"
-  >("1");
+  >((searchParams.get("duration") as "1" | "2" | "3" | "4") || "1");
   const [basePrices, setBasePrices] = useState<{
     football: StartingPriceItem | null;
     basketball: StartingPriceItem | null;
@@ -202,44 +238,83 @@ export default function DateManagement() {
   const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   // Load API date data
-  const loadApiDateData = useCallback(async () => {
-    try {
-      setIsLoadingApiData(true);
-      const data = await getAllDates();
+  const loadApiDateData = useCallback(
+    async (options?: { isBackground?: boolean }) => {
+      try {
+        if (!options?.isBackground) {
+          setIsLoadingApiData(true);
+        }
 
-      // Ensure data is an array
-      if (!Array.isArray(data)) {
-        console.warn(
-          "Date Management - API returned non-array data, using empty array",
+        const year = currentMonth.getFullYear();
+        const monthName = MONTH_NAMES[currentMonth.getMonth()]; // e.g., "January"
+
+        const data = await getAllDates({
+          months: [monthName],
+          year: year,
+          sportName: selectedSport,
+          league: selectedCompetition,
+          duration: selectedDuration,
+        });
+
+        // Ensure data is valid array
+        const validData = Array.isArray(data) ? data : [];
+
+        setApiDateData(
+          validData.map((item: any) => {
+            // Derive status based on selected sport
+            let derivedStatus = "enabled";
+            const sportName = selectedSport;
+
+            if (item.sports) {
+              if (sportName === "both") {
+                // If combined exists, check it, otherwise check if both exist?
+                // Typically 'both' view might rely on combined status or aggregate.
+                // Let's rely on 'combined' if present, or fallback to 'disabled'
+                derivedStatus = item.sports.combined?.status || "disabled";
+              } else {
+                derivedStatus = item.sports[sportName]?.status || "disabled";
+              }
+            } else if (item.status) {
+              // Fallback if status is at root
+              derivedStatus = item.status;
+            }
+
+            return {
+              ...item,
+              duration: (item.duration ?? "1") as "1" | "2" | "3" | "4",
+              sportname: item.sportName || selectedSport,
+              status: derivedStatus,
+            };
+          }),
         );
-        setApiDateData([]);
-        return;
+      } catch (error) {
+        console.error("Error loading API date data:", error);
+        setApiDateData([]); // Set empty array on error
+        addToast({
+          type: "error",
+          title: "Error",
+          description: "Failed to load date data from API",
+          duration: 5000,
+        });
+      } finally {
+        if (!options?.isBackground) {
+          setIsLoadingApiData(false);
+        }
       }
-
-      setApiDateData(
-        data.map((item) => ({
-          ...item,
-          duration: (item.duration ?? "1") as "1" | "2" | "3" | "4",
-        })),
-      );
-    } catch (error) {
-      console.error("Error loading API date data:", error);
-      setApiDateData([]); // Set empty array on error
-      addToast({
-        type: "error",
-        title: "Error",
-        description: "Failed to load date data from API",
-        duration: 5000,
-      });
-    } finally {
-      setIsLoadingApiData(false);
-    }
-  }, [addToast]);
+    },
+    [
+      addToast,
+      currentMonth,
+      selectedSport,
+      selectedCompetition,
+      selectedDuration,
+    ],
+  );
 
   // Load data from AppData, base prices from package service, and API data
   useEffect(() => {
     loadDateRestrictions();
-    loadBasePrices();
+    // loadBasePrices(); // Removed as per user request (backend handles merging)
     loadApiDateData();
   }, [loadApiDateData]);
 
@@ -332,11 +407,12 @@ export default function DateManagement() {
     // Each duration has independent date entries - filtering by duration ensures
     // that dates enabled for one duration don't affect other durations
     const apiDateItem = apiDateData.find((item) => {
+      if (!item?.date) return false;
       const itemDateString = formatApiDateForComparison(item.date);
       return (
         itemDateString === dateString &&
         item.league === selectedCompetition &&
-        item.sportname === selectedSport &&
+        item.sportName === selectedSport &&
         item.duration === selectedDuration
       ); // Critical: each duration has its own date entries
     });
@@ -383,7 +459,7 @@ export default function DateManagement() {
           return (
             itemDateString === dateString &&
             item.league === selectedCompetition &&
-            item.sportname === selectedSport &&
+            item.sportName === selectedSport &&
             item.duration === selectedDuration
           ); // Critical: filter by duration to allow same date for different durations
         })
@@ -394,9 +470,13 @@ export default function DateManagement() {
 
       if (existingItem) {
         // Update existing item
+        // Update existing item - toggle status for specific sport
         const newStatus =
           existingItem.status === "enabled" ? "blocked" : "enabled";
-        await updateDate(existingItem.id, { status: newStatus });
+        await updateDate(existingItem.id, {
+          sportName: selectedSport,
+          status: newStatus === "enabled" ? "enabled" : "disabled", // Align with schema enum
+        });
 
         // Update local state
         setApiDateData((prev) => {
@@ -440,15 +520,24 @@ export default function DateManagement() {
 
           const newDateData = {
             date: utcNoon.toISOString(),
-            status: "enabled",
+            // status field not needed at root for new simplified POST, handled by sportName
             league: selectedCompetition,
-            sportname: selectedSport,
-            football_standard_package_price: footballStandardBase,
-            football_premium_package_price: footballPremiumBase,
-            baskatball_standard_package_price: basketballStandardBase,
-            baskatball_premium_package_price: basketballPremiumBase,
-            approve_status: "pending",
-            duration: selectedDuration, // This ensures each duration has its own independent data
+            sportName: selectedSport, // camelCase
+            duration: selectedDuration,
+            prices: {
+              standard:
+                selectedSport === "both"
+                  ? footballStandardBase + basketballStandardBase // Base logic approximation
+                  : selectedSport === "football"
+                    ? footballStandardBase
+                    : basketballStandardBase,
+              premium:
+                selectedSport === "both"
+                  ? footballPremiumBase + basketballPremiumBase
+                  : selectedSport === "football"
+                    ? footballPremiumBase
+                    : basketballPremiumBase,
+            },
           };
 
           const createdItem = await createDate(newDateData);
@@ -458,6 +547,7 @@ export default function DateManagement() {
             ...prev,
             {
               ...createdItem,
+              status: "enabled",
               duration: createdItem.duration ?? selectedDuration,
             },
           ]);
@@ -479,6 +569,7 @@ export default function DateManagement() {
         }
       }
 
+      await loadApiDateData({ isBackground: true });
       setHasChanges(true);
     } catch (error) {
       console.error("Error updating date status:", error);
@@ -500,18 +591,27 @@ export default function DateManagement() {
     const date = createCalendarDate(month.getFullYear(), month.getMonth(), day);
     const dateString = formatDateForAPI(date);
 
-    // Find API data for this date, competition, and sport
+    // Find API data for this date, competition, and selected duration (sport doesn't matter for fetching item as it contains all sports)
     const apiDateItem = apiDateData.find((item) => {
       const itemDateString = formatApiDateForComparison(item.date);
       return (
         itemDateString === dateString &&
         item.league === selectedCompetition &&
-        item.sportname === selectedSport &&
+        // item.sportName === selectedSport && // We want the item regardless of sport, but finding by generic criteria is safer.
+        // Actually, the API returns items filtered by sport.
+        // Wait, did we filter by sport in getAllDates? Yes.
+        // So apiDateData ONLY contains items for the selectedSport.
+        // However, the backend 'getAll' returns the full 'sports' object in the document.
+        // So even if we filtered by sportName='football', the document *should* have other sports if they exist in DB.
+        // BUT the API request *sent* 'sport=football'.
+        // Does the backend filter the returned *fields*? No, it returns `DateManagement.find(query)`.
+        // So the `sports` object is complete.
+        // Let's rely on finding consistent item.
+        item.league === selectedCompetition &&
         item.duration === selectedDuration
       );
     });
 
-    // Check if date is enabled
     if (!apiDateItem || apiDateItem.status !== "enabled") {
       addToast({
         type: "warning",
@@ -523,71 +623,30 @@ export default function DateManagement() {
       return;
     }
 
-    // Get existing prices from API data based on selected sport
-    let standardPrice: number | null = null;
-    let premiumPrice: number | null = null;
+    // The GET API returns a simplified structure with 'prices' field
+    // containing the merged custom/base prices for the selected sport
+    const prices = apiDateItem.prices || { standard: 0, premium: 0 };
 
-    if (selectedSport === "football") {
-      standardPrice =
-        apiDateItem.updated_football_standard_package_price ??
-        apiDateItem.football_standard_package_price;
-      premiumPrice =
-        apiDateItem.updated_football_premium_package_price ??
-        apiDateItem.football_premium_package_price;
-    } else if (selectedSport === "basketball") {
-      standardPrice =
-        apiDateItem.updated_baskatball_standard_package_price ??
-        apiDateItem.baskatball_standard_package_price;
-      premiumPrice =
-        apiDateItem.updated_baskatball_premium_package_price ??
-        apiDateItem.baskatball_premium_package_price;
-    } else {
-      const footballStandard =
-        apiDateItem.updated_football_standard_package_price ??
-        apiDateItem.football_standard_package_price;
-      const basketballStandard =
-        apiDateItem.updated_baskatball_standard_package_price ??
-        apiDateItem.baskatball_standard_package_price;
-      const footballPremium =
-        apiDateItem.updated_football_premium_package_price ??
-        apiDateItem.football_premium_package_price;
-      const basketballPremium =
-        apiDateItem.updated_baskatball_premium_package_price ??
-        apiDateItem.baskatball_premium_package_price;
-
-      // Prefer football fields, fallback to basketball if empty
-      standardPrice = footballStandard ?? basketballStandard ?? null;
-      premiumPrice = footballPremium ?? basketballPremium ?? null;
-    }
-
-    // If no custom prices exist, use base prices from package service
-    if (standardPrice == null) {
-      standardPrice = getBasePrice(selectedSport, "standard");
-    }
-    if (premiumPrice == null) {
-      premiumPrice = getBasePrice(selectedSport, "premium");
-    }
-
-    console.log("Price Edit Data:", {
-      date: dateString,
-      selectedSport,
-      apiItem: apiDateItem,
-      prices: {
-        standard: standardPrice,
-        premium: premiumPrice,
-        base: (selectedSport === "both"
-          ? basePrices.combined
-          : basePrices[selectedSport]
-        )?.pricesByDuration,
-      },
-    });
+    // Map the single 'prices' object to the sport-specific structure
+    const targetSport = selectedSport === "both" ? "combined" : selectedSport;
 
     setPriceEditData({
       date: dateString,
-      sport: selectedSport,
-      standardPrice,
-      premiumPrice,
-      apiItemId: apiDateItem.id, // Store API item ID for updates
+      prices: {
+        football:
+          targetSport === "football"
+            ? prices
+            : { standard: null, premium: null },
+        basketball:
+          targetSport === "basketball"
+            ? prices
+            : { standard: null, premium: null },
+        combined:
+          targetSport === "combined"
+            ? prices
+            : { standard: null, premium: null },
+      },
+      apiItemId: apiDateItem.id,
     });
     setShowPriceModal(true);
   };
@@ -598,113 +657,40 @@ export default function DateManagement() {
     try {
       setIsSavingApiData(true);
 
-      // Ensure prices are valid numbers
-      const standardPrice =
-        typeof priceEditData.standardPrice === "number" &&
-        !isNaN(priceEditData.standardPrice)
-          ? priceEditData.standardPrice
-          : null;
-      const premiumPrice =
-        typeof priceEditData.premiumPrice === "number" &&
-        !isNaN(priceEditData.premiumPrice)
-          ? priceEditData.premiumPrice
-          : null;
+      const updates: Promise<any>[] = [];
 
-      // Validate that at least one price is set
-      if (
-        (!standardPrice || standardPrice <= 0) &&
-        (!premiumPrice || premiumPrice <= 0)
-      ) {
-        addToast({
-          type: "error",
-          title: "Invalid Prices",
-          description: "Please enter at least one valid price greater than 0",
-          duration: 4000,
-        });
-        setIsSavingApiData(false);
-        return;
-      }
+      // Helper to push update if valid
+      const queueUpdate = (
+        sport: "football" | "basketball" | "combined",
+        prices: { standard: number | null; premium: number | null },
+      ) => {
+        // Only update if at least one price is set and valid (or 0)
+        // We assume 0 is a valid override (free?) or maybe clearing?
+        // Let's assume we send whatever is in the inputs.
+        // If null, we might want to NOT send it, or send 0?
+        // Backend expects numbers.
+        const std = prices.standard ?? 0;
+        const prm = prices.premium ?? 0;
 
-      // Prepare update data based on sport
-      const updateData: {
-        sportname: string;
-        updated_football_standard_package_price?: number;
-        updated_football_premium_package_price?: number;
-        updated_baskatball_standard_package_price?: number;
-        updated_baskatball_premium_package_price?: number;
-      } = {
-        sportname: priceEditData.sport,
+        // Simplify: Always update all 3 distinct sports to ensure consistency if user edited them
+        const payload = {
+          sportName: sport,
+          prices: {
+            standard: std,
+            premium: prm,
+          },
+        };
+        updates.push(updateDate(priceEditData.apiItemId!, payload));
       };
 
-      if (priceEditData.sport === "football") {
-        if (standardPrice && standardPrice > 0) {
-          updateData.updated_football_standard_package_price = standardPrice;
-        }
-        if (premiumPrice && premiumPrice > 0) {
-          updateData.updated_football_premium_package_price = premiumPrice;
-        }
-      } else if (priceEditData.sport === "basketball") {
-        if (standardPrice && standardPrice > 0) {
-          updateData.updated_baskatball_standard_package_price = standardPrice;
-        }
-        if (premiumPrice && premiumPrice > 0) {
-          updateData.updated_baskatball_premium_package_price = premiumPrice;
-        }
-      } else {
-        if (standardPrice && standardPrice > 0) {
-          updateData.updated_football_standard_package_price = standardPrice;
-          updateData.updated_baskatball_standard_package_price = standardPrice;
-        }
-        if (premiumPrice && premiumPrice > 0) {
-          updateData.updated_football_premium_package_price = premiumPrice;
-          updateData.updated_baskatball_premium_package_price = premiumPrice;
-        }
-      }
+      const targetSport = selectedSport === "both" ? "combined" : selectedSport;
+      // @ts-ignore
+      queueUpdate(targetSport, priceEditData.prices[targetSport]);
 
-      console.log("Saving price update:", {
-        id: priceEditData.apiItemId,
-        updateData,
-        standardPrice,
-        premiumPrice,
-      });
+      await Promise.all(updates);
 
-      // Update via API
-      const updated = await updateDate(priceEditData.apiItemId, updateData);
-
-      console.log("Price update successful:", updated);
-
-      // Update local state
-      setApiDateData((prev) => {
-        if (!Array.isArray(prev)) return [];
-        return prev.map((item) =>
-          item.id === priceEditData.apiItemId
-            ? {
-                ...item,
-                sportname: priceEditData.sport,
-                updated_football_standard_package_price:
-                  priceEditData.sport === "football"
-                    ? priceEditData.standardPrice
-                    : item.updated_football_standard_package_price,
-                updated_football_premium_package_price:
-                  priceEditData.sport === "football"
-                    ? priceEditData.premiumPrice
-                    : item.updated_football_premium_package_price,
-                updated_baskatball_standard_package_price:
-                  priceEditData.sport === "basketball"
-                    ? priceEditData.standardPrice
-                    : priceEditData.sport === "both"
-                      ? priceEditData.standardPrice
-                      : item.updated_baskatball_standard_package_price,
-                updated_baskatball_premium_package_price:
-                  priceEditData.sport === "basketball"
-                    ? priceEditData.premiumPrice
-                    : priceEditData.sport === "both"
-                      ? priceEditData.premiumPrice
-                      : item.updated_baskatball_premium_package_price,
-              }
-            : item,
-        );
-      });
+      // Local update optimization (optional, but good for instant feedback before reload)
+      // Actually we just reload silently now.
 
       setShowPriceModal(false);
       setPriceEditData(null);
@@ -713,9 +699,11 @@ export default function DateManagement() {
       addToast({
         type: "success",
         title: "Success!",
-        description: "Prices updated successfully",
-        duration: 4000,
+        description: "All prices updated successfully",
+        duration: 3000,
       });
+
+      await loadApiDateData({ isBackground: true });
     } catch (error) {
       console.error("Error saving prices:", error);
       addToast({
@@ -727,66 +715,6 @@ export default function DateManagement() {
     } finally {
       setIsSavingApiData(false);
     }
-  };
-
-  const getCustomPrice = (
-    date: string,
-    sport: SportOption,
-    packageType: "standard" | "premium",
-    duration: "1" | "2" | "3" | "4",
-  ): number | null => {
-    // Find API data for this date, competition, and sport
-    const apiDateItem = apiDateData.find((item) => {
-      const itemDateString = formatApiDateForComparison(item.date);
-      return (
-        itemDateString === date &&
-        item.league === selectedCompetition &&
-        item.sportname === sport &&
-        item.duration === duration
-      );
-    });
-
-    if (apiDateItem) {
-      if (sport === "football") {
-        return packageType === "standard"
-          ? (apiDateItem.updated_football_standard_package_price ??
-              apiDateItem.football_standard_package_price)
-          : (apiDateItem.updated_football_premium_package_price ??
-              apiDateItem.football_premium_package_price);
-      } else if (sport === "basketball") {
-        return packageType === "standard"
-          ? (apiDateItem.updated_baskatball_standard_package_price ??
-              apiDateItem.baskatball_standard_package_price)
-          : (apiDateItem.updated_baskatball_premium_package_price ??
-              apiDateItem.baskatball_premium_package_price);
-      } else {
-        const footballPrice =
-          packageType === "standard"
-            ? (apiDateItem.updated_football_standard_package_price ??
-              apiDateItem.football_standard_package_price)
-            : (apiDateItem.updated_football_premium_package_price ??
-              apiDateItem.football_premium_package_price);
-        const basketballPrice =
-          packageType === "standard"
-            ? (apiDateItem.updated_baskatball_standard_package_price ??
-              apiDateItem.baskatball_standard_package_price)
-            : (apiDateItem.updated_baskatball_premium_package_price ??
-              apiDateItem.baskatball_premium_package_price);
-
-        return footballPrice ?? basketballPrice ?? null;
-      }
-    }
-
-    // Fallback to AppData if no API data found
-    const selectedComp = competitionTypes.find(
-      (comp) => comp.id === selectedCompetition,
-    );
-    if (!selectedComp) return null;
-
-    return (
-      selectedComp.restrictions.customPrices[date]?.[sport]?.[packageType] ||
-      null
-    );
   };
 
   const handleSave = async () => {
@@ -868,18 +796,22 @@ export default function DateManagement() {
         ? apiDateData.filter(
             (item) =>
               item.league === selectedCompetition &&
-              item.sportname === selectedSport &&
+              item.sportName === selectedSport &&
               item.duration === duration,
           )
         : [];
 
       // Delete all matching dates
       if (datesToDelete.length > 0) {
-        await Promise.all(datesToDelete.map((item) => deleteDate(item.id)));
+        await Promise.all(
+          datesToDelete.map((item) =>
+            deleteDate(item.id, { sportName: item.sportName }),
+          ),
+        );
       }
 
       // Reload data to refresh the UI
-      await loadApiDateData();
+      await loadApiDateData({ isBackground: true });
 
       addToast({
         type: "success",
@@ -906,6 +838,12 @@ export default function DateManagement() {
     setCurrentMonth((prevMonth) => {
       const newMonth = new Date(prevMonth);
       newMonth.setMonth(newMonth.getMonth() + (direction === "prev" ? -1 : 1));
+
+      const monthStr = `${newMonth.getFullYear()}-${String(
+        newMonth.getMonth() + 1,
+      ).padStart(2, "0")}`;
+      updateFilter("month", monthStr);
+
       return newMonth;
     });
   };
@@ -941,7 +879,10 @@ export default function DateManagement() {
               {competitionTypes.map((comp) => (
                 <button
                   key={comp.id}
-                  onClick={() => setSelectedCompetition(comp.id)}
+                  onClick={() => {
+                    setSelectedCompetition(comp.id);
+                    updateFilter("league", comp.id);
+                  }}
                   className={`px-3 py-2 md:px-4 text-xs md:text-sm lg:text-base rounded-md font-medium font-['Poppins'] transition-all duration-200 ${
                     selectedCompetition === comp.id
                       ? "bg-[#76C043] text-white"
@@ -1034,7 +975,10 @@ export default function DateManagement() {
                   </span>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <button
-                      onClick={() => setSelectedSport("football")}
+                      onClick={() => {
+                        setSelectedSport("football");
+                        updateFilter("sport", "football");
+                      }}
                       className={`px-4 py-2 md:px-6 text-sm md:text-base rounded-lg font-medium font-['Poppins'] transition-all duration-200 flex items-center justify-center gap-2 ${
                         selectedSport === "football"
                           ? "bg-[#76C043] text-white"
@@ -1045,7 +989,10 @@ export default function DateManagement() {
                       <span>Football</span>
                     </button>
                     <button
-                      onClick={() => setSelectedSport("basketball")}
+                      onClick={() => {
+                        setSelectedSport("basketball");
+                        updateFilter("sport", "basketball");
+                      }}
                       className={`px-4 py-2 md:px-6 text-sm md:text-base rounded-lg font-medium font-['Poppins'] transition-all duration-200 flex items-center justify-center gap-2 ${
                         selectedSport === "basketball"
                           ? "bg-[#76C043] text-white"
@@ -1056,7 +1003,10 @@ export default function DateManagement() {
                       <span>Basketball</span>
                     </button>
                     <button
-                      onClick={() => setSelectedSport("both")}
+                      onClick={() => {
+                        setSelectedSport("both");
+                        updateFilter("sport", "both");
+                      }}
                       className={`px-4 py-2 md:px-6 text-sm md:text-base rounded-lg font-medium font-['Poppins'] transition-all duration-200 flex items-center justify-center gap-2 ${
                         selectedSport === "both"
                           ? "bg-[#76C043] text-white"
@@ -1081,7 +1031,10 @@ export default function DateManagement() {
                       {(["1", "2", "3", "4"] as const).map((duration) => (
                         <button
                           key={duration}
-                          onClick={() => setSelectedDuration(duration)}
+                          onClick={() => {
+                            setSelectedDuration(duration);
+                            updateFilter("duration", duration);
+                          }}
                           className={`px-4 py-2 md:px-6 text-sm md:text-base rounded-lg font-medium font-['Poppins'] transition-all duration-200 flex items-center justify-center gap-2 ${
                             selectedDuration === duration
                               ? "bg-[#76C043] text-white"
@@ -1183,31 +1136,15 @@ export default function DateManagement() {
                             return (
                               itemDateString === dateString &&
                               item.league === selectedCompetition &&
-                              item.sportname === selectedSport &&
+                              item.sportName === selectedSport &&
                               item.duration === selectedDuration
                             );
                           });
 
-                          // Check if this date has custom prices for the selected sport and duration
-                          const hasCustomPrices = apiDateItem
-                            ? selectedSport === "football"
-                              ? apiDateItem.updated_football_standard_package_price !==
-                                  null ||
-                                apiDateItem.updated_football_premium_package_price !==
-                                  null
-                              : selectedSport === "basketball"
-                                ? apiDateItem.updated_baskatball_standard_package_price !==
-                                    null ||
-                                  apiDateItem.updated_baskatball_premium_package_price !==
-                                    null
-                                : apiDateItem.updated_football_standard_package_price !==
-                                    null ||
-                                  apiDateItem.updated_baskatball_standard_package_price !==
-                                    null ||
-                                  apiDateItem.updated_football_premium_package_price !==
-                                    null ||
-                                  apiDateItem.updated_baskatball_premium_package_price !==
-                                    null
+                          // Check if this date has custom prices
+                          const hasCustomPrices = apiDateItem?.prices
+                            ? apiDateItem.prices.standard > 0 ||
+                              apiDateItem.prices.premium > 0
                             : false;
 
                           // Get currency symbol
@@ -1223,40 +1160,9 @@ export default function DateManagement() {
                           let displayStandard: number | null = null;
                           let displayPremium: number | null = null;
 
-                          if (apiDateItem) {
-                            if (selectedSport === "football") {
-                              displayStandard =
-                                apiDateItem.updated_football_standard_package_price ??
-                                apiDateItem.football_standard_package_price;
-                              displayPremium =
-                                apiDateItem.updated_football_premium_package_price ??
-                                apiDateItem.football_premium_package_price;
-                            } else if (selectedSport === "basketball") {
-                              displayStandard =
-                                apiDateItem.updated_baskatball_standard_package_price ??
-                                apiDateItem.baskatball_standard_package_price;
-                              displayPremium =
-                                apiDateItem.updated_baskatball_premium_package_price ??
-                                apiDateItem.baskatball_premium_package_price;
-                            } else {
-                              const footballStandard =
-                                apiDateItem.updated_football_standard_package_price ??
-                                apiDateItem.football_standard_package_price;
-                              const basketballStandard =
-                                apiDateItem.updated_baskatball_standard_package_price ??
-                                apiDateItem.baskatball_standard_package_price;
-                              const footballPremium =
-                                apiDateItem.updated_football_premium_package_price ??
-                                apiDateItem.football_premium_package_price;
-                              const basketballPremium =
-                                apiDateItem.updated_baskatball_premium_package_price ??
-                                apiDateItem.baskatball_premium_package_price;
-
-                              displayStandard =
-                                footballStandard ?? basketballStandard ?? null;
-                              displayPremium =
-                                footballPremium ?? basketballPremium ?? null;
-                            }
+                          if (apiDateItem && apiDateItem.prices) {
+                            displayStandard = apiDateItem.prices.standard;
+                            displayPremium = apiDateItem.prices.premium;
                           }
 
                           const baseStandard = getBasePrice(
@@ -1376,7 +1282,7 @@ export default function DateManagement() {
               </div>
 
               {/* Summary */}
-              <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
+              {/* <div className="bg-gray-50 p-3 md:p-4 rounded-lg">
                 <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
                   Current Configuration (
                   {selectedSport === "football"
@@ -1393,7 +1299,7 @@ export default function DateManagement() {
                       apiDateData.filter(
                         (item) =>
                           item.league === selectedCompetition &&
-                          item.sportname === selectedSport &&
+                          item.sportName === selectedSport &&
                           item.duration === selectedDuration,
                       ).length
                     }{" "}
@@ -1405,7 +1311,7 @@ export default function DateManagement() {
                       apiDateData.filter(
                         (item) =>
                           item.league === selectedCompetition &&
-                          item.sportname === selectedSport &&
+                          item.sportName === selectedSport &&
                           item.duration === selectedDuration &&
                           item.status === "enabled",
                       ).length
@@ -1418,7 +1324,7 @@ export default function DateManagement() {
                       apiDateData.filter(
                         (item) =>
                           item.league === selectedCompetition &&
-                          item.sportname === selectedSport &&
+                          item.sportName === selectedSport &&
                           item.duration === selectedDuration &&
                           item.status === "blocked",
                       ).length
@@ -1428,42 +1334,50 @@ export default function DateManagement() {
                   <p>
                     <strong>Custom Prices:</strong>{" "}
                     {
-                      apiDateData.filter(
-                        (item) =>
+                      apiDateData.filter((item) => {
+                        const isInRange =
                           item.league === selectedCompetition &&
-                          item.sportname === selectedSport &&
-                          item.duration === selectedDuration &&
-                          ((selectedSport === "football" &&
-                            (item.updated_football_standard_package_price !==
-                              null ||
-                              item.updated_football_premium_package_price !==
-                                null)) ||
-                            (selectedSport === "basketball" &&
-                              (item.updated_baskatball_standard_package_price !==
-                                null ||
-                                item.updated_baskatball_premium_package_price !==
-                                  null)) ||
-                            (selectedSport === "both" &&
-                              (item.updated_football_standard_package_price !==
-                                null ||
-                                item.updated_football_premium_package_price !==
-                                  null ||
-                                item.updated_baskatball_standard_package_price !==
-                                  null ||
-                                item.updated_baskatball_premium_package_price !==
-                                  null))),
-                      ).length
+                          (selectedSport === "both" ||
+                            item.sportName === selectedSport) &&
+                          item.duration === selectedDuration;
+
+                        if (!isInRange) return false;
+
+                        // @ts-ignore
+                        const sports = item.sports || {};
+
+                        const hasCustom = (
+                          sport: "football" | "basketball" | "combined",
+                        ) => {
+                          // @ts-ignore
+                          const s = sports[sport];
+                          if (!s) return false;
+                          const std = Number(s.standard);
+                          const prem = Number(s.premium);
+                          return std > 0 || prem > 0;
+                        };
+
+                        if (selectedSport === "both") {
+                          return (
+                            hasCustom("football") ||
+                            hasCustom("basketball") ||
+                            hasCustom("combined")
+                          );
+                        }
+                        // @ts-ignore
+                        return hasCustom(selectedSport);
+                      }).length
                     }{" "}
                     dates
                   </p>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         )}
 
         {/* Preview Sectionn */}
-        <div className="bg-white rounded-lg border border-gray-200 p-3 md:p-4 lg:p-6 shadow-sm">
+        {/* <div className="bg-white rounded-lg border border-gray-200 p-3 md:p-4 lg:p-6 shadow-sm">
           <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
             <Calendar className="w-5 h-5 md:w-6 md:h-6 text-[#76C043]" />
             <h2 className="text-lg md:text-xl font-semibold text-gray-900 font-['Poppins']">
@@ -1484,7 +1398,7 @@ export default function DateManagement() {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Price Editing Modal */}
@@ -1515,192 +1429,155 @@ export default function DateManagement() {
                   {new Date(priceEditData.date).toLocaleDateString()}
                 </p>
                 <p className="text-xs text-blue-600 font-medium mt-1">
-                  {(() => {
-                    const hasCustomPrices =
-                      getCustomPrice(
-                        priceEditData.date,
-                        priceEditData.sport,
-                        "standard",
-                        selectedDuration,
-                      ) !== null ||
-                      getCustomPrice(
-                        priceEditData.date,
-                        priceEditData.sport,
-                        "premium",
-                        selectedDuration,
-                      ) !== null;
-                    return hasCustomPrices
-                      ? "✏️ Editing existing custom prices"
-                      : "📦 Using base package prices (can be overridden)";
-                  })()}
+                  ✏️ Editing prices for{" "}
+                  {selectedSport === "both"
+                    ? "Combined"
+                    : selectedSport === "football"
+                      ? "Football"
+                      : "Basketball"}{" "}
+                  Package
                 </p>
 
-                {/* Debug info for both sports */}
-                <div className="mt-3 text-xs text-gray-500 space-y-1">
-                  <div className="flex justify-between">
-                    <span>Football Base:</span>
-                    <span>
-                      {basePrices.football
-                        ? `${getCurrencySymbol(basePrices.football.currency)}${Math.round(getBasePrice("football", "standard", selectedDuration))}/${getCurrencySymbol(basePrices.football.currency)}${Math.round(getBasePrice("football", "premium", selectedDuration))}`
-                        : "Not loaded"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Basketball Base:</span>
-                    <span>
-                      {basePrices.basketball
-                        ? `${getCurrencySymbol(basePrices.basketball.currency)}${Math.round(getBasePrice("basketball", "standard", selectedDuration))}/${getCurrencySymbol(basePrices.basketball.currency)}${Math.round(getBasePrice("basketball", "premium", selectedDuration))}`
-                        : "Not loaded"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Selected Sport:</span>
-                    <span className="font-medium">{priceEditData.sport}</span>
-                  </div>
+                {/* Debug info for selected sport */}
+                {/* <div className="mt-3 text-xs text-gray-500 space-y-1">
+                  {(["football", "basketball", "combined"] as const)
+                    .filter((s) => {
+                      if (selectedSport === "both") return s === "combined";
+                      return s === selectedSport;
+                    })
+                    .map((sport) => (
+                      <div key={sport} className="flex justify-between">
+                        <span className="capitalize">{sport} Base:</span>
+                        <span>
+                          {basePrices[sport]
+                            ? `${getCurrencySymbol(basePrices[sport]?.currency)}${Math.round(getBasePrice(sport === "combined" ? "both" : sport, "standard", selectedDuration))}/${getCurrencySymbol(basePrices[sport]?.currency)}${Math.round(getBasePrice(sport === "combined" ? "both" : sport, "premium", selectedDuration))}`
+                            : "Not loaded"}
+                        </span>
+                      </div>
+                    ))}
+                </div> */}
+              </div>
+
+              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mb-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700 font-['Poppins']">
+                    Updating Prices For:
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 font-['Poppins'] capitalize">
+                    {selectedSport === "both"
+                      ? "Combined Package"
+                      : `${selectedSport} Package`}{" "}
+                    ({selectedDuration} Night
+                    {selectedDuration === "1" ? "" : "s"})
+                  </span>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-                  Sport *
-                </label>
-                <select
-                  value={priceEditData.sport}
-                  onChange={(e) => {
-                    const newSport = e.target.value as SportOption;
-                    const currentStandardPrice = getCustomPrice(
-                      priceEditData.date,
-                      newSport,
-                      "standard",
-                      selectedDuration,
-                    );
-                    const currentPremiumPrice = getCustomPrice(
-                      priceEditData.date,
-                      newSport,
-                      "premium",
-                      selectedDuration,
-                    );
-
-                    // Use custom prices if they exist, otherwise use base prices
-                    const standardPrice =
-                      currentStandardPrice ??
-                      getBasePrice(newSport, "standard");
-                    const premiumPrice =
-                      currentPremiumPrice ?? getBasePrice(newSport, "premium");
-
-                    setPriceEditData((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            sport: newSport,
-                            standardPrice,
-                            premiumPrice,
-                          }
-                        : null,
-                    );
-                  }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
-                >
-                  <option value="football">
-                    Football{" "}
-                    {basePrices.football
-                      ? `(${getCurrencySymbol(basePrices.football.currency)}${Math.round(getBasePrice("football", "standard", selectedDuration))}/${getCurrencySymbol(basePrices.football.currency)}${Math.round(getBasePrice("football", "premium", selectedDuration))})`
-                      : ""}
-                  </option>
-                  <option value="basketball">
-                    Basketball{" "}
-                    {basePrices.basketball
-                      ? `(${getCurrencySymbol(basePrices.basketball.currency)}${Math.round(getBasePrice("basketball", "standard", selectedDuration))}/${getCurrencySymbol(basePrices.basketball.currency)}${Math.round(getBasePrice("basketball", "premium", selectedDuration))})`
-                      : ""}
-                  </option>
-                  <option value="both">
-                    Both{" "}
-                    {basePrices.combined
-                      ? `(${getCurrencySymbol(basePrices.combined.currency)}${Math.round(getBasePrice("both", "standard", selectedDuration))}/${getCurrencySymbol(basePrices.combined.currency)}${Math.round(getBasePrice("both", "premium", selectedDuration))})`
-                      : ""}
-                  </option>
-                </select>
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto px-1">
+                {(["football", "basketball", "combined"] as const)
+                  .filter((s) => {
+                    if (selectedSport === "both") return s === "combined";
+                    return s === selectedSport;
+                  })
+                  .map((sport) => (
+                    <div
+                      key={sport}
+                      className="border-gray-200 border rounded-lg p-4 bg-white shadow-sm"
+                    >
+                      <h3 className="text-sm font-semibold text-gray-800 mb-3 capitalize flex items-center gap-2">
+                        {sport === "football"
+                          ? "⚽ Football Package"
+                          : sport === "basketball"
+                            ? "🏀 Basketball Package"
+                            : "⚽🏀 Combined Package"}
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1 font-['Poppins']">
+                            Standard (
+                            {getCurrencySymbol(
+                              getSportCurrency(
+                                sport === "combined" ? "both" : sport,
+                              ) ?? "euro",
+                            )}
+                            )
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={priceEditData.prices[sport].standard ?? ""}
+                            onChange={(e) => {
+                              const value = e.target.value.trim();
+                              const numValue =
+                                value === "" ? null : Number(value);
+                              setPriceEditData((prev) =>
+                                prev
+                                  ? {
+                                      ...prev,
+                                      prices: {
+                                        ...prev.prices,
+                                        [sport]: {
+                                          ...prev.prices[sport],
+                                          standard: isNaN(numValue as number)
+                                            ? null
+                                            : numValue,
+                                        },
+                                      },
+                                    }
+                                  : null,
+                              );
+                            }}
+                            placeholder={`Base: ${getCurrencySymbol(getSportCurrency(sport === "combined" ? "both" : sport) ?? "euro")}${Math.round(getBasePrice(sport === "combined" ? "both" : sport, "standard"))}`}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 text-sm font-['Poppins']"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1 font-['Poppins']">
+                            Premium (
+                            {getCurrencySymbol(
+                              getSportCurrency(
+                                sport === "combined" ? "both" : sport,
+                              ) ?? "euro",
+                            )}
+                            )
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={priceEditData.prices[sport].premium ?? ""}
+                            onChange={(e) => {
+                              const value = e.target.value.trim();
+                              const numValue =
+                                value === "" ? null : Number(value);
+                              setPriceEditData((prev) =>
+                                prev
+                                  ? {
+                                      ...prev,
+                                      prices: {
+                                        ...prev.prices,
+                                        [sport]: {
+                                          ...prev.prices[sport],
+                                          premium: isNaN(numValue as number)
+                                            ? null
+                                            : numValue,
+                                        },
+                                      },
+                                    }
+                                  : null,
+                              );
+                            }}
+                            placeholder={`Base: ${getCurrencySymbol(getSportCurrency(sport === "combined" ? "both" : sport) ?? "euro")}${Math.round(getBasePrice(sport === "combined" ? "both" : sport, "premium"))}`}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 text-sm font-['Poppins']"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-                    Standard Package Price (
-                    {getCurrencySymbol(
-                      getSportCurrency(priceEditData.sport) ?? "euro",
-                    )}
-                    )
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={priceEditData.standardPrice || ""}
-                    onChange={(e) => {
-                      const value = e.target.value.trim();
-                      const numValue = value === "" ? 0 : Number(value);
-                      setPriceEditData((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              standardPrice: isNaN(numValue) ? 0 : numValue,
-                            }
-                          : null,
-                      );
-                    }}
-                    placeholder={`Current: ${getCurrencySymbol(getSportCurrency(priceEditData.sport) ?? "euro")}${getBasePrice(priceEditData.sport, "standard")}`}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Base package price:{" "}
-                    {getCurrencySymbol(
-                      getSportCurrency(priceEditData.sport) ?? "euro",
-                    )}
-                    {getBasePrice(priceEditData.sport, "standard")} | Set custom
-                    price to override for this date only
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-                    Premium Package Price (
-                    {getCurrencySymbol(
-                      getSportCurrency(priceEditData.sport) ?? "euro",
-                    )}
-                    )
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={priceEditData.premiumPrice || ""}
-                    onChange={(e) => {
-                      const value = e.target.value.trim();
-                      const numValue = value === "" ? 0 : Number(value);
-                      setPriceEditData((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              premiumPrice: isNaN(numValue) ? 0 : numValue,
-                            }
-                          : null,
-                      );
-                    }}
-                    placeholder={`Current: ${getCurrencySymbol(getSportCurrency(priceEditData.sport) ?? "euro")}${getBasePrice(priceEditData.sport, "premium")}`}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-['Poppins']"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Base package price:{" "}
-                    {getCurrencySymbol(
-                      getSportCurrency(priceEditData.sport) ?? "euro",
-                    )}
-                    {getBasePrice(priceEditData.sport, "premium")} | Set custom
-                    price to override for this date only
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
+              <div className="flex gap-3 justify-end pt-4 border-t border-gray-200 mt-4">
                 <button
                   onClick={() => setShowPriceModal(false)}
                   className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium font-['Poppins'] transition-all duration-200"
@@ -1710,16 +1587,10 @@ export default function DateManagement() {
                 </button>
                 <button
                   onClick={handleSavePrice}
-                  disabled={
-                    (!priceEditData.standardPrice ||
-                      priceEditData.standardPrice <= 0) &&
-                    (!priceEditData.premiumPrice ||
-                      priceEditData.premiumPrice <= 0)
-                  }
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200"
                 >
                   <DollarSign className="w-4 h-4" />
-                  Set Prices
+                  Save All Prices
                 </button>
               </div>
             </div>

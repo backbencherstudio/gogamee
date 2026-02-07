@@ -112,7 +112,7 @@ export interface CreateBookingPayload {
   selectedSport: string;
   selectedPackage: string;
   selectedCity: string;
-  selectedLeague: string;
+  selectedLeague?: string; // Optional - being phased out
   adults: number;
   kids: number;
   babies: number;

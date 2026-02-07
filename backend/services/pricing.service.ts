@@ -1,72 +1,33 @@
+import { connectToDatabase } from "..";
 import { toErrorMessage } from "../lib/errors";
+import { DateManagement, StartingPrice } from "../models";
 
-/**
- * Pricing Configuration
- * All pricing rules and constants in one place
- */
 export const PricingConfig = {
-  // Base package prices by sport, package type, and nights
-  basePrices: {
-    football: {
-      standard: {
-        1: 299,
-        2: 379,
-        3: 459,
-        4: 529,
-      },
-      premium: {
-        1: 1299,
-        2: 1499,
-        3: 1699,
-        4: 1899,
-      },
-    },
-    basketball: {
-      standard: {
-        1: 279,
-        2: 359,
-        3: 439,
-        4: 509,
-      },
-      premium: {
-        1: 1279,
-        2: 1479,
-        3: 1679,
-        4: 1859,
-      },
-    },
-  },
-
-  // League surcharges
   leagueSurcharge: {
     european: 50,
     national: 0,
   },
 
-  // League removal pricing
   leagueRemoval: {
     freeRemovals: 1,
     costPerRemoval: 20, // Per person
   },
 
-  // Flight preference pricing
   flightPreference: {
     costPerStep: 20,
   },
 
-  // Extras pricing (fallback if not in booking data)
-  defaultExtras: {
+  singleTravelerSupplement: 50,
+
+  extras: {
     breakfast: 10,
     "travel-insurance": 20,
     "underseat-bag": 0,
     "extra-luggage": 40,
     "seats-together": 20,
-  },
+  } as Record<string, number>,
 } as const;
 
-/**
- * Booking Extra Interface
- */
 export interface BookingExtra {
   id: string;
   name: string;
@@ -79,19 +40,13 @@ export interface BookingExtra {
   currency: string;
 }
 
-/**
- * Price Calculation Input
- */
 export interface PriceCalculationInput {
-  selectedSport: "football" | "basketball";
-  selectedPackage: "standard" | "premium";
+  selectedSport: "football" | "basketball" | "both" | string;
+  selectedPackage: "standard" | "premium" | string;
   selectedLeague: "european" | "national" | string;
   totalPeople: number;
-  adults: number;
-  kids: number;
-  babies: number;
   departureDate: string;
-  returnDate: string;
+  travelDuration: number; // In days
   removedLeaguesCount: number;
   hasRemovedLeagues: boolean;
   bookingExtras?: BookingExtra[];
@@ -101,91 +56,84 @@ export interface PriceCalculationInput {
   arrivalTimeEnd?: number;
 }
 
-/**
- * Price Breakdown Result
- */
 export interface PriceBreakdown {
   packageCost: number;
   extrasCost: number;
   leagueRemovalCost: number;
   leagueSurcharge: number;
   flightPreferenceCost: number;
+  singleTravelerSupplement: number;
+  totalBaseCost: number;
   totalCost: number;
   currency: string;
+  basePricePerPerson: number;
   breakdown: {
     description: string;
     amount: number;
   }[];
 }
 
-/**
- * Centralized Pricing Service
- * All price calculations happen here - NEVER trust client prices!
- */
 export class PricingService {
-  /**
-   * Calculate total price with full breakdown
-   */
   static async calculatePrice(
     input: PriceCalculationInput,
   ): Promise<PriceBreakdown> {
     try {
-      // 1. Calculate nights
-      const nights = this.calculateNights(
-        input.departureDate,
-        input.returnDate,
-      );
+      const durationKey = this.calculateDurationKey(input.travelDuration);
 
-      // 2. Base package cost (from database)
-      const packageCost = await this.calculatePackageCost(
+      const basePricePerPerson = await this.calculateBasePrice(
+        input.departureDate,
+        durationKey,
         input.selectedSport,
         input.selectedPackage,
-        nights,
       );
 
-      // 3. League surcharge
-      const leagueSurcharge = this.calculateLeagueSurcharge(
+      const totalBaseCost = basePricePerPerson * input.totalPeople;
+
+      const leagueSurchargePerPerson = this.calculateLeagueSurcharge(
         input.selectedLeague,
       );
+      const leagueSurchargeTotal = leagueSurchargePerPerson * input.totalPeople;
 
-      // 4. Extras cost
       const extrasCost = this.calculateExtrasCost(input.bookingExtras || []);
 
-      // 5. League removal cost
-      const leagueRemovalCost = this.calculateLeagueRemovalCost(
+      const leagueRemovalCostTotal = this.calculateLeagueRemovalCost(
         input.removedLeaguesCount,
         input.hasRemovedLeagues,
         input.totalPeople,
+        input.selectedLeague,
       );
 
-      // 6. Flight preference cost (if applicable)
-      const flightPreferenceCost = this.calculateFlightPreferenceCost(
+      const flightPreferencePerPerson = this.calculateFlightPreferenceCost(
         input.departureTimeStart,
         input.departureTimeEnd,
         input.arrivalTimeStart,
         input.arrivalTimeEnd,
       );
+      const flightPreferenceTotal =
+        flightPreferencePerPerson * input.totalPeople;
 
-      // 7. Total
+      const singleTravelerSupplement =
+        input.totalPeople === 1 ? PricingConfig.singleTravelerSupplement : 0;
+
       const totalCost =
-        packageCost +
-        leagueSurcharge +
+        totalBaseCost +
+        leagueSurchargeTotal +
         extrasCost +
-        leagueRemovalCost +
-        flightPreferenceCost;
+        leagueRemovalCostTotal +
+        flightPreferenceTotal +
+        singleTravelerSupplement;
 
-      // Build itemized breakdown
       const breakdown = [
         {
-          description: `${input.selectedSport} - ${input.selectedPackage} (${nights} ${nights === 1 ? "night" : "nights"})`,
-          amount: packageCost,
+          description: `Base Package (${input.selectedSport} - ${input.selectedPackage}) x ${input.totalPeople}`,
+          amount: totalBaseCost,
         },
       ];
 
-      if (leagueSurcharge > 0) {
+      if (leagueSurchargeTotal > 0) {
         breakdown.push({
-          description: "European League Surcharge",
-          amount: leagueSurcharge,
+          description: "League Surcharge",
+          amount: leagueSurchargeTotal,
         });
       }
 
@@ -196,28 +144,38 @@ export class PricingService {
         });
       }
 
-      if (leagueRemovalCost > 0) {
+      if (leagueRemovalCostTotal > 0) {
         breakdown.push({
-          description: `League Removals (${input.removedLeaguesCount})`,
-          amount: leagueRemovalCost,
+          description: `League Removals`,
+          amount: leagueRemovalCostTotal,
         });
       }
 
-      if (flightPreferenceCost > 0) {
+      if (flightPreferenceTotal > 0) {
         breakdown.push({
           description: "Flight Preferences",
-          amount: flightPreferenceCost,
+          amount: flightPreferenceTotal,
+        });
+      }
+
+      if (singleTravelerSupplement > 0) {
+        breakdown.push({
+          description: "Single Traveler Supplement",
+          amount: singleTravelerSupplement,
         });
       }
 
       return {
-        packageCost,
+        packageCost: totalBaseCost,
         extrasCost,
-        leagueRemovalCost,
-        leagueSurcharge,
-        flightPreferenceCost,
+        leagueRemovalCost: leagueRemovalCostTotal,
+        leagueSurcharge: leagueSurchargeTotal,
+        flightPreferenceCost: flightPreferenceTotal,
+        singleTravelerSupplement,
+        totalBaseCost,
         totalCost,
         currency: "EUR",
+        basePricePerPerson,
         breakdown,
       };
     } catch (error) {
@@ -226,102 +184,129 @@ export class PricingService {
     }
   }
 
-  /**
-   * Calculate number of nights
-   */
-  private static calculateNights(
-    departureDate: string,
-    returnDate: string,
-  ): number {
-    const departure = new Date(departureDate);
-    const returnD = new Date(returnDate);
-    const diffTime = Math.abs(returnD.getTime() - departure.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(1, Math.min(4, diffDays)); // Clamp between 1-4
+  private static calculateDurationKey(days: number): "1" | "2" | "3" | "4" {
+    const nights = Math.max(0, days - 1);
+    if (nights <= 1) return "1";
+    if (nights === 2) return "2";
+    if (nights === 3) return "3";
+    return "4";
   }
 
-  /**
-   * Calculate base package cost from database
-   */
-  private static async calculatePackageCost(
-    sport: "football" | "basketball",
-    packageType: "standard" | "premium",
-    nights: number,
+  private static async calculateBasePrice(
+    date: string,
+    durationKey: "1" | "2" | "3" | "4",
+    sport: string,
+    pkg: string,
   ): Promise<number> {
     try {
-      // Query database for current prices
-      const { StartingPrice } = await import("../../backend/models");
+      await connectToDatabase();
 
+      const dateObj = new Date(date);
+      const year = dateObj.getFullYear();
+      const month = dateObj.getMonth();
+      const day = dateObj.getDate();
+
+      const startOfDay = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+      const endOfDay = new Date(Date.UTC(year, month, day, 23, 59, 59, 999));
+
+      const dateEntry = await DateManagement.findOne({
+        date: { $gte: startOfDay, $lte: endOfDay },
+        status: "enabled",
+        duration: durationKey,
+      });
+
+      if (dateEntry) {
+        let basePrice = 0;
+        const sportLower = sport?.toLowerCase();
+        const pkgLower = pkg?.toLowerCase() as "standard" | "premium";
+
+        if (sportLower === "both" || sportLower === "combined") {
+          // Direct lookup for Combined Package (Standard/Premium)
+          basePrice = dateEntry.prices?.combined?.[pkgLower] ?? 0;
+        } else if (sportLower === "football") {
+          basePrice = dateEntry.prices?.football?.[pkgLower] ?? 0;
+        } else if (sportLower === "basketball") {
+          basePrice = dateEntry.prices?.basketball?.[pkgLower] ?? 0;
+        }
+
+        return basePrice;
+      }
+
+      const sportLower = sport?.toLowerCase();
+      const pkgLower = pkg?.toLowerCase() as "standard" | "premium";
+
+      // Handle "both" sport type
+      if (sportLower === "both") {
+        const footballPrice = await StartingPrice.findOne({
+          type: "football",
+          isActive: true,
+        }).lean();
+        const basketballPrice = await StartingPrice.findOne({
+          type: "basketball",
+          isActive: true,
+        }).lean();
+
+        let total = 0;
+        if (footballPrice?.pricesByDuration?.[durationKey]) {
+          total += footballPrice.pricesByDuration[durationKey][pkgLower] || 0;
+        }
+        if (basketballPrice?.pricesByDuration?.[durationKey]) {
+          total += basketballPrice.pricesByDuration[durationKey][pkgLower] || 0;
+        }
+        return total;
+      }
+
+      // Single sport
       const startingPrice = await StartingPrice.findOne({
-        type: sport,
+        type: sportLower,
         isActive: true,
       }).lean();
 
       if (!startingPrice || !startingPrice.pricesByDuration) {
-        console.warn(`No active pricing found for ${sport}, using fallback`);
-        // Fallback to config
-        const sportPrices = PricingConfig.basePrices[sport];
-        if (!sportPrices) {
-          throw new Error(`Invalid sport: ${sport}`);
-        }
-
-        const packagePrices = sportPrices[packageType];
-        if (!packagePrices) {
-          throw new Error(`Invalid package type: ${packageType}`);
-        }
-
-        const nightsKey = nights as 1 | 2 | 3 | 4;
-        const price = packagePrices[nightsKey];
-        if (!price) {
-          throw new Error(`No price for ${nights} nights`);
-        }
-
-        return price;
+        console.error(`❌ No StartingPrice found for sport: ${sportLower}`);
+        return 0;
       }
 
-      // Get price from database
-      const nightsKey = nights.toString() as "1" | "2" | "3" | "4";
-      const durationPrices = startingPrice.pricesByDuration[nightsKey];
-
+      const durationPrices = startingPrice.pricesByDuration[durationKey];
       if (!durationPrices) {
-        throw new Error(`No pricing found for ${nights} nights`);
+        console.error(`❌ No prices found for duration: ${durationKey}`);
+        return 0;
       }
 
-      return durationPrices[packageType];
+      const price = durationPrices[pkgLower] || 0;
+      return price;
     } catch (error) {
       console.error("Error fetching database prices:", error);
       throw error;
     }
   }
 
-  /**
-   * Calculate league surcharge
-   */
   private static calculateLeagueSurcharge(league: string): number {
-    if (league === "european") {
+    if (league?.toLowerCase() === "european") {
       return PricingConfig.leagueSurcharge.european;
     }
     return PricingConfig.leagueSurcharge.national;
   }
 
-  /**
-   * Calculate extras cost from booking extras array
-   */
   private static calculateExtrasCost(bookingExtras: BookingExtra[]): number {
     return bookingExtras
-      .filter((extra) => extra.isSelected && extra.price > 0)
-      .reduce((sum, extra) => sum + extra.price * extra.quantity, 0);
+      .filter((extra) => extra.isSelected && !extra.isIncluded)
+      .reduce((sum, extra) => {
+        // Use hardcoded price from config, fallback to 0 if not found (security)
+        const price = PricingConfig.extras[extra.id] ?? 0;
+        return sum + price * extra.quantity;
+      }, 0);
   }
 
-  /**
-   * Calculate league removal cost
-   * Formula: (removedCount - freeRemovals) * costPerRemoval * totalPeople
-   */
   private static calculateLeagueRemovalCost(
     removedCount: number,
     hasRemovedLeagues: boolean,
     totalPeople: number,
+    selectedLeague: string,
   ): number {
+    const isEuropean = selectedLeague?.toLowerCase() === "european";
+    if (isEuropean) return 0;
+
     if (!hasRemovedLeagues || removedCount === 0) {
       return 0;
     }
@@ -335,122 +320,65 @@ export class PricingService {
     return costPerPerson * totalPeople;
   }
 
-  /**
-   * Calculate flight preference cost
-   * Based on steps moved from default time ranges
-   */
   private static calculateFlightPreferenceCost(
-    departureTimeStart?: number,
-    departureTimeEnd?: number,
-    arrivalTimeStart?: number,
-    arrivalTimeEnd?: number,
+    depStart?: number,
+    depEnd?: number,
+    arrStart?: number,
+    arrEnd?: number,
   ): number {
-    // Default ranges
-    const defaultDeparture = { start: 360, end: 840 }; // 06:00 to 14:00
-    const defaultArrival = { start: 840, end: 1440 }; // 14:00 to 00:00(+1)
+    if (!depStart && !arrStart) return 0;
 
-    // Available time slots
     const departureSlots = [360, 660, 840, 1080, 1440];
     const arrivalSlots = [660, 840, 1140, 1440];
+    const defaultDeparture = { start: 360, end: 840 };
+    const defaultArrival = { start: 840, end: 1440 };
 
-    let totalSteps = 0;
+    const findSlotIndex = (slots: number[], value: number) =>
+      slots.findIndex((s) => Math.abs(s - value) < 30);
 
-    // Calculate departure steps
-    if (departureTimeStart !== undefined && departureTimeEnd !== undefined) {
-      const startStep = this.findClosestSlotIndex(
-        departureSlots,
-        departureTimeStart,
-      );
-      const endStep = this.findClosestSlotIndex(
-        departureSlots,
-        departureTimeEnd,
-      );
-      const defaultStartStep = this.findClosestSlotIndex(
-        departureSlots,
-        defaultDeparture.start,
-      );
-      const defaultEndStep = this.findClosestSlotIndex(
-        departureSlots,
-        defaultDeparture.end,
-      );
+    // Departure cost
+    // Ensure inputs are numbers (handle undefined)
+    const safeDepStart = depStart || 0;
+    const safeDepEnd = depEnd || 0;
 
-      totalSteps +=
-        Math.abs(startStep - defaultStartStep) +
-        Math.abs(endStep - defaultEndStep);
-    }
+    const depStartIdx = findSlotIndex(departureSlots, safeDepStart);
+    const depEndIdx = findSlotIndex(departureSlots, safeDepEnd);
+    const defDepStartIdx = findSlotIndex(
+      departureSlots,
+      defaultDeparture.start,
+    );
+    const defDepEndIdx = findSlotIndex(departureSlots, defaultDeparture.end);
 
-    // Calculate arrival steps
-    if (arrivalTimeStart !== undefined && arrivalTimeEnd !== undefined) {
-      const startStep = this.findClosestSlotIndex(
-        arrivalSlots,
-        arrivalTimeStart,
-      );
-      const endStep = this.findClosestSlotIndex(arrivalSlots, arrivalTimeEnd);
-      const defaultStartStep = this.findClosestSlotIndex(
-        arrivalSlots,
-        defaultArrival.start,
-      );
-      const defaultEndStep = this.findClosestSlotIndex(
-        arrivalSlots,
-        defaultArrival.end,
-      );
+    const departureCost =
+      depStartIdx >= 0 &&
+      depEndIdx >= 0 &&
+      defDepStartIdx >= 0 &&
+      defDepEndIdx >= 0
+        ? (Math.abs(depStartIdx - defDepStartIdx) +
+            Math.abs(depEndIdx - defDepEndIdx)) *
+          PricingConfig.flightPreference.costPerStep
+        : 0;
 
-      totalSteps +=
-        Math.abs(startStep - defaultStartStep) +
-        Math.abs(endStep - defaultEndStep);
-    }
+    // Arrival cost
+    // Ensure inputs are numbers (handle undefined)
+    const safeArrStart = arrStart || 0;
+    const safeArrEnd = arrEnd || 0;
 
-    return totalSteps * PricingConfig.flightPreference.costPerStep;
-  }
+    const arrStartIdx = findSlotIndex(arrivalSlots, safeArrStart);
+    const arrEndIdx = findSlotIndex(arrivalSlots, safeArrEnd);
+    const defArrStartIdx = findSlotIndex(arrivalSlots, defaultArrival.start);
+    const defArrEndIdx = findSlotIndex(arrivalSlots, defaultArrival.end);
 
-  /**
-   * Find closest slot index
-   */
-  private static findClosestSlotIndex(slots: number[], value: number): number {
-    let closestIndex = 0;
-    let minDiff = Math.abs(slots[0] - value);
+    const arrivalCost =
+      arrStartIdx >= 0 &&
+      arrEndIdx >= 0 &&
+      defArrStartIdx >= 0 &&
+      defArrEndIdx >= 0
+        ? (Math.abs(arrStartIdx - defArrStartIdx) +
+            Math.abs(arrEndIdx - defArrEndIdx)) *
+          PricingConfig.flightPreference.costPerStep
+        : 0;
 
-    for (let i = 1; i < slots.length; i++) {
-      const diff = Math.abs(slots[i] - value);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = i;
-      }
-    }
-
-    return closestIndex;
-  }
-
-  /**
-   * Validate price against client-submitted price
-   * Returns true if within acceptable tolerance
-   */
-  static validateClientPrice(
-    serverPrice: number,
-    clientPrice: number,
-    tolerance: number = 5,
-  ): {
-    isValid: boolean;
-    difference: number;
-    serverPrice: number;
-    clientPrice: number;
-  } {
-    const difference = Math.abs(serverPrice - clientPrice);
-    const isValid = difference <= tolerance;
-
-    if (!isValid) {
-      console.warn("⚠️ Price mismatch detected:", {
-        serverPrice,
-        clientPrice,
-        difference,
-      });
-    }
-
-    return {
-      isValid,
-      difference,
-      serverPrice,
-      clientPrice,
-    };
+    return departureCost + arrivalCost;
   }
 }

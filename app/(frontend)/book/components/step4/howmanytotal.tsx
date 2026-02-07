@@ -4,6 +4,7 @@ import React, { useEffect, useCallback, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { HiMinus, HiPlus } from "react-icons/hi2";
 import { useBooking } from "../../context/BookingContext";
+import { BOOKING_CONSTANTS } from "../../context/BookingContext";
 import { TranslatedText } from "../../../_components/TranslatedText";
 import { useLanguage } from "../../../../context/LanguageContext";
 
@@ -84,7 +85,6 @@ const CounterItem: React.FC<CounterItemProps> = ({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log("🎯 Decrement button clicked for", title);
             onDecrement();
           }}
           disabled={isMinimumReached}
@@ -106,7 +106,6 @@ const CounterItem: React.FC<CounterItemProps> = ({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            console.log("🎯 Increment button clicked for", title);
             onIncrement();
           }}
           disabled={!canIncrement}
@@ -130,31 +129,27 @@ export default function HowManyTotal() {
   // Calculate default values from existing data or defaults
   const getDefaultValues = useCallback((): CounterFormData => {
     if (
-      formData.peopleCount.adults ||
-      formData.peopleCount.kids ||
-      formData.peopleCount.babies
+      formData.travelers.adults.length ||
+      formData.travelers.kids.length ||
+      formData.travelers.babies.length
     ) {
       return {
-        adults: formData.peopleCount.adults,
-        kids: formData.peopleCount.kids,
-        babies: formData.peopleCount.babies,
+        adults: formData.travelers.adults.length,
+        kids: formData.travelers.kids.length,
+        babies: formData.travelers.babies.length,
       };
     }
     return DEFAULT_VALUES;
-  }, [formData.peopleCount]);
+  }, [formData.travelers]);
 
   const { control, watch, setValue, handleSubmit } = useForm<CounterFormData>({
     defaultValues: getDefaultValues(),
     mode: "onChange",
   });
 
-  // Debug: Log the initial form state
   useEffect(() => {
     const initialValues = getDefaultValues();
-    console.log("🎯 HowManyTotal initialized with values:", initialValues);
-    console.log("🎯 FormData.peopleCount:", formData.peopleCount);
-    console.log("🎯 FromHero:", formData.fromHero);
-  }, [formData.fromHero, formData.peopleCount, getDefaultValues]); // Only run once on mount
+  }, [formData.fromHero, formData.travelers, getDefaultValues]); // Only run once on mount
 
   const watchedValues = watch();
 
@@ -162,24 +157,20 @@ export default function HowManyTotal() {
   const hasSyncedFromHeroRef = useRef(false);
   useEffect(() => {
     if (formData.fromHero && !hasSyncedFromHeroRef.current) {
-      const contextPeopleCount = formData.peopleCount;
-      setValue("adults", contextPeopleCount.adults);
-      setValue("kids", contextPeopleCount.kids);
-      setValue("babies", contextPeopleCount.babies);
+      const travelers = formData.travelers;
+      // Ensure at least 1 adult even if Hero data says 0
+      setValue("adults", Math.max(travelers.adults.length, MIN_ADULTS));
+      setValue("kids", travelers.kids.length);
+      setValue("babies", travelers.babies.length);
       hasSyncedFromHeroRef.current = true;
-      console.log(
-        "🎯 HowManyTotal - one-time sync from hero:",
-        contextPeopleCount,
-      );
     }
-  }, [formData.fromHero, formData.peopleCount, setValue]);
+  }, [formData.fromHero, formData.travelers, setValue]);
 
   // Calculate total count from watched values
   const totalCount =
     (watchedValues.adults ?? 0) +
     (watchedValues.kids ?? 0) +
     (watchedValues.babies ?? 0);
-  console.log("🎯 Current total count:", totalCount, "Values:", watchedValues);
   const canAddMore = totalCount < MAX_TOTAL_PEOPLE;
 
   const updateCount = (
@@ -188,62 +179,80 @@ export default function HowManyTotal() {
     minValue: number,
   ) => {
     const currentValue = watchedValues[field];
-    console.log(
-      `🎯 updateCount called: ${operation} ${field}, current: ${currentValue}, total: ${totalCount}, canAddMore: ${canAddMore}`,
-    );
-
     if (operation === "increment") {
       if (totalCount >= MAX_TOTAL_PEOPLE) {
-        console.log(
-          `🎯 Cannot increment - max people reached (${totalCount}/${MAX_TOTAL_PEOPLE})`,
-        );
         return;
       }
       const newValue = currentValue + 1;
-      console.log(`🎯 Setting ${field} to ${newValue}`);
       setValue(field, newValue, {
         shouldValidate: true,
         shouldDirty: true,
         shouldTouch: true,
       });
-      console.log(
-        `🎯 Successfully incremented ${field} from ${currentValue} to ${newValue}`,
-      );
     } else {
       if (currentValue <= minValue) {
-        console.log(
-          `🎯 Cannot decrement - minimum value reached (${currentValue} <= ${minValue})`,
-        );
         return;
       }
       const newValue = Math.max(minValue, currentValue - 1);
-      console.log(`🎯 Setting ${field} to ${newValue}`);
       setValue(field, newValue, {
         shouldValidate: true,
         shouldDirty: true,
         shouldTouch: true,
       });
-      console.log(
-        `🎯 Successfully decremented ${field} from ${currentValue} to ${newValue}`,
-      );
     }
   };
 
   const onSubmit = (data: CounterFormData) => {
     const totalPeople = data.adults + data.kids + data.babies;
-    console.log(
-      "🎯 Form submitted - Current counts:",
-      data,
-      "Total:",
-      totalPeople,
-    );
 
-    // Update the booking context with detailed people count
+    if (totalPeople === 0) {
+      return; // Prevent proceeding with 0 people
+    }
+
+    // Initialize/Resize traveler arrays to match counts
+    // We try to preserve existing data from context if available, otherwise create new
+    const prevTravelers = formData.travelers || {
+      adults: [],
+      kids: [],
+      babies: [],
+    };
+
+    // Helper to sync array size
+    const syncArray = (
+      targetSize: number,
+      currentArray: any[],
+      type: "adult" | "kid" | "baby",
+    ) => {
+      if (currentArray.length === targetSize) return currentArray;
+      if (currentArray.length > targetSize)
+        return currentArray.slice(0, targetSize);
+
+      // Add new empty travelers
+      const newItems = Array.from(
+        { length: targetSize - currentArray.length },
+        (_, i) => ({
+          id: `${type}-${currentArray.length + i + 1}-${Date.now()}`,
+          type: type,
+          name: "",
+          dateOfBirth: "",
+          documentType: "ID",
+          documentNumber: "",
+          isPrimary: type === "adult" && currentArray.length + i === 0, // First adult is primary
+        }),
+      );
+      return [...currentArray, ...newItems];
+    };
+
+    const adults = syncArray(data.adults, prevTravelers.adults, "adult");
+    const kids = syncArray(data.kids, prevTravelers.kids, "kid");
+    const babies = syncArray(data.babies, prevTravelers.babies, "baby");
+
+    // Update the booking context with detailed people count AND initialized arrays
     updateFormData({
-      peopleCount: {
-        adults: data.adults,
-        kids: data.kids,
-        babies: data.babies,
+      travelers: {
+        adults,
+        kids,
+        babies,
       },
     });
 
@@ -310,8 +319,8 @@ export default function HowManyTotal() {
               <div className="w-full xl:w-[473px] p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900">
                 <div className="text-sm xl:text-base font-medium font-['Poppins']">
                   <TranslatedText
-                    text="Suplemento de viajero individual: se aplicarán 50€."
-                    english="Single traveler supplement: 50€ will be applied."
+                    text={`Suplemento de viajero individual: se aplicarán ${BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT}€.`}
+                    english={`Single traveler supplement: ${BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT}€ will be applied.`}
                   />
                 </div>
                 <div className="text-xs xl:text-sm text-zinc-600 font-['Poppins'] mt-1">

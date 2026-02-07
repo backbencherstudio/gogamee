@@ -38,23 +38,8 @@ export default function Payment() {
   useEffect(() => {
     // CRITICAL: Wait for context to be hydrated first
     if (!isHydrated) {
-      console.log(
-        "⏳ Waiting for context hydration before initiating payment...",
-      );
       return;
     }
-
-    // Validate essential data existence first
-    console.log("🔍 Payment Step - Checking formData:", {
-      city: formData.selectedCity,
-      sport: formData.selectedSport,
-      pkg: formData.selectedPackage,
-      isHydrated,
-      allData: formData,
-    });
-
-    // Note: Removed premature validation check here as formData might not be hydrated yet
-    // The actual validation happens in handleInitiatePayment() where we check formData.selectedCity
 
     if (!hasInitiatedRef.current && !clientSecret && !showSuccess) {
       hasInitiatedRef.current = true;
@@ -63,11 +48,14 @@ export default function Payment() {
   }, [isHydrated]); // Dependency on isHydrated
 
   const resolveTravelerData = useCallback(() => {
-    if (formData.allTravelers && formData.allTravelers.length > 0) {
-      return formData.allTravelers;
-    }
-    return [];
-  }, [formData.allTravelers]);
+    // Combine all travelers from travelers object
+    const allTravelers = [
+      ...formData.travelers.adults,
+      ...formData.travelers.kids,
+      ...formData.travelers.babies,
+    ];
+    return allTravelers.length > 0 ? allTravelers : [];
+  }, [formData.travelers]);
 
   const handleInitiatePayment = async () => {
     setIsProcessing(true);
@@ -82,48 +70,28 @@ export default function Payment() {
         !formData.selectedSport ||
         !formData.selectedPackage
       ) {
-        console.log("⚠️ FormData missing critical fields:", {
-          city: formData.selectedCity || "MISSING",
-          sport: formData.selectedSport || "MISSING",
-          package: formData.selectedPackage || "MISSING",
-        });
-        console.log("🔍 Attempting localStorage recovery...");
-
         if (typeof window !== "undefined") {
           const savedData = localStorage.getItem("gogame_booking_data");
-          console.log("📦 LocalStorage data exists:", !!savedData);
 
           if (savedData) {
             try {
               const parsedData = JSON.parse(savedData);
-              console.log("✅ Parsed localStorage data:", {
-                city: parsedData.selectedCity,
-                sport: parsedData.selectedSport,
-                package: parsedData.selectedPackage,
-              });
 
               if (
                 parsedData.selectedCity &&
                 parsedData.selectedSport &&
                 parsedData.selectedPackage
               ) {
-                console.log("✅ Successfully recovered data from localStorage");
                 workingData = parsedData;
               } else {
-                console.error(
-                  "❌ Incomplete data in localStorage:",
-                  parsedData,
-                );
                 throw new Error("Incomplete booking data in localStorage");
               }
             } catch (parseError) {
-              console.error("❌ Failed to parse localStorage:", parseError);
               throw new Error(
                 "Booking data (City, Sport, or Package) is missing.",
               );
             }
           } else {
-            console.error("❌ No localStorage data found");
             throw new Error(
               "Booking data (City, Sport, or Package) is missing.",
             );
@@ -136,21 +104,14 @@ export default function Payment() {
             ),
           );
         }
-      } else {
-        console.log("✅ FormData has all required fields:", {
-          city: formData.selectedCity,
-          sport: formData.selectedSport,
-          package: formData.selectedPackage,
-        });
       }
 
-      const fallbackTraveler = {
-        name:
-          `${formData.personalInfo.firstName} ${formData.personalInfo.lastName}`.trim() ||
-          formData.personalInfo.firstName ||
-          "Traveler",
-        email: formData.personalInfo.email,
-        phone: formData.personalInfo.phone,
+      // Get primary traveler (first adult) or create fallback
+      const primaryTraveler = formData.travelers.adults[0];
+      const fallbackTraveler = primaryTraveler || {
+        name: "Traveler",
+        email: "",
+        phone: "",
         dateOfBirth: "",
         documentType: "ID",
         documentNumber: "",
@@ -166,14 +127,13 @@ export default function Payment() {
         selectedSport: workingData.selectedSport,
         selectedPackage: workingData.selectedPackage,
         selectedCity: workingData.selectedCity,
-        selectedLeague: formData.selectedLeague,
-        adults: formData.peopleCount.adults,
-        kids: formData.peopleCount.kids,
-        babies: formData.peopleCount.babies,
+        adults: formData.travelers.adults.length,
+        kids: formData.travelers.kids.length,
+        babies: formData.travelers.babies.length,
         totalPeople:
-          formData.peopleCount.adults +
-          formData.peopleCount.kids +
-          formData.peopleCount.babies,
+          formData.travelers.adults.length +
+          formData.travelers.kids.length +
+          formData.travelers.babies.length,
         departureDate: formData.departureDate || "",
         returnDate: formData.returnDate || "",
         departureDateFormatted: formData.departureDate
@@ -196,24 +156,31 @@ export default function Payment() {
               formData.flightSchedule.arrival.start,
             )} - ${minutesToTime(formData.flightSchedule.arrival.end)}`
           : "",
-        removedLeagues: Array.isArray(formData.removedLeagues)
-          ? formData.removedLeagues.map(
-              (league: any) => league.id || league.name || "",
-            )
+        removedLeagues: formData.leagues
+          ? formData.leagues
+              .filter((l) => !l.isSelected && l.group === "National")
+              .map((l) => l.id)
           : [],
-        removedLeaguesCount: formData.removedLeagues?.length || 0,
-        hasRemovedLeagues: (formData.removedLeagues?.length || 0) > 0,
+        removedLeaguesCount: formData.leagues
+          ? formData.leagues.filter(
+              (l) => !l.isSelected && l.group === "National",
+            ).length
+          : 0,
+        hasRemovedLeagues: formData.leagues
+          ? formData.leagues.some(
+              (l) => !l.isSelected && l.group === "National",
+            )
+          : false,
         totalExtrasCost: formData.extras
           .filter((extra) => extra.isSelected && !extra.isIncluded)
           .reduce((total, extra) => total + extra.price * extra.quantity, 0),
         extrasCount: formData.extras.filter((extra) => extra.isSelected).length,
-        firstName: formData.personalInfo.firstName || "",
-        lastName: formData.personalInfo.lastName || "",
-        fullName:
-          `${formData.personalInfo.firstName} ${formData.personalInfo.lastName}`.trim(),
-        email: formData.personalInfo.email,
-        phone: formData.personalInfo.phone,
-        previousTravelInfo: formData.personalInfo.previousTravelInfo || "",
+        firstName: primaryTraveler?.name?.split(" ")[0] || "",
+        lastName: primaryTraveler?.name?.split(" ").slice(1).join(" ") || "",
+        fullName: primaryTraveler?.name || "",
+        email: primaryTraveler?.email || "",
+        phone: primaryTraveler?.phone || "",
+        previousTravelInfo: "",
         travelDuration:
           formData.departureDate && formData.returnDate
             ? Math.ceil(
@@ -223,7 +190,9 @@ export default function Payment() {
               ) + 1
             : 0,
         hasFlightPreferences: formData.flightSchedule !== null,
-        requiresEuropeanLeagueHandling: formData.selectedLeague === "european",
+        requiresEuropeanLeagueHandling: formData.leagues
+          ? formData.leagues.some((l) => l.group === "European" && l.isSelected)
+          : false,
         totalCost: String(formData.calculatedTotals?.totalCost || 0),
         bookingExtras: formData.extras
           .filter((extra) => extra.isSelected)
@@ -304,7 +273,6 @@ export default function Payment() {
         <div className="flex flex-col gap-3">
           <button
             onClick={() => {
-              console.log("🔄 User initiated Booking Reset");
               clearBookingData();
               if (typeof window !== "undefined") {
                 localStorage.removeItem("gogame_booking_data");
@@ -350,10 +318,6 @@ export default function Payment() {
     );
   }
 
-  console.log(
-    "PAYMENT RENDER: Rendering StripeProvider. clientSecret present?",
-    !!clientSecret,
-  );
   return (
     <div className="w-full xl:w-[894px]">
       {error && (

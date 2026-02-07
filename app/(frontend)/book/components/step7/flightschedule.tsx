@@ -247,37 +247,45 @@ const TimeRangeSlider = React.memo(
             max={Math.max(timeSlots.length - 1, 1)}
             values={[startIndex, endIndex]}
             onChange={handleRangeChange}
-            renderTrack={({ props, children }) => (
-              <div
-                {...props}
-                className="w-full h-2 bg-stone-300/30 rounded-full relative"
-                style={{
-                  ...props.style,
-                  ...SLIDER_STYLES.track,
-                }}
-              >
+            renderTrack={({ props, children }) => {
+              const { key, ...restProps } = props as any;
+              return (
                 <div
-                  className="absolute h-2 bg-[#6AAD3C] rounded-full"
-                  style={selectedRangeStyle}
-                />
-                {children}
-              </div>
-            )}
-            renderThumb={({ props, isDragged, index }) => (
-              <div
-                {...props}
-                className="relative w-5 h-5 border-2 border-[#6AAD3C] rounded-full shadow-md cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-lime-300 bg-white"
-                style={{
-                  ...props.style,
-                  backgroundColor: isDragged ? "#65a30d" : "white",
-                  cursor: isDragged ? "grabbing" : "grab",
-                }}
-              >
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 whitespace-nowrap shadow-sm">
-                  {timeSlots[index === 0 ? startIndex : endIndex]?.label}
+                  key={key}
+                  {...restProps}
+                  className="w-full h-2 bg-stone-300/30 rounded-full relative"
+                  style={{
+                    ...props.style,
+                    ...SLIDER_STYLES.track,
+                  }}
+                >
+                  <div
+                    className="absolute h-2 bg-[#6AAD3C] rounded-full"
+                    style={selectedRangeStyle}
+                  />
+                  {children}
                 </div>
-              </div>
-            )}
+              );
+            }}
+            renderThumb={({ props, isDragged, index }) => {
+              const { key, ...restProps } = props as any;
+              return (
+                <div
+                  key={key}
+                  {...restProps}
+                  className="relative w-5 h-5 border-2 border-[#6AAD3C] rounded-full shadow-md cursor-grab active:cursor-grabbing focus:outline-none focus:ring-2 focus:ring-lime-300 bg-white"
+                  style={{
+                    ...props.style,
+                    backgroundColor: isDragged ? "#65a30d" : "white",
+                    cursor: isDragged ? "grabbing" : "grab",
+                  }}
+                >
+                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 whitespace-nowrap shadow-sm">
+                    {timeSlots[index === 0 ? startIndex : endIndex]?.label}
+                  </div>
+                </div>
+              );
+            }}
           />
         </div>
 
@@ -489,10 +497,12 @@ export default function FlightSchedule() {
       departure: {
         start: flightData[0].timeRange.start,
         end: flightData[0].timeRange.end,
+        rangeLabel: `${minutesToTime(flightData[0].timeRange.start)} - ${minutesToTime(flightData[0].timeRange.end)}`,
       },
       arrival: {
         start: flightData[1].timeRange.start,
         end: flightData[1].timeRange.end,
+        rangeLabel: `${minutesToTime(flightData[1].timeRange.start)} - ${minutesToTime(flightData[1].timeRange.end)}`,
       },
     };
 

@@ -8,6 +8,26 @@ import React, {
   useRef,
 } from "react";
 
+export interface Traveler {
+  id: string;
+  type: "adult" | "kid" | "baby";
+  name: string;
+  email?: string;
+  phone?: string;
+  dateOfBirth: string;
+  documentType: "Passport" | "ID";
+  documentNumber: string;
+  isPrimary?: boolean;
+}
+
+export interface League {
+  id: string;
+  name: string;
+  group: "National" | "European";
+  country?: string;
+  isSelected: boolean;
+}
+
 export interface ExtraService {
   id: string;
   name: string;
@@ -24,67 +44,61 @@ export interface ExtraService {
   currency?: string;
 }
 
+export const BOOKING_CONSTANTS = {
+  SINGLE_TRAVELER_SUPPLEMENT: 50,
+  EUROPEAN_LEAGUE_UPGRADE: 50,
+  LEAGUE_REMOVAL_COST: 20,
+  BOOKING_FEE: 50,
+  CURRENCY: "EUR",
+  CURRENCY_SYMBOL: "€",
+} as const;
+
 interface HeroData {
   selectedSport: string;
   selectedPackage: string;
   selectedCity: string;
-  peopleCount: {
-    adults: number;
-    kids: number;
-    babies: number;
+  travelers: {
+    adults: Traveler[];
+    kids: Traveler[];
+    babies: Traveler[];
   };
   fromHero: boolean;
   startFromStep: number;
 }
 
-// Create context for sharing state between components
 export interface BookingContextType {
   currentStep: number;
   formData: {
     selectedSport: string;
     selectedPackage: string;
     selectedCity: string;
-    peopleCount: {
-      adults: number;
-      kids: number;
-      babies: number;
+
+    travelers: {
+      adults: Traveler[];
+      kids: Traveler[];
+      babies: Traveler[];
     };
-    selectedLeague: string;
-    removedLeagues: Array<{
-      id: string;
-      name: string;
-      country: string;
-    }>;
+
+    leagues: League[];
+
     departureDate: string;
     returnDate: string;
+    duration: {
+      days: number;
+      nights: number;
+    };
+    selectedDatePrice?: {
+      standard: number;
+      premium: number;
+      combined?: number;
+    };
+
     flightSchedule: {
-      departure: {
-        start: number;
-        end: number;
-      };
-      arrival: {
-        start: number;
-        end: number;
-      };
+      departure: { start: number; end: number; rangeLabel: string };
+      arrival: { start: number; end: number; rangeLabel: string };
     } | null;
     extras: ExtraService[];
-    personalInfo: {
-      firstName: string;
-      lastName: string;
-      email: string;
-      phone: string;
-      previousTravelInfo: string;
-    };
-    allTravelers?: Array<{
-      name: string;
-      email: string;
-      phone: string;
-      dateOfBirth: string;
-      documentType: "ID" | "Passport";
-      documentNumber: string;
-      isPrimary: boolean;
-      travelerNumber?: number;
-    }>;
+
     paymentInfo: {
       cardNumber: string;
       expiryDate: string;
@@ -113,6 +127,23 @@ export interface BookingContextType {
   previousStep: () => void;
   goToStep: (step: number) => void;
   isHydrated: boolean;
+
+  apiCache: ApiDataCache;
+}
+
+export interface ApiDataCache {
+  dates: any[];
+  packagePrices: {
+    football: any | null;
+    basketball: any | null;
+    combined: any | null;
+  };
+  extras: any[];
+  isLoading: {
+    dates: boolean;
+    packages: boolean;
+    extras: boolean;
+  };
 }
 
 export const BookingContext = createContext<BookingContextType | undefined>(
@@ -122,29 +153,21 @@ export const BookingContext = createContext<BookingContextType | undefined>(
 export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  // Default data that's consistent between server and client
   const getDefaultFormData = (): BookingContextType["formData"] => ({
     selectedSport: "football",
     selectedPackage: "standard",
     selectedCity: "",
-    peopleCount: {
-      adults: 1,
-      kids: 0,
-      babies: 0,
+    travelers: {
+      adults: [],
+      kids: [],
+      babies: [],
     },
-    selectedLeague: "",
-    removedLeagues: [],
+    leagues: [],
     departureDate: "",
     returnDate: "",
+    duration: { days: 0, nights: 0 },
     flightSchedule: null,
     extras: [],
-    personalInfo: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      previousTravelInfo: "",
-    },
     paymentInfo: {
       cardNumber: "",
       expiryDate: "",
@@ -159,24 +182,32 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   const [formData, setFormData] =
     useState<BookingContextType["formData"]>(getDefaultFormData);
   const [isHydrated, setIsHydrated] = useState(false);
-  const heroDataProcessedRef = useRef(false); // Track if hero data was processed
+  const heroDataProcessedRef = useRef(false);
 
-  // Debug effect to monitor currentStep changes
+  const [apiCache, setApiCache] = useState<ApiDataCache>({
+    dates: [],
+    packagePrices: {
+      football: null,
+      basketball: null,
+      combined: null,
+    },
+    extras: [],
+    isLoading: {
+      dates: false,
+      packages: false,
+      extras: false,
+    },
+  });
+
   useEffect(() => {
     console.log("🎯 currentStep changed to:", currentStep);
   }, [currentStep]);
 
-  // Load data from localStorage after hydration
   useEffect(() => {
-    // NOTE: Do NOT set isHydrated here - it must be set AFTER data loading completes
-    // Otherwise the save useEffect will trigger before hero data is loaded
-
-    // Only access localStorage on client side
     if (typeof window !== "undefined") {
-      // 🎯 PRIORITY 1: Check for hero data first
       const heroData = localStorage.getItem("gogame_hero_data");
       if (heroData && !heroDataProcessedRef.current) {
-        heroDataProcessedRef.current = true; // Mark as processed
+        heroDataProcessedRef.current = true;
         try {
           const parsedHeroData = JSON.parse(heroData);
           console.log(
@@ -184,12 +215,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
             parsedHeroData,
           );
 
-          // Map hero data to stepper format
           const mapHeroDataToStepper = (heroData: HeroData) => {
-            // Handle sport mapping - keep "both" as is
             const mappedSport = heroData.selectedSport;
-
-            // Handle city mapping (remove accents if needed)
             let mappedCity = heroData.selectedCity;
             if (mappedCity === "málaga") {
               mappedCity = "malaga";
@@ -199,13 +226,12 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
               selectedSport: mappedSport,
               selectedPackage: heroData.selectedPackage,
               selectedCity: mappedCity,
-              peopleCount: heroData.peopleCount,
+              travelers: heroData.travelers || getDefaultFormData().travelers,
             };
           };
 
           const mappedHeroData = mapHeroDataToStepper(parsedHeroData);
 
-          // Pre-populate form data with mapped hero data
           const heroFormData = {
             ...getDefaultFormData(),
             ...mappedHeroData,
@@ -213,26 +239,22 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
           };
 
           setFormData(heroFormData);
-          setCurrentStep(parsedHeroData.startFromStep); // Start from step 5 (0-indexed = 4)
+          setCurrentStep(parsedHeroData.startFromStep);
           console.log(
             "🎯 Setting current step to:",
             parsedHeroData.startFromStep,
             "for hero data",
           );
 
-          // Clear hero data so it doesn't interfere with normal flow
           localStorage.removeItem("gogame_hero_data");
-          // Also clear any existing booking step to ensure hero step takes priority
           localStorage.removeItem("gogame_booking_step");
           console.log(
             "✅ Hero data applied and cleared. Starting from step",
             parsedHeroData.startFromStep + 1,
           );
 
-          // Now set isHydrated to true so the save useEffect can start working
           setIsHydrated(true);
 
-          // Force a re-render to ensure the step change is applied
           setTimeout(() => {
             console.log(
               "🔄 Forcing step update to:",
@@ -241,7 +263,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
             setCurrentStep(parsedHeroData.startFromStep);
           }, 100);
 
-          // Additional safety check - ensure step is set correctly
           setTimeout(() => {
             console.log(
               "🔍 Final step check - current step should be:",
@@ -253,16 +274,14 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
             }
           }, 200);
 
-          return; // Exit early - don't load normal localStorage data
+          return;
         } catch (error) {
           console.error("Error parsing hero data:", error);
-          localStorage.removeItem("gogame_hero_data"); // Clean up invalid data
-          heroDataProcessedRef.current = false; // Reset flag on error
+          localStorage.removeItem("gogame_hero_data");
+          heroDataProcessedRef.current = false;
         }
       }
 
-      // 📦 PRIORITY 2: Load normal booking data from localStorage (only if no hero data)
-      // Skip this if hero data was already processed
       if (!heroDataProcessedRef.current) {
         const savedData = localStorage.getItem("gogame_booking_data");
         if (savedData) {
@@ -275,7 +294,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
           }
         }
 
-        // Load currentStep from localStorage (only if no hero data was processed)
         const savedStep = localStorage.getItem("gogame_booking_step");
         if (savedStep) {
           try {
@@ -287,24 +305,19 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
           }
         }
 
-        // Set isHydrated to true after all normal data loading is complete
         setIsHydrated(true);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Save formData to localStorage whenever it changes (only after hydration)
   useEffect(() => {
     if (isHydrated && typeof window !== "undefined") {
       localStorage.setItem("gogame_booking_data", JSON.stringify(formData));
     }
   }, [formData, isHydrated]);
 
-  // Save currentStep to localStorage whenever it changes (only after hydration)
   useEffect(() => {
     if (isHydrated && typeof window !== "undefined") {
-      // Don't save step immediately if we're processing hero data
       const heroData = localStorage.getItem("gogame_hero_data");
       if (!heroData) {
         localStorage.setItem("gogame_booking_step", currentStep.toString());
@@ -341,11 +354,13 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const getTotalPeople = () => {
-    return (
-      formData.peopleCount.adults +
-      formData.peopleCount.kids +
-      formData.peopleCount.babies
-    );
+    // Safely access travelers data with fallbacks
+    const travelers = formData?.travelers || {};
+    const adultsCount = travelers.adults?.length || 0;
+    const kidsCount = travelers.kids?.length || 0;
+    const babiesCount = travelers.babies?.length || 0;
+
+    return adultsCount + kidsCount + babiesCount;
   };
 
   const clearBookingData = () => {
@@ -353,24 +368,17 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
       selectedSport: "football",
       selectedPackage: "standard",
       selectedCity: "",
-      peopleCount: {
-        adults: 1,
-        kids: 0,
-        babies: 0,
+      travelers: {
+        adults: [],
+        kids: [],
+        babies: [],
       },
-      selectedLeague: "",
-      removedLeagues: [],
+      leagues: [],
       departureDate: "",
       returnDate: "",
+      duration: { days: 0, nights: 0 },
       flightSchedule: null,
       extras: [],
-      personalInfo: {
-        firstName: "",
-        lastName: "",
-        email: "",
-        phone: "",
-        previousTravelInfo: "",
-      },
       paymentInfo: {
         cardNumber: "",
         expiryDate: "",
@@ -388,37 +396,37 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   const nextStep = (
     immediateData?: Partial<BookingContextType["formData"]>,
   ) => {
-    // Get the current data with any immediate updates
     const currentData = { ...formData, ...immediateData };
 
-    // Special logic for step 5 (league selection)
     if (currentStep === 4) {
-      // Step 5 (0-indexed)
-      if (currentData.selectedLeague === "national") {
-        // Go to remove league step for National Leagues
-        setCurrentStep(4.5); // We'll use 4.5 to represent step 5.5
+      const hasNationalLeagues = currentData.leagues.some(
+        (l) => l.group === "National",
+      );
+      if (hasNationalLeagues) {
+        setCurrentStep(4.5);
       } else {
-        // Go directly to date selection (step 6) for European Competition
         setCurrentStep(5);
       }
     } else if (currentStep === 4.5) {
-      // From remove league, go to date selection
       setCurrentStep(5);
     } else {
-      // Normal progression
-      setCurrentStep((prev) => Math.min(prev + 1, 9)); // 10 steps total (0-9)
+      setCurrentStep((prev) => Math.min(prev + 1, 9));
     }
   };
 
   const previousStep = () => {
     if (currentStep === 4.5) {
-      // From remove league, go back to league selection
       setCurrentStep(4);
-    } else if (currentStep === 5 && formData.selectedLeague === "national") {
-      // If coming from date selection and had national selected, go to remove league
-      setCurrentStep(4.5);
+    } else if (currentStep === 5) {
+      const hasNationalLeagues = formData.leagues.some(
+        (l) => l.group === "National",
+      );
+      if (hasNationalLeagues) {
+        setCurrentStep(4.5);
+      } else {
+        setCurrentStep(4);
+      }
     } else {
-      // Normal progression
       setCurrentStep((prev) => Math.max(prev - 1, 0));
     }
   };
@@ -440,6 +448,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     previousStep,
     goToStep,
     isHydrated,
+    apiCache,
   };
 
   return (

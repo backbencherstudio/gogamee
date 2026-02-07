@@ -44,19 +44,22 @@ interface DateRestrictions {
 }
 
 interface ApiDateData {
+  id: string;
   date: string;
-  status: string;
-  football_standard_package_price: number;
-  football_premium_package_price: number;
-  baskatball_standard_package_price: number;
-  baskatball_premium_package_price: number;
-  updated_football_standard_package_price: number | null;
-  updated_football_premium_package_price: number | null;
-  updated_baskatball_standard_package_price: number | null;
-  updated_baskatball_premium_package_price: number | null;
-  sportname: string;
+  prices?: {
+    standard: number;
+    premium: number;
+    combined?: number;
+  };
+  sportName: string;
   league: string;
-  duration?: "1" | "2" | "3" | "4";
+  months?: string[];
+  duration: "1" | "2" | "3" | "4";
+  status?: string;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
+  approve_status?: string;
 }
 
 type BaseSportKey = "football" | "basketball";
@@ -199,7 +202,6 @@ export default function DateSection() {
 
   // Get date restrictions based on API data and competition type
   const getDateRestrictions = useCallback((): DateRestrictions => {
-    const selectedLeague = formData.selectedLeague;
     const enabledDates: string[] = [];
     const blockedDates: string[] = [];
     const customPrices: Record<
@@ -222,13 +224,21 @@ export default function DateSection() {
 
     // Filter API data based on selected league and sport
     const filteredApiData = apiDateData.filter((item) => {
-      const matchesLeague = !selectedLeague || item.league === selectedLeague;
+      // Match based on leagues array - European or National
+      const hasEuropean = formData.leagues?.some(
+        (l) => l.group === "European" && l.isSelected,
+      );
+      const hasNational = formData.leagues?.some(
+        (l) => l.group === "National" && l.isSelected,
+      );
+      const matchesLeague =
+        hasEuropean || hasNational || item.league === "both";
       const matchesSport = (() => {
         if (!formData.selectedSport) return true;
         if (formData.selectedSport === "both") {
-          return item.sportname === "both";
+          return item.sportName === "both";
         }
-        return item.sportname === formData.selectedSport;
+        return item.sportName === formData.selectedSport;
       })();
       const matchesDuration = (item.duration ?? "1") === selectedDurationKey;
       return matchesLeague && matchesSport && matchesDuration;
@@ -239,85 +249,45 @@ export default function DateSection() {
       // Use consistent date formatting
       const dateString = formatApiDateForComparison(item.date);
 
-      if (item.status === "enabled") {
+      // Treat dates as enabled if status is missing or explicitly "enabled"
+      // API may not return status field, so default to enabled
+      const isEnabled = !item.status || item.status === "enabled";
+
+      if (isEnabled) {
         if (!enabledDates.includes(dateString)) {
           enabledDates.push(dateString);
         }
 
-        // Store custom prices for this date
-        // Only include custom prices if they are explicitly set (not null)
-        // If custom price is null, don't include it so base price will be used
-        const hasCustomFootballStandard =
-          item.updated_football_standard_package_price !== null &&
-          item.updated_football_standard_package_price !== undefined;
-        const hasCustomFootballPremium =
-          item.updated_football_premium_package_price !== null &&
-          item.updated_football_premium_package_price !== undefined;
-        const hasCustomBasketballStandard =
-          item.updated_baskatball_standard_package_price !== null &&
-          item.updated_baskatball_standard_package_price !== undefined;
-        const hasCustomBasketballPremium =
-          item.updated_baskatball_premium_package_price !== null &&
-          item.updated_baskatball_premium_package_price !== undefined;
+        // Store custom prices for this date from new API structure
+        // New API has prices: { standard, premium, combined } directly
+        const hasPrices =
+          item.prices &&
+          (item.prices.standard || item.prices.premium || item.prices.combined);
 
-        // Only create custom price entry if at least one custom price exists
-        const entry = customPrices[dateString] ?? {};
+        if (hasPrices) {
+          const entry = customPrices[dateString] ?? {};
 
-        if (
-          item.sportname === "football" &&
-          (hasCustomFootballStandard || hasCustomFootballPremium)
-        ) {
-          entry.football = {
-            ...(hasCustomFootballStandard && {
-              standard: item.updated_football_standard_package_price!,
-            }),
-            ...(hasCustomFootballPremium && {
-              premium: item.updated_football_premium_package_price!,
-            }),
-          };
-        } else if (
-          item.sportname === "basketball" &&
-          (hasCustomBasketballStandard || hasCustomBasketballPremium)
-        ) {
-          entry.basketball = {
-            ...(hasCustomBasketballStandard && {
-              standard: item.updated_baskatball_standard_package_price!,
-            }),
-            ...(hasCustomBasketballPremium && {
-              premium: item.updated_baskatball_premium_package_price!,
-            }),
-          };
-        } else if (item.sportname === "both") {
-          const hasCustomBothStandard =
-            (item.updated_football_standard_package_price !== null &&
-              item.updated_football_standard_package_price !== undefined) ||
-            (item.updated_baskatball_standard_package_price !== null &&
-              item.updated_baskatball_standard_package_price !== undefined);
-          const hasCustomBothPremium =
-            (item.updated_football_premium_package_price !== null &&
-              item.updated_football_premium_package_price !== undefined) ||
-            (item.updated_baskatball_premium_package_price !== null &&
-              item.updated_baskatball_premium_package_price !== undefined);
-
-          if (hasCustomBothStandard || hasCustomBothPremium) {
-            const standardBoth =
-              item.updated_football_standard_package_price ??
-              item.updated_baskatball_standard_package_price;
-            const premiumBoth =
-              item.updated_football_premium_package_price ??
-              item.updated_baskatball_premium_package_price;
-
+          // Assign prices based on sport
+          if (item.sportName === "football") {
+            entry.football = {
+              standard: item.prices!.standard,
+              premium: item.prices!.premium,
+            };
+          } else if (item.sportName === "basketball") {
+            entry.basketball = {
+              standard: item.prices!.standard,
+              premium: item.prices!.premium,
+            };
+          } else if (item.sportName === "both") {
             entry.both = {
-              ...(hasCustomBothStandard &&
-                standardBoth != null && { standard: standardBoth }),
-              ...(hasCustomBothPremium &&
-                premiumBoth != null && { premium: premiumBoth }),
+              standard: item.prices!.standard,
+              premium: item.prices!.premium,
             };
           }
-        }
 
-        if (Object.keys(entry).length > 0) {
-          customPrices[dateString] = entry;
+          if (Object.keys(entry).length > 0) {
+            customPrices[dateString] = entry;
+          }
         }
       } else {
         blockedDates.push(dateString);
@@ -330,7 +300,7 @@ export default function DateSection() {
       customPrices,
     };
   }, [
-    formData.selectedLeague,
+    formData.leagues,
     formData.selectedSport,
     apiDateData,
     selectedDurationKey,
@@ -516,12 +486,70 @@ export default function DateSection() {
     ],
   );
 
-  // Fetch API data
+  // Fetch API data based on current calendar month/year display
   useEffect(() => {
     const fetchDateData = async () => {
       try {
         setIsLoading(true);
-        const data = await getAllDates();
+
+        // Get current month and year from calendar display
+        const displayMonth = currentDate.getMonth(); // 0-11
+        const displayYear = currentDate.getFullYear();
+
+        // Convert month number to month name for API
+        const monthNames = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
+        const currentMonthName = monthNames[displayMonth];
+
+        // Calculate next month for dual calendar display
+        const nextMonthDate = new Date(displayYear, displayMonth + 1, 1);
+        const nextMonth = nextMonthDate.getMonth();
+        const nextYear = nextMonthDate.getFullYear();
+        const nextMonthName = monthNames[nextMonth];
+
+        // Fetch 2 consecutive months for dual calendar display
+        const monthsToFetch = [currentMonthName, nextMonthName];
+
+        // Determine league parameter from context
+        const hasEuropean = formData.leagues?.some(
+          (l) => l.group === "European" && l.isSelected,
+        );
+        const hasNational = formData.leagues?.some(
+          (l) => l.group === "National" && l.isSelected,
+        );
+        const leagueParam = hasEuropean
+          ? "european"
+          : hasNational
+            ? "national"
+            : "";
+
+        // Get duration from selected duration option
+        const durationParam = selectedDurationKey || "1";
+
+        console.log(
+          `🗓️ Step 6 - Fetching dates for: ${monthsToFetch.join(", ")} ${displayYear}, sport: ${formData.selectedSport}, league: ${leagueParam}, duration: ${durationParam}`,
+        );
+
+        const data = await getAllDates({
+          months: monthsToFetch,
+          year: displayYear,
+          sportName: formData.selectedSport || "",
+          league: leagueParam,
+          duration: durationParam,
+        });
+
         setApiDateData(
           data.map((item) => ({
             ...item,
@@ -535,8 +563,16 @@ export default function DateSection() {
       }
     };
 
-    fetchDateData();
-  }, []);
+    if (isHydrated) {
+      fetchDateData();
+    }
+  }, [
+    currentDate,
+    formData.selectedSport,
+    formData.leagues,
+    selectedDurationKey,
+    isHydrated,
+  ]); // Refetch when month/year, sport, league, or duration changes
 
   // Fetch package pricing data
   useEffect(() => {
@@ -1146,9 +1182,23 @@ export default function DateSection() {
               const endDate = new Date(startDate);
               endDate.setDate(startDate.getDate() + duration.days - 1);
 
+              // Get selected date price from apiDateData
+              const selectedDateString = formatDateForAPI(startDate);
+              const selectedDateData = apiDateData.find(
+                (item) =>
+                  formatApiDateForComparison(item.date) === selectedDateString,
+              );
+
+              const selectedDatePrice = selectedDateData?.prices || {
+                standard: 0,
+                premium: 0,
+                combined: 0,
+              };
+
               updateFormData({
                 departureDate: startDate.toISOString(),
                 returnDate: endDate.toISOString(),
+                selectedDatePrice, // Save price for Step 9 to use
               });
 
               nextStep();

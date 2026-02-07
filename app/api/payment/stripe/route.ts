@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { BookingService } from "@/backend";
-import StartingPrice from "@/backend/models/StartingPrice.model";
 import { toErrorMessage } from "@/backend/lib/errors";
+import { PricingService } from "@/backend/services/pricing.service";
 
-// Initialize Stripe (only if key is provided)
 function getStripeInstance() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
   if (!secretKey) {
@@ -15,202 +14,224 @@ function getStripeInstance() {
   });
 }
 
-// TODO: Move these interfaces to shared types if needed across multiple files
-interface BookingExtraInput {
+// Interfaces matching Frontend BookingContext Structure
+interface Traveler {
+  id: string;
+  type: "adult" | "kid" | "baby";
+  name: string;
+  email?: string;
+  phone?: string;
+  dateOfBirth: string;
+  documentType: "Passport" | "ID";
+  documentNumber: string;
+  isPrimary?: boolean;
+}
+
+interface League {
   id: string;
   name: string;
-  description: string;
+  group: "National" | "European";
+  country?: string;
+  isSelected: boolean;
+}
+
+interface ExtraService {
+  id: string;
+  name: string;
   price: number;
   isSelected: boolean;
   quantity: number;
-  maxQuantity?: number;
   isIncluded?: boolean;
-  currency: string;
 }
 
 interface CreateBookingPayload {
   selectedSport: string;
   selectedPackage: string;
   selectedCity: string;
-  selectedLeague: string;
-  adults: number;
-  kids: number;
-  babies: number;
-  totalPeople: number;
+
+  peopleCount: {
+    adults: number;
+    kids: number;
+    babies: number;
+  };
+
+  travelers: {
+    adults: Traveler[];
+    kids: Traveler[];
+    babies: Traveler[];
+  };
+
+  leagues: League[];
+
   departureDate: string;
   returnDate: string;
-  departureDateFormatted: string;
-  returnDateFormatted: string;
-  departureTimeStart: number;
-  departureTimeEnd: number;
-  arrivalTimeStart: number;
-  arrivalTimeEnd: number;
-  departureTimeRange: string;
-  arrivalTimeRange: string;
-  removedLeagues: Array<{ id: string; name: string; country: string }>;
-  removedLeaguesCount: number;
-  hasRemovedLeagues: boolean;
-  totalExtrasCost: number;
-  extrasCount: number;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  previousTravelInfo: string;
-  travelDuration: number;
-  hasFlightPreferences: boolean;
-  requiresEuropeanLeagueHandling: boolean;
-  totalCost: string;
-  bookingExtras: BookingExtraInput[];
-  allTravelers?: any[];
+  duration: { days: number; nights: number };
+
+  flightSchedule: {
+    departure: { start: number; end: number; rangeLabel: string };
+    arrival: { start: number; end: number; rangeLabel: string };
+  } | null;
+
+  extras: ExtraService[];
+
+  paymentInfo: {
+    cardNumber: string; // Not used here, handled by Stripe element usually but kept for flow
+    cardholderName: string;
+  };
+
+  // Legacy/derived fields that might be passed (e.g. from earlier steps or hero)
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
 }
 
 export async function POST(request: Request) {
   try {
     const payload: CreateBookingPayload = await request.json();
 
-    // 1. Calculate costs (Secure Backend Logic)
+    // 1. Calculate Derived Values for Pricing
+    const leaguesList = payload.leagues || [];
+    const removedLeaguesCount = leaguesList.filter(
+      (l) => l.group === "National" && !l.isSelected,
+    ).length;
+    const isEuropeanCompetition = leaguesList.some(
+      (l) => l.group === "European" && l.isSelected,
+    );
 
-    // Fetch base price from DB
-    const startingPriceDoc = await StartingPrice.findOne({
-      type:
-        payload.selectedSport === "football" ||
-        payload.selectedSport === "basketball"
-          ? payload.selectedSport
-          : "football",
-      isActive: true,
+    // Total people
+    const totalPeople =
+      (payload.peopleCount.adults || 0) +
+      (payload.peopleCount.kids || 0) +
+      (payload.peopleCount.babies || 0);
+
+    // Extras for pricing (flattened list of selected extras)
+    const bookingExtras = payload.extras || [];
+
+    // Calculate Price Server-Side
+    const priceBreakdown = await PricingService.calculatePrice({
+      selectedSport: payload.selectedSport,
+      selectedPackage: payload.selectedPackage,
+      selectedLeague: isEuropeanCompetition ? "european" : "national",
+      totalPeople: totalPeople,
+      departureDate: payload.departureDate,
+      travelDuration: payload.duration?.days || 0,
+      removedLeaguesCount: removedLeaguesCount,
+      hasRemovedLeagues: removedLeaguesCount > 0,
+      bookingExtras: bookingExtras,
+      // Flight times
+      departureTimeStart: payload.flightSchedule?.departure.start,
+      departureTimeEnd: payload.flightSchedule?.departure.end,
+      arrivalTimeStart: payload.flightSchedule?.arrival.start,
+      arrivalTimeEnd: payload.flightSchedule?.arrival.end,
     });
 
-    let basePrice = 0;
-    if (startingPriceDoc && payload.travelDuration) {
-      const durationKey = String(payload.travelDuration) as
-        | "1"
-        | "2"
-        | "3"
-        | "4";
-      const prices = startingPriceDoc.pricesByDuration?.[durationKey];
-      if (prices) {
-        if (payload.selectedPackage?.toLowerCase() === "premium") {
-          basePrice = prices.premium;
-        } else {
-          basePrice = prices.standard;
-        }
-      }
-    }
-
-    // Fallback if price not found (shouldn't happen if DB is seeded, but safe to default or error)
-    if (basePrice === 0) {
-      console.warn(
-        "⚠️ Base price not found for",
-        payload.selectedSport,
-        payload.selectedPackage,
-        payload.travelDuration,
-      );
-      // We could throw error, or rely on frontend total if we really trust it (we don't),
-      // to be safe, let's use the DB price if found, else 0 which is safer than trusting random input?
-      // Or actually, if we can't find price, we probably shouldn't allow booking.
-      // For this refactor, let's assume if 0, something is wrong.
-    }
-
-    // Multiply base price by number of people?
-    // "Starting Price" usually means "Price per person".
-    // Let's verify assumption. GoGame usually charges per person.
-    const perPersonPrice = basePrice;
-    const totalBaseCost = perPersonPrice * payload.totalPeople;
-
-    // Calculate extras total from bookingExtras array
-    // ideally we should also fetch these prices from DB if possible.
-    // For now, we'll iterate provided extras but we really should validate them.
-    // Assuming for now the biggest risk is the base package price manipulation.
-    const extrasTotal = payload.bookingExtras
-      ? payload.bookingExtras
-          .filter((extra) => extra.isSelected && extra.price > 0)
-          .reduce((sum, extra) => sum + extra.price * extra.quantity, 0)
-      : payload.totalExtrasCost || 0;
-
-    // Calculate league removal cost
-    // Formula: (removedLeaguesCount - 1) * 20€ * totalPeople (first removal is free)
-    const freeRemovals = 1;
-    const paidRemovals = Math.max(
-      0,
-      payload.removedLeaguesCount - freeRemovals,
-    );
-    const removalCostPerPerson = paidRemovals * 20; // 20€ per paid removal
-    const leagueRemovalCost =
-      payload.hasRemovedLeagues && payload.removedLeaguesCount > 0
-        ? removalCostPerPerson * payload.totalPeople
-        : 0;
-
-    // Final Calculated Cost
-    const calculatedTotalCost = totalBaseCost + extrasTotal + leagueRemovalCost;
-
-    // Log discrepancy if significant
-    if (Math.abs(calculatedTotalCost - Number(payload.totalCost)) > 1) {
-      console.warn(
-        `⚠️ Price Mismatch! Frontend: ${payload.totalCost}, Backend: ${calculatedTotalCost}`,
-      );
-    }
-
+    const calculatedTotalCost = priceBreakdown.totalCost;
     const totalAmountInCents = Math.round(calculatedTotalCost * 100);
 
-    // 2. Persist Initial Booking (Pending)
-    // Prepare fallback values for required fields
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-    const todayFormatted = new Date().toLocaleDateString(); // Localized format
+    // 2. Prepare Data for Database
+    const primaryAdult =
+      payload.travelers.adults.find((a) => a.isPrimary) ||
+      payload.travelers.adults[0];
 
+    // Fallbacks for contact info
+    const email = primaryAdult?.email || payload.email || "";
+    // Phone might not be on primaryAdult if not specifically collected there in all flows, check payload
+    const phone = primaryAdult?.phone || payload.phone || "";
+
+    const fullName =
+      primaryAdult?.name ||
+      payload.firstName + " " + payload.lastName ||
+      "Guest";
+    const [firstName, ...lastNameParts] = fullName.split(" ");
+    const lastName = lastNameParts.join(" ") || "N/A";
+
+    // Flatten travelers for legacy 'allTravelers' field compatibility if needed,
+    // but Booking Model now has structured 'travelers' object.
+
+    // Create Booking Record
     const booking = await BookingService.create({
       status: "pending",
       payment_status: "unpaid",
-      selectedSport: payload.selectedSport || "football",
-      selectedPackage: payload.selectedPackage || "standard",
-      selectedCity: payload.selectedCity || "TBD",
-      selectedLeague: payload.selectedLeague || "TBD",
-      adults: payload.adults || 1,
-      kids: payload.kids || 0,
-      babies: payload.babies || 0,
-      departureDate: payload.departureDate || today,
-      returnDate: payload.returnDate || today,
-      departureDateFormatted: payload.departureDateFormatted || todayFormatted,
-      returnDateFormatted: payload.returnDateFormatted || todayFormatted,
-      departureTimeStart: payload.departureTimeStart || 0,
-      departureTimeEnd: payload.departureTimeEnd || 0,
-      arrivalTimeStart: payload.arrivalTimeStart || 0,
-      arrivalTimeEnd: payload.arrivalTimeEnd || 0,
-      departureTimeRange: payload.departureTimeRange || "TBD",
-      arrivalTimeRange: payload.arrivalTimeRange || "TBD",
-      removedLeagues: payload.removedLeagues || [],
-      removedLeaguesCount: payload.removedLeaguesCount || 0,
-      hasRemovedLeagues: payload.hasRemovedLeagues || false,
-      totalExtrasCost: payload.totalExtrasCost || 0,
-      extrasCount: payload.extrasCount || 0,
-      isBookingComplete: false,
-      firstName: payload.firstName,
-      lastName: payload.lastName || "N/A",
-      email: payload.email,
-      phone: payload.phone,
-      totalCost: String(calculatedTotalCost), // Use verified cost
-      bookingExtras: payload.bookingExtras || [],
-      allTravelers: payload.allTravelers || [],
-      stripe_payment_intent_id: undefined,
-    });
 
-    // 3. Create Stripe PaymentIntent (for embedded Elements)
-
-    const stripe = getStripeInstance();
-
-    console.log("💰 Creating PaymentIntent for:", {
-      amount: totalAmountInCents,
-      currency: "eur",
-      bookingId: booking._id.toString(),
-      calculatedFrom: {
-        base: basePrice,
-        people: payload.totalPeople,
-        extras: extrasTotal,
-        removals: leagueRemovalCost,
+      // 1. Selection Core
+      selection: {
+        sport: payload.selectedSport || "football",
+        package: payload.selectedPackage || "standard",
+        city: payload.selectedCity || "TBD",
       },
+
+      // 2. Dates
+      dates: {
+        departure: payload.departureDate,
+        return: payload.returnDate,
+        durationDays: payload.duration?.days,
+        durationNights: payload.duration?.nights,
+      },
+
+      // 3. Travelers
+      travelers: {
+        adults: payload.travelers.adults || [],
+        kids: payload.travelers.kids || [],
+        babies: payload.travelers.babies || [],
+        totalCount: totalPeople,
+        primaryContact: {
+          name: fullName,
+          email: email,
+          phone: phone,
+        },
+      },
+
+      // 4. Leagues
+      leagues: {
+        list: payload.leagues || [],
+        removedCount: removedLeaguesCount,
+        hasRemovedLeagues: removedLeaguesCount > 0,
+      },
+
+      // 5. Flight
+      flight: {
+        schedule: {
+          departureBetween:
+            payload.flightSchedule?.departure.rangeLabel || "TBD",
+          returnBetween: payload.flightSchedule?.arrival.rangeLabel || "TBD",
+        },
+        preferences: {
+          departureTimeStart: payload.flightSchedule?.departure.start,
+          departureTimeEnd: payload.flightSchedule?.departure.end,
+          arrivalTimeStart: payload.flightSchedule?.arrival.start,
+          arrivalTimeEnd: payload.flightSchedule?.arrival.end,
+          hasPreferences: !!payload.flightSchedule,
+        },
+      },
+
+      // 6. Extras
+      extras: {
+        selected: bookingExtras,
+        totalCost: priceBreakdown.extrasCost,
+      },
+
+      // 7. Payment Init
+      payment: {
+        amount: calculatedTotalCost,
+        currency: "EUR",
+        status: "pending",
+      },
+
+      // Root level required fields (mapped or duplicated for query performance)
+      totalCost: calculatedTotalCost,
+      isBookingComplete: false,
+      stripe_payment_intent_id: undefined,
+
+      // Legacy required fields to satisfy schema if strict (though we updated Schema, let's be safe)
+      email: email,
+      firstName: firstName || "Unknown",
+      lastName: lastName,
+      phone: phone,
     });
 
+    // 3. Create Stripe Payment Intent
+    const stripe = getStripeInstance();
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmountInCents,
       currency: "eur",
@@ -224,17 +245,17 @@ export async function POST(request: Request) {
         city: payload.selectedCity,
       },
       description: `Booking for ${payload.selectedSport} - ${payload.selectedPackage}`,
-      receipt_email: payload.email,
+      receipt_email: email,
     });
 
-    // 4. Update Booking with PaymentIntent ID
+    // 4. Update Booking with Payment Intent
     await BookingService.updateById(booking._id.toString(), {
+      "payment.stripePaymentIntentId": paymentIntent.id,
       stripe_payment_intent_id: paymentIntent.id,
     });
 
     console.log("✅ PaymentIntent created:", paymentIntent.id);
 
-    // 5. Return client secret for frontend
     return NextResponse.json({
       success: true,
       clientSecret: paymentIntent.client_secret,

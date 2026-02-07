@@ -7,40 +7,166 @@ import {
   clearCachePattern,
 } from "@/backend";
 import type {
-  CreateDateManagementData,
-  UpdateDateManagementData,
   DateManagementFilters,
+  InitDateManagementData,
 } from "./date-management.types";
+import StartingPriceService from "../starting-price/starting-price.service";
 
 class DateManagementService {
-  async create(data: CreateDateManagementData): Promise<IDateManagement> {
+  async initDate(data: InitDateManagementData): Promise<IDateManagement> {
     await connectToDatabase();
-    const dateEntry = new DateManagement(data);
-    const saved = await dateEntry.save();
+
+    const isExists = await this.getByDateDurationAndLeague(
+      data.date,
+      data.duration,
+      data.league,
+    );
+    let saved: IDateManagement | null;
+
+    const initialPrices = { standard: 0, premium: 0 };
+
+    const sports: IDateManagement["sports"] = {
+      football: { status: "disabled", standard: 0, premium: 0 },
+      basketball: { status: "disabled", standard: 0, premium: 0 },
+      combined: { status: "disabled", standard: 0, premium: 0 },
+    };
+
+    if (data.sportName === "football") {
+      sports.football = { ...initialPrices, status: "enabled" };
+    } else if (data.sportName === "basketball") {
+      sports.basketball = { ...initialPrices, status: "enabled" };
+    } else if (data.sportName === "combined") {
+      sports.combined = { ...initialPrices, status: "enabled" };
+    }
+
+    if (isExists) {
+      // Merge new sport status with existing ones
+      const updatedSports = { ...isExists?.toObject().sports };
+      if (data.sportName === "football") {
+        updatedSports.football = {
+          ...updatedSports.football,
+          ...initialPrices,
+          status: "enabled",
+        };
+      }
+      if (data.sportName === "basketball") {
+        updatedSports.basketball = {
+          ...updatedSports.basketball,
+          ...initialPrices,
+          status: "enabled",
+        };
+      }
+      if (data.sportName === "combined") {
+        updatedSports.combined = {
+          ...updatedSports.combined,
+          ...initialPrices,
+          status: "enabled",
+        };
+      }
+      saved = await this.updateById(isExists._id.toString(), {
+        sports: updatedSports,
+      } as any);
+    } else {
+      const dateEntry = new DateManagement({
+        date: data.date,
+        duration: data.duration ?? "1",
+        league: data.league,
+        sports: sports,
+      });
+      saved = await dateEntry.save();
+    }
 
     await clearCachePattern("date-management:*");
+
+    if (!saved) {
+      throw new Error("Failed to initialize date");
+    }
 
     return saved;
   }
 
   async getAll(
-    filters: DateManagementFilters = {},
-  ): Promise<IDateManagement[]> {
+    filters: DateManagementFilters,
+  ): Promise<{ data: IDateManagement[] }> {
+    const CACHE_KEY = `date-management:list:${JSON.stringify(filters)}`;
+    const cached = await getCache<{ data: IDateManagement[] }>(CACHE_KEY);
+    if (cached) return cached;
+
+    // Fetch base prices to use as fallback
+    const startingPrices = await StartingPriceService.getAll();
+    const basePrices: Record<string, any> = {};
+    startingPrices.forEach((sp) => {
+      basePrices[sp.type] = sp.pricesByDuration;
+    });
+
     await connectToDatabase();
 
-    const query: any = { deletedAt: { $exists: false } };
+    const query: any = {};
 
-    if (filters.status) query.status = filters.status;
-    if (filters.sportname) query.sportname = filters.sportname;
-    if (filters.approve_status) query.approve_status = filters.approve_status;
+    if (filters.sportName)
+      query[`sports.${filters.sportName}.status`] = "enabled";
+    if (filters.league) query.league = filters.league;
+    if (filters.duration) query.duration = filters.duration;
+    // Filter by specific months if provided
+    if (filters.months && filters.months.length > 0) {
+      const year = filters.year;
+      const monthMap: Record<string, string> = {
+        January: "01",
+        February: "02",
+        March: "03",
+        April: "04",
+        May: "05",
+        June: "06",
+        July: "07",
+        August: "08",
+        September: "09",
+        October: "10",
+        November: "11",
+        December: "12",
+      };
 
-    if (filters.dateFrom || filters.dateTo) {
-      query.date = {};
-      if (filters.dateFrom) query.date.$gte = filters.dateFrom;
-      if (filters.dateTo) query.date.$lte = filters.dateTo;
+      const dateRegexes = filters.months
+        .map((m) => {
+          const monthNum = monthMap[m];
+          return monthNum ? new RegExp(`^${year}-${monthNum}-`) : null;
+        })
+        .filter(Boolean);
+
+      if (dateRegexes.length > 0) {
+        query.date = { $in: dateRegexes };
+      }
     }
 
-    return await DateManagement.find(query).sort({ date: 1 });
+    // Use lean() to get plain objects we can modify
+    const data = await DateManagement.find(query).sort({ date: 1 }).lean();
+
+    // Process data to fallback to base prices where custom price is 0/missing
+    const processedData = data.map((doc: any) => {
+      const item = { ...doc }; // Ensure we have a modifyable copy
+      const duration = item.duration;
+
+      (["football", "basketball", "combined"] as const).forEach((sport) => {
+        if (item.sports && item.sports[sport]) {
+          const base = basePrices[sport]?.[duration];
+          if (base) {
+            // Apply fallback if price is 0 or missing
+            if (!item?.sports?.[sport]?.standard) {
+              item.sports[sport].standard = base.standard;
+            }
+            if (!item?.sports?.[sport]?.premium) {
+              item.sports[sport].premium = base.premium;
+            }
+          }
+        }
+      });
+      return item;
+    });
+
+    const result = { data: processedData as IDateManagement[] };
+    // Cache for 10 minutes (600 seconds)
+    await setCache(CACHE_KEY, result, 600);
+
+    return result;
   }
 
   async getById(id: string): Promise<IDateManagement | null> {
@@ -61,19 +187,20 @@ class DateManagementService {
     return dateEntry;
   }
 
-  async getByDate(
+  async getByDateDurationAndLeague(
     date: string,
-    sportname?: string,
+    duration: string,
+    league: string,
   ): Promise<IDateManagement | null> {
-    const CACHE_KEY = `date-management:date:${date}:${sportname || "all"}`;
+    const CACHE_KEY = `date-management:date:${date}:${duration}:${league}`;
     const cached = await getCache<IDateManagement>(CACHE_KEY);
     if (cached) return cached;
 
     await connectToDatabase();
     const query: any = { date, deletedAt: { $exists: false } };
 
-    if (sportname) query.sportname = sportname;
-
+    if (duration) query.duration = duration;
+    if (league) query.league = league;
     const result = await DateManagement.findOne(query);
 
     if (result) {
@@ -85,7 +212,7 @@ class DateManagementService {
 
   async updateById(
     id: string,
-    data: UpdateDateManagementData,
+    data: IDateManagement,
   ): Promise<IDateManagement | null> {
     await connectToDatabase();
     const updated = await DateManagement.findByIdAndUpdate(id, data, {
@@ -103,10 +230,105 @@ class DateManagementService {
     return updated;
   }
 
-  async deleteById(id: string): Promise<boolean> {
+  async updateSportPrice(
+    id: string,
+    data: {
+      sportName: "football" | "basketball" | "combined";
+      prices: {
+        standard: number;
+        premium: number;
+      };
+    },
+  ): Promise<IDateManagement | null> {
     await connectToDatabase();
+    const { sportName, prices } = data;
+    if (!sportName || !prices) {
+      throw new Error("Invalid payload: sportName and prices required");
+    }
+
+    const isExists = await this.getById(id);
+    if (!isExists) {
+      throw new Error("Date not found");
+    }
+
+    const currentSport = isExists.sports[sportName] || {
+      standard: 0,
+      premium: 0,
+      status: "disabled",
+    };
+
+    const updated = await DateManagement.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          [`sports.${sportName}.standard`]:
+            prices.standard !== undefined
+              ? prices.standard
+              : currentSport.standard,
+          [`sports.${sportName}.premium`]:
+            prices.premium !== undefined
+              ? prices.premium
+              : currentSport.premium,
+        },
+      },
+      { new: true },
+    );
+
+    if (updated) {
+      await deleteCache(`date-management:${id}`);
+      await clearCachePattern("date-management:date:*");
+      await clearCachePattern("date-management:list:*");
+      await clearCachePattern("date-management:range:*");
+    }
+
+    return updated;
+  }
+
+  async updateSportStatus(
+    id: string,
+    data: {
+      sportName: "football" | "basketball" | "combined";
+      status: "enabled" | "disabled";
+    },
+  ): Promise<IDateManagement | null> {
+    await connectToDatabase();
+    const { sportName, status } = data;
+    if (!sportName || !status) {
+      throw new Error("Invalid payload: sportName and status required");
+    }
+
+    const updated = await DateManagement.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          [`sports.${sportName}.status`]: status,
+        },
+      },
+      { new: true },
+    );
+
+    if (updated) {
+      await deleteCache(`date-management:${id}`);
+      await clearCachePattern("date-management:date:*");
+      await clearCachePattern("date-management:list:*");
+      await clearCachePattern("date-management:range:*");
+    }
+
+    return updated;
+  }
+
+  async deleteWithIdAndSportName(
+    id: string,
+    sportName: "football" | "basketball" | "combined",
+  ): Promise<boolean> {
+    await connectToDatabase();
+
+    // Instead of unsetting status (which is required), we set it to disabled.
+    // We can reset prices to 0 if desired, but "disabled" is sufficient to hide it.
     const result = await DateManagement.findByIdAndUpdate(id, {
-      deletedAt: new Date(),
+      $set: {
+        [`sports.${sportName}.status`]: "disabled",
+      },
     });
 
     if (result) {
@@ -117,8 +339,8 @@ class DateManagementService {
     return !!result;
   }
 
-  async isDateAvailable(date: string, sportname?: string): Promise<boolean> {
-    const CACHE_KEY = `date-management:available:${date}:${sportname || "all"}`;
+  async isDateAvailable(date: string, sportName?: string): Promise<boolean> {
+    const CACHE_KEY = `date-management:available:${date}:${sportName || "all"}`;
     const cached = await getCache<boolean>(CACHE_KEY);
     if (cached !== null) return cached;
 
@@ -130,7 +352,7 @@ class DateManagementService {
       deletedAt: { $exists: false },
     };
 
-    if (sportname) query.sportname = sportname;
+    if (sportName) query.sportName = sportName;
 
     const count = await DateManagement.countDocuments(query);
     const isAvailable = count > 0;
@@ -143,7 +365,7 @@ class DateManagementService {
   async getByDateRange(
     startDate: string,
     endDate: string,
-    filters?: { sportname?: string; status?: string },
+    filters?: { sportName?: string; status?: string },
   ): Promise<IDateManagement[]> {
     await connectToDatabase();
 
@@ -152,10 +374,18 @@ class DateManagementService {
       deletedAt: { $exists: false },
     };
 
-    if (filters?.sportname) query.sportname = filters.sportname;
+    if (filters?.sportName) query.sportName = filters.sportName;
     if (filters?.status) query.status = filters.status;
 
     return await DateManagement.find(query).sort({ date: 1 });
+  }
+
+  async resetDateManagement(): Promise<boolean> {
+    await connectToDatabase();
+    await DateManagement.deleteMany({});
+    await clearCachePattern("date-management:*");
+
+    return true;
   }
 }
 

@@ -17,6 +17,7 @@ export const formatDateForAPI = (date: Date): string => {
  * For ISO strings, extracts the date part directly to avoid timezone shifts
  */
 export const formatApiDateForComparison = (apiDateString: string): string => {
+  if (!apiDateString) return "";
   // If it's an ISO string (contains 'T'), extract the date part directly
   if (apiDateString.includes("T")) {
     const datePart = apiDateString.split("T")[0];
