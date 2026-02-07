@@ -23,6 +23,15 @@ export interface UpdateStartingPriceData {
     "3": { standard: number; premium: number };
     "4": { standard: number; premium: number };
   }>;
+  features?: {
+    category: string;
+    category_es?: string;
+    standard: string;
+    standard_es?: string;
+    premium: string;
+    premium_es?: string;
+    sortOrder?: number;
+  }[];
   isActive?: boolean;
   lastModifiedBy?: string;
 }

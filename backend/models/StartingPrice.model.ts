@@ -12,6 +12,15 @@ export interface IStartingPrice extends Document {
     "3": { standard: number; premium: number };
     "4": { standard: number; premium: number };
   };
+  features: {
+    category: string;
+    category_es?: string;
+    standard: string;
+    standard_es?: string;
+    premium: string;
+    premium_es?: string;
+    sortOrder: number;
+  }[];
   isActive: boolean;
   lastModifiedBy?: string;
   createdAt: Date;
@@ -23,7 +32,20 @@ const DurationPriceSchema = new Schema(
     standard: { type: Number, required: true, min: 0 },
     premium: { type: Number, required: true, min: 0 },
   },
-  { _id: false }
+  { _id: false },
+);
+
+const FeatureSchema = new Schema(
+  {
+    category: { type: String, required: true },
+    category_es: { type: String },
+    standard: { type: String, required: true },
+    standard_es: { type: String },
+    premium: { type: String, required: true },
+    premium_es: { type: String },
+    sortOrder: { type: Number, default: 0 },
+  },
+  { _id: false },
 );
 
 const StartingPriceSchema = new Schema<IStartingPrice>(
@@ -61,6 +83,8 @@ const StartingPriceSchema = new Schema<IStartingPrice>(
       "3": DurationPriceSchema,
       "4": DurationPriceSchema,
     },
+    features: [FeatureSchema],
+
     isActive: {
       type: Boolean,
       default: true,
@@ -73,7 +97,7 @@ const StartingPriceSchema = new Schema<IStartingPrice>(
   {
     timestamps: true,
     collection: "starting_prices",
-  }
+  },
 );
 
 // Indexes
@@ -118,7 +142,7 @@ StartingPriceSchema.virtual("maxPrice").get(function () {
 // Instance method to get price for specific duration and type
 StartingPriceSchema.methods.getPrice = function (
   duration: 1 | 2 | 3 | 4,
-  type: "standard" | "premium"
+  type: "standard" | "premium",
 ) {
   const durationPrices =
     this.pricesByDuration[
@@ -130,7 +154,7 @@ StartingPriceSchema.methods.getPrice = function (
 // Instance method to get formatted price
 StartingPriceSchema.methods.getFormattedPrice = function (
   duration: 1 | 2 | 3 | 4,
-  type: "standard" | "premium"
+  type: "standard" | "premium",
 ) {
   const price = this.getPrice(duration, type);
   if (!price) return "Price not set";
