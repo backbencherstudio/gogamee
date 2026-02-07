@@ -8,7 +8,6 @@ const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 7 days
 
 export async function POST(request: Request) {
   const payload = await request.json();
-  console.log(payload);
 
   if (!payload.email || !payload.password) {
     return NextResponse.json(

@@ -490,7 +490,6 @@ export default function FlightSchedule() {
   }, [flightData]);
 
   const handleConfirm = useCallback(() => {
-    console.log("Selected flight times:", selectedTimes);
 
     // Save flight schedule data in structured format to booking context
     const flightScheduleData = {

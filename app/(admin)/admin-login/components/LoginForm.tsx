@@ -1,83 +1,90 @@
-'use client'
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Eye, EyeOff, LogIn, GalleryVerticalEnd, AlertCircle } from 'lucide-react'
-import { login } from '../../../../services/authService'
+"use client";
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Eye,
+  EyeOff,
+  LogIn,
+  GalleryVerticalEnd,
+  AlertCircle,
+} from "lucide-react";
+import { login } from "../../../../services/authService";
 
 export default function LoginForm() {
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
+    email: "",
+    password: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
+      [name]: value,
+    }));
     // Clear error when user starts typing
     if (error) {
-      setError('')
+      setError("");
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
     try {
       // Simple validation
       if (!formData.email || !formData.password) {
-        setError('Please fill in all fields')
-        setIsLoading(false)
-        return
+        setError("Please fill in all fields");
+        setIsLoading(false);
+        return;
       }
 
       // Basic email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
-        setError('Please enter a valid email address')
-        setIsLoading(false)
-        return
+        setError("Please enter a valid email address");
+        setIsLoading(false);
+        return;
       }
-
-      console.log('Attempting login with:', { email: formData.email })
 
       // Call login API
       const response = await login({
         email: formData.email,
-        password: formData.password
-      })
-
-      console.log('Login response:', response)
+        password: formData.password,
+      });
 
       if (response.success && response.authorization?.access_token) {
         // Token is already stored in authService
         // Store additional login state for backward compatibility
-        localStorage.setItem('adminLoggedIn', 'true')
-        localStorage.setItem('adminEmail', formData.email)
-        
-        console.log('Login successful, redirecting to dashboard...')
-        
+        localStorage.setItem("adminLoggedIn", "true");
+        localStorage.setItem("adminEmail", formData.email);
+
         // Redirect to dashboard
-        router.push('/dashboard')
+        router.push("/dashboard");
       } else {
-        setError(response.message || 'Invalid credentials')
+        setError(response.message || "Invalid credentials");
       }
     } catch (err) {
-      console.error('Login error:', err)
-      const errorMessage = (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message || (err as Error)?.message || 'Login failed. Please try again.'
-      setError(errorMessage)
+      const errorMessage =
+        (
+          err as {
+            response?: { data?: { message?: string } };
+            message?: string;
+          }
+        )?.response?.data?.message ||
+        (err as Error)?.message ||
+        "Login failed. Please try again.";
+      setError(errorMessage);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-md w-full space-y-8">
@@ -103,14 +110,19 @@ export default function LoginForm() {
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <span className="text-red-700 text-sm font-['Poppins']">{error}</span>
+              <span className="text-red-700 text-sm font-['Poppins']">
+                {error}
+              </span>
             </div>
           )}
 
           <div className="space-y-6">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']"
+              >
                 Email Address
               </label>
               <input
@@ -128,14 +140,17 @@ export default function LoginForm() {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']"
+              >
                 Password
               </label>
               <div className="relative">
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   value={formData.password}
@@ -166,13 +181,19 @@ export default function LoginForm() {
                   type="checkbox"
                   className="h-4 w-4 text-[#76C043] focus:ring-[#76C043] border-gray-300 rounded"
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 font-['Poppins']">
+                <label
+                  htmlFor="remember-me"
+                  className="ml-2 block text-sm text-gray-700 font-['Poppins']"
+                >
                   Remember me
                 </label>
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-[#76C043] hover:text-lime-600 transition-colors font-['Poppins']">
+                <a
+                  href="#"
+                  className="font-medium text-[#76C043] hover:text-lime-600 transition-colors font-['Poppins']"
+                >
                   Forgot password?
                 </a>
               </div>
@@ -185,8 +206,8 @@ export default function LoginForm() {
                 disabled={isLoading}
                 className={`w-full flex justify-center items-center gap-3 py-3 px-4 border border-transparent rounded-lg font-medium font-['Poppins'] transition-all duration-200 ${
                   isLoading
-                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-[#76C043] hover:bg-lime-600 text-white shadow-sm hover:shadow-md'
+                    ? "bg-gray-400 text-white cursor-not-allowed"
+                    : "bg-[#76C043] hover:bg-lime-600 text-white shadow-sm hover:shadow-md"
                 }`}
               >
                 {isLoading ? (
@@ -204,7 +225,6 @@ export default function LoginForm() {
             </div>
           </div>
         </div>
-
       </form>
 
       {/* Footer */}
@@ -214,5 +234,5 @@ export default function LoginForm() {
         </p>
       </div>
     </div>
-  )
+  );
 }

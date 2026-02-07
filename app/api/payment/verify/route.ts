@@ -20,12 +20,9 @@ export async function POST(request: Request) {
     if (booking) {
       if (
         booking.status === "completed" ||
-        booking.payment_status === "paid" ||
+        booking.payment?.status === "paid" ||
         booking.status === "confirmed"
       ) {
-        console.log(
-          `✅ Verified payment for Booking #${booking._id} via DB lookup`,
-        );
         return NextResponse.json({
           success: true,
           message: "Payment verified successfully",
@@ -42,9 +39,6 @@ export async function POST(request: Request) {
     } else {
       // No booking found with this PaymentIntent ID yet (Webhook hasn't arrived)
       // Frontend should retry polling
-      console.log(
-        `⏳ PaymentIntent ${sessionId} not found in DB yet (Waiting for Webhook)`,
-      );
       return NextResponse.json(
         { message: "Payment processing (Webhook pending)" },
         { status: 404 }, // Not found YET

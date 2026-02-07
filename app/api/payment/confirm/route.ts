@@ -28,20 +28,13 @@ export async function POST(request: Request) {
     const stripe = getStripeInstance();
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-    console.log("🔍 Verifying payment:", {
-      paymentIntentId,
-      status: paymentIntent.status,
-      bookingId,
-    });
-
     if (paymentIntent.status === "succeeded") {
       // Update booking to completed
       await BookingService.updateById(bookingId, {
         status: "completed",
-        payment_status: "paid",
+        "payment.status": "paid",
+        payment_status: "paid", // Legacy
       });
-
-      console.log("✅ Booking updated to completed:", bookingId);
 
       return NextResponse.json({
         success: true,

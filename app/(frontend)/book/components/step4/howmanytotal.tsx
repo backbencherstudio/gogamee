@@ -129,14 +129,14 @@ export default function HowManyTotal() {
   // Calculate default values from existing data or defaults
   const getDefaultValues = useCallback((): CounterFormData => {
     if (
-      formData.travelers.adults.length ||
-      formData.travelers.kids.length ||
-      formData.travelers.babies.length
+      formData.travelers?.adults?.length ||
+      formData.travelers?.kids?.length ||
+      formData.travelers?.babies?.length
     ) {
       return {
-        adults: formData.travelers.adults.length,
-        kids: formData.travelers.kids.length,
-        babies: formData.travelers.babies.length,
+        adults: formData.travelers?.adults?.length || 1,
+        kids: formData.travelers?.kids?.length || 0,
+        babies: formData.travelers?.babies?.length || 0,
       };
     }
     return DEFAULT_VALUES;
@@ -159,9 +159,9 @@ export default function HowManyTotal() {
     if (formData.fromHero && !hasSyncedFromHeroRef.current) {
       const travelers = formData.travelers;
       // Ensure at least 1 adult even if Hero data says 0
-      setValue("adults", Math.max(travelers.adults.length, MIN_ADULTS));
-      setValue("kids", travelers.kids.length);
-      setValue("babies", travelers.babies.length);
+      setValue("adults", Math.max(travelers?.adults?.length || 0, MIN_ADULTS));
+      setValue("kids", travelers?.kids?.length || 0);
+      setValue("babies", travelers?.babies?.length || 0);
       hasSyncedFromHeroRef.current = true;
     }
   }, [formData.fromHero, formData.travelers, setValue]);

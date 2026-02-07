@@ -49,18 +49,6 @@ interface CreateBookingPayload {
   selectedPackage: string;
   selectedCity: string;
 
-  peopleCount: {
-    adults: number;
-    kids: number;
-    babies: number;
-  };
-
-  travelers: {
-    adults: Traveler[];
-    kids: Traveler[];
-    babies: Traveler[];
-  };
-
   leagues: League[];
 
   departureDate: string;
@@ -73,13 +61,31 @@ interface CreateBookingPayload {
   } | null;
 
   extras: ExtraService[];
-
   paymentInfo: {
-    cardNumber: string; // Not used here, handled by Stripe element usually but kept for flow
     cardholderName: string;
   };
 
-  // Legacy/derived fields that might be passed (e.g. from earlier steps or hero)
+  // Combined Support for Nested and Flat payload structures
+  peopleCount?: {
+    adults: number;
+    kids: number;
+    babies: number;
+  };
+  travelers?: {
+    adults: Traveler[];
+    kids: Traveler[];
+    babies: Traveler[];
+  };
+
+  // Flat fields (Used by current frontend)
+  adults?: number;
+  kids?: number;
+  babies?: number;
+  totalPeople?: number;
+  travelDuration?: number;
+  allTravelers?: Traveler[];
+
+  // Legacy/derived fields
   email?: string;
   firstName?: string;
   lastName?: string;
@@ -99,14 +105,28 @@ export async function POST(request: Request) {
       (l) => l.group === "European" && l.isSelected,
     );
 
-    // Total people
+    // Total people - Defensive extraction
+    const adultsCount = payload.adults ?? payload.peopleCount?.adults ?? 0;
+    const kidsCount = payload.kids ?? payload.peopleCount?.kids ?? 0;
+    const babiesCount = payload.babies ?? payload.peopleCount?.babies ?? 0;
     const totalPeople =
-      (payload.peopleCount.adults || 0) +
-      (payload.peopleCount.kids || 0) +
-      (payload.peopleCount.babies || 0);
+      payload.totalPeople ?? adultsCount + kidsCount + babiesCount;
+
+    // Duration extraction
+    const travelDuration = payload.travelDuration ?? 0;
+    const durationDays = travelDuration || 1;
+    const durationNights = Math.max(0, durationDays - 1);
 
     // Extras for pricing (flattened list of selected extras)
-    const bookingExtras = payload.extras || [];
+    const bookingExtras = (payload.extras || []).map((extra: any) => ({
+      id: extra.id,
+      name: extra.name,
+      description: extra.description || "",
+      price: extra.price,
+      isSelected: extra.isSelected,
+      quantity: extra.quantity,
+      currency: extra.currency || "EUR",
+    }));
 
     // Calculate Price Server-Side
     const priceBreakdown = await PricingService.calculatePrice({
@@ -130,9 +150,15 @@ export async function POST(request: Request) {
     const totalAmountInCents = Math.round(calculatedTotalCost * 100);
 
     // 2. Prepare Data for Database
+    const travelersData = payload.travelers || {
+      adults: payload.allTravelers?.filter((t) => t.type === "adult") || [],
+      kids: payload.allTravelers?.filter((t) => t.type === "kid") || [],
+      babies: payload.allTravelers?.filter((t) => t.type === "baby") || [],
+    };
+
     const primaryAdult =
-      payload.travelers.adults.find((a) => a.isPrimary) ||
-      payload.travelers.adults[0];
+      travelersData.adults.find((a: any) => a.isPrimary) ||
+      travelersData.adults[0];
 
     // Fallbacks for contact info
     const email = primaryAdult?.email || payload.email || "";
@@ -152,7 +178,11 @@ export async function POST(request: Request) {
     // Create Booking Record
     const booking = await BookingService.create({
       status: "pending",
-      payment_status: "unpaid",
+      payment: {
+        amount: calculatedTotalCost,
+        currency: "eur",
+        status: "pending",
+      },
 
       // 1. Selection Core
       selection: {
@@ -165,15 +195,15 @@ export async function POST(request: Request) {
       dates: {
         departure: payload.departureDate,
         return: payload.returnDate,
-        durationDays: payload.duration?.days,
-        durationNights: payload.duration?.nights,
+        durationDays: durationDays,
+        durationNights: durationNights,
       },
 
       // 3. Travelers
       travelers: {
-        adults: payload.travelers.adults || [],
-        kids: payload.travelers.kids || [],
-        babies: payload.travelers.babies || [],
+        adults: travelersData.adults || [],
+        kids: travelersData.kids || [],
+        babies: travelersData.babies || [],
         totalCount: totalPeople,
         primaryContact: {
           name: fullName,
@@ -211,23 +241,15 @@ export async function POST(request: Request) {
         totalCost: priceBreakdown.extrasCost,
       },
 
-      // 7. Payment Init
-      payment: {
-        amount: calculatedTotalCost,
-        currency: "EUR",
-        status: "pending",
+      // 8. Price Breakdown
+      priceBreakdown: {
+        ...priceBreakdown,
+        items: priceBreakdown.breakdown, // Map 'breakdown' to 'items' for Mongoose
       },
 
-      // Root level required fields (mapped or duplicated for query performance)
+      // Root level fields for compatibility and queries
       totalCost: calculatedTotalCost,
       isBookingComplete: false,
-      stripe_payment_intent_id: undefined,
-
-      // Legacy required fields to satisfy schema if strict (though we updated Schema, let's be safe)
-      email: email,
-      firstName: firstName || "Unknown",
-      lastName: lastName,
-      phone: phone,
     });
 
     // 3. Create Stripe Payment Intent
@@ -251,10 +273,8 @@ export async function POST(request: Request) {
     // 4. Update Booking with Payment Intent
     await BookingService.updateById(booking._id.toString(), {
       "payment.stripePaymentIntentId": paymentIntent.id,
-      stripe_payment_intent_id: paymentIntent.id,
+      "payment.status": "pending",
     });
-
-    console.log("✅ PaymentIntent created:", paymentIntent.id);
 
     return NextResponse.json({
       success: true,

@@ -608,15 +608,6 @@ export default function HeroSection() {
                     selectedCity &&
                     totalPeople > 0;
 
-                  console.log("🎯 Hero section data validation:", {
-                    selectedSport,
-                    selectedPack: selectedPack.name,
-                    selectedCity: selectedCity.name,
-                    totalPeople,
-                    peopleCount,
-                    isAllFieldsFilled,
-                  });
-
                   if (isAllFieldsFilled) {
                     // Map Spanish sport names to API values
                     const sportMap: Record<string, string> = {
@@ -652,13 +643,9 @@ export default function HeroSection() {
                       "gogame_hero_data",
                       JSON.stringify(heroData),
                     );
-                    console.log("🎯 Hero data saved for stepper:", heroData);
                   } else {
                     // Clear any existing hero data if not all fields are filled
                     localStorage.removeItem("gogame_hero_data");
-                    console.log(
-                      "📝 Starting fresh booking - not all hero fields filled",
-                    );
                   }
 
                   // Navigate to booking page

@@ -193,7 +193,6 @@ export async function DELETE(
         const absolutePath = path.join(process.cwd(), "public", imagePath);
         if (existsSync(absolutePath)) {
           await unlink(absolutePath);
-          // console.log(`Deleted image: ${absolutePath}`);
         }
       } catch (err) {
         console.error("Error deleting image file:", err);

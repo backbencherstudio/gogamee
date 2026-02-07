@@ -18,14 +18,6 @@ axiosClient.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         }
         
-        // Log request details for debugging
-        console.log('API Request:', {
-            method: config.method?.toUpperCase(),
-            url: config.url,
-            baseURL: config.baseURL,
-            data: config.data
-        });
-        
         return config;
     },
     (error) => Promise.reject(error)
@@ -37,12 +29,7 @@ axiosClient.interceptors.request.use(
 
 axiosClient.interceptors.response.use(
     (response) => {
-        // Log successful response
-        console.log('API Response:', {
-            status: response.status,
-            url: response.config.url,
-            data: response.data
-        });
+        return response;
         return response;
     },
     (error) => {

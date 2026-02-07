@@ -81,6 +81,25 @@ export interface BookingItem {
   deleted_at: string | null;
   bookingExtras?: BookingExtra[];
   allTravelers?: TravelerInfo[];
+  priceBreakdown?: {
+    packageCost: number;
+    extrasCost: number;
+    leagueRemovalCost: number;
+    leagueSurcharge: number;
+    flightPreferenceCost: number;
+    singleTravelerSupplement: number;
+    bookingFee: number;
+    totalBaseCost: number;
+    totalCost: number;
+    currency: string;
+    basePricePerPerson: number;
+    items?: {
+      description: string;
+      amount: number;
+      quantity?: number;
+      unitPrice?: number;
+    }[];
+  };
 }
 
 export interface BookingResponse {
@@ -175,12 +194,6 @@ export const getAllBookings = async (
   status: string = "all",
   days: string = "alltime",
 ): Promise<ApiResponse<BookingItem[]>> => {
-  console.log("Booking Service - Fetching all bookings", {
-    page,
-    limit,
-    status,
-    days,
-  });
   // The API endpoint already supports page and limit query params
   const response = await axiosClient.get(`/admin/all-bookings/categorized`, {
     params: {
@@ -190,7 +203,6 @@ export const getAllBookings = async (
       days,
     },
   });
-  console.log("Booking Service - Bookings received:", response.data);
   return response.data;
 };
 
@@ -198,9 +210,7 @@ export const getAllBookings = async (
 export const createBooking = async (
   payload: CreateBookingPayload,
 ): Promise<StripeSessionResponse> => {
-  console.log("Booking Service - Creating booking with payload:", payload);
   const response = await axiosClient.post("/payment/stripe", payload);
-  console.log("Booking Service - Stripe session created:", response.data);
   return response.data;
 };
 
@@ -208,24 +218,15 @@ export const createBooking = async (
 export const updateBooking = async (
   payload: UpdateBookingPayload,
 ): Promise<BookingItem> => {
-  console.log(
-    "Booking Service - Updating booking:",
-    payload.id,
-    "with data:",
-    payload,
-  );
   const { id, ...updateData } = payload;
   const response = await axiosClient.patch(
     `/admin/all-bookings/${id}/status`,
     updateData,
   );
-  console.log("Booking Service - Booking updated:", response.data);
   return response.data;
 };
 
 // DELETE booking (if needed)
 export const deleteBooking = async (id: string): Promise<void> => {
-  console.log("Booking Service - Deleting booking:", id);
   await axiosClient.delete(`/admin/all-bookings/${id}`);
-  console.log("Booking Service - Booking deleted");
 };

@@ -17,23 +17,20 @@ class BookingService {
   async create(data: CreateBookingData): Promise<IBooking> {
     await connectToDatabase();
 
-    const totalPeople = data.adults + data.kids + data.babies;
-
-    const bookingData = {
+    // The data is now structured in the payload, so we can pass it mostly as-is
+    // but we can add some server-side calculated fields if needed.
+    const booking = new Booking({
       ...data,
-      totalPeople,
-      fullName: `${data.firstName} ${data.lastName}`,
-      bookingDate: new Date().toISOString().split("T")[0],
-      bookingTime: new Date().toTimeString().split(" ")[0],
-      travelDuration: this.calculateTravelDuration(
-        data.departureDate,
-        data.returnDate,
-      ),
-      hasFlightPreferences: false,
-      requiresEuropeanLeagueHandling: false,
-    };
+      // Metadata/Internal fields
+      status: data.status || "pending",
+      payment: {
+        ...data.payment,
+        status: data.payment?.status || data.payment_status || "pending",
+        stripePaymentIntentId:
+          data.payment?.stripePaymentIntentId || data.stripe_payment_intent_id,
+      },
+    });
 
-    const booking = new Booking(bookingData);
     const saved = await booking.save();
 
     // Invalidate list caches
@@ -56,14 +53,15 @@ class BookingService {
     if (filters.status) query.status = filters.status;
     if (filters.payment_status) query.payment_status = filters.payment_status;
     if (filters.selectedSport)
-      query.selectedSport = new RegExp(`^${filters.selectedSport}$`, "i");
-    if (filters.email) query.email = new RegExp(filters.email, "i");
+      query["selection.sport"] = new RegExp(`^${filters.selectedSport}$`, "i");
+    if (filters.email)
+      query["travelers.primaryContact.email"] = new RegExp(filters.email, "i");
     if (filters.isBookingComplete !== undefined)
       query.isBookingComplete = filters.isBookingComplete;
     if (filters.dateFrom || filters.dateTo) {
-      query.departureDate = {};
-      if (filters.dateFrom) query.departureDate.$gte = filters.dateFrom;
-      if (filters.dateTo) query.departureDate.$lte = filters.dateTo;
+      query["dates.departure"] = {};
+      if (filters.dateFrom) query["dates.departure"].$gte = filters.dateFrom;
+      if (filters.dateTo) query["dates.departure"].$lte = filters.dateTo;
     }
 
     const sortOptions: any = sort
@@ -162,7 +160,7 @@ class BookingService {
     // No cache for polling real-time status? or very short cache?
     // Since polling, direct DB is safer to get latest webhook update.
     const booking = await Booking.findOne({
-      stripe_payment_intent_id: paymentIntentId,
+      "payment.stripePaymentIntentId": paymentIntentId,
       deletedAt: { $exists: false },
     });
     return booking;
@@ -192,7 +190,7 @@ class BookingService {
     const updated = await Booking.findByIdAndUpdate(
       id,
       {
-        payment_status: paymentStatus,
+        "payment.status": paymentStatus,
         isBookingComplete: paymentStatus === "paid",
       },
       { new: true },

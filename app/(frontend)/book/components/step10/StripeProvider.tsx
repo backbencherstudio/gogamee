@@ -6,7 +6,7 @@ import { loadStripe, StripeElementsOptions } from "@stripe/stripe-js";
 
 // Initialize Stripe
 const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "",
 );
 
 interface StripeProviderProps {
@@ -34,10 +34,6 @@ export default function StripeProvider({
     },
   };
 
-  console.log(
-    "STRIPE PROVIDER: Rendering with clientSecret",
-    clientSecret ? "PRESENT" : "MISSING"
-  );
   return (
     <Elements stripe={stripePromise} options={options}>
       {children}

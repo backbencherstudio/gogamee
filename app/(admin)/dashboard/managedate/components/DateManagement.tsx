@@ -733,11 +733,6 @@ export default function DateManagement() {
           blockedDates: selectedComp.restrictions.blockedDates,
           customPrices: selectedComp.restrictions.customPrices,
         });
-
-        console.log(
-          `Updated ${competitionType} restrictions and prices:`,
-          selectedComp.restrictions,
-        );
       }
 
       setIsEditing(false);

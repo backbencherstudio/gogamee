@@ -31,10 +31,6 @@ export default function PaymentNotification() {
             sessionId: sessionIdParam,
           }),
         })
-          .then((res) => res.json())
-          .then((data) => {
-            console.log("Payment verification result:", data);
-          })
           .catch((err) => {
             console.error("Payment verification failed:", err);
           });

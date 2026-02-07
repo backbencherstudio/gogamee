@@ -81,21 +81,14 @@ export default function CustomStripeForm({
       });
       pr.canMakePayment()
         .then((result) => {
-          console.log("Stripe Wrapper: PaymentRequest result:", result);
           if (result) {
             setPaymentRequest(pr);
             // Detect which wallet is available
             if (result.applePay) {
               setWalletType("applePay");
-              console.log("✅ Apple Pay is available");
             } else if (result.googlePay) {
               setWalletType("googlePay");
-              console.log("✅ Google Pay is available");
             }
-          } else {
-            console.log(
-              "Stripe Wrapper: PaymentRequest (Apple/Google Pay) not available on this device/browser.",
-            );
           }
           setIsWalletLoading(false);
         })
@@ -152,23 +145,16 @@ export default function CustomStripeForm({
 
       if (res.ok) {
         // Success (200)
-        console.log("✅ Payment verified via Webhook Sync:", data);
         onSuccess();
       } else if (res.status === 202 || res.status === 404) {
         // Payment processing (Webhook pending) - Retry?
         if (attempts < MAX_ATTEMPTS) {
-          console.log(
-            `⏳ Verification pending (Attempt ${attempts + 1}/${MAX_ATTEMPTS}). Retrying in ${POLLING_INTERVAL}ms...`,
-          );
           setTimeout(
             () => confirmBackend(paymentIntentId, attempts + 1),
             POLLING_INTERVAL,
           );
         } else {
           // Max attempts reached - Assume success for UX but warn
-          console.warn(
-            "⚠️ Verification timed out (Webhook slow). Assuming success for UX.",
-          );
           onError(
             t(
               "El pago se realizó con éxito, las comprobaciones están pendientes. El correo electrónico de confirmación llegará en breve.",
@@ -181,7 +167,6 @@ export default function CustomStripeForm({
         }
       } else {
         // Hard failure (400, 500)
-        console.error("❌ Payment verification failed:", data);
         onError(
           data.message ||
             t(
@@ -209,7 +194,6 @@ export default function CustomStripeForm({
         }
       }
     } catch (error) {
-      console.error("❌ Network error:", error);
       onError(
         t(
           "Error de red al confirmar el pago",
@@ -269,9 +253,7 @@ export default function CustomStripeForm({
               errorMessage: error.message,
             }),
           });
-          console.log("📧 Payment failure notification sent");
         } catch (emailErr) {
-          console.error("⚠️ Failed to send payment failure email:", emailErr);
           // Don't block the error flow if email fails
         }
 

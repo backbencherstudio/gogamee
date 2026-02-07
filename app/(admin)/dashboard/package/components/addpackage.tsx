@@ -5,8 +5,8 @@ import { checkDuplicatePackage } from "../../../../../services/packageService";
 import { autoTranslateContent } from "../../../../../services/translationService";
 
 interface PackageData {
-  sport: "football" | "basketball";
-  plan: "standard" | "premium" | "combined";
+  sport: "football" | "basketball" | "combined";
+  plan: "standard" | "premium";
   duration: 1 | 2 | 3 | 4;
   included: string;
   included_es?: string;
@@ -170,6 +170,7 @@ export default function AddPackage({
             {[
               { value: "football", label: "⚽ Football" },
               { value: "basketball", label: "🏀 Basketball" },
+              { value: "combined", label: "🎯 Combined (Both)" },
             ].map((option) => (
               <label
                 key={option.value}
@@ -183,7 +184,7 @@ export default function AddPackage({
                   onChange={(e) =>
                     handleInputChange(
                       "sport",
-                      e.target.value as "football" | "basketball",
+                      e.target.value as "football" | "basketball" | "combined",
                     )
                   }
                   className="w-4 h-4 text-[#76C043] focus:ring-[#76C043]"
@@ -210,7 +211,6 @@ export default function AddPackage({
           {[
             { value: "standard", label: "📦 Standard" },
             { value: "premium", label: "⭐ Premium" },
-            { value: "combined", label: "🎯 Combined" },
           ].map((option) => (
             <label
               key={option.value}

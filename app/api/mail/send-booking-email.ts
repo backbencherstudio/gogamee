@@ -357,9 +357,6 @@ export async function sendBookingConfirmationEmail(
       };
     }
 
-    console.log("📧 Processing detailed email for booking:", booking.id);
-
-    // 1. Generate and Send User Email
     const userEmailContent = generateUserEmailContent(booking, options);
 
     await transporter.sendMail({
@@ -371,7 +368,6 @@ export async function sendBookingConfirmationEmail(
       text: `Booking Confirmed #${booking.id}. Thank you for booking with GoGame! Check your email for details.`,
       replyTo: process.env.MAIL_FROM ?? process.env.MAIL_USER,
     });
-    console.log("✅ User confirmation email sent");
 
     // 2. Generate and Send Admin Email
     const adminEmail = process.env.MAIL_TO ?? process.env.MAIL_USER;
@@ -387,7 +383,6 @@ export async function sendBookingConfirmationEmail(
           text: `New Booking #${booking.id} from ${booking.fullName}`,
           replyTo: booking.email,
         });
-        console.log("✅ Admin notification email sent to:", adminEmail);
       } catch (adminError) {
         console.error("❌ Failed to send admin email:", adminError);
         // We do not throw here to allow function to return success for user email
@@ -441,7 +436,6 @@ export async function queueBookingConfirmationEmails(
   booking: BookingData,
   options?: { showReveal?: boolean; delay?: number },
 ) {
-  console.log("📨 Queuing confirmation emails for:", booking.id);
 
   // 1. Queue User Email
   const userContent = generateUserEmailContent(booking, options);

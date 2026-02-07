@@ -49,11 +49,11 @@ export default function Payment() {
 
   const resolveTravelerData = useCallback(() => {
     // Combine all travelers from travelers object
-    const allTravelers = [
-      ...formData.travelers.adults,
-      ...formData.travelers.kids,
-      ...formData.travelers.babies,
-    ];
+    const adults = formData.travelers?.adults || [];
+    const kids = formData.travelers?.kids || [];
+    const babies = formData.travelers?.babies || [];
+
+    const allTravelers = [...adults, ...kids, ...babies];
     return allTravelers.length > 0 ? allTravelers : [];
   }, [formData.travelers]);
 
@@ -107,7 +107,7 @@ export default function Payment() {
       }
 
       // Get primary traveler (first adult) or create fallback
-      const primaryTraveler = formData.travelers.adults[0];
+      const primaryTraveler = formData.travelers?.adults?.[0];
       const fallbackTraveler = primaryTraveler || {
         name: "Traveler",
         email: "",
@@ -123,84 +123,102 @@ export default function Payment() {
       const normalizedTravelers =
         resolvedTravelers.length > 0 ? resolvedTravelers : [fallbackTraveler];
 
-      const bookingPayload: CreateBookingPayload = {
+      const bookingPayload = {
+        // Core selection
         selectedSport: workingData.selectedSport,
         selectedPackage: workingData.selectedPackage,
         selectedCity: workingData.selectedCity,
-        adults: formData.travelers.adults.length,
-        kids: formData.travelers.kids.length,
-        babies: formData.travelers.babies.length,
-        totalPeople:
-          formData.travelers.adults.length +
-          formData.travelers.kids.length +
-          formData.travelers.babies.length,
+
+        // People counts (nested)
+        peopleCount: {
+          adults: formData.travelers?.adults?.length || 0,
+          kids: formData.travelers?.kids?.length || 0,
+          babies: formData.travelers?.babies?.length || 0,
+        },
+
+        // Travelers (nested with categorized arrays)
+        travelers: {
+          adults: formData.travelers?.adults || [],
+          kids: formData.travelers?.kids || [],
+          babies: formData.travelers?.babies || [],
+        },
+
+        // Leagues (full array with selection status)
+        leagues: formData.leagues || [],
+
+        // Dates (ISO + formatted)
         departureDate: formData.departureDate || "",
         returnDate: formData.returnDate || "",
         departureDateFormatted: formData.departureDate
-          ? new Date(formData.departureDate).toLocaleDateString()
+          ? new Date(formData.departureDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
           : "",
         returnDateFormatted: formData.returnDate
-          ? new Date(formData.returnDate).toLocaleDateString()
+          ? new Date(formData.returnDate).toLocaleDateString("en-GB", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
           : "",
-        departureTimeStart: formData.flightSchedule?.departure.start || 0,
-        departureTimeEnd: formData.flightSchedule?.departure.end || 0,
-        arrivalTimeStart: formData.flightSchedule?.arrival.start || 0,
-        arrivalTimeEnd: formData.flightSchedule?.arrival.end || 0,
-        departureTimeRange: formData.flightSchedule
-          ? `${minutesToTime(
-              formData.flightSchedule.departure.start,
-            )} - ${minutesToTime(formData.flightSchedule.departure.end)}`
-          : "",
-        arrivalTimeRange: formData.flightSchedule
-          ? `${minutesToTime(
-              formData.flightSchedule.arrival.start,
-            )} - ${minutesToTime(formData.flightSchedule.arrival.end)}`
-          : "",
-        removedLeagues: formData.leagues
-          ? formData.leagues
-              .filter((l) => !l.isSelected && l.group === "National")
-              .map((l) => l.id)
-          : [],
-        removedLeaguesCount: formData.leagues
-          ? formData.leagues.filter(
-              (l) => !l.isSelected && l.group === "National",
-            ).length
-          : 0,
-        hasRemovedLeagues: formData.leagues
-          ? formData.leagues.some(
-              (l) => !l.isSelected && l.group === "National",
-            )
-          : false,
-        totalExtrasCost: formData.extras
-          .filter((extra) => extra.isSelected && !extra.isIncluded)
-          .reduce((total, extra) => total + extra.price * extra.quantity, 0),
-        extrasCount: formData.extras.filter((extra) => extra.isSelected).length,
-        firstName: primaryTraveler?.name?.split(" ")[0] || "",
-        lastName: primaryTraveler?.name?.split(" ").slice(1).join(" ") || "",
-        fullName: primaryTraveler?.name || "",
-        email: primaryTraveler?.email || "",
-        phone: primaryTraveler?.phone || "",
-        previousTravelInfo: "",
-        travelDuration:
-          formData.departureDate && formData.returnDate
-            ? Math.ceil(
-                (new Date(formData.returnDate).getTime() -
-                  new Date(formData.departureDate).getTime()) /
-                  (1000 * 60 * 60 * 24),
-              ) + 1
-            : 0,
-        hasFlightPreferences: formData.flightSchedule !== null,
-        requiresEuropeanLeagueHandling: formData.leagues
-          ? formData.leagues.some((l) => l.group === "European" && l.isSelected)
-          : false,
-        totalCost: String(formData.calculatedTotals?.totalCost || 0),
-        bookingExtras: formData.extras
+
+        // Duration (nested)
+        duration: {
+          days:
+            formData.departureDate && formData.returnDate
+              ? Math.ceil(
+                  (new Date(formData.returnDate).getTime() -
+                    new Date(formData.departureDate).getTime()) /
+                    (1000 * 60 * 60 * 24),
+                ) + 1
+              : 1,
+          nights:
+            formData.departureDate && formData.returnDate
+              ? Math.max(
+                  0,
+                  Math.ceil(
+                    (new Date(formData.returnDate).getTime() -
+                      new Date(formData.departureDate).getTime()) /
+                      (1000 * 60 * 60 * 24),
+                  ),
+                )
+              : 0,
+        },
+
+        // Flight schedule (nested, nullable)
+        flightSchedule: formData.flightSchedule
+          ? {
+              departure: {
+                start: formData.flightSchedule.departure.start,
+                end: formData.flightSchedule.departure.end,
+                rangeLabel: `${minutesToTime(
+                  formData.flightSchedule.departure.start,
+                )} - ${minutesToTime(formData.flightSchedule.departure.end)}`,
+              },
+              arrival: {
+                start: formData.flightSchedule.arrival.start,
+                end: formData.flightSchedule.arrival.end,
+                rangeLabel: `${minutesToTime(
+                  formData.flightSchedule.arrival.start,
+                )} - ${minutesToTime(formData.flightSchedule.arrival.end)}`,
+              },
+            }
+          : null,
+
+        // Extras (selected with proper structure)
+        extras: formData.extras
           .filter((extra) => extra.isSelected)
           .map((extra) => ({
             ...extra,
             currency: "EUR",
           })),
-        allTravelers: normalizedTravelers,
+
+        // Payment info
+        paymentInfo: {
+          cardholderName: primaryTraveler?.name || "",
+        },
       };
 
       const response = await fetch("/api/payment/stripe", {

@@ -144,11 +144,14 @@ export async function POST(request: NextRequest) {
     if (!finalUserEmail || !finalUserName) {
       try {
         const { BookingService } = await import("@/backend");
+        const { mapBookingToLegacy } =
+          await import("@/backend/modules/booking/booking.mapper");
         const booking = await BookingService.getById(bookingId);
         if (booking) {
-          finalUserEmail = finalUserEmail || booking.email;
-          finalUserName = finalUserName || booking.fullName || "Guest";
-          finalAmount = finalAmount || Number(booking.totalCost);
+          const legacyBooking = mapBookingToLegacy(booking);
+          finalUserEmail = finalUserEmail || legacyBooking.email;
+          finalUserName = finalUserName || legacyBooking.fullName || "Guest";
+          finalAmount = finalAmount || Number(legacyBooking.totalCost);
         }
       } catch (err) {
         console.error(
@@ -160,19 +163,12 @@ export async function POST(request: NextRequest) {
 
     if (!finalUserEmail) {
       // Fallback or error if we still don't have email
-      console.warn(
-        `⚠️ Could not find email for booking ${bookingId}, using fallback admin notification only`,
-      );
       // We return success to not crash frontend, but log warning
       return NextResponse.json({
         success: true,
         message: "Logged failure, but no email to send to.",
       });
     }
-
-    console.log(
-      `📧 Sending payment failed email for booking ${bookingId} to ${finalUserEmail}`,
-    );
 
     // Update body data for template generation
     const templateData = {
@@ -193,10 +189,6 @@ export async function POST(request: NextRequest) {
         text: `Payment Failed\n\nDear ${finalUserName},\n\nUnfortunately, your payment for booking #${bookingId} could not be processed.\n\nBooking Details:\n- Booking ID: #${bookingId}\n- Amount: €${Number(finalAmount).toFixed(2)}\n${errorMessage ? `- Error: ${errorMessage}\n` : ""}\nIMPORTANT: If any amount was deducted from your account, please contact our admin team immediately.\n\nContact: ${process.env.MAIL_TO || "info@gogame2025.com"}\n\nThank you,\nGoGame Team`,
       });
 
-      console.log(
-        `✅ Payment failed email sent successfully to ${finalUserEmail}`,
-      );
-
       return NextResponse.json({
         success: true,
         message: "Payment failed notification sent",
@@ -207,7 +199,6 @@ export async function POST(request: NextRequest) {
       // Queue for retry
       const isTransient = emailQueue.isTransientError(emailError as Error);
       if (isTransient) {
-        console.log("📨 Queueing payment failed email for retry...");
         await emailQueue.addToQueue({
           type: "booking",
           to: finalUserEmail,

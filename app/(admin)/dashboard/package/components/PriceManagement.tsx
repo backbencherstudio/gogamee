@@ -10,7 +10,7 @@ import { useToast } from "../../../../../components/ui/toast";
 
 interface PriceData {
   id: string;
-  sport: "football" | "basketball";
+  sport: "football" | "basketball" | "combined";
   standardPrice: number;
   premiumPrice: number;
   currency: string;
@@ -18,7 +18,7 @@ interface PriceData {
 
 interface PriceManagementProps {
   onPriceUpdate?: (
-    sport: "football" | "basketball",
+    sport: "football" | "basketball" | "combined",
     prices: { standardPrice: number; premiumPrice: number; currency: string },
   ) => void;
 }
@@ -30,12 +30,14 @@ export default function PriceManagement({
   const [priceData, setPriceData] = useState<{
     football: PriceData | null;
     basketball: PriceData | null;
+    combined: PriceData | null;
   }>({
     football: null,
     basketball: null,
+    combined: null,
   });
   const [editingSport, setEditingSport] = useState<
-    "football" | "basketball" | null
+    "football" | "basketball" | "combined" | null
   >(null);
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -59,6 +61,10 @@ export default function PriceManagement({
           (pkg) =>
             pkg.sport === "basketball" && pkg.included === "Starting Price",
         );
+        const combinedPricePackage = packages.find(
+          (pkg) =>
+            pkg.sport === "combined" && pkg.included === "Starting Price",
+        );
 
         // If Starting Price packages don't exist, create them with default values
         if (!footballPricePackage) {
@@ -66,6 +72,9 @@ export default function PriceManagement({
         }
         if (!basketballPricePackage) {
           await createStartingPricePackage("basketball");
+        }
+        if (!combinedPricePackage) {
+          await createStartingPricePackage("combined");
         }
 
         // Reload packages to get the newly created ones
@@ -83,6 +92,10 @@ export default function PriceManagement({
           const updatedBasketballPackage = updatedPackages.find(
             (pkg) =>
               pkg.sport === "basketball" && pkg.included === "Starting Price",
+          );
+          const updatedCombinedPackage = updatedPackages.find(
+            (pkg) =>
+              pkg.sport === "combined" && pkg.included === "Starting Price",
           );
 
           setPriceData({
@@ -102,6 +115,15 @@ export default function PriceManagement({
                   standardPrice: updatedBasketballPackage.standardPrice || 359,
                   premiumPrice: updatedBasketballPackage.premiumPrice || 1479,
                   currency: updatedBasketballPackage.currency || "EUR",
+                }
+              : null,
+            combined: updatedCombinedPackage
+              ? {
+                  id: updatedCombinedPackage.id,
+                  sport: "combined",
+                  standardPrice: updatedCombinedPackage.standardPrice || 0,
+                  premiumPrice: updatedCombinedPackage.premiumPrice || 0,
+                  currency: updatedCombinedPackage.currency || "EUR",
                 }
               : null,
           });
@@ -124,12 +146,13 @@ export default function PriceManagement({
 
   // Create Starting Price package for a sport
   const createStartingPricePackage = async (
-    sport: "football" | "basketball",
+    sport: "football" | "basketball" | "combined",
   ) => {
     try {
       const defaultPrices = {
         football: { standardPrice: 379, premiumPrice: 1499 },
         basketball: { standardPrice: 359, premiumPrice: 1479 },
+        combined: { standardPrice: 0, premiumPrice: 0 },
       };
 
       const packageData = {
@@ -145,7 +168,6 @@ export default function PriceManagement({
 
       const response = await addPackage(packageData);
       if (response.success) {
-        console.log(`Created Starting Price package for ${sport}`);
       } else {
         console.error(
           `Failed to create Starting Price package for ${sport}:`,
@@ -157,12 +179,12 @@ export default function PriceManagement({
     }
   };
 
-  const handleEditPrices = (sport: "football" | "basketball") => {
+  const handleEditPrices = (sport: "football" | "basketball" | "combined") => {
     setEditingSport(sport);
   };
 
   const handleSavePrices = async (
-    sport: "football" | "basketball",
+    sport: "football" | "basketball" | "combined",
     newPrices: {
       standardPrice: number;
       premiumPrice: number;
@@ -418,7 +440,7 @@ export default function PriceManagement({
 
 // Price Edit Form Component
 interface PriceEditFormProps {
-  sport: "football" | "basketball";
+  sport: "football" | "basketball" | "combined";
   currentData: PriceData | null;
   onSave: (prices: {
     standardPrice: number;
@@ -439,6 +461,7 @@ function PriceEditForm({
   const defaultPrices = {
     football: { standardPrice: 379, premiumPrice: 1499 },
     basketball: { standardPrice: 359, premiumPrice: 1479 },
+    combined: { standardPrice: 0, premiumPrice: 0 },
   };
 
   const [formData, setFormData] = useState({
@@ -597,7 +620,9 @@ function PriceEditForm({
               ? "bg-gray-300 text-gray-500 cursor-not-allowed"
               : sport === "football"
                 ? "bg-green-600 hover:bg-green-700 text-white"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
+                : sport === "basketball"
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
+                  : "bg-purple-600 hover:bg-purple-700 text-white"
           }`}
         >
           {isSaving ? (

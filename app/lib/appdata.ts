@@ -2990,7 +2990,6 @@ export const AppData = {
       // const response = await fetch('/api/app-data');
       // const data = await response.json();
       // return data;
-      console.log("API integration not yet implemented");
       return null;
     },
 
@@ -3003,7 +3002,6 @@ export const AppData = {
       //   body: JSON.stringify(data)
       // });
       // return response.json();
-      console.log(`API update for ${section} not yet implemented`);
       return null;
     },
   },

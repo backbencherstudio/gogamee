@@ -81,14 +81,6 @@ SportCard.displayName = "SportCard";
 export default function SportsYouPreffer() {
   const { formData, updateFormData, nextStep } = useBooking();
 
-  // Debug logging
-  console.log(
-    "🎯 SportsYouPreffer - formData.selectedSport:",
-    formData.selectedSport,
-    "fromHero:",
-    formData.fromHero,
-  );
-
   // Initialize form with react-hook-form
   const { control, handleSubmit, watch, setValue } = useForm<FormData>({
     defaultValues: {
@@ -103,10 +95,6 @@ export default function SportsYouPreffer() {
   useEffect(() => {
     if (formData.selectedSport && formData.selectedSport !== selectedSport) {
       setValue("selectedSport", formData.selectedSport);
-      console.log(
-        "🎯 SportsYouPreffer - synced with context:",
-        formData.selectedSport,
-      );
     }
   }, [formData.selectedSport, selectedSport, setValue]);
 
@@ -126,7 +114,6 @@ export default function SportsYouPreffer() {
   const handleSportSelect = useCallback(
     (value: string) => {
       setValue("selectedSport", value);
-      // Save to context immediately on change
       updateFormData({ selectedSport: value });
     },
     [setValue, updateFormData],
@@ -135,7 +122,6 @@ export default function SportsYouPreffer() {
   // Form submission handler
   const onSubmit = useCallback(
     (data: FormData) => {
-      console.log("Selected sport:", data.selectedSport);
       updateFormData({ selectedSport: data.selectedSport });
       nextStep();
     },

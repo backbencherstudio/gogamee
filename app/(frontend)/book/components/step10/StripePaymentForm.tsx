@@ -47,8 +47,6 @@ export default function StripePaymentForm({
       }
 
       if (paymentIntent && paymentIntent.status === "succeeded") {
-        console.log("✅ Payment succeeded:", paymentIntent.id);
-
         // Confirm with backend
         const confirmResponse = await fetch("/api/payment/confirm", {
           method: "POST",
@@ -60,7 +58,6 @@ export default function StripePaymentForm({
         });
 
         if (confirmResponse.ok) {
-          console.log("✅ Booking confirmed");
           onSuccess();
         } else {
           const errorData = await confirmResponse.json();

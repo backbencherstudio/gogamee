@@ -94,10 +94,6 @@ const PackageType: React.FC = () => {
       formData.selectedPackage !== selectedPackage
     ) {
       setValue("selectedPackage", formData.selectedPackage);
-      console.log(
-        "🎯 PackageType - synced with context:",
-        formData.selectedPackage,
-      );
     }
   }, [formData.selectedPackage, selectedPackage, setValue]);
 

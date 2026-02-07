@@ -24,9 +24,9 @@ export default function PackageTable({
   initialStartingPrices,
 }: PackageTableProps) {
   const { language, translateText } = useLanguage();
-  const [selectedSport, setSelectedSport] = useState<"football" | "basketball">(
-    "football",
-  );
+  const [selectedSport, setSelectedSport] = useState<
+    "football" | "basketball" | "both"
+  >("football");
   // const [selectedDuration, setSelectedDuration] = useState<1 | 2 | 3 | 4>(1); // Removed duration filter state
   const [packages, setPackages] = useState<PackageItem[]>(initialPackages);
   const [translatedPackages, setTranslatedPackages] = useState<PackageItem[]>(
@@ -63,17 +63,6 @@ export default function PackageTable({
       try {
         setLoading(true);
         setError(null);
-
-        // Fetch packages for selected sport AND combined packages
-        // Actually, getAllPackages filters by sport if provided.
-        // We probably need to fetch "combined" packages too if they are stored as sport="combined".
-        // Or fetch ALL packages and filter locally.
-        // The current implementation calls getAllPackages(selectedSport).
-        // Let's call getAllPackages() without sport to get everything, then filter locally?
-        // Or make parallel calls.
-        // Given existing code fetches `selectedSport`, let's just fetch "combined" as well if needed.
-        // But simpler: fetch ALL packages once (no sport arg) or keep current behavior but also fetch combined.
-        // Let's try fetching "combined" sport packages too.
 
         const [
           selectedSportPackagesRes,
@@ -193,25 +182,21 @@ export default function PackageTable({
       // Use original packages (English)
       setTranslatedPackages(packages);
     }
-
-    // Debug: Log packages to see what's being loaded
-    console.log("Packages loaded:", packages);
   }, [language, packages]);
 
   const getFilteredPackagesForDuration = (duration: number) => {
+    const targetSport = selectedSport === "both" ? "combined" : selectedSport;
     return translatedPackages.filter(
-      (pkg) =>
-        (pkg.sport === selectedSport || pkg.sport === "combined") &&
-        pkg.duration === duration,
+      (pkg) => pkg.sport === targetSport && pkg.duration === duration,
     );
   };
 
   // Helper to get Price value
   const getPriceValue = (type: string, duration: number) => {
-    const isCombined = type.toLowerCase() === "combined";
-    const currentPrices = isCombined
-      ? startingPrices.combined
-      : startingPrices[selectedSport];
+    const currentPrices =
+      selectedSport === "both"
+        ? startingPrices.combined
+        : startingPrices[selectedSport as "football" | "basketball"];
 
     if (!currentPrices) return "-";
 
@@ -219,23 +204,12 @@ export default function PackageTable({
     const priceEntry = currentPrices.pricesByDuration?.[durationKey];
     if (!priceEntry) return "-";
 
-    // For combined, we might use standard price as the main display or something else.
-    // Usually combined uses standard slot? Or does it have its own logic?
-    // StartingPriceItem has standard/premium slots.
-    // If combined has only one price, presumably it's in 'standard'.
-
     const price =
       type === "standard"
         ? priceEntry.standard
         : type === "premium"
           ? priceEntry.premium
-          : priceEntry.standard; // Fallback to standard for combined if undetermined, but usually combined implies specific price.
-    // Wait, 'type' passed here is "standard", "premium", "combined".
-    // If type is "combined", we want the price for combined.
-    // And we access startingPrices.combined.
-    // Does Combined StartingPrice have "Standard" and "Premium" variants?
-    // Probably not. It probably just has one price.
-    // Let's assume it's in 'standard'.
+          : priceEntry.standard;
 
     const fromLabel = language === "en" ? "From " : "Desde ";
     return `${fromLabel}${price}${getCurrencySymbol(currentPrices.currency)}`;
@@ -244,18 +218,11 @@ export default function PackageTable({
   // Helper to get all packages (features) for a specific plan and duration
   const getPackagesForPlan = (type: string, duration: number) => {
     const lowerType = type.toLowerCase();
-
-    // For Combined packages, we want to show them regardless of the sport field
-    // (as long as the plan is 'combined')
-    if (lowerType === "combined") {
-      return translatedPackages.filter(
-        (pkg) => pkg.plan === "combined" && pkg.duration === duration,
-      );
-    }
+    const targetSport = selectedSport === "both" ? "combined" : selectedSport;
 
     return translatedPackages.filter(
       (pkg) =>
-        pkg.sport === selectedSport &&
+        pkg.sport === targetSport &&
         pkg.duration === duration &&
         pkg.plan === lowerType,
     );
@@ -301,41 +268,26 @@ export default function PackageTable({
             </div>
           </div>
         </div>
-        <div className="inline-flex justify-start items-center gap-4 md:gap-5">
-          <button
-            type="button"
-            className={`justify-start text-base md:text-lg font-['Poppins'] leading-loose focus:outline-none transition-colors duration-150 cursor-pointer ${selectedSport === "football" ? "text-neutral-800 font-medium" : "text-zinc-500 font-normal"}`}
-            onClick={() => setSelectedSport("football")}
-            aria-pressed={selectedSport === "football"}
-            disabled={loading}
-          >
-            <TranslatedText text="Fútbol" english="Football" />
-          </button>
-          <button
-            type="button"
-            aria-label="Toggle sport"
-            data-pressed={selectedSport === "basketball"}
-            data-size="lg"
-            data-state="Default"
-            className={`w-11 h-6 p-0.5 bg-[#76C043] rounded-xl flex ${selectedSport === "basketball" ? "justify-end" : "justify-start"} items-center overflow-hidden cursor-pointer focus:outline-none transition-all duration-150 ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
-            onClick={() =>
-              setSelectedSport(
-                selectedSport === "football" ? "basketball" : "football",
-              )
-            }
-            disabled={loading}
-          >
-            <span className="w-5 h-5 bg-white rounded-full shadow-[0px_1px_2px_0px_rgba(16,24,40,0.06)] block transition-transform duration-150" />
-          </button>
-          <button
-            type="button"
-            className={`justify-start text-base md:text-lg font-['Poppins'] leading-loose focus:outline-none transition-colors duration-150 cursor-pointer ${selectedSport === "basketball" ? "text-neutral-800 font-medium" : "text-zinc-500 font-normal"}`}
-            onClick={() => setSelectedSport("basketball")}
-            aria-pressed={selectedSport === "basketball"}
-            disabled={loading}
-          >
-            <TranslatedText text="Basket" english="Basketball" />
-          </button>
+        <div className="flex bg-slate-100/50 p-1.5 rounded-2xl gap-1 border border-slate-200">
+          {[
+            { id: "football", label: "Fútbol", en: "Football" },
+            { id: "basketball", label: "Basket", en: "Basketball" },
+            { id: "both", label: "Ambos", en: "Both" },
+          ].map((sport) => (
+            <button
+              key={sport.id}
+              type="button"
+              className={`px-6 py-2.5 rounded-xl text-base md:text-lg font-['Poppins'] transition-all duration-200 focus:outline-none ${
+                selectedSport === sport.id
+                  ? "bg-[#76C043] text-white font-medium shadow-sm"
+                  : "text-zinc-500 font-normal hover:bg-slate-200/50"
+              }`}
+              onClick={() => setSelectedSport(sport.id as any)}
+              disabled={loading}
+            >
+              <TranslatedText text={sport.label} english={sport.en} />
+            </button>
+          ))}
         </div>
 
         {/* Duration Selection Removed - showing all tables */}
@@ -384,7 +336,7 @@ export default function PackageTable({
 
                     {/* Mobile cards (only on small screens) */}
                     <div className="md:hidden w-full max-w-[1200px] mx-auto space-y-6 px-4">
-                      {["Standard", "Premium", "Combined"].map((type) => (
+                      {["Standard", "Premium"].map((type) => (
                         <div
                           key={type}
                           className="w-full rounded-2xl bg-white outline-[6px] outline-offset-[-6px] outline-green-50"
@@ -405,26 +357,30 @@ export default function PackageTable({
                             <div className="text-zinc-950 text-lg font-bold font-['Poppins']">
                               <TranslatedText
                                 text={
-                                  type === "Standard"
-                                    ? selectedSport === "football"
-                                      ? "Estándar GoGame Kickoff"
-                                      : "Estándar GoGame Slam"
-                                    : type === "Premium"
+                                  selectedSport === "both"
+                                    ? type === "Standard"
+                                      ? "Estándar GoGame Combined"
+                                      : "Premium GoGame Combined"
+                                    : type === "Standard"
                                       ? selectedSport === "football"
+                                        ? "Estándar GoGame Kickoff"
+                                        : "Estándar GoGame Slam"
+                                      : selectedSport === "football"
                                         ? "Premium GoGame Legend"
                                         : "Premium GoGame MVP"
-                                      : "Pack Combinado" // Fallback for Combined
                                 }
                                 english={
-                                  type === "Standard"
-                                    ? selectedSport === "football"
-                                      ? "Standard GoGame Kickoff"
-                                      : "Standard GoGame Slam"
-                                    : type === "Premium"
+                                  selectedSport === "both"
+                                    ? type === "Standard"
+                                      ? "Standard GoGame Combined"
+                                      : "Premium GoGame Combined"
+                                    : type === "Standard"
                                       ? selectedSport === "football"
+                                        ? "Standard GoGame Kickoff"
+                                        : "Standard GoGame Slam"
+                                      : selectedSport === "football"
                                         ? "Premium GoGame Legend"
                                         : "Premium GoGame MVP"
-                                      : "Combined Pack" // Fallback for Combined
                                 }
                               />
                             </div>
@@ -519,59 +475,61 @@ export default function PackageTable({
                                   english="Compare packs"
                                 />
                               </th>
-                              {["Standard", "Premium", "Combined"].map(
-                                (type, idx) => (
-                                  <th
-                                    key={type}
-                                    className={`w-56 md:w-96 p-3 md:p-6 bg-white align-top text-center ${idx < 2 ? "border-r border-slate-200" : ""}`}
-                                  >
-                                    <div className="flex flex-col items-center gap-2">
-                                      <div
-                                        className={`inline-flex px-2 md:px-3 py-1.5 md:py-2 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mb-1`}
+                              {["Standard", "Premium"].map((type, idx) => (
+                                <th
+                                  key={type}
+                                  className={`w-56 md:w-96 p-3 md:p-6 bg-white align-top text-center ${idx < 2 ? "border-r border-slate-200" : ""}`}
+                                >
+                                  <div className="flex flex-col items-center gap-2">
+                                    <div
+                                      className={`inline-flex px-2 md:px-3 py-1.5 md:py-2 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mb-1`}
+                                    >
+                                      <span
+                                        className={`text-[#76C043] text-xs md:text-sm font-medium font-['Poppins'] flex items-center justify-center`}
                                       >
-                                        <span
-                                          className={`text-[#76C043] text-xs md:text-sm font-medium font-['Poppins'] flex items-center justify-center`}
-                                        >
-                                          <TranslatedText
-                                            text={
-                                              type === "Standard"
-                                                ? "Pack Estándar"
-                                                : "Pack Premium"
-                                            }
-                                            english={`${type} pack`}
-                                          />
-                                        </span>
-                                      </div>
-                                      <span className="text-lg md:text-2xl font-bold font-['Poppins'] text-zinc-950">
                                         <TranslatedText
                                           text={
                                             type === "Standard"
+                                              ? "Pack Estándar"
+                                              : "Pack Premium"
+                                          }
+                                          english={`${type} pack`}
+                                        />
+                                      </span>
+                                    </div>
+                                    <span className="text-lg md:text-2xl font-bold font-['Poppins'] text-zinc-950">
+                                      <TranslatedText
+                                        text={
+                                          selectedSport === "both"
+                                            ? type === "Standard"
+                                              ? "Estándar GoGame Combined"
+                                              : "Premium GoGame Combined"
+                                            : type === "Standard"
                                               ? selectedSport === "football"
                                                 ? "Estándar GoGame Kickoff"
                                                 : "Estándar GoGame Slam"
                                               : selectedSport === "football"
-                                                ? selectedSport === "football"
-                                                  ? "Premium GoGame Legend"
-                                                  : "Premium GoGame MVP"
-                                                : "Pack Combinado"
-                                          }
-                                          english={
-                                            type === "Standard"
+                                                ? "Premium GoGame Legend"
+                                                : "Premium GoGame MVP"
+                                        }
+                                        english={
+                                          selectedSport === "both"
+                                            ? type === "Standard"
+                                              ? "Standard GoGame Combined"
+                                              : "Premium GoGame Combined"
+                                            : type === "Standard"
                                               ? selectedSport === "football"
                                                 ? "Standard GoGame Kickoff"
                                                 : "Standard GoGame Slam"
-                                              : type === "Premium"
-                                                ? selectedSport === "football"
-                                                  ? "Premium GoGame Legend"
-                                                  : "Premium GoGame MVP"
-                                                : "Combined Pack"
-                                          }
-                                        />
-                                      </span>
-                                    </div>
-                                  </th>
-                                ),
-                              )}
+                                              : selectedSport === "football"
+                                                ? "Premium GoGame Legend"
+                                                : "Premium GoGame MVP"
+                                        }
+                                      />
+                                    </span>
+                                  </div>
+                                </th>
+                              ))}
                             </tr>
                           </thead>
                           <tbody>
@@ -583,20 +541,18 @@ export default function PackageTable({
                                   english="Duration"
                                 />
                               </th>
-                              {["standard", "premium", "combined"].map(
-                                (type, idx) => (
-                                  <td
-                                    key={type}
-                                    className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-sm md:text-base font-bold font-['Poppins'] text-neutral-800 bg-gray-50/50 align-middle ${idx < 2 ? "border-r border-slate-200" : ""}`}
-                                  >
-                                    {duration}{" "}
-                                    <TranslatedText
-                                      text="Noches"
-                                      english="Nights"
-                                    />
-                                  </td>
-                                ),
-                              )}
+                              {["standard", "premium"].map((type, idx) => (
+                                <td
+                                  key={type}
+                                  className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-sm md:text-base font-bold font-['Poppins'] text-neutral-800 bg-gray-50/50 align-middle ${idx < 2 ? "border-r border-slate-200" : ""}`}
+                                >
+                                  {duration}{" "}
+                                  <TranslatedText
+                                    text="Noches"
+                                    english="Nights"
+                                  />
+                                </td>
+                              ))}
                             </tr>
 
                             {/* Included Row with List */}
@@ -607,40 +563,38 @@ export default function PackageTable({
                                   english="Included"
                                 />
                               </th>
-                              {["standard", "premium", "combined"].map(
-                                (type, idx) => {
-                                  const packagesForPlan = getPackagesForPlan(
-                                    type,
-                                    duration,
-                                  );
+                              {["standard", "premium"].map((type, idx) => {
+                                const packagesForPlan = getPackagesForPlan(
+                                  type,
+                                  duration,
+                                );
 
-                                  return (
-                                    <td
-                                      key={type}
-                                      className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 bg-white align-top ${idx < 2 ? "border-r border-slate-200" : ""}`}
-                                    >
-                                      <p className="text-sm md:text-base text-neutral-800 font-['Poppins'] leading-relaxed">
-                                        {packagesForPlan.length > 0 ? (
-                                          Array.from(
-                                            new Set(
-                                              packagesForPlan
-                                                .map((pkg) => pkg.included)
-                                                .filter(Boolean),
-                                            ),
-                                          ).join(", ")
-                                        ) : (
-                                          <span className="text-neutral-400 italic">
-                                            <TranslatedText
-                                              text="Sin características incluidas"
-                                              english="No features included"
-                                            />
-                                          </span>
-                                        )}
-                                      </p>
-                                    </td>
-                                  );
-                                },
-                              )}
+                                return (
+                                  <td
+                                    key={type}
+                                    className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 bg-white align-top ${idx < 2 ? "border-r border-slate-200" : ""}`}
+                                  >
+                                    <p className="text-sm md:text-base text-neutral-800 font-['Poppins'] leading-relaxed">
+                                      {packagesForPlan.length > 0 ? (
+                                        Array.from(
+                                          new Set(
+                                            packagesForPlan
+                                              .map((pkg) => pkg.included)
+                                              .filter(Boolean),
+                                          ),
+                                        ).join(", ")
+                                      ) : (
+                                        <span className="text-neutral-400 italic">
+                                          <TranslatedText
+                                            text="Sin características incluidas"
+                                            english="No features included"
+                                          />
+                                        </span>
+                                      )}
+                                    </p>
+                                  </td>
+                                );
+                              })}
                             </tr>
 
                             {/* Price Row */}
@@ -651,29 +605,27 @@ export default function PackageTable({
                                   english="Starting Price"
                                 />
                               </th>
-                              {["standard", "premium", "combined"].map(
-                                (type, idx) => (
-                                  <td
-                                    key={type}
-                                    className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-sm md:text-base font-normal font-['Poppins'] text-neutral-800 bg-[#F1F9EC] align-middle ${idx < 2 ? "border-r border-slate-200" : ""}`}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <span className="font-normal">
-                                        <TranslatedText
-                                          text="Desde "
-                                          english="From "
-                                        />
-                                      </span>
-                                      <span className="font-bold text-lg text-[#76C043]">
-                                        {getPriceValue(type, duration).replace(
-                                          /^(From|Desde)\s*/,
-                                          "",
-                                        )}
-                                      </span>
-                                    </div>
-                                  </td>
-                                ),
-                              )}
+                              {["standard", "premium"].map((type, idx) => (
+                                <td
+                                  key={type}
+                                  className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-sm md:text-base font-normal font-['Poppins'] text-neutral-800 bg-[#F1F9EC] align-middle ${idx < 2 ? "border-r border-slate-200" : ""}`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-normal">
+                                      <TranslatedText
+                                        text="Desde "
+                                        english="From "
+                                      />
+                                    </span>
+                                    <span className="font-bold text-lg text-[#76C043]">
+                                      {getPriceValue(type, duration).replace(
+                                        /^(From|Desde)\s*/,
+                                        "",
+                                      )}
+                                    </span>
+                                  </div>
+                                </td>
+                              ))}
                             </tr>
                           </tbody>
                         </table>

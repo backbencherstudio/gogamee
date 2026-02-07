@@ -256,11 +256,6 @@ const calculateFlightScheduleCost = (
   return departureCost + arrivalCost;
 };
 
-const calculateLeagueCost = (selectedLeague: string): number => {
-  if (!selectedLeague) return 0;
-  return leaguePricingData.getLeagueAdditionalCost(selectedLeague);
-};
-
 interface TravelerInfo {
   name: string;
   email: string;
@@ -364,16 +359,16 @@ export default function Personalinfo() {
   // Check if we have people count data from howmanytotal page
   const hasMultipleTravelers =
     formData.travelers &&
-    (formData.travelers.adults.length > 1 ||
-      formData.travelers.kids.length > 0 ||
-      formData.travelers.babies.length > 0);
+    ((formData.travelers.adults?.length || 0) > 1 ||
+      (formData.travelers.kids?.length || 0) > 0 ||
+      (formData.travelers.babies?.length || 0) > 0);
 
   // Calculate dynamic reservation data from all previous steps
   const reservationData = useMemo(() => {
     const totalPeople = formData.travelers
-      ? formData.travelers.adults.length +
-        formData.travelers.kids.length +
-        formData.travelers.babies.length
+      ? (formData.travelers.adults?.length || 0) +
+        (formData.travelers.kids?.length || 0) +
+        (formData.travelers.babies?.length || 0)
       : 0;
 
     const duration = calculateDuration(
@@ -452,7 +447,8 @@ export default function Personalinfo() {
       flightScheduleTotal +
       leagueTotal +
       removalTotal +
-      singleTravelerSupplement;
+      singleTravelerSupplement +
+      BOOKING_CONSTANTS.BOOKING_FEE; // Added booking fee to match backend calculation
 
     return {
       departureCity:
@@ -502,9 +498,9 @@ export default function Personalinfo() {
     }
 
     const totalPeople = formData.travelers
-      ? formData.travelers.adults.length +
-        formData.travelers.kids.length +
-        formData.travelers.babies.length
+      ? (formData.travelers.adults?.length || 0) +
+        (formData.travelers.kids?.length || 0) +
+        (formData.travelers.babies?.length || 0)
       : 1;
     const extraTravelersCount = Math.max(0, totalPeople - 1);
 
@@ -558,8 +554,9 @@ export default function Personalinfo() {
     });
 
     let extraIndex = 0;
+    const adultsInContext = formData.travelers?.adults?.length || 0;
 
-    for (let i = 1; i < formData.travelers.adults.length; i++) {
+    for (let i = 1; i < adultsInContext; i++) {
       if (extraIndex < data.extraTravelers.length) {
         const info = data.extraTravelers[extraIndex++];
         adults.push({
@@ -575,7 +572,8 @@ export default function Personalinfo() {
     }
 
     const kids = [];
-    for (let i = 0; i < formData.travelers.kids.length; i++) {
+    const kidsInContext = formData.travelers?.kids?.length || 0;
+    for (let i = 0; i < kidsInContext; i++) {
       if (extraIndex < data.extraTravelers.length) {
         const info = data.extraTravelers[extraIndex++];
         kids.push({
@@ -591,7 +589,8 @@ export default function Personalinfo() {
     }
 
     const babies = [];
-    for (let i = 0; i < formData.travelers.babies.length; i++) {
+    const babiesInContext = formData.travelers?.babies?.length || 0;
+    for (let i = 0; i < babiesInContext; i++) {
       if (extraIndex < data.extraTravelers.length) {
         const info = data.extraTravelers[extraIndex++];
         babies.push({

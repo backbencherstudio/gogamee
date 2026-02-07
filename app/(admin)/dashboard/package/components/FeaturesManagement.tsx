@@ -20,9 +20,9 @@ interface StartingPriceFeatures {
 
 export default function FeaturesManagement() {
   const { addToast } = useToast();
-  const [selectedSport, setSelectedSport] = useState<"football" | "basketball">(
-    "football",
-  );
+  const [selectedSport, setSelectedSport] = useState<
+    "football" | "basketball" | "combined"
+  >("football");
   const [features, setFeatures] = useState<Feature[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -369,6 +369,16 @@ export default function FeaturesManagement() {
           }`}
         >
           🏀 Basketball
+        </button>
+        <button
+          onClick={() => setSelectedSport("combined")}
+          className={`px-6 py-2 rounded ${
+            selectedSport === "combined"
+              ? "bg-purple-600 text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          🎯 Both
         </button>
       </div>
 

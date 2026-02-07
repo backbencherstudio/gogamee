@@ -111,7 +111,6 @@ export default function PackageManagement({
   const handleAddPackage = async (newPackage: any) => {
     try {
       // Logic from previous file:
-      console.log("Sending package data:", newPackage);
       const response = await addPackage(newPackage);
 
       if (response.success) {
@@ -181,7 +180,6 @@ export default function PackageManagement({
     try {
       // Refresh to ensure consistency
       await refreshPackages(currentPage);
-      console.log(`Price updated for ${sport}:`, prices);
     } catch (err) {
       console.error("Error refreshing packages after price update:", err);
     }
@@ -335,12 +333,16 @@ export default function PackageManagement({
                           className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                             pkg.sport === "football"
                               ? "bg-green-100 text-green-700"
-                              : "bg-blue-100 text-blue-700"
+                              : pkg.sport === "basketball"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-orange-100 text-orange-700"
                           }`}
                         >
                           {pkg.sport === "football"
                             ? "⚽ Football"
-                            : "🏀 Basketball"}
+                            : pkg.sport === "basketball"
+                              ? "🏀 Basketball"
+                              : "🎯 Combined"}
                         </span>
                         {pkg.plan && (
                           <span
@@ -481,7 +483,13 @@ export default function PackageManagement({
                 if (!pkg) return null;
                 const initial = {
                   ...pkg,
-                  sport: pkg.sport as "football" | "basketball",
+                  sport: (pkg.plan === "combined" ? "combined" : pkg.sport) as
+                    | "football"
+                    | "basketball"
+                    | "combined",
+                  plan: (pkg.plan === "combined" ? "standard" : pkg.plan) as
+                    | "standard"
+                    | "premium",
                 };
                 return (
                   <AddPackage

@@ -57,10 +57,10 @@ interface HeroData {
   selectedSport: string;
   selectedPackage: string;
   selectedCity: string;
-  travelers: {
-    adults: Traveler[];
-    kids: Traveler[];
-    babies: Traveler[];
+  peopleCount: {
+    adults: number;
+    kids: number;
+    babies: number;
   };
   fromHero: boolean;
   startFromStep: number;
@@ -200,21 +200,12 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   useEffect(() => {
-    console.log("🎯 currentStep changed to:", currentStep);
-  }, [currentStep]);
-
-  useEffect(() => {
     if (typeof window !== "undefined") {
       const heroData = localStorage.getItem("gogame_hero_data");
       if (heroData && !heroDataProcessedRef.current) {
         heroDataProcessedRef.current = true;
         try {
           const parsedHeroData = JSON.parse(heroData);
-          console.log(
-            "🎯 Found hero data, pre-populating stepper:",
-            parsedHeroData,
-          );
-
           const mapHeroDataToStepper = (heroData: HeroData) => {
             const mappedSport = heroData.selectedSport;
             let mappedCity = heroData.selectedCity;
@@ -222,11 +213,40 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
               mappedCity = "malaga";
             }
 
+            // Correctly initialize traveler arrays based on peopleCount from Hero
+            const initializeTravelers = (
+              count: number,
+              type: "adult" | "kid" | "baby",
+            ) => {
+              return Array.from({ length: count }, (_, i) => ({
+                id: `${type}-${i + 1}-${Date.now()}`,
+                type: type,
+                name: "",
+                dateOfBirth: "",
+                documentType: "ID" as const,
+                documentNumber: "",
+                isPrimary: type === "adult" && i === 0,
+              }));
+            };
+
             return {
               selectedSport: mappedSport,
               selectedPackage: heroData.selectedPackage,
               selectedCity: mappedCity,
-              travelers: heroData.travelers || getDefaultFormData().travelers,
+              travelers: {
+                adults: initializeTravelers(
+                  heroData.peopleCount?.adults || 1,
+                  "adult",
+                ),
+                kids: initializeTravelers(
+                  heroData.peopleCount?.kids || 0,
+                  "kid",
+                ),
+                babies: initializeTravelers(
+                  heroData.peopleCount?.babies || 0,
+                  "baby",
+                ),
+              },
             };
           };
 
@@ -240,36 +260,17 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
 
           setFormData(heroFormData);
           setCurrentStep(parsedHeroData.startFromStep);
-          console.log(
-            "🎯 Setting current step to:",
-            parsedHeroData.startFromStep,
-            "for hero data",
-          );
-
           localStorage.removeItem("gogame_hero_data");
           localStorage.removeItem("gogame_booking_step");
-          console.log(
-            "✅ Hero data applied and cleared. Starting from step",
-            parsedHeroData.startFromStep + 1,
-          );
 
           setIsHydrated(true);
 
           setTimeout(() => {
-            console.log(
-              "🔄 Forcing step update to:",
-              parsedHeroData.startFromStep,
-            );
             setCurrentStep(parsedHeroData.startFromStep);
           }, 100);
 
           setTimeout(() => {
-            console.log(
-              "🔍 Final step check - current step should be:",
-              parsedHeroData.startFromStep,
-            );
             if (currentStep !== parsedHeroData.startFromStep) {
-              console.log("⚠️ Step mismatch detected, correcting...");
               setCurrentStep(parsedHeroData.startFromStep);
             }
           }, 200);
@@ -287,8 +288,15 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
         if (savedData) {
           try {
             const parsedData = JSON.parse(savedData);
-            setFormData(parsedData);
-            console.log("📦 Loaded existing booking data from localStorage");
+            setFormData((prev) => ({
+              ...prev,
+              ...parsedData,
+              // Deep merge travelers to ensure nested arrays exist
+              travelers: {
+                ...prev.travelers,
+                ...(parsedData.travelers || {}),
+              },
+            }));
           } catch (error) {
             console.error("Error parsing localStorage data:", error);
           }
@@ -299,7 +307,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
           try {
             const step = parseFloat(savedStep);
             setCurrentStep(step);
-            console.log("📍 Loaded current step from localStorage:", step + 1);
           } catch (error) {
             console.error("Error parsing localStorage step:", error);
           }
@@ -321,7 +328,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
       const heroData = localStorage.getItem("gogame_hero_data");
       if (!heroData) {
         localStorage.setItem("gogame_booking_step", currentStep.toString());
-        console.log("💾 Saved current step to localStorage:", currentStep);
       }
     }
   }, [currentStep, isHydrated]);
@@ -390,7 +396,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     setCurrentStep(0); // Reset to step 1
     localStorage.removeItem("gogame_booking_data");
     localStorage.removeItem("gogame_booking_step");
-    console.log("Booking data cleared.");
   };
 
   const nextStep = (

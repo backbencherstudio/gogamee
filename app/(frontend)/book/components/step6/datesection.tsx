@@ -538,10 +538,6 @@ export default function DateSection() {
         // Get duration from selected duration option
         const durationParam = selectedDurationKey || "1";
 
-        console.log(
-          `🗓️ Step 6 - Fetching dates for: ${monthsToFetch.join(", ")} ${displayYear}, sport: ${formData.selectedSport}, league: ${leagueParam}, duration: ${durationParam}`,
-        );
-
         const data = await getAllDates({
           months: monthsToFetch,
           year: displayYear,

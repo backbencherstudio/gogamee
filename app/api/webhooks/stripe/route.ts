@@ -115,9 +115,9 @@ export async function POST(request: NextRequest) {
         try {
           // Update booking status
           const updatedBooking = await BookingService.updateById(bookingId, {
-            status: "pending", // Keep pending until admin approves details
-            payment_status: "paid",
-            stripe_payment_intent_id: paymentIntent.id,
+            status: "pending",
+            "payment.status": "paid",
+            "payment.stripePaymentIntentId": paymentIntent.id,
           });
 
           if (updatedBooking) {
@@ -134,7 +134,11 @@ export async function POST(request: NextRequest) {
               try {
                 const { sendBookingConfirmationEmail } =
                   await import("../../mail/send-booking-email");
-                await sendBookingConfirmationEmail(updatedBooking as any);
+                const { mapBookingToLegacy } =
+                  await import("@/backend/modules/booking/booking.mapper");
+                await sendBookingConfirmationEmail(
+                  mapBookingToLegacy(updatedBooking),
+                );
                 console.log("📧 Confirmation email sent");
               } catch (e) {
                 console.error("❌ Email failed:", e);
@@ -178,7 +182,7 @@ export async function POST(request: NextRequest) {
       try {
         const updatedBooking = await BookingService.updateById(bookingId, {
           status: "pending",
-          payment_status: "paid",
+          "payment.status": "paid",
         });
 
         if (!updatedBooking) {
@@ -189,10 +193,10 @@ export async function POST(request: NextRequest) {
 
         // Send confirmation email - use direct function call for reliability
         try {
-          console.log(
-            "📧 Sending confirmation email to:",
-            updatedBooking.email,
-          );
+          const { mapBookingToLegacy } =
+            await import("@/backend/modules/booking/booking.mapper");
+          const legacyBooking = mapBookingToLegacy(updatedBooking);
+          console.log("📧 Sending confirmation email to:", legacyBooking.email);
 
           // Import and call email function directly (works for both localhost and Vercel)
           const { sendBookingConfirmationEmail } =
@@ -205,7 +209,7 @@ export async function POST(request: NextRequest) {
           if (emailResult.success) {
             console.log(
               "✅ Confirmation email sent successfully to:",
-              updatedBooking.email,
+              legacyBooking.email,
             );
             console.log("📧 Email result:", emailResult.message);
           } else {
@@ -255,7 +259,7 @@ export async function POST(request: NextRequest) {
 
       if (bookingId) {
         await BookingService.updateById(bookingId, {
-          payment_status: "paid",
+          "payment.status": "paid",
         });
         console.log("✅ Async payment succeeded for booking:", bookingId);
       }
@@ -267,7 +271,7 @@ export async function POST(request: NextRequest) {
 
       if (bookingId) {
         await BookingService.updateById(bookingId, {
-          payment_status: "failed",
+          "payment.status": "failed",
         });
         console.log("❌ Async payment failed for booking:", bookingId);
       }

@@ -19,11 +19,7 @@ import { TranslatedText } from '../_components/TranslatedText'
 // Component that uses the context (needs to be inside provider)
 function BookingContent() {
   const { currentStep, goToStep, isHydrated, formData } = useBooking()
-  
-  // Debug logging
-  console.log('🎯 BookingContent - currentStep:', currentStep, 'fromHero:', formData.fromHero, 'isHydrated:', isHydrated)
-
-  const steps = [
+const steps = [
     { id: 1, title: <TranslatedText text="Deporte" english="Sports Preference" /> },
     { id: 2, title: <TranslatedText text="Tipo de Paquete" english="Package Type" /> },
     { id: 3, title: <TranslatedText text="Ciudad de Salida" english="Departure City" /> },
@@ -41,8 +37,6 @@ function BookingContent() {
     if (!isHydrated) {
       return <div className="flex items-center justify-center h-64">Loading...</div>
     }
-
-    console.log('🎯 renderCurrentStep - currentStep:', currentStep, 'rendering step component')
 
     switch (currentStep) {
       case 0:

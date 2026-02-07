@@ -68,11 +68,6 @@ export default function Extras() {
   // Get initial extras from BookingContext or create defaults
   const getInitialExtras = (): ExtraService[] => {
     if (formData.extras && formData.extras.length > 0) {
-      console.log(
-        "Loading existing extras from BookingContext:",
-        formData.extras,
-      );
-      // Update Underseat bag quantity based on current total travelers
       return formData.extras.map((extra) => {
         if (extra.id === "underseat-bag" && extra.isIncluded) {
           return { ...extra, quantity: totalTravelers, isSelected: true };
@@ -83,9 +78,7 @@ export default function Extras() {
         return extra;
       });
     } else {
-      console.log("Creating default extras");
       const initialExtras = createInitialExtras();
-      // Update Underseat bag quantity based on total travelers (1 bag per person)
       return initialExtras.map((extra) => {
         if (extra.id === "underseat-bag" && extra.isIncluded) {
           return { ...extra, quantity: totalTravelers, isSelected: true };
@@ -207,9 +200,6 @@ export default function Extras() {
   const onSubmit = useCallback(
     (data: FormData) => {
       const selectedExtras = data.extras.filter((extra) => extra.isSelected);
-      console.log("Selected extras:", selectedExtras);
-
-      // Calculate total cost
       const totalCost = selectedExtras.reduce((total, extra) => {
         if (!extra.isIncluded) {
           return total + extra.price * extra.quantity;
@@ -217,12 +207,7 @@ export default function Extras() {
         return total;
       }, 0);
 
-      console.log("Total extra cost:", totalCost);
-
-      // Update booking context with selected extras
       updateExtras(data.extras);
-
-      // Navigate to next step
       nextStep();
     },
     [updateExtras, nextStep],

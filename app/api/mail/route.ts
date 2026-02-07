@@ -12,8 +12,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("📨 Received contact form submission from:", name);
-
     const emailHtml = `
 <!DOCTYPE html>
 <html>
@@ -93,8 +91,6 @@ export async function POST(request: NextRequest) {
       replyTo: email,
       type: "contact",
     });
-
-    console.log(`✅ Queued contact form email. Job ID: ${jobId}`);
 
     return NextResponse.json({
       success: true,

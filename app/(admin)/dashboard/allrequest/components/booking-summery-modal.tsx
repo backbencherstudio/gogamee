@@ -33,7 +33,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import AppData from "../../../../lib/appdata";
 import { useToast } from "../../../../../components/ui/toast";
 import { updateBooking } from "../../../../../services/bookingService";
 import Image from "next/image";
@@ -127,6 +126,25 @@ interface BookingData {
   }>;
   totalCost: string;
   payment_status: string;
+  priceBreakdown?: {
+    packageCost: number;
+    extrasCost: number;
+    leagueRemovalCost: number;
+    leagueSurcharge: number;
+    flightPreferenceCost: number;
+    singleTravelerSupplement: number;
+    bookingFee: number;
+    totalBaseCost: number;
+    totalCost: number;
+    currency: string;
+    basePricePerPerson?: number;
+    items?: {
+      description: string;
+      amount: number;
+      quantity?: number;
+      unitPrice?: number;
+    }[];
+  };
 }
 
 interface BookingSummaryModalProps {
@@ -234,62 +252,42 @@ export default function BookingSummaryModal({
 
           {/* Status Information Card */}
           {/* Status Information Card */}
-          <div
-            className={`mt-6 p-5 rounded-xl border-2 shadow-sm ${
-              status === "completed" ||
-              status === "approved" ||
-              status === "confirmed"
-                ? "bg-[#F1F9EC] border-[#6AAD3C]/30"
-                : status === "cancelled" || status === "rejected"
-                  ? "bg-red-50 border-red-100"
-                  : "bg-amber-50 border-amber-100"
-            }`}
-          >
+          <div className="w-full p-4 rounded-lg border border-gray-200 bg-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div
-                  className={`p-2 rounded-full ${
+                  className={`p-1.5 rounded ${
                     status === "completed" ||
                     status === "approved" ||
                     status === "confirmed"
-                      ? "bg-[#6AAD3C] text-white"
+                      ? "bg-emerald-100 text-emerald-700"
                       : status === "cancelled" || status === "rejected"
-                        ? "bg-red-500 text-white"
-                        : "bg-amber-500 text-white"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-amber-100 text-amber-700"
                   }`}
                 >
                   {status === "completed" ||
                   status === "approved" ||
                   status === "confirmed" ? (
-                    <CheckCircle2 className="h-5 w-5" />
+                    <CheckCircle2 className="h-4 w-4" />
                   ) : status === "cancelled" || status === "rejected" ? (
-                    <XCircle className="h-5 w-5" />
+                    <XCircle className="h-4 w-4" />
                   ) : (
-                    <Clock className="h-5 w-5" />
+                    <Clock className="h-4 w-4" />
                   )}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Current Status
+                  <span className="text-xs font-medium text-gray-500 uppercase">
+                    Status
                   </span>
-                  <span
-                    className={`text-lg font-bold font-['Poppins'] ${
-                      status === "completed" ||
-                      status === "approved" ||
-                      status === "confirmed"
-                        ? "text-[#6AAD3C]"
-                        : status === "cancelled" || status === "rejected"
-                          ? "text-red-700"
-                          : "text-amber-700"
-                    }`}
-                  >
+                  <span className="text-sm font-semibold text-gray-900">
                     {status === "completed" ||
                     status === "approved" ||
                     status === "confirmed"
                       ? "Confirmed"
                       : status === "cancelled" || status === "rejected"
                         ? "Cancelled"
-                        : "Pending Approval"}
+                        : "Pending"}
                   </span>
                 </div>
               </div>
@@ -300,12 +298,22 @@ export default function BookingSummaryModal({
                 </p>
                 <Badge
                   className={`mt-1 font-bold ${
-                    bookingData.payment_status === "paid"
-                      ? "bg-[#6AAD3C] text-white"
-                      : "bg-orange-500 text-white"
+                    bookingData.payment_status === "paid" ||
+                    bookingData.payment_status === "succeeded"
+                      ? "bg-emerald-600 text-white"
+                      : bookingData.payment_status === "pending"
+                        ? "bg-amber-500 text-white"
+                        : "bg-red-500 text-white"
                   }`}
                 >
-                  {bookingData.payment_status === "paid" ? "Paid" : "Unpaid"}
+                  {bookingData.payment_status === "paid" ||
+                  bookingData.payment_status === "succeeded"
+                    ? "Paid"
+                    : bookingData.payment_status === "pending"
+                      ? "Pending"
+                      : bookingData.payment_status === "failed"
+                        ? "Failed"
+                        : bookingData.payment_status || "Unknown"}
                 </Badge>
               </div>
             </div>
@@ -623,92 +631,102 @@ export default function BookingSummaryModal({
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
-              {(() => {
-                const packagePrice = AppData.pricing.calculatePackageCost({
-                  selectedSport: bookingData.selectedSport,
-                  selectedPackage: bookingData.selectedPackage,
-                  selectedLeague: bookingData.selectedLeague,
-                  departureDate: bookingData.departureDate,
-                  travelDuration: bookingData.travelDuration,
-                });
-
-                const leagueSurcharge = AppData.pricing.getLeagueSurcharge(
-                  bookingData.selectedLeague,
-                );
-                const extrasCost = bookingData.totalExtrasCost;
-                const totalCost = packagePrice + leagueSurcharge + extrasCost;
-                const costPerPerson =
-                  bookingData.totalPeople > 0
-                    ? totalCost / bookingData.totalPeople
-                    : 0;
-
-                return (
-                  <div className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between text-sm">
+              {bookingData.priceBreakdown ? (
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    {bookingData.priceBreakdown.items?.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between text-sm"
+                      >
                         <span className="text-gray-500 font-medium font-['Poppins'] uppercase tracking-wider text-[10px]">
-                          Package ({bookingData.selectedPackage})
+                          {item.description}
+                          {item.quantity && item.quantity > 1
+                            ? ` (x${item.quantity})`
+                            : ""}
                         </span>
                         <span className="font-bold text-gray-900 font-['Poppins']">
-                          €{formatCurrency(packagePrice)}
+                          €{formatCurrency(item.amount)}
                         </span>
                       </div>
-                      {leagueSurcharge > 0 && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500 font-medium font-['Poppins'] uppercase tracking-wider text-[10px]">
-                            League Surcharge
-                          </span>
-                          <span className="font-bold text-gray-900 font-['Poppins']">
-                            €{formatCurrency(leagueSurcharge)}
-                          </span>
-                        </div>
-                      )}
-                      {extrasCost > 0 && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-500 font-medium font-['Poppins'] uppercase tracking-wider text-[10px]">
-                            Extras Subtotal
-                          </span>
-                          <span className="font-bold text-gray-900 font-['Poppins']">
-                            €{formatCurrency(extrasCost)}
-                          </span>
-                        </div>
-                      )}
+                    ))}
+                  </div>
+
+                  <Separator className="my-4 bg-gray-100" />
+
+                  <div className="flex items-center justify-between p-6 bg-[#6AAD3C] rounded-2xl shadow-inner text-white">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">
+                        Total Amount Paid
+                      </p>
+                      <p className="text-sm font-medium opacity-90">
+                        {bookingData.totalPeople} Traveler
+                        {bookingData.totalPeople > 1 ? "s" : ""}
+                      </p>
                     </div>
-
-                    <Separator className="my-4 bg-gray-100" />
-
-                    <div className="flex items-center justify-between p-6 bg-[#6AAD3C] rounded-2xl shadow-inner text-white">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">
-                          Total Amount Paid
-                        </p>
-                        <p className="text-sm font-medium opacity-90">
-                          {bookingData.totalPeople} Traveler
-                          {bookingData.totalPeople > 1 ? "s" : ""}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-4xl font-bold font-['Poppins'] tracking-tighter transition-all hover:scale-105">
-                          €{formatCurrency(totalCost)}
-                        </p>
-                        <p className="text-[10px] mt-1 font-bold opacity-80">
-                          €{formatCurrency(costPerPerson)} / person
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 p-3 bg-[#F1F9EC] rounded-xl border border-[#6AAD3C]/10 flex items-center gap-3">
-                      <div className="p-1.5 bg-[#6AAD3C] rounded-full">
-                        <CheckCircle2 className="h-3 w-3 text-white" />
-                      </div>
-                      <p className="text-[11px] font-semibold text-[#6AAD3C] font-['Poppins']">
-                        All taxes and platform fees are included in the final
-                        amount.
+                    <div className="text-right">
+                      <p className="text-4xl font-bold font-['Poppins'] tracking-tighter transition-all hover:scale-105">
+                        €{formatCurrency(bookingData.priceBreakdown.totalCost)}
+                      </p>
+                      <p className="text-[10px] mt-1 font-bold opacity-80">
+                        €
+                        {formatCurrency(
+                          bookingData.priceBreakdown.totalCost /
+                            (bookingData.totalPeople || 1),
+                        )}{" "}
+                        / person
                       </p>
                     </div>
                   </div>
-                );
-              })()}
+
+                  <div className="mt-4 p-3 bg-[#F1F9EC] rounded-xl border border-[#6AAD3C]/10 flex items-center gap-3">
+                    <div className="p-1.5 bg-[#6AAD3C] rounded-full">
+                      <CheckCircle2 className="h-3 w-3 text-white" />
+                    </div>
+                    <p className="text-[11px] font-semibold text-[#6AAD3C] font-['Poppins']">
+                      Server-calculated price with full breakdown stored in
+                      database.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-sm text-gray-400 italic">
+                      <span>
+                        Detailed breakdown unavailable for legacy booking
+                      </span>
+                    </div>
+                  </div>
+
+                  <Separator className="my-4 bg-gray-100" />
+
+                  <div className="flex items-center justify-between p-6 bg-[#6AAD3C] rounded-2xl shadow-inner text-white">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-1">
+                        Total Amount Paid
+                      </p>
+                      <p className="text-sm font-medium opacity-90">
+                        {bookingData.totalPeople} Traveler
+                        {bookingData.totalPeople > 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-4xl font-bold font-['Poppins'] tracking-tighter transition-all hover:scale-105">
+                        €{formatCurrency(Number(bookingData.totalCost))}
+                      </p>
+                      <p className="text-[10px] mt-1 font-bold opacity-80">
+                        €
+                        {formatCurrency(
+                          Number(bookingData.totalCost) /
+                            (bookingData.totalPeople || 1),
+                        )}{" "}
+                        / person
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

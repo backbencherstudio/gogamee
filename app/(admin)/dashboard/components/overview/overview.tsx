@@ -189,7 +189,6 @@ const RecentRequestsTable: React.FC = () => {
         if (!isPolling) setLoading(true);
 
         const response = await getAllBookings(1, 10);
-        console.log("📥 Dashboard - Bookings fetched from API:", response);
 
         if (response && response.success && Array.isArray(response.data)) {
           const bookings = response.data;

@@ -23,33 +23,29 @@ export interface LoginResponse {
 
 // POST login
 export const login = async (payload: LoginPayload): Promise<LoginResponse> => {
-  console.log('Auth Service - Sending login payload:', { email: payload.email });
   const response = await axiosClient.post("/auth/login", payload);
-  console.log('Auth Service - Login response received:', response.data);
-  
+
   // Store token in localStorage if login successful
   if (response.data.success && response.data.authorization?.access_token) {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('token', response.data.authorization.access_token);
-      console.log('Token stored in localStorage');
+    if (typeof window !== "undefined") {
+      localStorage.setItem("token", response.data.authorization.access_token);
     }
   }
-  
+
   return response.data;
 };
 
 // Logout function
 export const logout = (): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('token');
-    console.log('Token removed from localStorage');
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token");
   }
 };
 
 // Get token from localStorage
 export const getToken = (): string | null => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('token');
+  if (typeof window !== "undefined") {
+    return localStorage.getItem("token");
   }
   return null;
 };
@@ -58,4 +54,3 @@ export const getToken = (): string | null => {
 export const isAuthenticated = (): boolean => {
   return !!getToken();
 };
-

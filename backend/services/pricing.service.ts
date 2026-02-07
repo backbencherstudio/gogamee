@@ -18,6 +18,7 @@ export const PricingConfig = {
   },
 
   singleTravelerSupplement: 50,
+  bookingFee: 50,
 
   extras: {
     breakfast: 10,
@@ -63,6 +64,7 @@ export interface PriceBreakdown {
   leagueSurcharge: number;
   flightPreferenceCost: number;
   singleTravelerSupplement: number;
+  bookingFee: number;
   totalBaseCost: number;
   totalCost: number;
   currency: string;
@@ -70,6 +72,8 @@ export interface PriceBreakdown {
   breakdown: {
     description: string;
     amount: number;
+    quantity?: number;
+    unitPrice?: number;
   }[];
 }
 
@@ -115,46 +119,72 @@ export class PricingService {
       const singleTravelerSupplement =
         input.totalPeople === 1 ? PricingConfig.singleTravelerSupplement : 0;
 
+      const bookingFee = PricingConfig.bookingFee;
+
       const totalCost =
         totalBaseCost +
         leagueSurchargeTotal +
         extrasCost +
         leagueRemovalCostTotal +
         flightPreferenceTotal +
-        singleTravelerSupplement;
+        singleTravelerSupplement +
+        bookingFee;
 
       const breakdown = [
         {
-          description: `Base Package (${input.selectedSport} - ${input.selectedPackage}) x ${input.totalPeople}`,
+          description: `Base Package (${input.selectedSport} - ${input.selectedPackage})`,
           amount: totalBaseCost,
+          quantity: input.totalPeople,
+          unitPrice: basePricePerPerson,
         },
       ];
 
       if (leagueSurchargeTotal > 0) {
         breakdown.push({
-          description: "League Surcharge",
+          description: "League Surcharge (European Competition)",
           amount: leagueSurchargeTotal,
+          quantity: input.totalPeople,
+          unitPrice: leagueSurchargePerPerson,
         });
       }
 
-      if (extrasCost > 0) {
-        breakdown.push({
-          description: "Extras",
-          amount: extrasCost,
-        });
+      if (extrasCost > 0 && input.bookingExtras) {
+        input.bookingExtras
+          .filter((extra) => extra.isSelected && !extra.isIncluded)
+          .forEach((extra) => {
+            const price = PricingConfig.extras[extra.id] ?? extra.price;
+            breakdown.push({
+              description: `Extra: ${extra.name}`,
+              amount: price * extra.quantity,
+              quantity: extra.quantity,
+              unitPrice: price,
+            });
+          });
       }
 
       if (leagueRemovalCostTotal > 0) {
+        const removedCount = input.removedLeaguesCount;
+        const paidRemovals = Math.max(
+          0,
+          removedCount - PricingConfig.leagueRemoval.freeRemovals,
+        );
+        const costPerPerson =
+          paidRemovals * PricingConfig.leagueRemoval.costPerRemoval;
+
         breakdown.push({
-          description: `League Removals`,
+          description: `League Removals (${paidRemovals} paid)`,
           amount: leagueRemovalCostTotal,
+          quantity: input.totalPeople,
+          unitPrice: costPerPerson,
         });
       }
 
       if (flightPreferenceTotal > 0) {
         breakdown.push({
-          description: "Flight Preferences",
+          description: "Flight Time Preferences",
           amount: flightPreferenceTotal,
+          quantity: input.totalPeople,
+          unitPrice: flightPreferencePerPerson,
         });
       }
 
@@ -162,6 +192,17 @@ export class PricingService {
         breakdown.push({
           description: "Single Traveler Supplement",
           amount: singleTravelerSupplement,
+          quantity: 1,
+          unitPrice: PricingConfig.singleTravelerSupplement,
+        });
+      }
+
+      if (bookingFee > 0) {
+        breakdown.push({
+          description: "Booking Fee",
+          amount: bookingFee,
+          quantity: 1,
+          unitPrice: bookingFee,
         });
       }
 
@@ -172,6 +213,7 @@ export class PricingService {
         leagueSurcharge: leagueSurchargeTotal,
         flightPreferenceCost: flightPreferenceTotal,
         singleTravelerSupplement,
+        bookingFee,
         totalBaseCost,
         totalCost,
         currency: "EUR",

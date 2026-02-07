@@ -168,7 +168,7 @@ export function PricingSummary({
                 </span>
                 <div className="text-right">
                   <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
-                    {BOOKING_CONSTANTS.BOOKING_FEE}€
+                    {BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT}€
                   </div>
                   <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
                     {reservationData.singleTravelerSupplement.toFixed(2)}€
@@ -176,6 +176,24 @@ export function PricingSummary({
                 </div>
               </div>
             )}
+
+            {/* Booking Fee Row (Mobile) */}
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                <TranslatedText
+                  text="Tarifa de Reserva"
+                  english="Booking Fee"
+                />
+              </span>
+              <div className="text-right">
+                <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
+                  {BOOKING_CONSTANTS.BOOKING_FEE}€
+                </div>
+                <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                  {BOOKING_CONSTANTS.BOOKING_FEE.toFixed(2)}€
+                </div>
+              </div>
+            </div>
 
             {/* Subtotal Row */}
             <div className="flex justify-between items-center py-4 border-t-2 border-lime-400 bg-lime-50 rounded-lg px-3">
@@ -336,24 +354,40 @@ export function PricingSummary({
 
           {/* Single Traveler Supplement Row (Desktop) */}
           {reservationData.singleTravelerSupplement > 0 && (
-            <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
-              <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
+            <div className="w-full grid grid-cols-4 gap-4 border-b-2 border-gray-200 py-3">
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800">
                 <TranslatedText
                   text={personalInfoData.text.singleTravelerSupplement}
                   english={personalInfoData.text.singleTravelerSupplementEn}
                 />
               </div>
-              <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                {BOOKING_CONSTANTS.BOOKING_FEE}€
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
+                {BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT}€
               </div>
-              <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                -
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
+                1
               </div>
-              <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
                 {reservationData.singleTravelerSupplement.toFixed(2)}€
               </div>
             </div>
           )}
+
+          {/* Booking Fee Row (Desktop) */}
+          <div className="w-full grid grid-cols-4 gap-4 py-3">
+            <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800">
+              <TranslatedText text="Tarifa de Reserva" english="Booking Fee" />
+            </div>
+            <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
+              {BOOKING_CONSTANTS.BOOKING_FEE}€
+            </div>
+            <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
+              1
+            </div>
+            <div className="text-base font-semibold font-['Poppins'] leading-none text-neutral-800 text-end">
+              {BOOKING_CONSTANTS.BOOKING_FEE.toFixed(2)}€
+            </div>
+          </div>
 
           {/* Subtotal Row */}
           <div className="w-full grid grid-cols-4 gap-4 py-3 border-t-2 border-gray-300">

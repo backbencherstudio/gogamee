@@ -226,22 +226,28 @@ export default function EventReqTable() {
   const getPaymentStatusStyle = (paymentStatus: string) => {
     switch (paymentStatus) {
       case "paid":
-        return "bg-[#F1F9EC] text-[#6AAD3C] border border-[#6AAD3C]/20";
-      case "unpaid":
-        return "bg-orange-50 text-orange-600 border border-orange-100";
+      case "succeeded":
+        return "bg-emerald-50 text-emerald-700 border border-emerald-200";
+      case "pending":
+        return "bg-amber-50 text-amber-700 border border-amber-200";
+      case "failed":
+        return "bg-red-50 text-red-700 border border-red-200";
       default:
-        return "bg-gray-50 text-gray-600 border border-gray-100";
+        return "bg-gray-50 text-gray-600 border border-gray-200";
     }
   };
 
   const getPaymentStatusText = (paymentStatus: string) => {
     switch (paymentStatus) {
       case "paid":
+      case "succeeded":
         return "Paid";
-      case "unpaid":
-        return "Unpaid";
+      case "pending":
+        return "Pending";
+      case "failed":
+        return "Failed";
       default:
-        return "Unknown";
+        return paymentStatus || "Unknown";
     }
   };
 
@@ -260,8 +266,6 @@ export default function EventReqTable() {
   const handleDeleteBooking = async (id: string) => {
     try {
       await deleteBooking(id);
-      console.log("✅ Booking deleted:", id);
-      // Refresh current page
       loadBookings(currentPage, activeTab, timeFilter);
       setDeleteConfirm(null);
     } catch (err) {
@@ -525,8 +529,10 @@ export default function EventReqTable() {
                             <div className="space-y-1">
                               <div className="flex items-center text-sm text-gray-900 font-medium">
                                 <FaMapMarkerAlt className="w-3 h-3 mr-2 text-gray-400" />
-                                {booking.selectedCity.charAt(0).toUpperCase() +
-                                  booking.selectedCity.slice(1)}
+                                {(booking.selectedCity
+                                  ?.charAt(0)
+                                  .toUpperCase() ?? "") +
+                                  (booking.selectedCity?.slice(1) ?? "")}
                               </div>
                               <div className="flex items-center text-sm text-gray-600">
                                 <FaPlane className="w-3 h-3 mr-2 text-gray-400" />
@@ -685,6 +691,7 @@ export default function EventReqTable() {
                                   payment_status: booking.payment_status,
                                   allTravelers:
                                     parseTravelersFromBooking(booking),
+                                  priceBreakdown: booking.priceBreakdown,
                                 }}
                                 onStatusUpdate={async () => {
                                   // Refresh current page

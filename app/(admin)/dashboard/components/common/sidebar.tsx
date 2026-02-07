@@ -301,13 +301,9 @@ export function Sidebar() {
         <div className="mt-auto pt-4 border-t border-gray-200">
           <button
             onClick={() => {
-              console.log("Logging out...");
-              // Call logout function to remove token
               logout();
-              // Clear admin login state for backward compatibility
               localStorage.removeItem("adminLoggedIn");
               localStorage.removeItem("adminEmail");
-              // Redirect to login page
               window.location.href = "/admin-login";
             }}
             className="flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer duration-200 text-[#76C043] hover:bg-[#76C043]/20 w-full text-left"

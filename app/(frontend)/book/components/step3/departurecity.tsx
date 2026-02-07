@@ -1,60 +1,60 @@
-'use client'
+"use client";
 
-import React, { useCallback, useMemo, useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
-import { useBooking } from '../../context/BookingContext'
-import { departureCityData } from '../../../../lib/appdata'
-import { TranslatedText } from '../../../_components/TranslatedText'
+import React, { useCallback, useMemo, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { useBooking } from "../../context/BookingContext";
+import { departureCityData } from "../../../../lib/appdata";
+import { TranslatedText } from "../../../_components/TranslatedText";
 
 // Types
 interface CityOption {
-  value: string
-  label: string
-  gradient: string
-  accent: string
+  value: string;
+  label: string;
+  gradient: string;
+  accent: string;
 }
 
 interface FormData {
-  selectedCity: string
+  selectedCity: string;
 }
 
 // City image mapping
 const CITY_IMAGES: Record<string, string> = {
-  madrid: '/city/Madrid.png',
-  barcelona: '/city/Barcelona.png',
-  malaga: '/city/Málaga.png',
-  valencia: '/city/Valencia.png',
-  alicante: '/city/Alicante.png',
-  bilbao: '/city/Bilbao.png'
-}
+  madrid: "/city/Madrid.png",
+  barcelona: "/city/Barcelona.png",
+  malaga: "/city/Málaga.png",
+  valencia: "/city/Valencia.png",
+  alicante: "/city/Alicante.png",
+  bilbao: "/city/Bilbao.png",
+};
 
 // City color overlay mapping (30% opacity)
 const CITY_OVERLAYS: Record<string, string> = {
-  madrid: 'bg-slate-700/30',
-  barcelona: 'bg-emerald-600/30',
-  malaga: 'bg-amber-600/30',
-  valencia: 'bg-blue-600/30',
-  alicante: 'bg-orange-600/30',
-  bilbao: 'bg-red-600/30'
-}
+  madrid: "bg-slate-700/30",
+  barcelona: "bg-emerald-600/30",
+  malaga: "bg-amber-600/30",
+  valencia: "bg-blue-600/30",
+  alicante: "bg-orange-600/30",
+  bilbao: "bg-red-600/30",
+};
 
 // Components
 const CheckIcon: React.FC = React.memo(() => (
-  <svg 
-    className="w-4 h-4 text-white" 
-    fill="currentColor" 
+  <svg
+    className="w-4 h-4 text-white"
+    fill="currentColor"
     viewBox="0 0 20 20"
     aria-hidden="true"
   >
-    <path 
-      fillRule="evenodd" 
-      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-      clipRule="evenodd" 
+    <path
+      fillRule="evenodd"
+      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+      clipRule="evenodd"
     />
   </svg>
-))
+));
 
-CheckIcon.displayName = 'CheckIcon'
+CheckIcon.displayName = "CheckIcon";
 
 const DecorativePattern: React.FC = React.memo(() => (
   <div className="absolute inset-0 opacity-20" aria-hidden="true">
@@ -63,134 +63,153 @@ const DecorativePattern: React.FC = React.memo(() => (
     <div className="absolute bottom-6 left-6 w-1.5 h-1.5 bg-white rounded-full" />
     <div className="absolute bottom-4 right-4 w-1 h-1 bg-white rounded-full" />
   </div>
-))
+));
 
-DecorativePattern.displayName = 'DecorativePattern'
+DecorativePattern.displayName = "DecorativePattern";
 
 interface CityCardProps {
-  city: CityOption
-  isSelected: boolean
-  onSelect: (value: string) => void
+  city: CityOption;
+  isSelected: boolean;
+  onSelect: (value: string) => void;
 }
 
-const CityCard: React.FC<CityCardProps> = React.memo(({ city, isSelected, onSelect }) => {
-  const handleClick = useCallback(() => {
-    onSelect(city.value)
-  }, [city.value, onSelect])
+const CityCard: React.FC<CityCardProps> = React.memo(
+  ({ city, isSelected, onSelect }) => {
+    const handleClick = useCallback(() => {
+      onSelect(city.value);
+    }, [city.value, onSelect]);
 
-  const cityImage = CITY_IMAGES[city.value] || ''
-  const cityOverlay = CITY_OVERLAYS[city.value] || 'bg-gray-600/20'
+    const cityImage = CITY_IMAGES[city.value] || "";
+    const cityOverlay = CITY_OVERLAYS[city.value] || "bg-gray-600/20";
 
-  const cardClassName = useMemo(() => `
+    const cardClassName = useMemo(
+      () => `
     relative h-[120px] xl:h-[140px] rounded-lg cursor-pointer transition-all duration-300 transform hover:scale-105 overflow-hidden
-    ${isSelected 
-      ? 'ring-4 ring-lime-400 ring-opacity-60 shadow-lg shadow-lime-200' 
-      : 'hover:shadow-xl'
+    ${
+      isSelected
+        ? "ring-4 ring-lime-400 ring-opacity-60 shadow-lg shadow-lime-200"
+        : "hover:shadow-xl"
     }
-  `, [isSelected])
+  `,
+      [isSelected],
+    );
 
-  return (
-    <div
-      onClick={handleClick}
-      className={cardClassName}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          handleClick()
-        }
-      }}
-      aria-pressed={isSelected}
-      aria-label={`Select ${city.label} as departure city`}
-    >
-      {/* Background Image Layer */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat rounded transition-transform duration-300 hover:scale-110"
-        style={{ backgroundImage: `url(${cityImage})` }}
-      />
+    return (
+      <div
+        onClick={handleClick}
+        className={cardClassName}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
+        aria-pressed={isSelected}
+        aria-label={`Select ${city.label} as departure city`}
+      >
+        {/* Background Image Layer */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat rounded transition-transform duration-300 hover:scale-110"
+          style={{ backgroundImage: `url(${cityImage})` }}
+        />
 
-      {/* Color Overlay (20% opacity) */}
-      <div className={`absolute inset-0 ${cityOverlay} rounded`} />
+        {/* Color Overlay (20% opacity) */}
+        <div className={`absolute inset-0 ${cityOverlay} rounded`} />
 
-      {/* City Name Overlay */}
-      <div className="absolute inset-0 flex items-center justify-center z-10">
-        <h3 className="text-white text-base xl:text-lg font-semibold font-['Poppins'] text-center drop-shadow-lg">
-          {city.label}
-        </h3>
-      </div>
-
-      {/* Selected Indicator */}
-      {isSelected && (
-        <div className="absolute top-2 right-2 w-6 h-6 bg-lime-400 rounded-full flex items-center justify-center z-20">
-          <CheckIcon />
+        {/* City Name Overlay */}
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <h3 className="text-white text-base xl:text-lg font-semibold font-['Poppins'] text-center drop-shadow-lg">
+            {city.label}
+          </h3>
         </div>
-      )}
 
-      {/* Decorative Pattern Overlay */}
-      <DecorativePattern />
-    </div>
-  )
-})
+        {/* Selected Indicator */}
+        {isSelected && (
+          <div className="absolute top-2 right-2 w-6 h-6 bg-lime-400 rounded-full flex items-center justify-center z-20">
+            <CheckIcon />
+          </div>
+        )}
 
-CityCard.displayName = 'CityCard'
+        {/* Decorative Pattern Overlay */}
+        <DecorativePattern />
+      </div>
+    );
+  },
+);
+
+CityCard.displayName = "CityCard";
 
 const DepartureCity: React.FC = () => {
-  const { formData, updateFormData, nextStep } = useBooking()
-  
+  const { formData, updateFormData, nextStep } = useBooking();
+
   const { control, watch, handleSubmit, setValue } = useForm<FormData>({
     defaultValues: {
-      selectedCity: formData.selectedCity || ''
-    }
-  })
+      selectedCity: formData.selectedCity || "",
+    },
+  });
 
-  const selectedCity = watch('selectedCity')
+  const selectedCity = watch("selectedCity");
 
   // Sync with context when context data changes (especially for hero data)
   useEffect(() => {
     if (formData.selectedCity && formData.selectedCity !== selectedCity) {
-      setValue('selectedCity', formData.selectedCity)
-      console.log('🎯 DepartureCity - synced with context:', formData.selectedCity)
+      setValue("selectedCity", formData.selectedCity);
     }
-  }, [formData.selectedCity, selectedCity, setValue])
+  }, [formData.selectedCity, selectedCity, setValue]);
 
-  const handleCitySelect = useCallback((value: string) => {
-    updateFormData({ selectedCity: value })
-  }, [updateFormData])
+  const handleCitySelect = useCallback(
+    (value: string) => {
+      updateFormData({ selectedCity: value });
+    },
+    [updateFormData],
+  );
 
   const onSubmit = useCallback(() => {
     if (selectedCity) {
-      console.log('Selected city:', selectedCity)
-      nextStep()
+      nextStep();
     }
-  }, [selectedCity, nextStep])
+  }, [selectedCity, nextStep]);
 
-  const buttonClassName = useMemo(() => `
+  const buttonClassName = useMemo(
+    () => `
     w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] flex justify-center items-center transition-all
-    ${selectedCity 
-      ? 'bg-[#76C043] hover:bg-lime-600 cursor-pointer' 
-      : 'bg-gray-300 cursor-not-allowed'
+    ${
+      selectedCity
+        ? "bg-[#76C043] hover:bg-lime-600 cursor-pointer"
+        : "bg-gray-300 cursor-not-allowed"
     }
-  `, [selectedCity])
+  `,
+    [selectedCity],
+  );
 
-  const buttonTextClassName = useMemo(() => 
-    `text-base font-['Inter'] ${selectedCity ? 'text-white' : 'text-gray-500'}`,
-    [selectedCity]
-  )
+  const buttonTextClassName = useMemo(
+    () =>
+      `text-base font-['Inter'] ${selectedCity ? "text-white" : "text-gray-500"}`,
+    [selectedCity],
+  );
 
   return (
     <div className="w-full xl:max-w-[894px] xl:h-[638px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl border border-[#6AAD3C]/20 mb-10 min-h-[600px] xl:min-h-0">
       {/* Header Section */}
       <header className="mb-6 xl:mb-8">
         <h1 className="text-2xl xl:text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-8 xl:leading-10">
-          <TranslatedText text="¿Desde dónde viajan?" english="Departure city" />
+          <TranslatedText
+            text="¿Desde dónde viajan?"
+            english="Departure city"
+          />
         </h1>
       </header>
 
       {/* Content Section */}
       <div className="flex flex-col justify-between xl:h-[calc(100%-80px)] h-auto gap-8 xl:gap-0">
         {/* Cities Grid */}
-        <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 xl:gap-4 mb-6 xl:mb-8" role="group" aria-label="City selection">
+        <div
+          className="grid grid-cols-2 xl:grid-cols-3 gap-3 xl:gap-4 mb-6 xl:mb-8"
+          role="group"
+          aria-label="City selection"
+        >
           <Controller
             name="selectedCity"
             control={control}
@@ -202,8 +221,8 @@ const DepartureCity: React.FC = () => {
                     city={city}
                     isSelected={field.value === city.value}
                     onSelect={(value) => {
-                      field.onChange(value)
-                      handleCitySelect(value)
+                      field.onChange(value);
+                      handleCitySelect(value);
                     }}
                   />
                 ))}
@@ -226,7 +245,7 @@ const DepartureCity: React.FC = () => {
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default React.memo(DepartureCity)
+export default React.memo(DepartureCity);

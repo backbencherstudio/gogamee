@@ -75,6 +75,34 @@ const PaymentDetailsSchema = new Schema(
   { _id: false },
 );
 
+const PriceBreakdownItemSchema = new Schema(
+  {
+    description: { type: String, required: true },
+    amount: { type: Number, required: true },
+    quantity: { type: Number },
+    unitPrice: { type: Number },
+  },
+  { _id: false },
+);
+
+const PriceBreakdownSchema = new Schema(
+  {
+    packageCost: { type: Number, required: true },
+    extrasCost: { type: Number, default: 0 },
+    leagueRemovalCost: { type: Number, default: 0 },
+    leagueSurcharge: { type: Number, default: 0 },
+    flightPreferenceCost: { type: Number, default: 0 },
+    singleTravelerSupplement: { type: Number, default: 0 },
+    bookingFee: { type: Number, default: 0 },
+    totalBaseCost: { type: Number, required: true },
+    totalCost: { type: Number, required: true },
+    currency: { type: String, default: "EUR" },
+    basePricePerPerson: { type: Number, required: true },
+    items: [PriceBreakdownItemSchema],
+  },
+  { _id: false },
+);
+
 // --- Main Booking Interface ---
 
 export interface IBooking extends Document {
@@ -130,6 +158,26 @@ export interface IBooking extends Document {
     amount: number;
     currency: string;
     timestamp?: Date;
+  };
+
+  priceBreakdown: {
+    packageCost: number;
+    extrasCost: number;
+    leagueRemovalCost: number;
+    leagueSurcharge: number;
+    flightPreferenceCost: number;
+    singleTravelerSupplement: number;
+    bookingFee: number;
+    totalBaseCost: number;
+    totalCost: number;
+    currency: string;
+    basePricePerPerson: number;
+    items: {
+      description: string;
+      amount: number;
+      quantity?: number;
+      unitPrice?: number;
+    }[];
   };
 
   status: "pending" | "confirmed" | "cancelled" | "completed";
@@ -190,6 +238,9 @@ const BookingSchema = new Schema<IBooking>(
     // 7. Payment
     payment: PaymentDetailsSchema,
 
+    // 8. Price Breakdown
+    priceBreakdown: PriceBreakdownSchema,
+
     // Meta
     status: {
       type: String,
@@ -213,7 +264,7 @@ BookingSchema.index({ "travelers.all.email": 1 });
 BookingSchema.index({ createdAt: -1 });
 
 // Generate Short Booking Reference (e.g., GG-123456)
-BookingSchema.pre("save", function (next) {
+BookingSchema.pre("save", async function (this: IBooking) {
   if (!this.bookingReference) {
     const random = Math.floor(100000 + Math.random() * 900000);
     this.bookingReference = `GG-${random}`;
@@ -224,8 +275,6 @@ BookingSchema.pre("save", function (next) {
   if (this.travelers.kids) all.push(...this.travelers.kids);
   if (this.travelers.babies) all.push(...this.travelers.babies);
   this.travelers.all = all;
-
-  next();
 });
 
 export default mongoose.models.Booking ||

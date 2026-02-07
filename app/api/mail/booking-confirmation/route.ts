@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendBookingConfirmationEmail } from "../send-booking-email";
+import { mapBookingToLegacy } from "@/backend/modules/booking/booking.mapper";
 
 export async function POST(request: NextRequest) {
   try {
     // Check if email configuration is available
     if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
       console.error(
-        "❌ Email configuration missing: MAIL_USER or MAIL_PASS not set"
+        "❌ Email configuration missing: MAIL_USER or MAIL_PASS not set",
       );
       console.error("❌ MAIL_USER:", process.env.MAIL_USER ? "SET" : "NOT SET");
       console.error("❌ MAIL_PASS:", process.env.MAIL_PASS ? "SET" : "NOT SET");
@@ -23,25 +24,31 @@ export async function POST(request: NextRequest) {
             MAIL_PASS: process.env.MAIL_PASS ? "SET" : "NOT SET",
           },
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
-    const { booking } = await request.json();
+    const { booking: rawBooking } = await request.json();
 
-    if (!booking || !booking.email) {
-      console.error("❌ Missing booking data or email:", {
+    if (!rawBooking) {
+      return NextResponse.json(
+        { success: false, error: "Booking data is required." },
+        { status: 400 },
+      );
+    }
+
+    const booking = mapBookingToLegacy(rawBooking);
+
+    if (!booking.email) {
+      console.error("❌ Missing booking email:", {
         booking: !!booking,
-        email: booking?.email,
+        email: booking.email,
       });
       return NextResponse.json(
-        { success: false, error: "Booking data and email are required." },
-        { status: 400 }
+        { success: false, error: "Booking email is required." },
+        { status: 400 },
       );
     }
-
-    console.log("📧 Processing email for booking:", booking.id);
-    console.log("📧 Customer email:", booking.email);
 
     // Use shared email function
     const emailResult = await sendBookingConfirmationEmail(booking);
@@ -59,7 +66,7 @@ export async function POST(request: NextRequest) {
           error: emailResult.message,
           details: emailResult.error,
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
   } catch (error) {
@@ -70,7 +77,7 @@ export async function POST(request: NextRequest) {
         error: "Unable to send confirmation email right now.",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

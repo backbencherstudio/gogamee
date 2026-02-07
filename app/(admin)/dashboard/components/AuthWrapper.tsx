@@ -1,34 +1,30 @@
-'use client'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { isAuthenticated as checkAuthToken } from '../../../../services/authService'
+"use client";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { isAuthenticated as checkAuthToken } from "../../../../services/authService";
 
 interface AuthWrapperProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function AuthWrapper({ children }: AuthWrapperProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
-    // Check if user is logged in by checking token
     const checkAuth = () => {
-      const hasToken = checkAuthToken()
-      console.log('AuthWrapper - Checking authentication, has token:', hasToken)
-      
+      const hasToken = checkAuthToken();
       if (hasToken) {
-        setIsAuthenticated(true)
+        setIsAuthenticated(true);
       } else {
-        console.log('AuthWrapper - No token found, redirecting to login')
-        router.push('/admin-login')
+        router.push("/admin-login");
       }
-      setIsLoading(false)
-    }
+      setIsLoading(false);
+    };
 
-    checkAuth()
-  }, [router])
+    checkAuth();
+  }, [router]);
 
   if (isLoading) {
     return (
@@ -38,12 +34,12 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
           <p className="text-gray-600 font-['Poppins']">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!isAuthenticated) {
-    return null
+    return null;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
