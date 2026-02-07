@@ -8,6 +8,7 @@ interface LanguageContextType {
   language: Language;
   toggleLanguage: () => void;
   translateText: (text: string) => Promise<string>;
+  translateToBoth: (text: string) => Promise<{ es: string; en: string }>;
   isTranslating: boolean;
 }
 
@@ -15,8 +16,9 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
   undefined,
 );
 
-// Cache to avoid re-translating the same text
+// Cache to avoid re-translating the same text - stores both languages
 const translationCache = new Map<string, string>();
+const bothTranslationsCache = new Map<string, { es: string; en: string }>();
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -89,9 +91,77 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // Translate text to both Spanish and English simultaneously
+  const translateToBoth = async (
+    text: string,
+  ): Promise<{ es: string; en: string }> => {
+    if (!text || text.trim() === "") {
+      return { es: text, en: text };
+    }
+
+    // Check cache first
+    if (bothTranslationsCache.has(text)) {
+      return bothTranslationsCache.get(text)!;
+    }
+
+    try {
+      setIsTranslating(true);
+
+      // Translate to both languages in parallel
+      const [esResponse, enResponse] = await Promise.all([
+        fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text,
+            targetLanguage: "es",
+            sourceLanguage: "auto",
+          }),
+        }),
+        fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text,
+            targetLanguage: "en",
+            sourceLanguage: "auto",
+          }),
+        }),
+      ]);
+
+      const esData = await esResponse.json();
+      const enData = await enResponse.json();
+
+      const result = {
+        es: esData.translatedText || text,
+        en: enData.translatedText || text,
+      };
+
+      // Cache the result
+      bothTranslationsCache.set(text, result);
+
+      // Also cache individual translations
+      translationCache.set(`${text}-es`, result.es);
+      translationCache.set(`${text}-en`, result.en);
+
+      return result;
+    } catch (error) {
+      console.error("Translation to both error:", error);
+      return { es: text, en: text };
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
   return (
     <LanguageContext.Provider
-      value={{ language, toggleLanguage, translateText, isTranslating }}
+      value={{
+        language,
+        toggleLanguage,
+        translateText,
+        translateToBoth,
+        isTranslating,
+      }}
     >
       {children}
     </LanguageContext.Provider>

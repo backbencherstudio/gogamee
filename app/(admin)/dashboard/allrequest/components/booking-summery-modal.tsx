@@ -401,7 +401,7 @@ export default function BookingSummaryModal({
                   </div>
                 </div>
                 <div className="space-y-4 md:col-span-2 lg:col-span-1">
-                  {bookingData.destinationCity && (
+                  {(destinationCity || bookingData.destinationCity) && (
                     <div className="flex items-start gap-4">
                       <div className="mt-1">
                         <MapPin className="h-5 w-5 text-[#6AAD3C]" />
@@ -411,12 +411,12 @@ export default function BookingSummaryModal({
                           Target Destination
                         </p>
                         <Badge className="bg-[#6AAD3C] text-white font-bold font-['Poppins'] mt-1">
-                          {bookingData.destinationCity}
+                          {destinationCity || bookingData.destinationCity}
                         </Badge>
                       </div>
                     </div>
                   )}
-                  {bookingData.assignedMatch && (
+                  {(assignedMatch || bookingData.assignedMatch) && (
                     <div className="flex items-start gap-4 mt-2">
                       <div className="mt-1">
                         <Ticket className="h-5 w-5 text-[#6AAD3C]" />
@@ -426,7 +426,7 @@ export default function BookingSummaryModal({
                           Assigned Match
                         </p>
                         <p className="text-sm font-bold text-gray-900 font-['Poppins'] mt-1">
-                          {bookingData.assignedMatch}
+                          {assignedMatch || bookingData.assignedMatch}
                         </p>
                       </div>
                     </div>
