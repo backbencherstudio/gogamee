@@ -6,11 +6,7 @@ import {
   deleteCache,
   clearCachePattern,
 } from "@/backend";
-import type {
-  CreateBookingData,
-  UpdateBookingData,
-  BookingQueryOptions,
-} from "./booking.types";
+import type { CreateBookingData, BookingQueryOptions } from "./booking.types";
 
 class BookingService {
   async create(data: CreateBookingData): Promise<IBooking> {
@@ -72,6 +68,12 @@ class BookingService {
       query["dates.departure"] = {};
       if (filters.dateFrom) query["dates.departure"].$gte = filters.dateFrom;
       if (filters.dateTo) query["dates.departure"].$lte = filters.dateTo;
+    }
+
+    if (filters.createdAtFrom || filters.createdAtTo) {
+      query.createdAt = {};
+      if (filters.createdAtFrom) query.createdAt.$gte = filters.createdAtFrom;
+      if (filters.createdAtTo) query.createdAt.$lte = filters.createdAtTo;
     }
 
     const sortOptions: any = sort

@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
           ? { status }
           : {}),
         isBookingComplete: status === "completed",
-        dateFrom,
-        dateTo,
+        createdAtFrom: dateFrom,
+        createdAtTo: dateTo,
       },
     });
 

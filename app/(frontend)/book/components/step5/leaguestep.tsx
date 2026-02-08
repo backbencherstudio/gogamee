@@ -29,7 +29,7 @@ const LEAGUE_OPTIONS: LeagueOption[] = [
   },
   {
     id: "european",
-    title: "European Competition",
+    title: `European Competition ( + ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`,
     price: ` ( + ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`,
     imagePath: "/stepper/league2.png",
   },
@@ -80,7 +80,7 @@ export default function LeagueStep() {
         leagues = [
           {
             id: "european",
-            name: "European Competition",
+            name: `European Competition ( + ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`,
             group: "European" as const,
             isSelected: true,
           },
@@ -127,9 +127,9 @@ export default function LeagueStep() {
             text={
               option.id === "national"
                 ? "Ligas nacionales"
-                : "Competiciones europeas"
+                : `Competiciones europeas ( + ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`
             }
-            english={`${option.title} ${option.price}`.trim()}
+            english={`${option.title}`}
           />
         </div>
 

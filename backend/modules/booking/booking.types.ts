@@ -99,6 +99,8 @@ export interface BookingFilters {
   email?: string;
   dateFrom?: string;
   dateTo?: string;
+  createdAtFrom?: string;
+  createdAtTo?: string;
   isBookingComplete?: boolean;
 }
 
