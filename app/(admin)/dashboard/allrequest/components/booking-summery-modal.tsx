@@ -753,6 +753,7 @@ export default function BookingSummaryModal({
         {/* Footer */}
         <div className="mt-6 pt-6 border-t border-[#6AAD3C]/20 flex items-center justify-end gap-3">
           <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+            {/* APPROVE BUTTON - Show only if NOT confirmed/completed/rejected */}
             {(status === "pending" ||
               (status !== "confirmed" &&
                 status !== "completed" &&
@@ -818,7 +819,108 @@ export default function BookingSummaryModal({
               </Button>
             )}
 
-            {status !== "rejected" && (
+            {/* UPDATE DETAILS BUTTON - Show only if CONFIRMED */}
+            {status === "confirmed" && (
+              <Button
+                onClick={async () => {
+                  if (isProcessing) return;
+
+                  // Allow updates without forcing status change, but keep it confirmed
+                  setIsProcessing(true);
+                  try {
+                    await updateBooking({
+                      id: bookingData.id || bookingData._id,
+                      destinationCity: destinationCity.trim(),
+                      assignedMatch: assignedMatch.trim(),
+                      status: "confirmed", // Keep confirmed
+                    });
+
+                    const title = await translateText("Details Updated");
+                    const description = await translateText(
+                      "Booking details have been updated successfully.",
+                    );
+                    addToast({
+                      type: "success",
+                      title,
+                      description,
+                    });
+
+                    if (onStatusUpdate) onStatusUpdate();
+                  } catch {
+                    const title = await translateText("Update Failed");
+                    const description = await translateText(
+                      "Could not update details.",
+                    );
+                    addToast({
+                      type: "error",
+                      title,
+                      description,
+                    });
+                  } finally {
+                    setIsProcessing(false);
+                  }
+                }}
+                disabled={isProcessing}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold transition-all"
+              >
+                <TranslatedText text="Update Details" />
+              </Button>
+            )}
+
+            {/* COMPLETE BUTTON - Show only if CONFIRMED */}
+            {status === "confirmed" && (
+              <Button
+                onClick={async () => {
+                  if (isProcessing) return;
+                  const confirmMsg = await translateText(
+                    "Are you sure you want to mark this booking as Completed? This will lock the booking.",
+                  );
+                  if (!confirm(confirmMsg)) return;
+
+                  setIsProcessing(true);
+                  try {
+                    await updateBooking({
+                      id: bookingData.id || bookingData._id,
+                      status: "completed",
+                    });
+
+                    const title = await translateText("Booking Completed");
+                    const description = await translateText(
+                      "Booking marked as completed.",
+                    );
+                    addToast({
+                      type: "success",
+                      title,
+                      description,
+                    });
+
+                    setStatus("completed");
+
+                    if (onStatusUpdate) onStatusUpdate();
+                    setIsOpen(false);
+                  } catch {
+                    const title = await translateText("Action Failed");
+                    const description = await translateText(
+                      "Could not complete booking.",
+                    );
+                    addToast({
+                      type: "error",
+                      title,
+                      description,
+                    });
+                  } finally {
+                    setIsProcessing(false);
+                  }
+                }}
+                disabled={isProcessing}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-semibold transition-all"
+              >
+                <TranslatedText text="Complete Booking" />
+              </Button>
+            )}
+
+            {/* REJECT BUTTON - Show unless Rejected or Completed */}
+            {status !== "rejected" && status !== "completed" && (
               <Button
                 onClick={async () => {
                   if (isProcessing) return;

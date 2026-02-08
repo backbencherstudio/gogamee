@@ -163,17 +163,17 @@ class BookingService {
     assignedMatch?: string,
   ): Promise<IBooking | null> {
     await connectToDatabase();
+    // Allow updating destination/match if provided, regardless of status value.
+    // Also allow status updates (e.g. to "completed").
     const updated = await Booking.findByIdAndUpdate(
       id,
       {
         status,
-        ...(status === "confirmed" && {
-          destinationCity,
-          assignedMatch,
-        }),
+        ...(destinationCity !== undefined && { destinationCity }),
+        ...(assignedMatch !== undefined && { assignedMatch }),
       },
-      { new: true },
-    ).lean();
+      { new: true, runValidators: true },
+    );
 
     if (updated) {
       await deleteCache(`booking:${id}`);
@@ -204,11 +204,30 @@ class BookingService {
     return updated;
   }
 
+  async updateById(
+    id: string,
+    updateData: Partial<IBooking> | Record<string, any>,
+  ): Promise<IBooking | null> {
+    await connectToDatabase();
+    const updated = await Booking.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (updated) {
+      await deleteCache(`booking:${id}`);
+      await clearCachePattern("booking:list:*");
+    }
+
+    return updated;
+  }
+
   async getStats(): Promise<{
     total: number;
     completed: number;
     pending: number;
     rejected: number;
+    confirmed: number;
   }> {
     await connectToDatabase();
 
@@ -219,18 +238,10 @@ class BookingService {
           _id: null,
           total: { $sum: 1 },
           completed: {
-            $sum: {
-              $cond: [
-                {
-                  $or: [
-                    { $eq: ["$status", "completed"] },
-                    { $eq: ["$status", "approved"] },
-                  ],
-                },
-                1,
-                0,
-              ],
-            },
+            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] },
+          },
+          confirmed: {
+            $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] },
           },
           pending: {
             $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
@@ -254,11 +265,11 @@ class BookingService {
     ]);
 
     if (stats.length === 0) {
-      return { total: 0, completed: 0, pending: 0, rejected: 0 };
+      return { total: 0, completed: 0, pending: 0, rejected: 0, confirmed: 0 };
     }
 
-    const { total, completed, pending, rejected } = stats[0];
-    return { total, completed, pending, rejected };
+    const { total, completed, pending, rejected, confirmed } = stats[0];
+    return { total, completed, pending, rejected, confirmed };
   }
 }
 

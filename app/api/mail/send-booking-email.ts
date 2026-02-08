@@ -3,6 +3,61 @@ import { emailQueue } from "@/backend/lib/email-queue";
 import { transporter } from "@/backend/lib/mail-transport";
 import { IBooking } from "@/backend/models/Booking.model";
 
+// Basic interface for Booking Data
+export interface BookingData {
+  id?: string;
+  _id?: string;
+  fullName?: string; // or travelers.primaryContact.name
+  travelers?: {
+    primaryContact?: {
+      name?: string;
+      email?: string;
+      phone?: string;
+    };
+    totalCount?: number;
+  };
+  selection?: {
+    sport?: string;
+    city?: string;
+    package?: string;
+  };
+  destinationCity?: string;
+  assignedMatch?: string;
+  departureDateFormatted?: string;
+  returnDateFormatted?: string;
+  selectedPackage?: string;
+  totalPeople?: number;
+  selectedCity?: string;
+  selectedLeague?: string;
+  totalCost?: number;
+  payment_status?: string;
+  payment?: {
+    status?: string;
+  };
+  extras?: {
+    totalCost?: number;
+    selected?: any[];
+  };
+  priceBreakdown?: {
+    items: {
+      description: string;
+      amount: number;
+      quantity: number;
+      unitPrice?: number;
+    }[];
+    packageCost?: number;
+    totalCost: number;
+    // other fields
+  };
+  // Legacy or flat fields that might be present
+  totalExtrasCost?: number;
+  bookingExtras?: any[];
+  dates?: {
+    departure?: string;
+    return?: string;
+  };
+}
+
 // Helper to format dates
 function formatDate(dateStr: string | undefined): string {
   if (!dateStr) return "N/A";
@@ -35,17 +90,28 @@ export function generateUserEmailContent(
   options?: { showReveal?: boolean },
 ) {
   const showReveal = options?.showReveal ?? true;
-  const bookingId = booking._id?.toString();
-  const fullName = booking.travelers?.primaryContact?.name || "Guest";
-  const email = booking.travelers?.primaryContact?.email || "";
-  const destinationCity = (booking as any).destinationCity;
-  const assignedMatch = (booking as any).assignedMatch;
-  const selectedPackage = booking.selection?.package;
-  const selectedCity = booking.selection?.city;
-  const selectedSport = booking.selection?.sport;
-  const departureDateFormatted = formatDate(booking.dates?.departure);
-  const returnDateFormatted = formatDate(booking.dates?.return);
-  const totalPeople = booking.travelers?.totalCount || 0;
+  const bookingData = booking as unknown as BookingData;
+  const bookingId = bookingData._id?.toString() || bookingData.id;
+  const fullName =
+    bookingData.travelers?.primaryContact?.name ||
+    bookingData.fullName ||
+    "Guest";
+  const email = bookingData.travelers?.primaryContact?.email || "";
+  const destinationCity = bookingData.destinationCity;
+  const assignedMatch = bookingData.assignedMatch;
+  const selectedPackage =
+    bookingData.selection?.package || bookingData.selectedPackage;
+  const selectedCity = bookingData.selection?.city || bookingData.selectedCity;
+  const selectedSport = bookingData.selection?.sport;
+  const departureDateFormatted =
+    bookingData.departureDateFormatted ||
+    formatDate(bookingData.dates?.departure);
+  const returnDateFormatted =
+    bookingData.returnDateFormatted || formatDate(bookingData.dates?.return);
+  const totalPeople =
+    bookingData.travelers?.totalCount || bookingData.totalPeople || 0;
+  const selectedExtras: any[] =
+    bookingData.extras?.selected || bookingData.bookingExtras || [];
 
   const subject =
     showReveal && destinationCity
@@ -131,6 +197,99 @@ export function generateUserEmailContent(
         </div>
         `
         }
+
+        <!-- Payment Summary Section -->
+               <div style="${STYLES.section}">
+                <h3 style="margin: 0 0 15px; color: #333; font-size: 18px;">💳 Payment Summary</h3>
+                <table width="100%" cellpadding="8" cellspacing="0" style="background-color: #fafafa; border-radius: 8px; border: 1px solid #eee;">
+                  
+                  <!-- Breakdown Items -->
+                  ${
+                    bookingData.priceBreakdown?.items
+                      ? bookingData.priceBreakdown.items
+                          .map(
+                            (item) => `
+                        <tr>
+                          <td style="border-bottom: 1px solid #eee; color: #555;">${item.description} ${(item.quantity || 0) > 1 ? `(x${item.quantity})` : ""}</td>
+                          <td align="right" style="border-bottom: 1px solid #eee; font-weight: 500;">€${item.amount.toFixed(2)}</td>
+                        </tr>
+                      `,
+                          )
+                          .join("")
+                      : `
+                        <tr>
+                          <td style="border-bottom: 1px solid #eee; color: #555;">Package Base Cost</td>
+                          <td align="right" style="border-bottom: 1px solid #eee; font-weight: 500;">€${(bookingData.priceBreakdown?.packageCost || 0).toFixed(2)}</td>
+                        </tr>
+                        ${
+                          (bookingData.extras?.totalCost ||
+                            bookingData.totalExtrasCost ||
+                            0) > 0
+                            ? `
+                        <tr>
+                          <td style="border-bottom: 1px solid #eee; color: #555;">Extras</td>
+                          <td align="right" style="border-bottom: 1px solid #eee; font-weight: 500;">€${(bookingData.extras?.totalCost || bookingData.totalExtrasCost || 0).toFixed(2)}</td>
+                        </tr>
+                        `
+                            : ""
+                        }
+                      `
+                  }
+
+                  <!-- Spacer -->
+                  <tr><td colspan="2" style="height: 10px;"></td></tr>
+
+                  <!-- Totals -->
+                  <tr style="background-color: #f0f0f0;">
+                    <td style="border-top: 2px solid #ddd; font-weight: 700; color: #333;">Total Cost</td>
+                    <td align="right" style="border-top: 2px solid #ddd; font-weight: 700; color: #333;">€${(bookingData.totalCost || 0).toFixed(2)}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #4a9e2a; font-weight: 600;">Amount Paid</td>
+                    <td align="right" style="color: #4a9e2a; font-weight: 600;">€${(bookingData
+                      .payment?.status === "paid" ||
+                    bookingData.payment_status === "paid"
+                      ? bookingData.totalCost || 0
+                      : 0
+                    ).toFixed(2)}</td>
+                  </tr>
+                   <tr>
+                    <td style="border-top: 1px solid #eee; color: #d32f2f; font-weight: 600;">Balance Due</td>
+                    <td align="right" style="border-top: 1px solid #eee; color: #d32f2f; font-weight: 600;">€${(
+                      (bookingData.totalCost || 0) -
+                      (bookingData.payment?.status === "paid" ||
+                      bookingData.payment_status === "paid"
+                        ? bookingData.totalCost || 0
+                        : 0)
+                    ).toFixed(2)}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- Extras Detail List (Optional) -->
+              ${
+                selectedExtras.length > 0
+                  ? `
+              <div style="${STYLES.section}">
+                <h3 style="margin: 0 0 15px; color: #333; font-size: 18px;">✨ Selected Extras Details</h3>
+                <ul style="margin: 0; padding-left: 20px; color: #555;">
+                  ${selectedExtras
+                    .filter((e: any) => e.isSelected)
+                    .map(
+                      (extra: any) => `
+                    <li style="margin-bottom: 5px;">
+                      <strong>${extra.name}</strong> 
+                      ${extra.quantity && extra.quantity > 1 ? `(x${extra.quantity})` : ""}
+                      - ${extra.price === 0 ? "Included" : `€${extra.price}`}
+                    </li>
+                  `,
+                    )
+                    .join("")}
+                </ul>
+              </div>
+              `
+                  : ""
+              }
 
         <!-- Footer -->
         <div style="${STYLES.footer}">

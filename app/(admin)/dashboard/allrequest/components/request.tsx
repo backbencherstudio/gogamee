@@ -270,18 +270,12 @@ export default function EventReqTable() {
             <div className="px-6 border-b border-gray-100">
               {/* Mobile Layout */}
               <div className="md:hidden space-y-2 my-4">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => handleTabChange("all")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "all" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
                     All
-                  </button>
-                  <button
-                    onClick={() => handleTabChange("confirmed")}
-                    className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "confirmed" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
-                  >
-                    Confirmed
                   </button>
                   <button
                     onClick={() => handleTabChange("pending")}
@@ -290,10 +284,22 @@ export default function EventReqTable() {
                     Pending
                   </button>
                   <button
+                    onClick={() => handleTabChange("confirmed")}
+                    className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "confirmed" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
+                  >
+                    Confirmed
+                  </button>
+                  <button
+                    onClick={() => handleTabChange("completed")}
+                    className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "completed" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
+                  >
+                    Completed
+                  </button>
+                  <button
                     onClick={() => handleTabChange("rejected")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "rejected" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    Cancelled
+                    Rejected
                   </button>
                 </div>
               </div>
@@ -302,9 +308,10 @@ export default function EventReqTable() {
               <div className="hidden md:flex space-x-8">
                 {[
                   { key: "all", label: "All Bookings" },
-                  { key: "confirmed", label: "Confirmed" },
                   { key: "pending", label: "Pending" },
-                  { key: "rejected", label: "Cancelled" },
+                  { key: "confirmed", label: "Confirmed" },
+                  { key: "completed", label: "Completed" },
+                  { key: "rejected", label: "Rejected" },
                 ].map((tab) => (
                   <button
                     key={tab.key}

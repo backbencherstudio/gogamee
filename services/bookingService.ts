@@ -204,6 +204,7 @@ export interface BookingStats {
   completed: number;
   pending: number;
   rejected: number;
+  confirmed: number;
 }
 
 // ========== Booking API Functions ==========

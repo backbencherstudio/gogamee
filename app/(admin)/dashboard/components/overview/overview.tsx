@@ -70,6 +70,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
                 "w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm",
                 title === "Total Request" && "bg-blue-500",
                 title === "Completed" && "bg-green-500",
+                title === "Confirmed" && "bg-indigo-500",
                 title === "Pending" && "bg-yellow-500",
                 title === "Rejected" && "bg-red-500",
               )}
@@ -193,25 +194,22 @@ const RecentRequestsTable: React.FC = () => {
         if (response && response.success && Array.isArray(response.data)) {
           const bookings = response.data;
           const requests: RecentRequest[] = bookings.map((booking) => ({
-            id: `REQ-${String(booking.id).slice(0, 8)}`,
-            customer: booking.fullName,
-            package: `${booking.selectedSport} - ${booking.selectedPackage}`,
-            date: booking.bookingDate || booking.created_at,
+            id: `REQ-${String(booking.id || booking._id).slice(0, 8)}`,
+            customer: booking.travelers?.primaryContact?.name || "Guest",
+            package: `${booking.selection?.sport || "N/A"} - ${booking.selection?.package || "N/A"}`,
+            date: booking.createdAt,
             status:
-              booking.status === "approved"
-                ? "approved"
-                : booking.status === "rejected" ||
-                    booking.status === "cancelled"
-                  ? "rejected"
-                  : booking.status === "completed"
-                    ? "completed"
-                    : booking.status === "confirmed"
-                      ? "confirmed"
-                      : "pending",
-            payment_status: booking.payment_status as any,
-            amount: `€${booking.totalCost || booking.totalExtrasCost}`,
+              booking.status === "rejected"
+                ? "rejected"
+                : booking.status === "completed"
+                  ? "completed"
+                  : booking.status === "confirmed"
+                    ? "confirmed"
+                    : "pending",
+            payment_status: (booking.payment?.status || "pending") as any,
+            amount: `€${(booking.totalCost || 0).toFixed(2)}`,
           }));
-          // Take only first 5 for overview
+          // Take only first 10 for overview
           setRecentRequests(requests.slice(0, 10));
           setError(null);
         }
@@ -368,7 +366,7 @@ const RecentRequestsTable: React.FC = () => {
                           {request.package}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-500">
-                          {request.date}
+                          {new Date(request.date).toLocaleDateString()}
                         </td>
                         <td className="py-3 px-4">
                           <span className={getStatusBadge(request.status)}>
@@ -385,7 +383,7 @@ const RecentRequestsTable: React.FC = () => {
                             )}
                           >
                             <span className="capitalize">
-                              {request.payment_status}
+                              {request.payment_status || "unknown"}
                             </span>
                           </span>
                         </td>
@@ -408,7 +406,6 @@ const RecentRequestsTable: React.FC = () => {
 // ============================================
 export function SalesOverview() {
   const [metrics, setMetrics] = useState<MetricCardProps[]>([
-    // ... (keep initial state)
     {
       title: "Total Request",
       value: "0",
@@ -419,6 +416,14 @@ export function SalesOverview() {
     },
     {
       title: "Completed",
+      value: "0",
+      change: "0%",
+      changeType: "increase" as const,
+      lastMonth: "0",
+      icon: CheckCircle,
+    },
+    {
+      title: "Confirmed",
       value: "0",
       change: "0%",
       changeType: "increase" as const,
@@ -470,6 +475,14 @@ export function SalesOverview() {
               icon: CheckCircle,
             },
             {
+              title: "Confirmed",
+              value: (stats.confirmed || 0).toString(),
+              change: "0%",
+              changeType: "increase" as const,
+              lastMonth: (stats.confirmed || 0).toString(),
+              icon: CheckCircle,
+            },
+            {
               title: "Pending",
               value: stats.pending.toString(),
               change: "0%",
@@ -500,7 +513,7 @@ export function SalesOverview() {
 
   return (
     <div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
         {metrics.map((metric) => (
           <MetricCard key={metric.title} {...metric} />
         ))}
