@@ -85,7 +85,32 @@ export function mapBookingToLegacy(booking: IBooking): any {
     assignedMatch: (booking as any).assignedMatch || "",
     previousTravelInfo: (booking as any).previousTravelInfo || "",
 
-    createdAt: (booking as any).createdAt,
-    updatedAt: (booking as any).updatedAt,
+    // Booking timestamp and date/time fields
+    bookingTimestamp: (booking as any).createdAt || booking.createdAt,
+    bookingDate: formatDate((booking as any).createdAt || booking.createdAt),
+    bookingTime: (booking as any).createdAt
+      ? new Date((booking as any).createdAt).toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })
+      : "",
+
+    // Additional legacy fields
+    travelDuration: dates.durationDays || 0,
+    hasFlightPreferences: flight.preferences?.hasPreferences || false,
+    requiresEuropeanLeagueHandling: !booking.leagues?.hasRemovedLeagues,
+    removedLeagues: booking.leagues?.list || [],
+    removedLeaguesCount: booking.leagues?.removedCount || 0,
+    hasRemovedLeagues: booking.leagues?.hasRemovedLeagues || false,
+    paymentMethod: (booking as any).paymentMethod || null,
+    cardNumber: null,
+    expiryDate: null,
+    cvv: null,
+    cardholderName: null,
+
+    created_at: (booking as any).createdAt || booking.createdAt,
+    updated_at: (booking as any).updatedAt || booking.updatedAt,
+    deleted_at: (booking as any).deletedAt || null,
   };
 }

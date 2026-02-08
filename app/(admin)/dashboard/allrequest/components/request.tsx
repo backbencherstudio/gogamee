@@ -1,10 +1,9 @@
 "use client";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   FaTrash,
   FaCalendarAlt,
   FaUsers,
-  FaDollarSign,
   FaPlane,
   FaMapMarkerAlt,
 } from "react-icons/fa";
@@ -19,98 +18,6 @@ import {
   deleteBooking,
   type BookingItem,
 } from "../../../../../services/bookingService";
-import { removeLeagueData, homepageLeaguesData } from "../../../../lib/appdata";
-
-// Helper function to get country for a league
-const getLeagueCountry = (
-  league: string | { id?: string; name?: string; country?: string },
-): string => {
-  if (typeof league === "object" && league.country) {
-    return league.country;
-  }
-  const leagueId = typeof league === "string" ? league : league.id || "";
-  const leagueName = typeof league === "object" ? league.name || "" : "";
-
-  const removeLeague = removeLeagueData.leagues.find(
-    (l) => l.id === leagueId || l.name === leagueName,
-  );
-  if (removeLeague) {
-    return removeLeague.country;
-  }
-
-  const footballLeagues = homepageLeaguesData.getFootballLeagues();
-  const footballLeague = footballLeagues.find(
-    (l) => l.id === leagueId || l.name === leagueName,
-  );
-  if (footballLeague) {
-    return footballLeague.country;
-  }
-
-  const basketballLeagues = homepageLeaguesData.getBasketballLeagues();
-  const basketballLeague = basketballLeagues.find(
-    (l) => l.id === leagueId || l.name === leagueName,
-  );
-  if (basketballLeague) {
-    return basketballLeague.country;
-  }
-
-  return "Unknown";
-};
-
-type TravelerInfo = {
-  name: string;
-  email: string;
-  phone: string;
-  dateOfBirth: string;
-  documentType: "ID" | "Passport";
-  documentNumber: string;
-  isPrimary?: boolean;
-  travelerNumber?: number;
-};
-
-type BookingWithTravelers = BookingItem & {
-  allTravelers?: TravelerInfo[] | string;
-};
-
-const safeJsonParse = (value: string): unknown => {
-  try {
-    return JSON.parse(value);
-  } catch {
-    return null;
-  }
-};
-
-const createFallbackTraveler = (booking: BookingItem): TravelerInfo => ({
-  name: booking.fullName,
-  email: booking.email,
-  phone: booking.phone,
-  dateOfBirth: "",
-  documentType: "ID",
-  documentNumber: "",
-  isPrimary: true,
-  travelerNumber: 1,
-});
-
-const parseTravelersFromBooking = (booking: BookingItem): TravelerInfo[] => {
-  const bookingWithTravelers = booking as BookingWithTravelers;
-  const rawTravelers = bookingWithTravelers.allTravelers;
-
-  if (!rawTravelers) {
-    return [createFallbackTraveler(booking)];
-  }
-
-  const parsed: unknown =
-    typeof rawTravelers === "string"
-      ? safeJsonParse(rawTravelers)
-      : rawTravelers;
-
-  if (Array.isArray(parsed) && parsed.length > 0) {
-    return parsed as TravelerInfo[];
-  }
-
-  return [createFallbackTraveler(booking)];
-};
-
 export default function EventReqTable() {
   const [activeTab, setActiveTab] = useState("all");
   const [timeFilter, setTimeFilter] = useState("alltime");
@@ -155,14 +62,6 @@ export default function EventReqTable() {
   };
 
   useEffect(() => {
-    // Reset to page 1 when filter changes? Yes, simpler.
-    // But check if it's the *initial* load or just a page change.
-    // If we include currentPage in deps, how do we distinguish?
-    // We will let handlePageChange update currentPage,
-    // and filters update filters AND reset currentPage.
-
-    // Actually, separating logic:
-    // This effect runs on mounts/updates.
     loadBookings(currentPage, activeTab, timeFilter);
   }, [currentPage, activeTab, timeFilter]);
 
@@ -492,35 +391,34 @@ export default function EventReqTable() {
                       ))
                     : bookings.map((booking) => (
                         <tr
-                          key={booking.id}
+                          key={booking._id || booking.id}
                           className="hover:bg-gray-50 transition-colors"
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">
-                              {formatDate(
-                                booking.bookingTimestamp || booking.created_at,
-                              )}
+                              {formatDate(booking.createdAt)}
                             </div>
                             <div className="text-xs text-gray-500">
-                              {formatTime(
-                                booking.bookingTimestamp || booking.created_at,
-                              )}
+                              {formatTime(booking.createdAt)}
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <div>
                               <div className="text-sm font-semibold text-gray-900">
-                                {booking.fullName}
+                                {booking.travelers?.primaryContact?.name ||
+                                  "N/A"}
                               </div>
                               <div className="text-sm text-gray-600">
-                                {booking.email}
+                                {booking.travelers?.primaryContact?.email ||
+                                  "N/A"}
                               </div>
                               <div className="text-xs text-gray-500">
-                                {booking.phone}
+                                {booking.travelers?.primaryContact?.phone ||
+                                  "N/A"}
                               </div>
                               <div className="mt-1">
                                 <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800 capitalize">
-                                  {booking.selectedSport}
+                                  {booking.selection?.sport || "N/A"}
                                 </span>
                               </div>
                             </div>
@@ -529,25 +427,25 @@ export default function EventReqTable() {
                             <div className="space-y-1">
                               <div className="flex items-center text-sm text-gray-900 font-medium">
                                 <FaMapMarkerAlt className="w-3 h-3 mr-2 text-gray-400" />
-                                {(booking.selectedCity
+                                {(booking.selection?.city
                                   ?.charAt(0)
                                   .toUpperCase() ?? "") +
-                                  (booking.selectedCity?.slice(1) ?? "")}
+                                  (booking.selection?.city?.slice(1) ?? "")}
                               </div>
                               <div className="flex items-center text-sm text-gray-600">
                                 <FaPlane className="w-3 h-3 mr-2 text-gray-400" />
-                                {booking.departureDateFormatted} -{" "}
-                                {booking.returnDateFormatted}
+                                {formatDate(booking.dates?.departure)} -{" "}
+                                {formatDate(booking.dates?.return)}
                               </div>
                               <div className="flex items-center text-sm text-gray-600">
                                 <FaUsers className="w-3 h-3 mr-2 text-gray-400" />
-                                {booking.totalPeople} travelers
+                                {booking.travelers?.totalCount || 0} travelers
                               </div>
                               <div className="mt-1">
                                 <span
-                                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getPackageBadgeColor(booking.selectedPackage)} capitalize`}
+                                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getPackageBadgeColor(booking.selection?.package)} capitalize`}
                                 >
-                                  {booking.selectedPackage}
+                                  {booking.selection?.package || "N/A"}
                                 </span>
                               </div>
                             </div>
@@ -564,7 +462,7 @@ export default function EventReqTable() {
                                 Total amount paid
                               </div>
                               <div className="text-xs text-gray-400">
-                                {booking.travelDuration} days travel
+                                {booking.dates?.durationDays} days travel
                               </div>
                             </div>
                           </td>
@@ -577,124 +475,19 @@ export default function EventReqTable() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusStyle(booking.payment_status)}`}
+                              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusStyle(booking.payment?.status)}`}
                             >
-                              {getPaymentStatusText(booking.payment_status)}
+                              {getPaymentStatusText(booking.payment?.status)}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <BookingSummaryModal
                                 bookingData={{
-                                  id: booking.id,
-                                  status: booking.status as
-                                    | "pending"
-                                    | "completed"
-                                    | "cancelled"
-                                    | "approved"
-                                    | "rejected"
-                                    | "confirmed",
-                                  selectedSport: booking.selectedSport,
-                                  selectedPackage: booking.selectedPackage,
-                                  selectedCity: booking.selectedCity,
-                                  selectedLeague: booking.selectedLeague,
-                                  adults: booking.adults,
-                                  kids: booking.kids,
-                                  babies: booking.babies,
-                                  totalPeople: booking.totalPeople,
-                                  departureDate: booking.departureDate,
-                                  returnDate: booking.returnDate,
-                                  departureDateFormatted:
-                                    booking.departureDateFormatted,
-                                  returnDateFormatted:
-                                    booking.returnDateFormatted,
-                                  departureTimeStart:
-                                    booking.departureTimeStart,
-                                  departureTimeEnd: booking.departureTimeEnd,
-                                  arrivalTimeStart: booking.arrivalTimeStart,
-                                  arrivalTimeEnd: booking.arrivalTimeEnd,
-                                  departureTimeRange:
-                                    booking.departureTimeRange,
-                                  arrivalTimeRange: booking.arrivalTimeRange,
-                                  removedLeagues: (() => {
-                                    try {
-                                      const leagues =
-                                        typeof booking.removedLeagues ===
-                                        "string"
-                                          ? JSON.parse(booking.removedLeagues)
-                                          : booking.removedLeagues;
-                                      return Array.isArray(leagues)
-                                        ? leagues.map(
-                                            (
-                                              league:
-                                                | string
-                                                | {
-                                                    id?: string;
-                                                    name?: string;
-                                                    country?: string;
-                                                  },
-                                            ) => ({
-                                              id:
-                                                typeof league === "string"
-                                                  ? league
-                                                  : league.id || "",
-                                              name:
-                                                typeof league === "string"
-                                                  ? league
-                                                  : league.name || "",
-                                              country: getLeagueCountry(league),
-                                            }),
-                                          )
-                                        : [];
-                                    } catch {
-                                      return [];
-                                    }
-                                  })(),
-                                  removedLeaguesCount:
-                                    booking.removedLeaguesCount,
-                                  hasRemovedLeagues: booking.hasRemovedLeagues,
-                                  allExtras: booking.bookingExtras || [],
-                                  selectedExtras: booking.bookingExtras || [],
-                                  selectedExtrasNames: [],
-                                  totalExtrasCost: booking.totalExtrasCost,
-                                  extrasCount: booking.extrasCount,
-                                  firstName: booking.firstName,
-                                  lastName: booking.lastName,
-                                  fullName: booking.fullName,
-                                  email: booking.email,
-                                  phone: booking.phone,
-                                  previousTravelInfo:
-                                    booking.previousTravelInfo,
-                                  paymentMethod: booking.paymentMethod || "",
-                                  cardNumber: booking.cardNumber,
-                                  expiryDate: booking.expiryDate,
-                                  cvv: booking.cvv,
-                                  cardholderName: booking.cardholderName,
-                                  bookingTimestamp:
-                                    booking.bookingTimestamp ||
-                                    booking.created_at,
-                                  bookingDate:
-                                    booking.bookingDate ||
-                                    formatDate(booking.created_at),
-                                  bookingTime:
-                                    booking.bookingTime ||
-                                    formatTime(booking.created_at),
-                                  isBookingComplete: booking.isBookingComplete,
-                                  travelDuration: booking.travelDuration,
-                                  hasFlightPreferences:
-                                    booking.hasFlightPreferences,
-                                  requiresEuropeanLeagueHandling:
-                                    booking.requiresEuropeanLeagueHandling,
-                                  destinationCity: booking.destinationCity,
-                                  assignedMatch: booking.assignedMatch,
-                                  totalCost: booking.totalCost,
-                                  payment_status: booking.payment_status,
-                                  allTravelers:
-                                    parseTravelersFromBooking(booking),
-                                  priceBreakdown: booking.priceBreakdown,
+                                  ...booking,
+                                  id: booking.id || booking._id,
                                 }}
                                 onStatusUpdate={async () => {
-                                  // Refresh current page
                                   await loadBookings(
                                     currentPage,
                                     activeTab,
@@ -705,7 +498,11 @@ export default function EventReqTable() {
 
                               {/* Delete Button */}
                               <button
-                                onClick={() => setDeleteConfirm(booking.id)}
+                                onClick={() =>
+                                  setDeleteConfirm(
+                                    booking.id || booking._id || "",
+                                  )
+                                }
                                 className="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors"
                               >
                                 <FaTrash size={12} />

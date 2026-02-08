@@ -27,61 +27,75 @@ export interface TravelerInfo {
 }
 
 export interface BookingItem {
-  id: string;
-  status: string;
-  payment_status: string;
-  stripe_payment_intent_id: string | null;
-  selectedSport: string;
-  selectedPackage: string;
-  selectedCity: string;
-  selectedLeague: string;
-  adults: number;
-  kids: number;
-  babies: number;
-  totalPeople: number;
-  departureDate: string;
-  returnDate: string;
-  departureDateFormatted: string;
-  returnDateFormatted: string;
-  departureTimeStart: number;
-  departureTimeEnd: number;
-  arrivalTimeStart: number;
-  arrivalTimeEnd: number;
-  departureTimeRange: string;
-  arrivalTimeRange: string;
-  removedLeagues: string;
-  removedLeaguesCount: number;
-  hasRemovedLeagues: boolean;
-  totalExtrasCost: number;
-  extrasCount: number;
-  firstName: string;
-  lastName: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  paymentMethod: string | null;
-  cardNumber: string | null;
-  expiryDate: string | null;
-  cvv: string | null;
-  cardholderName: string | null;
-  bookingTimestamp: string | null;
-  bookingDate: string;
-  bookingTime: string;
-  isBookingComplete: boolean;
-  travelDuration: number;
-  hasFlightPreferences: boolean;
-  requiresEuropeanLeagueHandling: boolean;
-  destinationCity: string;
-  assignedMatch: string;
-  previousTravelInfo: string;
-  totalCost: string;
-  approve_status: string;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
-  bookingExtras?: BookingExtra[];
-  allTravelers?: TravelerInfo[];
-  priceBreakdown?: {
+  _id: string; // Mongoose ID
+  id?: string; // Frontend alias if needed
+
+  // 1. Selection Core
+  selection: {
+    sport: "football" | "basketball" | "both";
+    package: "standard" | "premium" | "combined";
+    city: string;
+  };
+
+  // 2. Dates
+  dates: {
+    departure: string; // ISO or YYYY-MM-DD
+    return: string;
+    durationDays: number;
+    durationNights: number;
+  };
+
+  // 3. Travelers
+  travelers: {
+    adults: any[];
+    kids: any[];
+    babies: any[];
+    all: any[]; // Flat list for easy access
+    totalCount: number;
+    primaryContact: {
+      name: string;
+      email: string;
+      phone: string;
+      [key: string]: any;
+    };
+  };
+
+  // 4. Leagues
+  leagues: {
+    list: Array<{
+      id: string;
+      name: string;
+      country?: string;
+      group?: string;
+      isSelected: boolean;
+    }>;
+    removedCount: number;
+    hasRemovedLeagues: boolean;
+  };
+
+  // 5. Flight
+  flight: {
+    schedule: { departureBetween: string; returnBetween: string };
+    preferences: any;
+  };
+
+  // 6. Extras
+  extras: {
+    selected: any[];
+    totalCost: number;
+  };
+
+  // 7. Payment & Status
+  payment: {
+    method: string;
+    stripePaymentIntentId?: string;
+    status: "pending" | "paid" | "failed";
+    amount: number;
+    currency: string;
+    timestamp?: string;
+  };
+
+  priceBreakdown: {
     packageCost: number;
     extrasCost: number;
     leagueRemovalCost: number;
@@ -93,13 +107,24 @@ export interface BookingItem {
     totalCost: number;
     currency: string;
     basePricePerPerson: number;
-    items?: {
+    items: {
       description: string;
       amount: number;
       quantity?: number;
       unitPrice?: number;
     }[];
   };
+
+  status: "pending" | "confirmed" | "rejected" | "completed";
+  destinationCity?: string;
+  assignedMatch?: string;
+  previousTravelInfo?: string;
+  bookingReference: string;
+  totalCost: number;
+
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
 }
 
 export interface BookingResponse {

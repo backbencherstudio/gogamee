@@ -181,6 +181,8 @@ export interface IBooking extends Document {
   };
 
   status: "pending" | "confirmed" | "cancelled" | "completed";
+  destinationCity?: string;
+  assignedMatch?: string;
   bookingReference: string; // Short unique ID for users
   totalCost: number; // Storing total cost at root for easy query
 
@@ -244,10 +246,12 @@ const BookingSchema = new Schema<IBooking>(
     // Meta
     status: {
       type: String,
-      enum: ["pending", "confirmed", "cancelled", "completed"],
+      enum: ["pending", "confirmed", "rejected", "completed"],
       default: "pending",
       index: true,
     },
+    destinationCity: { type: String }, // For reveal
+    assignedMatch: { type: String }, // For reveal
     bookingReference: { type: String, unique: true }, // generated pre-save
     totalCost: { type: Number, required: true },
     deletedAt: { type: Date, index: true },

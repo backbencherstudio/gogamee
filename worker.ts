@@ -3,6 +3,8 @@ import { transporter } from "./backend/lib/mail-transport";
 import { MAIL_QUEUE_NAME, QueuedEmail } from "./backend/lib/email-queue";
 import { redisUrl } from "./backend/lib/redis"; // Reuse URL for dedicated connection
 import Redis from "ioredis";
+import Booking from "./backend/models/Booking.model";
+import connectToDatabase from "./backend/lib/mongoose";
 
 console.log("🚀 Starting Email Worker...");
 
@@ -13,9 +15,32 @@ const worker = new Worker<QueuedEmail>(
   MAIL_QUEUE_NAME,
   async (job: Job<QueuedEmail>) => {
     console.log(`📨 Processing job ${job.id}: ${job.name}`);
-    const { to, subject, html, text, from, replyTo, type } = job.data;
+    const {
+      to,
+      subject,
+      html,
+      text,
+      from,
+      replyTo,
+      type,
+      requiresStatusCheck,
+      bookingId,
+    } = job.data;
 
     try {
+      // Check booking status if required (e.g., for delayed reveal emails)
+      if (requiresStatusCheck && bookingId) {
+        await connectToDatabase();
+        const booking = await Booking.findById(bookingId);
+
+        if (!booking || booking.status !== "confirmed") {
+          console.log(
+            `⚠️ Skipping email for booking ${bookingId}: Status is ${booking?.status || "not found"}, expected 'confirmed'`,
+          );
+          return;
+        }
+      }
+
       const info = await transporter.sendMail({
         from: from || process.env.MAIL_FROM || process.env.MAIL_USER,
         to,

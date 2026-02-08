@@ -1,73 +1,56 @@
 // Shared email sending function that can be imported directly
 import { emailQueue } from "@/backend/lib/email-queue";
 import { transporter } from "@/backend/lib/mail-transport";
+import { IBooking } from "@/backend/models/Booking.model";
 
-interface BookingData {
-  id: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  status: string;
-  payment_status: string;
-  selectedSport: string;
-  selectedPackage: string;
-  selectedCity: string;
-  selectedLeague: string;
-  departureDateFormatted: string;
-  returnDateFormatted: string;
-  totalPeople: number;
-  adults: number;
-  kids: number;
-  babies: number;
-  destinationCity?: string | null;
-  assignedMatch?: string | null;
-  totalExtrasCost: number;
-  bookingExtras?: Array<{
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    quantity: number;
-    isSelected: boolean;
-  }>;
-  allTravelers?: Array<{
-    name?: string;
-    email?: string;
-    phone?: string;
-    dateOfBirth?: string;
-    documentType?: string;
-    documentNumber?: string;
-    isPrimary?: boolean;
-  }>;
-  paymentMethod?: string | null;
-  [key: string]: any;
+// Helper to format dates
+function formatDate(dateStr: string | undefined): string {
+  if (!dateStr) return "N/A";
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
 }
 
-// Common styles for consistency
+// Simple email styles
 const STYLES = {
   container:
-    "max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: 'Poppins', Arial, sans-serif;",
-  header:
-    "background: linear-gradient(135deg, #76C043 0%, #4a9e2a 100%); padding: 40px 30px; text-align: center;",
-  headerTitle: "margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;",
-  section: "padding: 30px 30px; border-bottom: 1px solid #f0f0f0;",
-  label: "color: #666; font-size: 14px; margin-bottom: 4px;",
-  value: "color: #333; font-size: 16px; font-weight: 600; margin: 0;",
-  footer:
-    "background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;",
-  button:
-    "display: inline-block; background-color: #76C043; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 20px;",
+    "max-width: 600px; margin: 0 auto; background-color: #ffffff; font-family: Arial, sans-serif;",
+  header: "background-color: #6AAD3C; padding: 30px; text-align: center;",
+  headerTitle: "margin: 0; color: #ffffff; font-size: 24px;",
+  section: "padding: 20px; border-bottom: 1px solid #eee;",
+  label: "color: #666; font-size: 13px; margin-bottom: 4px;",
+  value: "color: #333; font-size: 15px; font-weight: 600; margin: 0;",
+  footer: "background-color: #f5f5f5; padding: 20px; text-align: center;",
 };
 
 export function generateUserEmailContent(
-  booking: BookingData,
+  booking: IBooking,
   options?: { showReveal?: boolean },
 ) {
   const showReveal = options?.showReveal ?? true;
+  const bookingId = booking._id?.toString();
+  const fullName = booking.travelers?.primaryContact?.name || "Guest";
+  const email = booking.travelers?.primaryContact?.email || "";
+  const destinationCity = (booking as any).destinationCity;
+  const assignedMatch = (booking as any).assignedMatch;
+  const selectedPackage = booking.selection?.package;
+  const selectedCity = booking.selection?.city;
+  const selectedSport = booking.selection?.sport;
+  const departureDateFormatted = formatDate(booking.dates?.departure);
+  const returnDateFormatted = formatDate(booking.dates?.return);
+  const totalPeople = booking.travelers?.totalCount || 0;
+
   const subject =
-    showReveal && booking.destinationCity
-      ? `🎯 Your Trip Revealed! #${booking.id}`
-      : `🎉 Booking Confirmed! #${booking.id} - GoGame`;
+    showReveal && destinationCity
+      ? `Your Trip Revealed! #${bookingId}`
+      : `Booking Confirmed! #${bookingId}`;
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -75,138 +58,90 @@ export function generateUserEmailContent(
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Booking Confirmed - GoGame</title>
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+      <title>Booking Confirmation</title>
     </head>
-    <body style="margin: 0; padding: 0; background-color: #f5f5f5; color: #333;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
-        <tr>
-          <td align="center">
-            <div style="${STYLES.container}">
-              <!-- Header -->
-              <div style="${STYLES.header}">
-                <h1 style="${STYLES.headerTitle}">${
-                  showReveal && booking.destinationCity
-                    ? "Your Destination Revealed!"
-                    : "Booking Confirmed!"
-                }</h1>
-                <p style="color: rgba(255,255,255,0.9); margin-top: 10px; font-size: 16px;">
-                  ${
-                    showReveal && booking.destinationCity
-                      ? "Get ready for " + booking.destinationCity + "!"
-                      : "Get ready for your sports adventure 🎉"
-                  }
-                </p>
-              </div>
+    <body style="margin: 0; padding: 20px; background-color: #f5f5f5;">
+      <div style="${STYLES.container}">
+        <!-- Header -->
+        <div style="${STYLES.header}">
+          <h1 style="${STYLES.headerTitle}">
+            ${showReveal && destinationCity ? "Your Destination Revealed!" : "Booking Confirmed!"}
+          </h1>
+        </div>
 
-              <!-- Greeting -->
-              <div style="${STYLES.section}">
-                <h2 style="margin: 0 0 15px; color: #333;">Hello ${booking.fullName},</h2>
-                <p style="margin: 0; line-height: 1.6; color: #555;">
-                  ${
-                    showReveal && booking.destinationCity
-                      ? "The wait is over! We are excited to reveal your surprise destination and match details."
-                      : "Thank you for booking with GoGame! We're thrilled to confirm your surprise trip. Below are the details of your upcoming adventure."
-                  }
-                </p>
-              </div>
+        <!-- Greeting -->
+        <div style="${STYLES.section}">
+          <h2 style="margin: 0 0 10px; color: #333;">Hello ${fullName},</h2>
+          <p style="margin: 0; color: #555;">
+            ${
+              showReveal && destinationCity
+                ? "Your surprise destination is ready!"
+                : "Thank you for booking with GoGame!"
+            }
+          </p>
+        </div>
 
-              <!-- Key Details Grid -->
-              <div style="padding: 30px; background-color: #F1F9EC;">
-                <h3 style="margin: 0 0 20px; color: #4a9e2a; font-size: 18px;">📋 Trip Summary</h3>
-                <table width="100%" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td width="50%" style="padding-bottom: 20px;">
-                      <div style="${STYLES.label}">Booking ID</div>
-                      <div style="${STYLES.value}">#${booking.id}</div>
-                    </td>
-                    <td width="50%" style="padding-bottom: 20px;">
-                      <div style="${STYLES.label}">Travel Dates</div>
-                      <div style="${STYLES.value}">${booking.departureDateFormatted} - ${booking.returnDateFormatted}</div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td width="50%" style="padding-bottom: 20px;">
-                      <div style="${STYLES.label}">Package</div>
-                      <div style="${STYLES.value}">${booking.selectedPackage}</div>
-                    </td>
-                    <td width="50%" style="padding-bottom: 20px;">
-                      <div style="${STYLES.label}">Travelers</div>
-                      <div style="${STYLES.value}">${booking.totalPeople} Person(s)</div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td width="50%">
-                      <div style="${STYLES.label}">Departure City</div>
-                      <div style="${STYLES.value}">${booking.selectedCity}</div>
-                    </td>
-                    <td width="50%">
-                      <div style="${STYLES.label}">League</div>
-                      <div style="${STYLES.value}">${booking.selectedLeague}</div>
-                    </td>
-                  </tr>
-                </table>
-              </div>
+        <!-- Booking Details -->
+        <div style="${STYLES.section}">
+          <h3 style="margin: 0 0 15px; color: #6AAD3C;">Booking Details</h3>
+          <table width="100%" cellpadding="8" cellspacing="0">
+            <tr>
+              <td style="${STYLES.label}">Booking ID</td>
+              <td style="${STYLES.value}">#${bookingId}</td>
+            </tr>
+            <tr>
+              <td style="${STYLES.label}">Package</td>
+              <td style="${STYLES.value}">${selectedPackage || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="${STYLES.label}">Sport</td>
+              <td style="${STYLES.value}">${selectedSport || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="${STYLES.label}">Departure City</td>
+              <td style="${STYLES.value}">${selectedCity || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="${STYLES.label}">Travel Dates</td>
+              <td style="${STYLES.value}">${departureDateFormatted} - ${returnDateFormatted}</td>
+            </tr>
+            <tr>
+              <td style="${STYLES.label}">Travelers</td>
+              <td style="${STYLES.value}">${totalPeople} Person(s)</td>
+            </tr>
+          </table>
+        </div>
 
-              <!-- Surprise Destination Section -->
-              <div style="${STYLES.section}">
-                ${
-                  showReveal && booking.destinationCity && booking.assignedMatch
-                    ? `
-                  <div style="background-color: #fff8e1; border: 2px dashed #ffc107; border-radius: 12px; padding: 20px; text-align: center;">
-                    <h3 style="margin: 0 0 10px; color: #f57f17;">🎯 Your Surprise Revealed!</h3>
-                    <p style="margin: 5px 0; font-size: 18px;"><strong>Destination:</strong> ${booking.destinationCity}</p>
-                    <p style="margin: 5px 0; font-size: 18px;"><strong>Match:</strong> ${booking.assignedMatch}</p>
-                  </div>
-                  `
-                    : `
-                  <div style="background-color: #e3f2fd; border: 2px dashed #2196f3; border-radius: 12px; padding: 20px; text-align: center;">
-                    <h3 style="margin: 0 0 10px; color: #1565c0;">🤫 The Surprise Awaits...</h3>
-                    <p style="margin: 0; color: #555;">
-                      Your exact destination and match tickets will be revealed <strong>48 hours before departure</strong>. Stay tuned!
-                    </p>
-                  </div>
-                  `
-                }
-              </div>
+        <!-- Destination Section -->
+        ${
+          showReveal && destinationCity && assignedMatch
+            ? `
+        <div style="${STYLES.section}; background-color: #fff8e1;">
+          <h3 style="margin: 0 0 10px; color: #f57f17;">🎯 Your Surprise!</h3>
+          <p style="margin: 5px 0;"><strong>Destination:</strong> ${destinationCity}</p>
+          <p style="margin: 5px 0;"><strong>Match:</strong> ${assignedMatch}</p>
+        </div>
+        `
+            : `
+        <div style="${STYLES.section}; background-color: #e3f2fd;">
+          <h3 style="margin: 0 0 10px; color: #1565c0;">🤫 Surprise Coming Soon</h3>
+          <p style="margin: 0; color: #555;">
+            Your destination will be revealed <strong>48 hours before departure</strong>.
+          </p>
+        </div>
+        `
+        }
 
-              <!-- Extras Section -->
-              ${
-                booking.bookingExtras && booking.bookingExtras.length > 0
-                  ? `
-              <div style="${STYLES.section}">
-                <h3 style="margin: 0 0 15px; color: #333; font-size: 18px;">✨ Selected Extras</h3>
-                <table width="100%" cellpadding="10" cellspacing="0" style="background-color: #fafafa; border-radius: 8px;">
-                  ${booking.bookingExtras
-                    .filter((e) => e.isSelected)
-                    .map(
-                      (extra) => `
-                    <tr>
-                      <td style="border-bottom: 1px solid #eee;"><strong>${extra.name}</strong> (x${extra.quantity})</td>
-                      <td align="right" style="border-bottom: 1px solid #eee;">${extra.price === 0 ? "Included" : `€${extra.price}`}</td>
-                    </tr>
-                  `,
-                    )
-                    .join("")}
-                </table>
-              </div>
-              `
-                  : ""
-              }
-
-              <!-- Footer -->
-              <div style="${STYLES.footer}">
-                <p style="margin: 0; color: #999; font-size: 12px;">
-                  Need help? Contact us at <a href="mailto:${process.env.MAIL_TO || "support@gogame.com"}" style="color: #76C043;">${process.env.MAIL_TO || "support@gogame.com"}</a>
-                </p>
-                <p style="margin: 10px 0 0; color: #999; font-size: 12px;">
-                  © ${new Date().getFullYear()} GoGame. All rights reserved.
-                </p>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </table>
+        <!-- Footer -->
+        <div style="${STYLES.footer}">
+          <p style="margin: 0; color: #999; font-size: 12px;">
+            Need help? Contact us at ${process.env.MAIL_TO || "support@gogame.com"}
+          </p>
+          <p style="margin: 10px 0 0; color: #999; font-size: 12px;">
+            © ${new Date().getFullYear()} GoGame. All rights reserved.
+          </p>
+        </div>
+      </div>
     </body>
     </html>
   `;
@@ -214,8 +149,20 @@ export function generateUserEmailContent(
   return { subject, htmlContent };
 }
 
-export function generateAdminEmailContent(booking: BookingData) {
-  const subject = `📢 New Booking! #${booking.id} - ${booking.fullName}`;
+export function generateAdminEmailContent(booking: IBooking) {
+  const bookingId = booking._id?.toString();
+  const fullName = booking.travelers?.primaryContact?.name || "Guest";
+  const email = booking.travelers?.primaryContact?.email || "";
+  const phone = booking.travelers?.primaryContact?.phone || "";
+  const selectedPackage = booking.selection?.package;
+  const selectedCity = booking.selection?.city;
+  const selectedSport = booking.selection?.sport;
+  const departureDateFormatted = formatDate(booking.dates?.departure);
+  const returnDateFormatted = formatDate(booking.dates?.return);
+  const totalPeople = booking.travelers?.totalCount || 0;
+  const paymentStatus = booking.payment?.status || "pending";
+
+  const subject = `New Booking! #${bookingId} - ${fullName}`;
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -224,107 +171,58 @@ export function generateAdminEmailContent(booking: BookingData) {
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>New Booking Notification</title>
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     </head>
-    <body style="margin: 0; padding: 0; background-color: #f0f2f5; color: #333;">
-      <table width="100%" cellpadding="0" cellspacing="0" style="padding: 40px 20px;">
-        <tr>
-          <td align="center">
-            <div style="${STYLES.container}">
-              <!-- Admin Header -->
-              <div style="background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%); padding: 30px; text-align: center;">
-                <h1 style="${STYLES.headerTitle} font-size: 24px;">New Application Received</h1>
-                <p style="color: #bbb; margin-top: 5px;">Action Required</p>
-              </div>
+    <body style="margin: 0; padding: 20px; background-color: #f5f5f5;">
+      <div style="${STYLES.container}">
+        <!-- Header -->
+        <div style="background-color: #333; padding: 20px; text-align: center;">
+          <h1 style="margin: 0; color: #ffffff; font-size: 20px;">New Booking Received</h1>
+        </div>
 
-              <!-- Main Info -->
-              <div style="${STYLES.section}">
-                <table width="100%" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td width="60%">
-                      <h2 style="margin: 0; color: #333;">${booking.fullName}</h2>
-                      <p style="margin: 5px 0 0; color: #666;">${booking.email}</p>
-                      <p style="margin: 2px 0 0; color: #666;">${booking.phone}</p>
-                    </td>
-                    <td width="40%" align="right">
-                      <div style="background-color: #e8f5e9; color: #2e7d32; padding: 8px 16px; border-radius: 20px; font-weight: 600; display: inline-block;">
-                        ${booking.payment_status?.toUpperCase() || "PAID"}
-                      </div>
-                    </td>
-                  </tr>
-                </table>
-              </div>
+        <!-- Customer Info -->
+        <div style="${STYLES.section}">
+          <h2 style="margin: 0; color: #333;">${fullName}</h2>
+          <p style="margin: 5px 0; color: #666;">${email}</p>
+          <p style="margin: 5px 0; color: #666;">${phone}</p>
+          <p style="margin: 10px 0 0;"><span style="background-color: #e8f5e9; color: #2e7d32; padding: 4px 12px; border-radius: 12px; font-size: 12px;">${paymentStatus.toUpperCase()}</span></p>
+        </div>
 
-              <!-- Detailed Stats -->
-              <div style="padding: 0 30px 30px;">
-                <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; color: #333;">📦 Booking Details</h3>
-                
-                <table width="100%" cellpadding="10" cellspacing="0" style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #eee;">
-                  <tr>
-                    <td width="35%" style="color: #666;">Booking ID</td>
-                    <td style="font-weight: 600;">#${booking.id}</td>
-                  </tr>
-                   <tr>
-                    <td style="color: #666;">Package</td>
-                    <td style="font-weight: 600;">${booking.selectedPackage}</td>
-                  </tr>
-                  <tr>
-                    <td style="color: #666;">Sport & League</td>
-                    <td style="font-weight: 600;">${booking.selectedSport} / ${booking.selectedLeague}</td>
-                  </tr>
-                  <tr>
-                    <td style="color: #666;">Departure</td>
-                    <td style="font-weight: 600;">${booking.selectedCity}</td>
-                  </tr>
-                  <tr>
-                    <td style="color: #666;">Dates</td>
-                    <td style="font-weight: 600;">${booking.departureDateFormatted} - ${booking.returnDateFormatted}</td>
-                  </tr>
-                  <tr>
-                    <td style="color: #666;">Group Size</td>
-                    <td style="font-weight: 600;">${booking.totalPeople} People (${booking.adults} Ad, ${booking.kids} Ch)</td>
-                  </tr>
-                   <tr>
-                    <td style="color: #666;">Extras Cost</td>
-                    <td style="font-weight: 600;">€${booking.totalExtrasCost}</td>
-                  </tr>
-                </table>
+        <!-- Booking Details -->
+        <div style="${STYLES.section}">
+          <h3 style="margin: 0 0 10px; color: #333;">Booking Details</h3>
+          <table width="100%" cellpadding="8" cellspacing="0" style="background-color: #f8f9fa;">
+            <tr>
+              <td style="color: #666;">Booking ID</td>
+              <td style="font-weight: 600;">#${bookingId}</td>
+            </tr>
+            <tr>
+              <td style="color: #666;">Package</td>
+              <td style="font-weight: 600;">${selectedPackage || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="color: #666;">Sport</td>
+              <td style="font-weight: 600;">${selectedSport || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="color: #666;">Departure City</td>
+              <td style="font-weight: 600;">${selectedCity || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="color: #666;">Dates</td>
+              <td style="font-weight: 600;">${departureDateFormatted} - ${returnDateFormatted}</td>
+            </tr>
+            <tr>
+              <td style="color: #666;">Travelers</td>
+              <td style="font-weight: 600;">${totalPeople} People</td>
+            </tr>
+          </table>
+        </div>
 
-                <!-- Link to Admin Panel -->
-                <div style="text-align: center; margin-top: 30px;">
-                  <a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/admin/bookings/${booking.id}" style="${STYLES.button}">
-                    View Full Booking
-                  </a>
-                </div>
-              </div>
-
-               <!-- Traveler List Preview -->
-               ${
-                 booking.allTravelers && booking.allTravelers.length > 0
-                   ? `
-               <div style="${STYLES.section}; background-color: #fafafa;">
-                 <h4 style="margin: 0 0 10px; color: #666;">👥 Traveler Manifest</h4>
-                 <ul style="margin: 0; padding-left: 20px; color: #555;">
-                   ${booking.allTravelers
-                     .map(
-                       (t) =>
-                         `<li>${t.name} (${t.documentNumber || "No Doc"})</li>`,
-                     )
-                     .join("")}
-                 </ul>
-               </div>
-               `
-                   : ""
-               }
-
-              <!-- Footer -->
-              <div style="${STYLES.footer}">
-                <p style="margin: 0; color: #999; font-size: 12px;">Start preparing the surprise!</p>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </table>
+        <!-- Footer -->
+        <div style="${STYLES.footer}">
+          <p style="margin: 0; color: #999; font-size: 12px;">GoGame Admin Panel</p>
+        </div>
+      </div>
     </body>
     </html>
   `;
@@ -333,14 +231,12 @@ export function generateAdminEmailContent(booking: BookingData) {
 }
 
 export async function sendBookingConfirmationEmail(
-  booking: BookingData,
+  booking: IBooking,
   options?: { showReveal?: boolean },
 ): Promise<{ success: boolean; message: string; error?: string }> {
   try {
     if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
-      console.error(
-        "❌ Email configuration missing: MAIL_USER or MAIL_PASS not set",
-      );
+      console.error("❌ Email configuration missing");
       return {
         success: false,
         message: "Email service not configured",
@@ -348,12 +244,13 @@ export async function sendBookingConfirmationEmail(
       };
     }
 
-    if (!booking || !booking.email) {
-      console.error("❌ Missing booking data or email");
+    const email = booking.travelers?.primaryContact?.email;
+    if (!email) {
+      console.error("❌ Missing email");
       return {
         success: false,
-        message: "Booking data and email are required",
-        error: "Missing booking or email",
+        message: "Email is required",
+        error: "Missing email",
       };
     }
 
@@ -361,31 +258,28 @@ export async function sendBookingConfirmationEmail(
 
     await transporter.sendMail({
       from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
-      to: booking.email,
+      to: email,
       subject: userEmailContent.subject,
       html: userEmailContent.htmlContent,
-      // Fallback text (simplified)
-      text: `Booking Confirmed #${booking.id}. Thank you for booking with GoGame! Check your email for details.`,
+      text: `Booking Confirmed #${booking._id}`,
       replyTo: process.env.MAIL_FROM ?? process.env.MAIL_USER,
     });
 
-    // 2. Generate and Send Admin Email
+    // Send Admin Email
     const adminEmail = process.env.MAIL_TO ?? process.env.MAIL_USER;
     if (adminEmail) {
       try {
         const adminEmailContent = generateAdminEmailContent(booking);
-
         await transporter.sendMail({
           from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
           to: adminEmail,
           subject: adminEmailContent.subject,
           html: adminEmailContent.htmlContent,
-          text: `New Booking #${booking.id} from ${booking.fullName}`,
-          replyTo: booking.email,
+          text: `New Booking #${booking._id}`,
+          replyTo: email,
         });
       } catch (adminError) {
         console.error("❌ Failed to send admin email:", adminError);
-        // We do not throw here to allow function to return success for user email
       }
     }
 
@@ -394,25 +288,27 @@ export async function sendBookingConfirmationEmail(
       message: "Confirmation emails sent successfully",
     };
   } catch (error) {
-    console.error("❌ Error sending booking confirmation email:", error);
+    console.error("❌ Error sending email:", error);
 
     const isTransient =
       error instanceof Error && emailQueue.isTransientError(error);
 
     if (isTransient) {
       try {
-        // Queue retry for USER email only (Admin is secondary)
         const userContent = generateUserEmailContent(booking, options);
-        await emailQueue.addToQueue({
-          to: booking.email,
-          subject: userContent.subject,
-          html: userContent.htmlContent,
-          text: `Booking Confirmed #${booking.id}`,
-          from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
-          replyTo: process.env.MAIL_FROM ?? process.env.MAIL_USER,
-          bookingId: booking.id,
-          type: "booking",
-        });
+        const email = booking.travelers?.primaryContact?.email;
+        if (email) {
+          await emailQueue.addToQueue({
+            to: email,
+            subject: userContent.subject,
+            html: userContent.htmlContent,
+            text: `Booking Confirmed #${booking._id}`,
+            from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+            replyTo: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+            bookingId: booking._id?.toString() || "",
+            type: "booking",
+          });
+        }
 
         return {
           success: false,
@@ -433,28 +329,31 @@ export async function sendBookingConfirmationEmail(
 }
 
 export async function queueBookingConfirmationEmails(
-  booking: BookingData,
+  booking: IBooking,
   options?: { showReveal?: boolean; delay?: number },
 ) {
+  const email = booking.travelers?.primaryContact?.email;
+  if (!email) {
+    console.error("❌ No email found for booking");
+    return;
+  }
 
-  // 1. Queue User Email
+  // Queue User Email
   const userContent = generateUserEmailContent(booking, options);
   await emailQueue.addToQueue(
     {
-      to: booking.email,
+      to: email,
       subject: userContent.subject,
       html: userContent.htmlContent,
       text: userContent.subject,
       from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
       type: "booking",
-      bookingId: booking.id,
+      bookingId: booking._id?.toString() || "",
     },
     { delay: options?.delay },
   );
 
-  // 2. Queue Admin Email (Immediate only)
-  // Only send admin email if it's an immediate action (no excessive delay)
-  // And avoid duplicate admin emails if this is a delayed job.
+  // Queue Admin Email (Immediate only)
   if (!options?.delay) {
     const adminEmail = process.env.MAIL_TO ?? process.env.MAIL_USER;
     if (adminEmail) {
@@ -463,11 +362,11 @@ export async function queueBookingConfirmationEmails(
         to: adminEmail,
         subject: adminContent.subject,
         html: adminContent.htmlContent,
-        text: `New Booking #${booking.id}`,
+        text: `New Booking #${booking._id}`,
         from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
         type: "booking",
-        bookingId: booking.id,
-        replyTo: booking.email,
+        bookingId: booking._id?.toString() || "",
+        replyTo: email,
       });
     }
   }

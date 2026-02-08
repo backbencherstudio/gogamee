@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { BookingService } from "@/backend";
 import { toErrorMessage } from "@/backend/lib/errors";
 import { queueBookingConfirmationEmails } from "@/app/api/mail/send-booking-email";
-import { mapBookingToLegacy } from "@/backend/modules/booking/booking.mapper";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -17,10 +16,30 @@ async function getId(context: RouteContext) {
 }
 
 export async function PATCH(request: Request, context: RouteContext) {
-  const payload = await request.json();
   try {
     const id = await getId(context);
-    const updated: any = await BookingService.updateById(id, payload);
+    const payload = await request.json();
+    const { status, destinationCity, assignedMatch } = payload;
+
+    if (!status) {
+      return NextResponse.json(
+        { message: "Status is required" },
+        { status: 400 },
+      );
+    }
+    if (status === "confirmed" && (!destinationCity || !assignedMatch)) {
+      return NextResponse.json(
+        { message: "Destination City and Assigned Match are required" },
+        { status: 400 },
+      );
+    }
+    // Update booking with new data
+    const updated = await BookingService.updateStatus(
+      id,
+      status,
+      destinationCity,
+      assignedMatch,
+    );
 
     if (!updated) {
       return NextResponse.json(
@@ -30,9 +49,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     // Handle Email Scheduling on Approval
-    if (updated && payload.status === "confirmed") {
+    if (status === "confirmed") {
       try {
-        const departureDate = new Date(updated.departureDate);
+        const departureDate = new Date(updated.dates?.departure || "");
         const now = new Date();
         // 48 hours in milliseconds
         const revealTime = new Date(
@@ -41,21 +60,19 @@ export async function PATCH(request: Request, context: RouteContext) {
         const delay = revealTime.getTime() - now.getTime();
 
         if (delay > 0) {
-          const legacyBooking = mapBookingToLegacy(updated);
           // 1. Send Immediate Confirmation (Hidden) + Admin Notification
-          await queueBookingConfirmationEmails(legacyBooking, {
+          await queueBookingConfirmationEmails(updated, {
             showReveal: false,
           });
 
           // 2. Schedule Reveal Email (User Only)
-          await queueBookingConfirmationEmails(legacyBooking, {
+          await queueBookingConfirmationEmails(updated, {
             showReveal: true,
             delay,
           });
         } else {
-          const legacyBooking = mapBookingToLegacy(updated);
           // Already within 48h, send Revealed version immediately
-          await queueBookingConfirmationEmails(legacyBooking, {
+          await queueBookingConfirmationEmails(updated, {
             showReveal: true,
           });
         }
@@ -65,11 +82,12 @@ export async function PATCH(request: Request, context: RouteContext) {
       }
     }
 
-    const mappedBooking = mapBookingToLegacy(updated);
-
-    return NextResponse.json(mappedBooking, {
-      headers: { "Cache-Control": "no-store" },
-    });
+    return NextResponse.json(
+      { success: true, message: "Booking updated successfully" },
+      {
+        headers: { "Cache-Control": "no-store" },
+      },
+    );
   } catch (error: unknown) {
     console.error("Update booking error", error);
     return NextResponse.json(

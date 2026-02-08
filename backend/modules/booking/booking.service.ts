@@ -9,7 +9,6 @@ import {
 import type {
   CreateBookingData,
   UpdateBookingData,
-  BookingFilters,
   BookingQueryOptions,
 } from "./booking.types";
 
@@ -50,14 +49,25 @@ class BookingService {
 
     const query: any = { deletedAt: { $exists: false } };
 
-    if (filters.status) query.status = filters.status;
-    if (filters.payment_status) query.payment_status = filters.payment_status;
+    if (filters.status) {
+      if (filters.status === "rejected") {
+        query.status = { $in: ["rejected", "cancelled"] };
+      } else {
+        query.status = filters.status;
+      }
+    }
+    if (filters.payment_status)
+      query["payment.status"] = filters.payment_status;
     if (filters.selectedSport)
       query["selection.sport"] = new RegExp(`^${filters.selectedSport}$`, "i");
     if (filters.email)
       query["travelers.primaryContact.email"] = new RegExp(filters.email, "i");
-    if (filters.isBookingComplete !== undefined)
-      query.isBookingComplete = filters.isBookingComplete;
+    if (filters.isBookingComplete !== undefined) {
+      if (filters.isBookingComplete) {
+        query.status = "completed";
+      }
+    }
+
     if (filters.dateFrom || filters.dateTo) {
       query["dates.departure"] = {};
       if (filters.dateFrom) query["dates.departure"].$gte = filters.dateFrom;
@@ -98,30 +108,10 @@ class BookingService {
     return booking;
   }
 
-  async updateById(
-    id: string,
-    data: UpdateBookingData,
-  ): Promise<IBooking | null> {
-    await connectToDatabase();
-    const updated = await Booking.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (updated) {
-      // Invalidate specific cache and list caches
-      await deleteCache(`booking:${id}`);
-      await clearCachePattern("booking:list:*");
-    }
-
-    return updated;
-  }
-
   async deleteById(id: string): Promise<boolean> {
     await connectToDatabase();
-    const result = await Booking.findByIdAndUpdate(id, {
-      deletedAt: new Date(),
-    });
+    // Permanent delete instead of soft delete
+    const result = await Booking.findByIdAndDelete(id);
 
     if (result) {
       try {
@@ -166,13 +156,24 @@ class BookingService {
     return booking;
   }
 
-  async updateStatus(id: string, status: string): Promise<IBooking | null> {
+  async updateStatus(
+    id: string,
+    status: string,
+    destinationCity?: string,
+    assignedMatch?: string,
+  ): Promise<IBooking | null> {
     await connectToDatabase();
     const updated = await Booking.findByIdAndUpdate(
       id,
-      { status },
+      {
+        status,
+        ...(status === "confirmed" && {
+          destinationCity,
+          assignedMatch,
+        }),
+      },
       { new: true },
-    );
+    ).lean();
 
     if (updated) {
       await deleteCache(`booking:${id}`);
@@ -191,7 +192,6 @@ class BookingService {
       id,
       {
         "payment.status": paymentStatus,
-        isBookingComplete: paymentStatus === "paid",
       },
       { new: true },
     );
@@ -202,16 +202,6 @@ class BookingService {
     }
 
     return updated;
-  }
-
-  private calculateTravelDuration(
-    departureDate: string,
-    returnDate: string,
-  ): number {
-    const start = new Date(departureDate);
-    const end = new Date(returnDate);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
 
   async getStats(): Promise<{
