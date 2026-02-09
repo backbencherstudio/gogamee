@@ -5,7 +5,7 @@ export default function PackageHero() {
   return (
     <div className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
       {/* Responsive Hero Section */}
-      <div 
+      <div
         className="w-full h-[280px] sm:h-[320px] md:h-[360px] lg:h-[399px] p-4 sm:p-6 rounded-[16px] sm:rounded-[20px] lg:rounded-[24px] 
                    inline-flex flex-col justify-end items-start overflow-hidden relative"
         style={{
