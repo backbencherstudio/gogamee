@@ -7,12 +7,66 @@ import {
   useLanguage,
   formatPeopleCount,
 } from "../../../../context/LanguageContext";
-import { heroData } from "../../../../lib/appdata";
 import {
   getStartingPrice,
   StartingPriceItem,
 } from "../../../../../services/packageService";
 import { TranslatedText } from "../../../_components/TranslatedText";
+
+const heroData = {
+  sports: [
+    { id: "football", name: "Fútbol", label: "Fútbol", value: "Fútbol" },
+    { id: "basketball", name: "Basket", label: "Basket", value: "Basket" },
+    { id: "both", name: "Ambos", label: "Ambos", value: "Ambos" },
+  ],
+
+  packTypes: [
+    { id: 1, name: "Estándar", basePrice: 299, currency: "EUR" },
+    { id: 2, name: "Premium", basePrice: 1399, currency: "EUR" },
+  ],
+
+  departureCities: [
+    { id: 1, name: "Madrid", country: "Spain" },
+    { id: 2, name: "Barcelona", country: "Spain" },
+    { id: 3, name: "Málaga", country: "Spain" },
+    { id: 4, name: "Valencia", country: "Spain" },
+    { id: 5, name: "Alicante", country: "Spain" },
+    { id: 6, name: "Bilbao", country: "Spain" },
+  ],
+
+  peopleCategories: [
+    {
+      id: "adults",
+      name: "Adultos",
+      minAge: 18,
+      maxAge: 100,
+      minCount: 1,
+      maxCount: 10,
+      defaultCount: 2,
+    },
+    {
+      id: "children",
+      name: "Niños",
+      minAge: 2,
+      maxAge: 17,
+      minCount: 0,
+      maxCount: 10,
+      defaultCount: 0,
+    },
+    {
+      id: "babies",
+      name: "Bebés",
+      minAge: 0,
+      maxAge: 1,
+      minCount: 0,
+      maxCount: 10,
+      defaultCount: 0,
+    },
+  ],
+
+  maxTotalPeople: 10,
+  minAdults: 1,
+};
 
 // People categories for the counter interface
 interface PeopleCount {
@@ -28,14 +82,8 @@ export default function HeroSection() {
   const { language } = useLanguage();
 
   // Sport selection state (supports Spanish + English labels)
-  type SportChoice =
-    | "Fútbol"
-    | "Basket"
-    | "Ambos"
-    | "Football"
-    | "Basketball"
-    | "Both";
-  const [selectedSport, setSelectedSport] = useState<SportChoice>("Fútbol");
+  type SportChoice = "football" | "basketball" | "both";
+  const [selectedSport, setSelectedSport] = useState<SportChoice>("football");
 
   // Starting prices loaded from API (single source of truth)
   const [startingPrices, setStartingPrices] = useState<{
@@ -78,7 +126,7 @@ export default function HeroSection() {
     };
 
     const priceBySport = (sport: SportChoice) => {
-      if (sport === "Fútbol" || sport === "Football") {
+      if (sport === "football") {
         const p = startingPrices.football?.pricesByDuration?.["1"];
         return startingPrices.football && p
           ? {
@@ -88,7 +136,7 @@ export default function HeroSection() {
             }
           : defaults.Football;
       }
-      if (sport === "Basket" || sport === "Basketball") {
+      if (sport === "basketball") {
         const p = startingPrices.basketball?.pricesByDuration?.["1"];
         return startingPrices.basketball && p
           ? {
@@ -131,10 +179,15 @@ export default function HeroSection() {
     };
 
     const chosen = priceBySport(selectedSport);
-    return heroData.packTypes.map((pack) => ({
-      ...pack,
-      price: `${fromText} ${pack.name === "Estándar" ? chosen.standard : chosen.premium}${chosen.currency}`,
-    }));
+    return heroData.packTypes.map((pack) => {
+      const englishName = pack.name === "Estándar" ? "Standard" : "Premium";
+      return {
+        ...pack,
+        name: englishName, // Internal logic uses English
+        spanishName: pack.name, // Keep original for display if needed
+        price: `${fromText} ${englishName === "Standard" ? chosen.standard : chosen.premium}${chosen.currency}`,
+      };
+    });
   }, [selectedSport, startingPrices, language]);
 
   // Dropdown states
@@ -295,10 +348,16 @@ export default function HeroSection() {
                     key={sport.id}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedSport(sport.name as SportChoice);
+                      // Map id (lowercase) to SportChoice (Capitalized)
+                      const sportMap: Record<string, SportChoice> = {
+                        football: "football",
+                        basketball: "basketball",
+                        both: "both",
+                      };
+                      setSelectedSport(sportMap[sport.id]);
                     }}
                     className={`w-full sm:w-36 h-11 px-3.5 py-1.5 flex justify-center items-center gap-2.5 cursor-pointer ${
-                      selectedSport === sport.name
+                      selectedSport === sport.id
                         ? "bg-[#76C043] text-white"
                         : "text-neutral-600"
                     } ${
@@ -346,12 +405,12 @@ export default function HeroSection() {
                 >
                   <span className="text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed">
                     <TranslatedText
-                      text={selectedPack.name}
-                      english={
-                        selectedPack.name === "Estándar"
-                          ? "Standard"
+                      text={
+                        selectedPack.name === "Standard"
+                          ? "Estándar"
                           : "Premium"
                       }
+                      english={selectedPack.name}
                       as="span"
                     />{" "}
                     - <span>{selectedPack.price}</span>
@@ -373,10 +432,10 @@ export default function HeroSection() {
                         className="px-3.5 py-2 hover:bg-gray-50 cursor-pointer flex justify-between items-center"
                       >
                         <TranslatedText
-                          text={pack.name}
-                          english={
-                            pack.name === "Estándar" ? "Standard" : "Premium"
+                          text={
+                            pack.name === "Standard" ? "Estándar" : "Premium"
                           }
+                          english={pack.name}
                           className="text-sm font-normal font-['Poppins'] text-black"
                         />
                         <span className="text-sm font-medium text-black">
@@ -609,25 +668,12 @@ export default function HeroSection() {
                     totalPeople > 0;
 
                   if (isAllFieldsFilled) {
-                    // Map Spanish sport names to API values
-                    const sportMap: Record<string, string> = {
-                      fútbol: "football",
-                      basket: "basketball",
-                      ambos: "both",
-                    };
-                    // Map Spanish package names to API values
-                    const packageMap: Record<string, string> = {
-                      estándar: "standard",
-                      premium: "premium",
-                    };
                     // Create hero data object for BookingContext
+                    // Internal state is already English "Football", "Standard", etc.
+                    // API expects lowercase English.
                     const heroData = {
-                      selectedSport:
-                        sportMap[selectedSport.toLowerCase()] ||
-                        selectedSport.toLowerCase(),
-                      selectedPackage:
-                        packageMap[selectedPack.name.toLowerCase()] ||
-                        selectedPack.name.toLowerCase(),
+                      selectedSport: selectedSport.toLowerCase(), // "football" | "basketball" | "both"
+                      selectedPackage: selectedPack.name.toLowerCase(), // "standard" | "premium"
                       selectedCity: selectedCity.name.toLowerCase(),
                       peopleCount: {
                         adults: peopleCount.adults,
@@ -635,7 +681,7 @@ export default function HeroSection() {
                         babies: peopleCount.babies,
                       },
                       fromHero: true,
-                      startFromStep: 4, // Start from step 5 (0-indexed)
+                      startFromStep: 4,
                     };
 
                     // Save hero data to localStorage for BookingContext to pick up

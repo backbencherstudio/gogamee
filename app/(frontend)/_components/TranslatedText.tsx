@@ -50,15 +50,28 @@ export const TranslatedText: React.FC<TranslatedTextProps> = ({
     }
 
     const translate = async () => {
-      // If skipTranslation is true, use provided fallbacks directly
-      if (skipTranslation) {
-        if (language === "es" && spanish) {
+      // 1. Check if explicit translations are provided via props
+      // If we have the specific translation for the current language, use it immediately
+      if (language === "en" && english) {
+        setDisplayText(english);
+        return;
+      }
+      if (language === "es") {
+        if (spanish) {
           setDisplayText(spanish);
-        } else if (language === "en" && english) {
-          setDisplayText(english);
-        } else {
-          setDisplayText(text);
+          return;
         }
+        // If english is provided but spanish is not, assume 'text' is the Spanish source
+        // and avoid API call (since we have a static pair defined partially)
+        if (english) {
+          setDisplayText(text);
+          return;
+        }
+      }
+
+      // Also respect the skipTranslation flag
+      if (skipTranslation) {
+        setDisplayText(text);
         return;
       }
 

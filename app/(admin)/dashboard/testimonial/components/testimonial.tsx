@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import { Plus, Star, Edit, Trash2, Save, X, User } from "lucide-react";
 import { AiFillStar } from "react-icons/ai";
 import {
@@ -45,20 +44,14 @@ export default function TestimonialPage() {
   const [formData, setFormData] = useState<{
     name: string;
     role: string;
-    image: string; // URL string for preview/existing
     rating: number;
     review: string;
-    imageFile?: File | null; // New field for file object
   }>({
     name: "",
     role: "",
-    image: "/homepage/image/avatar1.png",
     rating: 5,
     review: "",
-    imageFile: null,
   });
-
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Load stats from API
   const loadStats = async () => {
@@ -130,51 +123,18 @@ export default function TestimonialPage() {
     return imagePath;
   };
 
-  // Handle image selection (local preview only)
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Create local preview URL
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
-
-      // Update state with file object
-      setFormData((prev) => ({
-        ...prev,
-        imageFile: file,
-      }));
-    }
-  };
-
   const handleAddReview = async () => {
     if (formData.name && formData.role && formData.review) {
       setSaving(true);
       try {
-        // Auto-translate content
-        const [translatedRole, translatedReview] = await Promise.all([
-          autoTranslateContent(formData.role.trim()),
-          autoTranslateContent(formData.review.trim()),
-        ]);
+        const payload = {
+          name: formData.name.trim(),
+          role: formData.role.trim(),
+          rating: formData.rating,
+          review: formData.review.trim(),
+        };
 
-        const data = new FormData();
-        data.append("name", formData.name.trim());
-        data.append("role", formData.role.trim());
-        data.append("role_es", translatedRole.es);
-        data.append("rating", formData.rating.toString());
-        data.append("review", formData.review.trim());
-        data.append("review_es", translatedReview.es);
-
-        // Image is optional
-        if (formData.imageFile) {
-          data.append("image", formData.imageFile);
-        } else if (
-          formData.image &&
-          formData.image !== "/homepage/image/avatar1.png"
-        ) {
-          data.append("image", formData.image);
-        }
-
-        const res = await addTestimonial(data);
+        const res = await addTestimonial(payload);
         if (res.success) {
           await loadReviews(currentPage);
           await loadStats(); // Refresh stats
@@ -218,12 +178,9 @@ export default function TestimonialPage() {
     setFormData({
       name: review.name,
       role: review.role,
-      image: review.image,
       rating: review.rating,
       review: review.review,
-      imageFile: null, // Reset file input
     });
-    setImagePreview(review.image);
     setShowAddForm(true);
   };
 
@@ -231,29 +188,14 @@ export default function TestimonialPage() {
     if (editingId) {
       setSaving(true);
       try {
-        // Auto-translate content
-        const [translatedRole, translatedReview] = await Promise.all([
-          autoTranslateContent(formData.role.trim()),
-          autoTranslateContent(formData.review.trim()),
-        ]);
+        const payload = {
+          name: formData.name.trim(),
+          role: formData.role.trim(),
+          rating: formData.rating,
+          review: formData.review.trim(),
+        };
 
-        const data = new FormData();
-        data.append("name", formData.name.trim());
-        data.append("role", formData.role.trim());
-        data.append("role_es", translatedRole.es);
-        data.append("rating", formData.rating.toString());
-        data.append("review", formData.review.trim());
-        data.append("review_es", translatedReview.es);
-
-        // Only append image if a new file is selected, or if we want to send the existing URL
-        if (formData.imageFile) {
-          data.append("image", formData.imageFile);
-        } else {
-          // If no new file, send the existing image URL so backend knows to keep it
-          data.append("image", formData.image);
-        }
-
-        const res = await updateTestimonial(editingId, data);
+        const res = await updateTestimonial(editingId, payload);
         if (res.success) {
           await loadReviews(currentPage);
           await loadStats(); // Refresh stats
@@ -278,12 +220,9 @@ export default function TestimonialPage() {
     setFormData({
       name: "",
       role: "",
-      image: "/homepage/image/avatar1.png",
       rating: 5,
       review: "",
-      imageFile: null,
     });
-    setImagePreview(null);
   };
 
   const handleCancel = () => {
@@ -412,58 +351,6 @@ export default function TestimonialPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Profile Image (Optional)
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-full p-2 border border-gray-300 rounded-lg text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#76C043]/10 file:text-[#76C043] hover:file:bg-[#76C043]/20"
-                />
-                {imagePreview && (
-                  <div className="mt-2 w-16 h-16 rounded-full overflow-hidden border border-gray-200">
-                    <Image
-                      src={imagePreview}
-                      alt="Preview"
-                      width={64}
-                      height={64}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Rating
-                </label>
-                <select
-                  value={formData.rating}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      rating: parseInt(e.target.value),
-                    })
-                  }
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent appearance-none bg-white bg-no-repeat bg-right pr-10"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                    backgroundPosition: "right 0.75rem center",
-                    backgroundSize: "1.5em 1.5em",
-                  }}
-                >
-                  <option value={5}>5 Stars</option>
-                  <option value={4}>4 Stars</option>
-                  <option value={3}>3 Stars</option>
-                  <option value={2}>2 Stars</option>
-                  <option value={1}>1 Star</option>
-                </select>
-              </div>
-            </div>
-
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Review Content
@@ -544,21 +431,6 @@ export default function TestimonialPage() {
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-                          {getImageSrc(review.image) ? (
-                            <Image
-                              src={getImageSrc(review.image)!}
-                              alt={review.name}
-                              fill
-                              className="object-cover"
-                              onError={(e) => handleImageError(review.image, e)}
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                              <User className="w-6 h-6 text-gray-400" />
-                            </div>
-                          )}
-                        </div>
                         <div className="min-w-0 flex-1">
                           <h3 className="text-lg font-semibold font-['Geist'] text-lime-900 truncate">
                             <TranslatedText text={review.name} />

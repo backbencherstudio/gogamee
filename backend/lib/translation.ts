@@ -6,13 +6,16 @@ export async function translateTextBackend(
   sourceLanguage: string = "auto",
 ): Promise<string> {
   if (!text) return "";
-  const textStr = String(text); // Ensure it is a string
-  if (sourceLanguage === targetLanguage) return textStr;
+  const textStr = String(text).trim(); // Ensure it is a string and trimmed
+  if (!textStr) return "";
+
+  if (sourceLanguage !== "auto" && sourceLanguage === targetLanguage)
+    return textStr;
 
   // Generate cache key
   const cacheKey = `translate:${
     sourceLanguage || "auto"
-  }:${targetLanguage}:${textStr.trim()}`;
+  }:${targetLanguage}:${textStr}`;
 
   try {
     // 1. Check Redis Cache
@@ -42,6 +45,24 @@ export async function translateTextBackend(
       data[0].forEach((sentence: any) => {
         if (sentence[0]) translatedText += sentence[0];
       });
+    }
+
+    // Check detected language if source was auto
+    if (sourceLanguage === "auto" && data && data[2]) {
+      const detectedLang = data[2];
+      // API might return 'es' or 'es-ES', so we check includes or simple equality
+      if (
+        detectedLang === targetLanguage ||
+        detectedLang.startsWith(targetLanguage + "-")
+      ) {
+        // Detected language matches target; return original text.
+        // We should cache this result to avoid re-checking API.
+        const finalResult = textStr;
+        if (redis) {
+          await redis.set(cacheKey, finalResult, "EX", 60 * 60 * 24 * 7);
+        }
+        return finalResult;
+      }
     }
 
     const finalResult = translatedText || textStr;
