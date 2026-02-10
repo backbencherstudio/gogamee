@@ -1054,8 +1054,8 @@ export default function DateSection() {
               <div className="flex flex-col gap-2">
                 <div className="text-sm text-gray-600 font-medium">
                   {formData.selectedPackage === "standard"
-                    ? t("Paquete Estándar", "Standard Package")
-                    : t("Paquete Premium", "Premium Package")}{" "}
+                    ? t("Pack Estándar", "Standard Package")
+                    : t("Pack Premium", "Premium Package")}{" "}
                   -{" "}
                   {formData.selectedSport === "football"
                     ? t("Fútbol", "Football")
@@ -1074,20 +1074,6 @@ export default function DateSection() {
               </div>
             </div>
           )}
-
-          {/* Competition Type and Date Restrictions Info */}
-          {/* {formData.selectedLeague && (
-            <div className="w-full p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex flex-col gap-2">
-                <div className="text-sm font-medium text-blue-800">
-                  {formData.selectedLeague === 'european' ? '🏆 European Leagues' : '⚽ National Leagues'}
-                </div>
-                <div className="text-xs text-blue-500">
-                  Available departure dates: Specific dates enabled in calendar
-                </div>
-              </div>
-            </div>
-          )} */}
 
           {/* Duration Selectionn */}
           <div className="p-1 bg-white rounded-xl outline-1 outline-offset-[-1px] outline-gray-200 w-full overflow-x-auto">

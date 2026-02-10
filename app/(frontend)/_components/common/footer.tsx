@@ -1,6 +1,6 @@
 "use client";
 import { Mail, Heart, Instagram, MessageCircle, Linkedin } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaTiktok, FaWhatsapp } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
 import { TranslatedText } from "../TranslatedText";
@@ -82,7 +82,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <MessageCircle className="w-6 h-6 text-white" />
+                    <FaWhatsapp className="w-6 h-6 text-white" />
                     <span className="text-white text-base font-medium font-['Inter']">
                       WhatsApp
                     </span>
@@ -161,25 +161,6 @@ export default function Footer() {
                   />
                 </h3>
                 <div className="space-y-4 flex flex-col items-center sm:items-start">
-                  {links.whatsapp && (
-                    <Link
-                      href={getWhatsAppLink(links.whatsapp)}
-                      className="flex items-center gap-2 cursor-pointer"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
-                        <FaWhatsapp className="w-5 h-5 text-white" />
-                      </div>
-                      <span className="text-white text-lg font-normal font-['Inter']">
-                        <TranslatedText
-                          text="WhatsApp"
-                          english="WhatsApp"
-                          as="span"
-                        />
-                      </span>
-                    </Link>
-                  )}
                   {links.tiktok && (
                     <Link
                       href={links.tiktok}
@@ -188,7 +169,7 @@ export default function Footer() {
                       rel="noopener noreferrer"
                     >
                       <div className="p-2.5 bg-white/5 rounded-[50px] outline-[0.60px] outline-white/20">
-                        <Heart className="w-5 h-5 text-white" />
+                        <FaTiktok className="w-5 h-5 text-white" />
                       </div>
                       <span className="text-white text-lg font-normal font-['Inter']">
                         <TranslatedText

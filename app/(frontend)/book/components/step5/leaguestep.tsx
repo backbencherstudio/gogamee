@@ -1,6 +1,4 @@
 "use client";
-
-import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { FaCheck } from "react-icons/fa";
 import { useBooking } from "../../context/BookingContext";
@@ -8,6 +6,7 @@ import { BOOKING_CONSTANTS } from "../../context/BookingContext";
 import { ContinueButton } from "../shared/buttons/ContinueButton";
 import { TranslatedText } from "../../../_components/TranslatedText";
 import { removeLeagueData } from "../../../../lib/appdata";
+import { useState } from "react";
 
 interface LeagueOption {
   id: string;
@@ -29,8 +28,8 @@ const LEAGUE_OPTIONS: LeagueOption[] = [
   },
   {
     id: "european",
-    title: `European Competition ( + ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`,
-    price: ` ( + ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`,
+    title: `European Competition`,
+    price: ` ( ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`,
     imagePath: "/stepper/league2.png",
   },
 ];
@@ -53,6 +52,8 @@ const getCardStyles = (isSelected: boolean): string => {
 
 export default function LeagueStep() {
   const { formData, updateFormData, nextStep } = useBooking();
+
+  const [showEuropeanSupplement, setShowEuropeanSupplement] = useState(false);
 
   const { control, watch, handleSubmit } = useForm<LeagueFormData>({
     defaultValues: {
@@ -80,7 +81,7 @@ export default function LeagueStep() {
         leagues = [
           {
             id: "european",
-            name: `European Competition ( + ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`,
+            name: `European Competition`,
             group: "European" as const,
             isSelected: true,
           },
@@ -107,7 +108,10 @@ export default function LeagueStep() {
       <div
         key={option.id}
         className={getCardStyles(isSelected)}
-        onClick={() => onChange(option.id)}
+        onClick={() => {
+          onChange(option.id);
+          setShowEuropeanSupplement(option.id === "european");
+        }}
       >
         {/* Background Image Layer */}
         <div
@@ -127,7 +131,7 @@ export default function LeagueStep() {
             text={
               option.id === "national"
                 ? "Ligas nacionales"
-                : `Competiciones europeas ( + ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`
+                : `Competiciones europeas`
             }
             english={`${option.title}`}
           />
@@ -172,7 +176,22 @@ export default function LeagueStep() {
               )}
             />
           </div>
-
+          {showEuropeanSupplement && (
+            <div className="w-full xl:w-[600] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900">
+              <div className="text-sm xl:text-base font-medium font-['Poppins']">
+                <TranslatedText
+                  text={`Sumplemento para competiciones europeas: se aplicarán ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€.`}
+                  english={`European competitions supplement: ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ will be applied.`}
+                />
+              </div>
+              <div className="text-xs xl:text-sm text-zinc-600 font-['Poppins'] mt-1">
+                <TranslatedText
+                  text="Esta tarifa solo se aplica cuando se viaja solo y aparecerá en su resumen final."
+                  english="This fee applies only when traveling alone and will appear in your final summary."
+                />
+              </div>
+            </div>
+          )}
           {/* Submit Button */}
           <ContinueButton
             onClick={handleSubmit(onSubmit)}

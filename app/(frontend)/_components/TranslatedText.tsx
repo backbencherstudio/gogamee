@@ -115,5 +115,10 @@ export const TranslatedText: React.FC<TranslatedTextProps> = ({
     skipTranslation,
   ]);
 
-  return <Component className={className}>{displayText}</Component>;
+  return (
+    <Component
+      className={className}
+      dangerouslySetInnerHTML={{ __html: displayText }}
+    />
+  );
 };

@@ -490,7 +490,6 @@ export default function FlightSchedule() {
   }, [flightData]);
 
   const handleConfirm = useCallback(() => {
-
     // Save flight schedule data in structured format to booking context
     const flightScheduleData = {
       departure: {
@@ -550,12 +549,6 @@ export default function FlightSchedule() {
                 <div className="text-lg font-bold text-yellow-700">
                   +{totalAdditionalCost}€
                 </div>
-              </div>
-              <div className="text-xs text-yellow-600 mt-1">
-                <TranslatedText
-                  text={`Basado en ${Math.floor(totalAdditionalCost / flightScheduleData.getPricePerStep())} paso(s) desde los horarios por defecto`}
-                  english={`Based on ${Math.floor(totalAdditionalCost / flightScheduleData.getPricePerStep())} step(s) from default times`}
-                />
               </div>
             </div>
           )}

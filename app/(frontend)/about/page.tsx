@@ -18,17 +18,11 @@ async function getInitialData() {
   }
 }
 
-// Helper to translate deep object structure
 async function translateAboutContent(
   content: AboutContent,
   targetLang: string,
 ): Promise<AboutContent> {
-  if (targetLang === "es") return content; // Assuming DB is 'es' or we trust client to handle it if mixed?
-  // Actually usually DB is 'es' or 'en' mixed. But backend translation handles 'auto'.
-  // If target is 'es', and source is 'es', it returns original.
-  // If we just want to ensure it matches user lang, we run it.
-
-  // Parallelize top-level translations
+  if (targetLang === "es") return content;
   const [headline, sections, values, whyChooseUs] = await Promise.all([
     translateTextBackend(content.headline || "", targetLang),
     Promise.all(
@@ -85,7 +79,7 @@ export default async function Page() {
 
   return (
     <>
-      <AboutTop headline={initialContent?.headline} />
+      <AboutTop />
       <AboutPage initialContent={initialContent as AboutContent} />
     </>
   );

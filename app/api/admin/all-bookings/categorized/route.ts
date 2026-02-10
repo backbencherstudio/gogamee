@@ -31,10 +31,10 @@ export async function GET(request: NextRequest) {
       filters: {
         ...(status === "completed" ||
         status === "pending" ||
-        status === "rejected"
+        status === "rejected" ||
+        status === "confirmed"
           ? { status }
           : {}),
-        isBookingComplete: status === "completed",
         createdAtFrom: dateFrom,
         createdAtTo: dateTo,
       },

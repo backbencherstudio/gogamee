@@ -34,36 +34,46 @@ class AboutService {
       headline: headlineDoc
         ? headlineDoc.title
         : "Experience unforgettable live sports adventures.",
+
       sections: mainSectionDoc
-        ? mainSectionDoc.values.map((v: any) => ({
-            id: v._id?.toString(),
-            title: v.title,
-            description: v.description,
-            order: v.order,
-          }))
+        ? [...mainSectionDoc.values]
+            .sort((a: any, b: any) => a.order - b.order)
+            .map((v: any) => ({
+              id: v._id?.toString(),
+              title: v.title,
+              description: v.description,
+              order: v.order,
+            }))
         : [],
+
       values: {
         title: ourValuesDoc?.title || "Our Values",
         items: ourValuesDoc
-          ? ourValuesDoc.values.map((v: any) => ({
-              id: v._id?.toString(),
-              title: v.title,
-              description: v.description,
-              order: v.order,
-            }))
+          ? [...ourValuesDoc.values]
+              .sort((a: any, b: any) => a.order - b.order)
+              .map((v: any) => ({
+                id: v._id?.toString(),
+                title: v.title,
+                description: v.description,
+                order: v.order,
+              }))
           : [],
       },
+
       whyChooseUs: {
         title: whyChooseUsDoc?.title || "Why Choose GoGame",
         items: whyChooseUsDoc
-          ? whyChooseUsDoc.values.map((v: any) => ({
-              id: v._id?.toString(),
-              title: v.title,
-              description: v.description,
-              order: v.order,
-            }))
+          ? [...whyChooseUsDoc.values]
+              .sort((a: any, b: any) => a.order - b.order)
+              .map((v: any) => ({
+                id: v._id?.toString(),
+                title: v.title,
+                description: v.description,
+                order: v.order,
+              }))
           : [],
       },
+
       meta: {
         version: 2,
         updatedAt: new Date().toISOString(),

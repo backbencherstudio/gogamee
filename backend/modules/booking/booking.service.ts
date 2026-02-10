@@ -58,11 +58,6 @@ class BookingService {
       query["selection.sport"] = new RegExp(`^${filters.selectedSport}$`, "i");
     if (filters.email)
       query["travelers.primaryContact.email"] = new RegExp(filters.email, "i");
-    if (filters.isBookingComplete !== undefined) {
-      if (filters.isBookingComplete) {
-        query.status = "completed";
-      }
-    }
 
     if (filters.dateFrom || filters.dateTo) {
       query["dates.departure"] = {};
@@ -79,7 +74,6 @@ class BookingService {
     const sortOptions: any = sort
       ? { [sort.field]: sort.order === "desc" ? -1 : 1 }
       : { createdAt: -1 };
-
     const bookings = await Booking.find(query)
       .sort(sortOptions)
       .limit(limit + 1)

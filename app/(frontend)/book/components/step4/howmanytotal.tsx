@@ -277,7 +277,7 @@ export default function HowManyTotal() {
           {/* Content */}
           <div className="self-stretch flex-1 flex flex-col justify-between items-start gap-8 xl:gap-0">
             {/* Counter Section */}
-            <div className="w-full xl:w-[473px] p-3 bg-white rounded-xl flex flex-col justify-start items-start whitespace-nowrap">
+            <div className="w-full mx-auto p-3 bg-white rounded-xl flex flex-col justify-start items-start whitespace-nowrap">
               {COUNTER_CONFIG.map(({ key, title, description, minValue }) => (
                 <Controller
                   key={key}
@@ -316,7 +316,7 @@ export default function HowManyTotal() {
 
             {/* Next Button */}
             {totalCount === 1 && (
-              <div className="w-full xl:w-[473px] p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900">
+              <div className="w-full xl:w-[600px] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900">
                 <div className="text-sm xl:text-base font-medium font-['Poppins']">
                   <TranslatedText
                     text={`Suplemento de viajero individual: se aplicarán ${BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT}€.`}

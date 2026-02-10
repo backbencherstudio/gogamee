@@ -365,9 +365,9 @@ export function PricingSummary({
                 {BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT}€
               </div>
               <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
-                1
+                x1
               </div>
-              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-end">
                 {reservationData.singleTravelerSupplement.toFixed(2)}€
               </div>
             </div>
@@ -382,7 +382,7 @@ export function PricingSummary({
               {BOOKING_CONSTANTS.BOOKING_FEE}€
             </div>
             <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
-              1
+              x1
             </div>
             <div className="text-base font-semibold font-['Poppins'] leading-none text-neutral-800 text-end">
               {BOOKING_CONSTANTS.BOOKING_FEE.toFixed(2)}€
