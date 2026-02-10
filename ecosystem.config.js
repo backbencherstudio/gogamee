@@ -22,6 +22,7 @@ module.exports = {
       name: 'gogamee-worker',
       script: 'node_modules/tsx/dist/cli.mjs',
       args: 'worker.ts',
+      node_args: '--env-file=.env',
       cwd: process.cwd(),
       env: {
         NODE_ENV: 'production'
