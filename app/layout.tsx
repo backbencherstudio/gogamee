@@ -19,9 +19,16 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "GoGame",
+  title: {
+    default: "GoGame",
+    template: "%s | GoGame",
+  },
   description:
     "GoGame is a surprise travel platform that creates unforgettable sports experiences.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({

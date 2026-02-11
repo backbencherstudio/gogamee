@@ -251,14 +251,14 @@ export default function Payment() {
 
   const handlePaymentSuccess = () => {
     setShowSuccess(true);
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("gogame_booking_data");
-      localStorage.removeItem("gogame_booking_step");
-    }
-    clearBookingData();
+    const amount = formData.calculatedTotals?.totalCost?.toFixed(2) || "0.00";
+    const email = formData.travelers?.adults?.[0]?.email || "";
+
+    const successUrl = `/payment/success?bookingId=${bookingId || "CONFIRMED"}&amount=${amount}&email=${encodeURIComponent(email)}`;
+
     setTimeout(() => {
-      window.location.href = "/";
-    }, 3000);
+      window.location.href = successUrl;
+    }, 2000);
   };
 
   const handlePaymentError = (errorMessage: string) => {

@@ -260,7 +260,7 @@ export function PricingSummary({
             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
               x{reservationData.totalPeople}
             </div>
-            <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+            <div className="text-right text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
               {reservationData.packageTotal.toFixed(2)}€
             </div>
           </div>
@@ -325,7 +325,7 @@ export function PricingSummary({
               <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                 x{reservationData.totalPeople}
               </div>
-              <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+              <div className="text-right text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
                 {reservationData.leagueTotal.toFixed(2)}€
               </div>
             </div>
@@ -346,7 +346,7 @@ export function PricingSummary({
               <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                 x{reservationData.totalPeople}
               </div>
-              <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+              <div className="text-right text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
                 {reservationData.removalTotal.toFixed(2)}€
               </div>
             </div>
@@ -384,7 +384,7 @@ export function PricingSummary({
             <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
               x1
             </div>
-            <div className="text-base font-semibold font-['Poppins'] leading-none text-neutral-800 text-end">
+            <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-end">
               {BOOKING_CONSTANTS.BOOKING_FEE.toFixed(2)}€
             </div>
           </div>

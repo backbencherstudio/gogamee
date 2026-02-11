@@ -420,13 +420,14 @@ export default function Personalinfo() {
       (l) => l.group === "National" && !l.isSelected,
     ).length;
 
-    const effectiveRemovedLeaguesCount = isEuropeanCompetition
-      ? 0
-      : removedLeaguesCount;
+    const effectiveRemovedLeaguesCount = removedLeaguesCount;
     const removalCostPerPerson = removeLeagueData.calculateTotalCost(
       effectiveRemovedLeaguesCount,
     );
-    const removalTotal = removalCostPerPerson * totalPeople;
+    // Backend logic consistency: European competition does not charge for league removals
+    const removalTotal = isEuropeanCompetition
+      ? 0
+      : removalCostPerPerson * totalPeople;
 
     const packageTotal = basePrice * totalPeople;
 

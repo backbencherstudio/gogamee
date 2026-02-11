@@ -5,7 +5,7 @@ import { useBooking } from "../../context/BookingContext";
 import { BOOKING_CONSTANTS } from "../../context/BookingContext";
 import { ContinueButton } from "../shared/buttons/ContinueButton";
 import { TranslatedText } from "../../../_components/TranslatedText";
-import { removeLeagueData } from "../../../../lib/appdata";
+import { homepageLeaguesData } from "../../../../lib/appdata";
 import { useState } from "react";
 
 interface LeagueOption {
@@ -66,18 +66,35 @@ export default function LeagueStep() {
   const onSubmit = (data: LeagueFormData) => {
     if (data.selectedLeague) {
       let leagues = [];
+      const selectedSport =
+        (formData.selectedSport?.toLowerCase() as "football" | "basketball") ||
+        "football";
+
+      // Get appropriate leagues from correct data source
+      const sportLeagues =
+        selectedSport === "basketball"
+          ? homepageLeaguesData.getBasketballLeagues()
+          : homepageLeaguesData.getFootballLeagues();
+
+      // Filter out the "european-competition" entry from the national list
+      const nationalLeaguesRaw = sportLeagues.filter(
+        (l) => l.id !== "european-competition",
+      );
+
+      // Map to context structure
+      const mappedNationalLeagues = nationalLeaguesRaw.map((l) => ({
+        id: l.id,
+        name: l.name,
+        group: "National" as const,
+        country: l.country,
+        isSelected: true,
+      }));
+
       if (data.selectedLeague === "national") {
-        // Populate with all national leagues (default selected)
-        // Assuming removeLeagueData.leagues has { id, name, country ... }
-        leagues = removeLeagueData.leagues.map((l) => ({
-          id: l.id,
-          name: l.name,
-          group: "National" as const,
-          country: l.country,
-          isSelected: true,
-        }));
+        // Populate with all national leagues
+        leagues = mappedNationalLeagues;
       } else {
-        // European competition
+        // European competition - Include National leagues so they can be removed in next step
         leagues = [
           {
             id: "european",
@@ -85,6 +102,7 @@ export default function LeagueStep() {
             group: "European" as const,
             isSelected: true,
           },
+          ...mappedNationalLeagues,
         ];
       }
 
@@ -93,8 +111,10 @@ export default function LeagueStep() {
         leagues: leagues,
       });
 
-      // Move to next step
-      nextStep();
+      // Move to next step with the updated leagues data
+      nextStep({
+        leagues: leagues,
+      });
     }
   };
 

@@ -404,14 +404,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     const currentData = { ...formData, ...immediateData };
 
     if (currentStep === 4) {
-      const hasNationalLeagues = currentData.leagues.some(
-        (l) => l.group === "National",
-      );
-      if (hasNationalLeagues) {
-        setCurrentStep(4.5);
-      } else {
-        setCurrentStep(5);
-      }
+      // ALWAYS go to step 4.5 (Remove League) regardless of league type
+      setCurrentStep(4.5);
     } else if (currentStep === 4.5) {
       setCurrentStep(5);
     } else {
@@ -423,14 +417,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     if (currentStep === 4.5) {
       setCurrentStep(4);
     } else if (currentStep === 5) {
-      const hasNationalLeagues = formData.leagues.some(
-        (l) => l.group === "National",
-      );
-      if (hasNationalLeagues) {
-        setCurrentStep(4.5);
-      } else {
-        setCurrentStep(4);
-      }
+      // ALWAYS go back to step 4.5 (Remove League)
+      setCurrentStep(4.5);
     } else {
       setCurrentStep((prev) => Math.max(prev - 1, 0));
     }

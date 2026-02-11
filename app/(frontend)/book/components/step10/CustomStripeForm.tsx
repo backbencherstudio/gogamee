@@ -167,14 +167,11 @@ export default function CustomStripeForm({
         }
       } else {
         // Hard failure (400, 500)
-        onError(
+        const errorMessage =
           data.message ||
-            t(
-              "Error en la confirmación del backend",
-              "Backend confirmation failed",
-            ),
-        );
+          t("Error en la confirmación", "Backend confirmation failed");
 
+        // Use generic error reporting but redirect to failed page
         // Only trigger failure email if it's not a verification timeout
         try {
           await fetch("/api/mail/payment-failed", {
@@ -192,14 +189,11 @@ export default function CustomStripeForm({
         } catch (e) {
           console.error("Failed to send failure email", e);
         }
+
+        onError(errorMessage);
       }
     } catch (error) {
-      onError(
-        t(
-          "Error de red al confirmar el pago",
-          "Network error confirming payment",
-        ),
-      );
+      onError(t("Error de red", "Network error"));
     } finally {
       if (attempts >= MAX_ATTEMPTS) {
         setIsProcessing(false);
@@ -277,28 +271,20 @@ export default function CustomStripeForm({
     setSelectedPayment(method);
   };
 
+  const handlePaymentSuccess = (paymentIntentId: string) => {
+    // ... (existing success logic trigger or confirmBackend calls)
+  };
+
+  const handlePaymentError = (errorMsg: string) => {
+    // Redirect to failed page
+    const failedUrl = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
+    window.location.href = failedUrl;
+  };
+
+  // ... (inside custom stripe form)
+
   return (
     <>
-      {/* Payment Processing Overlay */}
-      {isProcessing && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 flex flex-col items-center gap-6 shadow-2xl">
-            <div className="w-16 h-16 border-4 border-[#76C043] border-t-transparent rounded-full animate-spin"></div>
-            <div className="text-center">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                {paymentStatus || t("Procesando...", "Processing...")}
-              </h3>
-              <p className="text-gray-600 text-sm">
-                <TranslatedText
-                  text="No cierres ni refresques esta página"
-                  english="Please don't close or refresh this page"
-                />
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <form onSubmit={handleSubmit}>
         <div className="w-full xl:w-[894px] px-4 md:px-5 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 md:gap-6 min-h-[600px] xl:min-h-0">
           {/* Title */}
@@ -498,12 +484,15 @@ export default function CustomStripeForm({
                       : "bg-[#6AAD3C] hover:bg-lime-600 cursor-pointer"
                   }`}
                 >
-                  <div className="text-center justify-start text-white text-sm md:text-base font-medium md:font-normal font-['Inter']">
+                  <div className="text-center justify-start text-white text-sm md:text-base font-medium md:font-normal font-['Inter'] flex items-center gap-2">
                     {isProcessing ? (
-                      <TranslatedText
-                        text={paymentData.text.processingButton}
-                        english={paymentData.text.processingButtonEn}
-                      />
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <TranslatedText
+                          text={paymentData.text.processingButton}
+                          english={paymentData.text.processingButtonEn}
+                        />
+                      </>
                     ) : (
                       <TranslatedText
                         text={paymentData.text.confirmButton}
