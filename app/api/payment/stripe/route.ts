@@ -162,18 +162,9 @@ export async function POST(request: Request) {
 
     // Fallbacks for contact info
     const email = primaryAdult?.email || payload.email || "";
-    // Phone might not be on primaryAdult if not specifically collected there in all flows, check payload
     const phone = primaryAdult?.phone || payload.phone || "";
 
-    const fullName =
-      primaryAdult?.name ||
-      payload.firstName + " " + payload.lastName ||
-      "Guest";
-    const [firstName, ...lastNameParts] = fullName.split(" ");
-    const lastName = lastNameParts.join(" ") || "N/A";
-
-    // Flatten travelers for legacy 'allTravelers' field compatibility if needed,
-    // but Booking Model now has structured 'travelers' object.
+    const fullName = primaryAdult?.name || "Guest";
 
     // Create Booking Record
     const booking = await BookingService.create({

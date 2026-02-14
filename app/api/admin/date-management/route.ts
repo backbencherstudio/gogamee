@@ -10,12 +10,12 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const sport = searchParams.get("sport");
-    const league = searchParams.get("league");
+    const league = searchParams.get("league") || "national"; // Default to national if not provided
     const duration = searchParams.get("duration");
     const monthsParam = searchParams.get("months");
     const yearParam = searchParams.get("year");
 
-    if (!sport || !league || !duration || !monthsParam || !yearParam) {
+    if (!sport || !duration || !monthsParam || !yearParam) {
       return sendError("Invalid query parameters", 400);
     }
 
@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
       const requestedSport = sport || date.sportName || "football";
 
       let prices = { standard: 0, premium: 0 };
+      let status = "disabled"; // Default status
 
       // The backend getAll already applies base price fallbacks in the 'sports' structure
       // So we just need to extract from the correct sport key
@@ -46,16 +47,19 @@ export async function GET(request: NextRequest) {
           standard: date.sports?.football?.standard || 0,
           premium: date.sports?.football?.premium || 0,
         };
+        status = date.sports?.football?.status || "disabled";
       } else if (sport === "basketball") {
         prices = {
           standard: date.sports?.basketball?.standard || 0,
           premium: date.sports?.basketball?.premium || 0,
         };
+        status = date.sports?.basketball?.status || "disabled";
       } else if (sport === "both" || sport === "combined") {
         prices = {
           standard: date.sports?.combined?.standard || 0,
           premium: date.sports?.combined?.premium || 0,
         };
+        status = date.sports?.combined?.status || "disabled";
       }
 
       return {
@@ -65,6 +69,7 @@ export async function GET(request: NextRequest) {
         league: date.league || "national",
         sportName: requestedSport,
         prices: prices,
+        status: status, // Include status for frontend rendering
         created_at: date.createdAt,
         updated_at: date.updatedAt,
       };

@@ -28,7 +28,6 @@ export default function Payment() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Use a ref to prevent double-initiation in React Strict Mode
@@ -41,7 +40,7 @@ export default function Payment() {
       return;
     }
 
-    if (!hasInitiatedRef.current && !clientSecret && !showSuccess) {
+    if (!hasInitiatedRef.current && !clientSecret) {
       hasInitiatedRef.current = true;
       handleInitiatePayment();
     }
@@ -250,35 +249,18 @@ export default function Payment() {
   };
 
   const handlePaymentSuccess = () => {
-    setShowSuccess(true);
     const amount = formData.calculatedTotals?.totalCost?.toFixed(2) || "0.00";
     const email = formData.travelers?.adults?.[0]?.email || "";
 
     const successUrl = `/payment/success?bookingId=${bookingId || "CONFIRMED"}&amount=${amount}&email=${encodeURIComponent(email)}`;
 
-    setTimeout(() => {
-      window.location.href = successUrl;
-    }, 2000);
+    // Redirect immediately to success page
+    window.location.href = successUrl;
   };
 
   const handlePaymentError = (errorMessage: string) => {
     setError(errorMessage);
   };
-
-  // Success State
-  if (showSuccess) {
-    return (
-      <div className="w-full xl:w-[894px] px-4 md:px-5 xl:px-6 py-6 xl:py-8 bg-green-50 rounded-xl inline-flex flex-col justify-center items-center gap-4 md:gap-6 min-h-[400px]">
-        <div className="text-6xl">✅</div>
-        <h2 className="text-2xl md:text-3xl font-semibold font-['Poppins'] text-green-800">
-          <TranslatedText text="¡Pago Exitoso!" english="Payment Successful!" />
-        </h2>
-        <p className="text-gray-600">
-          <TranslatedText text="Redirigiendo..." english="Redirecting..." />
-        </p>
-      </div>
-    );
-  }
 
   // Error State - With specific action for missing data
   if (error && !clientSecret) {

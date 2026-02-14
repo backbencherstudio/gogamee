@@ -31,32 +31,35 @@ class DateManagementService {
       combined: { status: "disabled", standard: 0, premium: 0 },
     };
 
-    if (data.sportName === "football") {
+    let sportToEnable = data.sportName;
+    if (sportToEnable === "both") sportToEnable = "combined";
+
+    if (sportToEnable === "football") {
       sports.football = { ...initialPrices, status: "enabled" };
-    } else if (data.sportName === "basketball") {
+    } else if (sportToEnable === "basketball") {
       sports.basketball = { ...initialPrices, status: "enabled" };
-    } else if (data.sportName === "combined") {
+    } else if (sportToEnable === "combined") {
       sports.combined = { ...initialPrices, status: "enabled" };
     }
 
     if (isExists) {
       // Merge new sport status with existing ones
       const updatedSports = { ...isExists?.toObject().sports };
-      if (data.sportName === "football") {
+      if (sportToEnable === "football") {
         updatedSports.football = {
           ...updatedSports.football,
           ...initialPrices,
           status: "enabled",
         };
       }
-      if (data.sportName === "basketball") {
+      if (sportToEnable === "basketball") {
         updatedSports.basketball = {
           ...updatedSports.basketball,
           ...initialPrices,
           status: "enabled",
         };
       }
-      if (data.sportName === "combined") {
+      if (sportToEnable === "combined") {
         updatedSports.combined = {
           ...updatedSports.combined,
           ...initialPrices,
@@ -103,8 +106,11 @@ class DateManagementService {
 
     const query: any = {};
 
-    if (filters.sportName)
-      query[`sports.${filters.sportName}.status`] = "enabled";
+    // Map sport names if needed
+    let sportQueryName = filters.sportName;
+    if (sportQueryName === "both") sportQueryName = "combined";
+
+    if (sportQueryName) query[`sports.${sportQueryName}.status`] = "enabled";
     if (filters.league) query.league = filters.league;
     if (filters.duration) query.duration = filters.duration;
     // Filter by specific months if provided
@@ -133,11 +139,17 @@ class DateManagementService {
         .filter(Boolean);
 
       if (dateRegexes.length > 0) {
-        query.date = { $in: dateRegexes };
+        // Use $or at query level for multiple regex patterns
+        if (dateRegexes.length === 1) {
+          query.date = dateRegexes[0];
+        } else {
+          query.$or = dateRegexes.map((regex) => ({ date: regex }));
+        }
       }
     }
 
     // Use lean() to get plain objects we can modify
+
     const data = await DateManagement.find(query).sort({ date: 1 }).lean();
 
     // Process data to fallback to base prices where custom price is 0/missing

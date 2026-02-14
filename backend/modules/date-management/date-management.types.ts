@@ -6,7 +6,7 @@ export interface PriceStructure {
 export interface InitDateManagementData {
   date: string;
   duration: "1" | "2" | "3" | "4" | "5";
-  sportName: "football" | "basketball" | "combined";
+  sportName: "football" | "basketball" | "combined" | "both";
   league: string;
 }
 

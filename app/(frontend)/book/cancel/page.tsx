@@ -1,30 +1,30 @@
-'use client'
+"use client";
 
-import React, { useEffect, useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { TranslatedText } from '../../_components/TranslatedText'
-import Link from 'next/link'
+import React, { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { TranslatedText } from "../../_components/TranslatedText";
+import Link from "next/link";
 
 // Force dynamic rendering
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
 function CancelContent() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const [bookingId, setBookingId] = useState<string | null>(null)
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [bookingId, setBookingId] = useState<string | null>(null);
 
   useEffect(() => {
-    const bookingIdParam = searchParams.get('booking_id')
-    setBookingId(bookingIdParam)
+    const bookingIdParam = searchParams.get("booking_id");
+    setBookingId(bookingIdParam);
 
     // If no booking ID, redirect to home after 5 seconds
     if (!bookingIdParam) {
       const timer = setTimeout(() => {
-        router.push('/')
-      }, 5000)
-      return () => clearTimeout(timer)
+        router.push("/");
+      }, 5000);
+      return () => clearTimeout(timer);
     }
-  }, [searchParams, router])
+  }, [searchParams, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-100 flex items-center justify-center p-4">
@@ -50,16 +50,13 @@ function CancelContent() {
 
         {/* Cancel Message */}
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4 font-['Poppins']">
-          <TranslatedText 
-            text="Pago Cancelado" 
-            english="Payment Cancelled" 
-          />
+          <TranslatedText text="Pago Cancelado" english="Payment Cancelled" />
         </h1>
 
         <p className="text-lg text-gray-600 mb-6 font-['Poppins']">
-          <TranslatedText 
-            text="Tu pago ha sido cancelado. No se ha realizado ningún cargo." 
-            english="Your payment has been cancelled. No charges have been made." 
+          <TranslatedText
+            text="Tu pago ha sido cancelado. No se ha realizado ningún cargo."
+            english="Your payment has been cancelled. No charges have been made."
           />
         </p>
 
@@ -67,21 +64,21 @@ function CancelContent() {
         {bookingId && (
           <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 font-['Poppins']">
-              <TranslatedText 
-                text="Información de la Reserva" 
-                english="Booking Information" 
+              <TranslatedText
+                text="Información de la Reserva"
+                english="Booking Information"
               />
             </h2>
             <p className="text-gray-700">
               <span className="font-semibold">
                 <TranslatedText text="ID de Reserva:" english="Booking ID:" />
-              </span>{' '}
+              </span>{" "}
               <span className="font-mono text-sm">{bookingId}</span>
             </p>
             <p className="text-gray-600 text-sm mt-2">
-              <TranslatedText 
-                text="Tu reserva se ha guardado pero está pendiente de pago. Puedes completar el pago más tarde." 
-                english="Your booking has been saved but is pending payment. You can complete the payment later." 
+              <TranslatedText
+                text="Tu reserva se ha guardado pero está pendiente de pago. Puedes completar el pago más tarde."
+                english="Your booking has been saved but is pending payment. You can complete the payment later."
               />
             </p>
           </div>
@@ -90,9 +87,9 @@ function CancelContent() {
         {/* Notice */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <p className="text-yellow-800 text-sm font-['Poppins']">
-            <TranslatedText 
-              text="💡 Si cambias de opinión, puedes volver a intentar completar tu reserva desde el panel de administración." 
-              english="💡 If you change your mind, you can try to complete your booking again from the admin panel." 
+            <TranslatedText
+              text="💡 Si cambias de opinión, puedes volver a intentar completar tu reserva desde el panel de administración."
+              english="💡 If you change your mind, you can try to complete your booking again from the admin panel."
             />
           </p>
         </div>
@@ -116,29 +113,30 @@ function CancelContent() {
         {/* Additional Info */}
         <div className="mt-8 pt-6 border-t border-gray-200">
           <p className="text-sm text-gray-500 font-['Poppins']">
-            <TranslatedText 
-              text="Si experimentaste algún problema durante el pago, por favor contáctanos para obtener ayuda." 
-              english="If you experienced any issues during payment, please contact us for assistance." 
+            <TranslatedText
+              text="Si experimentaste algún problema durante el pago, por favor contáctanos para obtener ayuda."
+              english="If you experienced any issues during payment, please contact us for assistance."
             />
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export default function BookingCancelPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-['Poppins']">Loading...</p>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-100 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 font-['Poppins']">Loading...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <CancelContent />
     </Suspense>
-  )
+  );
 }
-

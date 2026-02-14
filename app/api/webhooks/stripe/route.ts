@@ -28,16 +28,6 @@ if (
   );
 }
 
-// GET handler for testing/verification (optional)
-export async function GET() {
-  return NextResponse.json({
-    message: "Stripe webhook endpoint is active",
-    endpoint: "/api/webhooks/stripe",
-    method: "POST",
-    note: "This endpoint only accepts POST requests from Stripe",
-  });
-}
-
 export async function POST(request: NextRequest) {
   try {
     console.log("📥 Webhook received at:", new Date().toISOString());
@@ -113,9 +103,8 @@ export async function POST(request: NextRequest) {
 
       if (bookingId) {
         try {
-          // Update booking status
+          // Update booking status to confirmed (not pending)
           const updatedBooking = await BookingService.updateById(bookingId, {
-            status: "pending",
             "payment.status": "paid",
             "payment.stripePaymentIntentId": paymentIntent.id,
           });
@@ -178,10 +167,9 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Update booking status to "paid" and "completed"
+      // Update booking status to "confirmed" and payment status to "paid"
       try {
         const updatedBooking = await BookingService.updateById(bookingId, {
-          status: "pending",
           "payment.status": "paid",
         });
 

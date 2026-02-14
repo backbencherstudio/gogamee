@@ -231,8 +231,17 @@ export default function DateSection() {
       const hasNational = formData.leagues?.some(
         (l) => l.group === "National" && l.isSelected,
       );
-      const matchesLeague =
-        hasEuropean || hasNational || item.league === "both";
+
+      // If no leagues are selected, accept all dates
+      // If leagues are selected, match the item's league
+      const matchesLeague = (() => {
+        if (!hasEuropean && !hasNational) return true; // No filter applied
+        if (item.league === "both") return true; // Both league matches everything
+        if (hasEuropean && item.league === "european") return true;
+        if (hasNational && item.league === "national") return true;
+        return false;
+      })();
+
       const matchesSport = (() => {
         if (!formData.selectedSport) return true;
         if (formData.selectedSport === "both") {
@@ -529,11 +538,11 @@ export default function DateSection() {
         const hasNational = formData.leagues?.some(
           (l) => l.group === "National" && l.isSelected,
         );
-        const leagueParam = hasEuropean
+        let leagueParam = hasEuropean
           ? "european"
           : hasNational
             ? "national"
-            : "";
+            : "national"; // Default to national if nothing selected
 
         // Get duration from selected duration option
         const durationParam = selectedDurationKey || "1";

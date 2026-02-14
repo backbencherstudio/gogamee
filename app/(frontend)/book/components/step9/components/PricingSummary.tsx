@@ -1,6 +1,4 @@
 "use client";
-
-import React from "react";
 import { TranslatedText } from "../../../../_components/TranslatedText";
 import { pricingData, personalInfoData } from "../../../../../lib/appdata";
 import { BOOKING_CONSTANTS } from "../../../context/BookingContext";
@@ -304,7 +302,7 @@ export function PricingSummary({
               <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                 x{reservationData.totalPeople}
               </div>
-              <div className="text-right text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
+              <div className="text-right text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
                 {reservationData.flightScheduleTotal.toFixed(2)}€
               </div>
             </div>
@@ -378,10 +376,10 @@ export function PricingSummary({
             <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800">
               <TranslatedText text="Tarifa de Reserva" english="Booking Fee" />
             </div>
-            <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
+            <div className="text-base font-normal font-['Poppins'] leading-none text-neutral-800 text-center">
               {BOOKING_CONSTANTS.BOOKING_FEE}€
             </div>
-            <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
+            <div className="text-base font-normal font-['Poppins'] leading-none text-neutral-800 text-center">
               x1
             </div>
             <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-end">
@@ -499,7 +497,7 @@ export function PricingSummary({
                     english={personalInfoData.text.leagueRemovalsEn}
                   />
                 </span>
-                <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
+                <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
                   {reservationData.removalTotal.toFixed(2)}€
                 </span>
               </div>

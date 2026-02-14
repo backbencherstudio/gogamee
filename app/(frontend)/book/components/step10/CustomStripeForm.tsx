@@ -122,7 +122,7 @@ export default function CustomStripeForm({
   }, [stripe, amount, clientSecret]);
 
   const confirmBackend = async (paymentIntentId: string, attempts = 0) => {
-    const MAX_ATTEMPTS = 5;
+    const MAX_ATTEMPTS = 10;
     const POLLING_INTERVAL = 2000; // 2 seconds
 
     try {
@@ -132,72 +132,66 @@ export default function CustomStripeForm({
           : t("Verificando pago...", "Verifying payment..."),
       );
 
-      // Call verify endpoint (Read-only check)
+      // Call verify endpoint (Wait for webhook)
       const res = await fetch("/api/payment/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sessionId: paymentIntentId, // Send ONLY sessionId as requested
+          sessionId: paymentIntentId,
         }),
       });
 
       const data = await res.json();
 
-      if (res.ok) {
-        // Success (200)
+      if (res.status === 200) {
+        // Webhook has processed and marked as paid
         onSuccess();
       } else if (res.status === 202 || res.status === 404) {
-        // Payment processing (Webhook pending) - Retry?
+        // Payment processing (Webhook pending) - Retry
         if (attempts < MAX_ATTEMPTS) {
           setTimeout(
             () => confirmBackend(paymentIntentId, attempts + 1),
             POLLING_INTERVAL,
           );
         } else {
-          // Max attempts reached - Assume success for UX but warn
-          onError(
-            t(
-              "El pago se realizó con éxito, las comprobaciones están pendientes. El correo electrónico de confirmación llegará en breve.",
-              "Payment successful, checks are pending. Confirmation email will arrive shortly.",
-            ),
+          // Max attempts reached - Redirect to failed page
+          const errorMsg = t(
+            "La verificación está tardando más de lo esperado. Por favor, revisa tu correo para la confirmación.",
+            "Verification is taking longer than expected. Please check your email for confirmation.",
           );
-          // Ideally we might want to call onSuccess() here too if we trust Stripe frontend success?
-          // Let's call onSuccess() because money is taken.
-          onSuccess();
+          window.location.href = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
         }
       } else {
-        // Hard failure (400, 500)
+        // Hard failure
         const errorMessage =
-          data.message ||
-          t("Error en la confirmación", "Backend confirmation failed");
+          data.message || t("Error en la verificación", "Verification failed");
 
-        // Use generic error reporting but redirect to failed page
-        // Only trigger failure email if it's not a verification timeout
+        // Send failure email
         try {
           await fetch("/api/mail/payment-failed", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               bookingId,
-              // We use cardholderName as fallback for now
               userEmail: "customer",
               userName: cardholderName || "Guest",
               amount: amount,
-              errorMessage: data.message || "Backend verification failed",
+              errorMessage: errorMessage,
             }),
           });
         } catch (e) {
           console.error("Failed to send failure email", e);
         }
 
-        onError(errorMessage);
+        window.location.href = `/payment/failed?error=${encodeURIComponent(errorMessage)}`;
       }
     } catch (error) {
-      onError(t("Error de red", "Network error"));
+      const errorMsg = t("Error de red", "Network error");
+      window.location.href = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
     } finally {
-      if (attempts >= MAX_ATTEMPTS) {
-        setIsProcessing(false);
-        setPaymentStatus("");
+      if (attempts >= MAX_ATTEMPTS || !isProcessing) {
+        // Only stop processing if we're done with all retries
+        // Note: isProcessing check is to avoid flickering if onSuccess already handled redirect
       }
     }
   };
@@ -241,7 +235,7 @@ export default function CustomStripeForm({
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               bookingId: bookingId,
-              userEmail: cardholderName || "customer", // Use cardholderName as proxy for now
+              userEmail: cardholderName || "customer",
               userName: cardholderName || "Customer",
               amount: amount,
               errorMessage: error.message,
@@ -251,12 +245,11 @@ export default function CustomStripeForm({
           // Don't block the error flow if email fails
         }
 
-        onError(
+        // Redirect to failed page
+        const errorMsg =
           error.message ||
-            t("El pago con tarjeta falló", "Card payment failed"),
-        );
-        setIsProcessing(false);
-        setPaymentStatus("");
+          t("El pago con tarjeta falló", "Card payment failed");
+        window.location.href = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         setPaymentStatus(t("Confirmando reserva...", "Confirming booking..."));
         confirmBackend(paymentIntent.id);
