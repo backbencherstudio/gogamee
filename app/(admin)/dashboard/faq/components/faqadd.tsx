@@ -14,11 +14,13 @@ import DeleteConfirmationModal from "../../../../../components/ui/delete-confirm
 import { Pagination } from "../../../../../components/ui/Pagination";
 import { autoTranslateContent } from "../../../../../services/translationService";
 import { TranslatedText } from "../../../../(frontend)/_components/TranslatedText";
+import { useLanguage } from "@/app/context/LanguageContext";
 
 // Local type aligned with API
 type FAQItem = ApiFaqItem;
 
 export default function FaqAdd() {
+  const { language } = useLanguage();
   const [faqData, setFaqData] = useState<FAQItem[]>([]);
   const [expandedItems, setExpandedItems] = useState<number[]>([]);
   const [editingItem, setEditingItem] = useState<string | null>(null);
@@ -164,11 +166,16 @@ export default function FaqAdd() {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 lg:gap-24 mb-8">
           <div className="flex flex-col gap-2">
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight">
-              FAQ Management
+              <TranslatedText
+                english="FAQ Management"
+                text="Gestión de Preguntas Frecuentes"
+              />
             </h1>
             <p className="text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed">
-              Manage frequently asked questions for your website. Add, edit, or
-              remove FAQ items.
+              <TranslatedText
+                english="Manage frequently asked questions for your website. Add, edit, or remove FAQ items."
+                text="Gestione las preguntas frecuentes para su sitio web. Añada, edite o elimine elementos de FAQ."
+              />
             </p>
           </div>
           <button
@@ -176,7 +183,7 @@ export default function FaqAdd() {
             className="px-6 py-3 bg-[#76C043] hover:bg-lime-600 rounded-lg flex justify-center items-center gap-2 text-white font-medium transition-colors"
           >
             <Plus className="w-5 h-5" />
-            Add New FAQ
+            <TranslatedText english="Add New FAQ" text="Añadir Nueva FAQ" />
           </button>
         </div>
 
@@ -184,12 +191,12 @@ export default function FaqAdd() {
         {showAddForm && (
           <div className="mb-8 bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300">
             <h3 className="text-xl font-semibold text-zinc-950 mb-4">
-              Add New FAQ
+              <TranslatedText english="Add New FAQ" text="Añadir Nueva FAQ" />
             </h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Question
+                  <TranslatedText english="Question" text="Pregunta" />
                 </label>
                 <input
                   type="text"
@@ -201,12 +208,16 @@ export default function FaqAdd() {
                     }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent outline-none"
-                  placeholder="Enter your question..."
+                  placeholder={
+                    language === "es"
+                      ? "Ingrese su pregunta..."
+                      : "Enter your question..."
+                  }
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Answer
+                  <TranslatedText english="Answer" text="Respuesta" />
                 </label>
                 <textarea
                   value={newFaqForm.answer}
@@ -218,7 +229,11 @@ export default function FaqAdd() {
                   }
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent outline-none resize-none"
-                  placeholder="Enter your answer..."
+                  placeholder={
+                    language === "es"
+                      ? "Ingrese su respuesta..."
+                      : "Enter your answer..."
+                  }
                 />
               </div>
               <div className="flex gap-3">
@@ -227,14 +242,14 @@ export default function FaqAdd() {
                   className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg flex items-center gap-2 transition-colors"
                 >
                   <Save className="w-4 h-4" />
-                  Save FAQ
+                  <TranslatedText english="Save FAQ" text="Guardar FAQ" />
                 </button>
                 <button
                   onClick={handleCancelAdd}
                   className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg flex items-center gap-2 transition-colors"
                 >
                   <X className="w-4 h-4" />
-                  Cancel
+                  <TranslatedText english="Cancel" text="Cancelar" />
                 </button>
               </div>
             </div>
@@ -245,7 +260,12 @@ export default function FaqAdd() {
         <div className="bg-white flex flex-col justify-start items-start gap-6 w-full">
           <div className="w-full p-5 md:p-8 lg:p-10 rounded-lg border border-gray-200 shadow-sm">
             {loading ? (
-              <div className="py-6 text-gray-600">Loading FAQs...</div>
+              <div className="py-6 text-gray-600">
+                <TranslatedText
+                  english="Loading FAQs..."
+                  text="Cargando FAQs..."
+                />
+              </div>
             ) : error ? (
               <div className="py-6 text-red-600">{error}</div>
             ) : (
@@ -260,7 +280,10 @@ export default function FaqAdd() {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Question
+                            <TranslatedText
+                              english="Question"
+                              text="Pregunta"
+                            />
                           </label>
                           <input
                             type="text"
@@ -276,7 +299,7 @@ export default function FaqAdd() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Answer
+                            <TranslatedText english="Answer" text="Respuesta" />
                           </label>
                           <textarea
                             value={editForm.answer}
@@ -297,14 +320,14 @@ export default function FaqAdd() {
                             className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg flex items-center gap-2 transition-colors"
                           >
                             <Save className="w-4 h-4" />
-                            Save
+                            <TranslatedText english="Save" text="Guardar" />
                           </button>
                           <button
                             onClick={handleCancelEdit}
                             className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg flex items-center gap-2 transition-colors"
                           >
                             <X className="w-4 h-4" />
-                            Cancel
+                            <TranslatedText english="Cancel" text="Cancelar" />
                           </button>
                         </div>
                       </div>
@@ -385,7 +408,8 @@ export default function FaqAdd() {
         {/* Stats */}
         <div className="mt-8 p-4 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-600">
-            Total FAQ Items: <span className="font-semibold">{totalItems}</span>
+            <TranslatedText english="Total FAQ Items" text="Total de FAQs" />:{" "}
+            <span className="font-semibold">{totalItems}</span>
           </p>
         </div>
       </div>
@@ -395,8 +419,16 @@ export default function FaqAdd() {
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={() => deleteConfirm && handleConfirmDelete(deleteConfirm)}
-        title="Delete FAQ"
-        message="Are you sure you want to delete this FAQ item?"
+        title={
+          <TranslatedText english="Delete FAQ" text="Eliminar FAQ" as="span" />
+        }
+        message={
+          <TranslatedText
+            english="Are you sure you want to delete this FAQ item?"
+            text="¿Está seguro de que desea eliminar este elemento de FAQ?"
+            as="span"
+          />
+        }
       />
     </div>
   );

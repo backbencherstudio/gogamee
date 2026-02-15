@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
+import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
 import {
   getAllBookings,
   getBookingStats,
@@ -26,6 +27,7 @@ import {
 
 interface MetricCardProps {
   title: string;
+  titleSpanish?: string;
   value: string;
   change: string;
   changeType: "increase" | "decrease";
@@ -48,6 +50,7 @@ interface RecentRequest {
 // ============================================
 const MetricCard: React.FC<MetricCardProps> = ({
   title,
+  titleSpanish,
   value,
   change,
   changeType,
@@ -63,7 +66,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
         <div className="p-5 pb-2">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">
-              {title}
+              <TranslatedText english={title} text={titleSpanish || title} />
             </h3>
             <div
               className={cn(
@@ -98,7 +101,8 @@ const MetricCard: React.FC<MetricCardProps> = ({
               {change}
             </span>
             <span className="text-gray-500 ml-2">
-              vs {lastMonth} last month
+              <TranslatedText english="vs" text="vs" /> {lastMonth}{" "}
+              <TranslatedText english="last month" text="mes pasado" />
             </span>
           </div>
         </div>
@@ -123,8 +127,9 @@ const Pagination: React.FC<PaginationProps> = ({
 }) => {
   return (
     <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-      <div className="text-sm text-gray-700">
-        Showing page {currentPage} of {totalPages}
+      <div className="text-sm text-gray-700 flex gap-1">
+        <TranslatedText english="Showing page" text="Mostrando página" />{" "}
+        {currentPage} <TranslatedText english="of" text="de" /> {totalPages}
       </div>
 
       <div className="flex items-center space-x-2">
@@ -139,7 +144,7 @@ const Pagination: React.FC<PaginationProps> = ({
           )}
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
-          Previous
+          <TranslatedText english="Previous" text="Anterior" />
         </button>
 
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -167,7 +172,7 @@ const Pagination: React.FC<PaginationProps> = ({
               : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50",
           )}
         >
-          Next
+          <TranslatedText english="Next" text="Siguiente" />
           <ChevronRight className="w-4 h-4 ml-1" />
         </button>
       </div>
@@ -279,15 +284,25 @@ const RecentRequestsTable: React.FC = () => {
     <div className="mt-8 bg-white border border-gray-200 rounded-lg shadow-sm">
       <div className="pb-0">
         <h2 className="text-lg font-semibold text-gray-900 m-6">
-          Recent Requests (Latest 5)
+          <TranslatedText
+            english="Recent Requests (Latest 5)"
+            text="Solicitudes Recientes (Últimas 5)"
+          />
         </h2>
       </div>
 
       {/* Error State */}
       {error && (
         <div className="p-6 text-center text-red-600">
-          <p className="font-semibold">Error loading bookings</p>
-          <p className="text-sm mt-2">{error}</p>
+          <p className="font-semibold">
+            <TranslatedText
+              english="Error loading bookings"
+              text="Error al cargar las reservas"
+            />
+          </p>
+          <p className="text-sm mt-2">
+            <TranslatedText text={error} />
+          </p>
         </div>
       )}
 
@@ -298,25 +313,28 @@ const RecentRequestsTable: React.FC = () => {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Request ID
+                    <TranslatedText
+                      english="Request ID"
+                      text="ID de Solicitud"
+                    />
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Customer
+                    <TranslatedText english="Customer" text="Cliente" />
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Package
+                    <TranslatedText english="Package" text="Paquete" />
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Date
+                    <TranslatedText english="Date" text="Fecha" />
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Status
+                    <TranslatedText english="Status" text="Estado" />
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Payment
+                    <TranslatedText english="Payment" text="Pago" />
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Amount
+                    <TranslatedText english="Amount" text="Monto" />
                   </th>
                 </tr>
               </thead>
@@ -371,9 +389,19 @@ const RecentRequestsTable: React.FC = () => {
                         <td className="py-3 px-4">
                           <span className={getStatusBadge(request.status)}>
                             {getStatusIcon(request.status)}
-                            <span className="ml-1 capitalize">
-                              {request.status}
-                            </span>
+                            <TranslatedText
+                              english={request.status}
+                              text={
+                                {
+                                  pending: "pendiente",
+                                  completed: "completado",
+                                  rejected: "rechazado",
+                                  approved: "aprobado",
+                                  confirmed: "confirmado",
+                                }[request.status] || request.status
+                              }
+                              className="ml-1 capitalize"
+                            />
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -382,9 +410,19 @@ const RecentRequestsTable: React.FC = () => {
                               request.payment_status,
                             )}
                           >
-                            <span className="capitalize">
-                              {request.payment_status || "unknown"}
-                            </span>
+                            <TranslatedText
+                              english={request.payment_status || "unknown"}
+                              text={
+                                {
+                                  paid: "pagado",
+                                  unpaid: "no pagado",
+                                  pending: "pendiente",
+                                  failed: "fallido",
+                                }[request.payment_status] ||
+                                request.payment_status
+                              }
+                              className="capitalize"
+                            />
                           </span>
                         </td>
                         <td className="py-3 px-4 text-sm font-medium text-gray-900">
@@ -408,6 +446,7 @@ export function SalesOverview() {
   const [metrics, setMetrics] = useState<MetricCardProps[]>([
     {
       title: "Total Request",
+      titleSpanish: "Solicitud Total",
       value: "0",
       change: "0%",
       changeType: "increase" as const,
@@ -416,6 +455,7 @@ export function SalesOverview() {
     },
     {
       title: "Completed",
+      titleSpanish: "Completado",
       value: "0",
       change: "0%",
       changeType: "increase" as const,
@@ -424,6 +464,7 @@ export function SalesOverview() {
     },
     {
       title: "Confirmed",
+      titleSpanish: "Confirmado",
       value: "0",
       change: "0%",
       changeType: "increase" as const,
@@ -432,6 +473,7 @@ export function SalesOverview() {
     },
     {
       title: "Pending",
+      titleSpanish: "Pendiente",
       value: "0",
       change: "0%",
       changeType: "decrease" as const,
@@ -440,6 +482,7 @@ export function SalesOverview() {
     },
     {
       title: "Rejected",
+      titleSpanish: "Rechazado",
       value: "0",
       change: "0%",
       changeType: "increase" as const,
@@ -460,6 +503,7 @@ export function SalesOverview() {
           setMetrics([
             {
               title: "Total Request",
+              titleSpanish: "Solicitud Total",
               value: stats.total.toString(),
               change: "0%",
               changeType: "increase" as const,
@@ -468,6 +512,7 @@ export function SalesOverview() {
             },
             {
               title: "Completed",
+              titleSpanish: "Completado",
               value: stats.completed.toString(),
               change: "0%",
               changeType: "increase" as const,
@@ -476,6 +521,7 @@ export function SalesOverview() {
             },
             {
               title: "Confirmed",
+              titleSpanish: "Confirmado",
               value: (stats.confirmed || 0).toString(),
               change: "0%",
               changeType: "increase" as const,
@@ -484,6 +530,7 @@ export function SalesOverview() {
             },
             {
               title: "Pending",
+              titleSpanish: "Pendiente",
               value: stats.pending.toString(),
               change: "0%",
               changeType: "decrease" as const,
@@ -492,6 +539,7 @@ export function SalesOverview() {
             },
             {
               title: "Rejected",
+              titleSpanish: "Rechazado",
               value: stats.rejected.toString(),
               change: "0%",
               changeType: "increase" as const,

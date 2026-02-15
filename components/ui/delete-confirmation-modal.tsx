@@ -7,8 +7,8 @@ interface DeleteConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  title?: string;
-  message?: string;
+  title?: string | React.ReactNode;
+  message?: string | React.ReactNode;
   itemName?: string;
   confirmText?: string;
   cancelText?: string;
@@ -22,7 +22,7 @@ export default function DeleteConfirmationModal({
   message = "Are you sure you want to delete this item?",
   itemName,
   confirmText = "Delete",
-  cancelText = "Cancel"
+  cancelText = "Cancel",
 }: DeleteConfirmationModalProps) {
   if (!isOpen) return null;
 
@@ -38,11 +38,11 @@ export default function DeleteConfirmationModal({
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/30 bg-opacity-20 flex items-center justify-center z-50 p-4"
       onClick={handleBackdropClick}
     >
-      <div 
+      <div
         className="bg-white rounded-lg max-w-md w-full p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
@@ -54,16 +54,19 @@ export default function DeleteConfirmationModal({
             <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">
               {title}
             </h3>
-                         <p className="text-gray-600 font-['Poppins']">
-               {message}
-               {itemName && (
-                 <span className="font-medium text-gray-800"> &ldquo;{itemName}&rdquo;</span>
-               )}
-               ?
-             </p>
+            <p className="text-gray-600 font-['Poppins']">
+              {message}
+              {itemName && (
+                <span className="font-medium text-gray-800">
+                  {" "}
+                  &ldquo;{itemName}&rdquo;
+                </span>
+              )}
+              ?
+            </p>
           </div>
         </div>
-        
+
         <div className="flex gap-3 justify-end">
           <button
             onClick={onClose}
@@ -81,4 +84,4 @@ export default function DeleteConfirmationModal({
       </div>
     </div>
   );
-} 
+}
