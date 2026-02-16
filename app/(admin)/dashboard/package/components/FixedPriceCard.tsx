@@ -386,10 +386,7 @@ export default function FixedPriceCard({
         <div className="flex items-center gap-3">
           <DollarSign className="w-6 h-6 text-[#76C043]" />
           <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">
-            <TranslatedText
-              english="Package Pricing"
-              text="Precios del Paquete"
-            />
+            <TranslatedText english="Package Pricing" text="Precios del Pack" />
           </h2>
         </div>
         {!isEditing && (

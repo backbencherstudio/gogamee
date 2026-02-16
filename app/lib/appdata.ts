@@ -1890,7 +1890,7 @@ export const AppData = {
       priceEn: "Price",
       total: "Total",
       totalEn: "Total",
-      packageFallback: "Paquete",
+      packageFallback: "Pack",
       packageFallbackEn: "Package",
     },
     travelerFields: {

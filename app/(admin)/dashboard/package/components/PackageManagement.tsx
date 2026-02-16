@@ -196,13 +196,13 @@ export default function PackageManagement({
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
               <TranslatedText
                 english="Package Management"
-                text="Gestión de Paquetes"
+                text="Gestión de Pack"
               />
             </h1>
             <p className="text-gray-600 font-['Poppins']">
               <TranslatedText
                 english="Manage travel packages for football and basketball events"
-                text="Gestione paquetes de viaje para eventos de fútbol y baloncesto"
+                text="Gestione pack de viaje para eventos de fútbol y baloncesto"
               />
             </p>
           </div>
@@ -213,7 +213,7 @@ export default function PackageManagement({
             className="flex items-center gap-2 px-6 py-3 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
           >
             <Plus className="w-5 h-5" />
-            <TranslatedText english="Add Package" text="Añadir Paquete" />
+            <TranslatedText english="Add Package" text="Añadir Pack" />
           </button>
         </div>
 
@@ -529,7 +529,7 @@ export default function PackageManagement({
               <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">
                 <TranslatedText
                   english="Update Package Prices"
-                  text="Actualizar Precios del Paquete"
+                  text="Actualizar Precios del Pack"
                 />
               </h2>
               <button
@@ -562,13 +562,11 @@ export default function PackageManagement({
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={() => deleteConfirm && handleDeletePackage(deleteConfirm)}
-        title={
-          <TranslatedText english="Delete Package" text="Eliminar Paquete" />
-        }
+        title={<TranslatedText english="Delete Package" text="Eliminar Pack" />}
         message={
           <TranslatedText
             english="Are you sure you want to delete this package?"
-            text="¿Está seguro de que desea eliminar este paquete?"
+            text="¿Está seguro de que desea eliminar este pack?"
           />
         }
       />
@@ -690,7 +688,7 @@ function PriceEditForm({
         >
           <TranslatedText
             english="Standard Package Price *"
-            text="Precio del Paquete Estándar *"
+            text="Precio del Pack Estándar *"
           />
         </label>
         <div className="relative">
@@ -708,7 +706,7 @@ function PriceEditForm({
             }
             placeholder={
               language === "es"
-                ? "Ingrese el precio del paquete estándar"
+                ? "Ingrese el precio del pack estándar"
                 : "Enter standard package price"
             }
             className={`w-full px-4 py-3 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors ${
@@ -738,7 +736,7 @@ function PriceEditForm({
         >
           <TranslatedText
             english="Premium Package Price *"
-            text="Precio del Paquete Premium *"
+            text="Precio del Pack Premium *"
           />
         </label>
         <div className="relative">
@@ -753,7 +751,7 @@ function PriceEditForm({
             }
             placeholder={
               language === "es"
-                ? "Ingrese el precio del paquete premium"
+                ? "Ingrese el precio del pack premium"
                 : "Enter premium package price"
             }
             className={`w-full px-4 py-3 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors ${

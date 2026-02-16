@@ -823,7 +823,7 @@ export default function DateManagement() {
     // Confirm before resetting
     const confirmMessage =
       language === "es"
-        ? `¿Está seguro de que desea restablecer todos los datos para el paquete de ${duration} Noche${duration === "1" ? "" : "s"}?\n\nEsto eliminará todas las fechas habilitadas, fechas bloqueadas y precios personalizados para:\n- Ligas ${selectedCompetition === "national" ? "Nacionales" : "Europeas"}\n- ${selectedSport === "football" ? "Fútbol" : selectedSport === "basketball" ? "Basket" : "Ambos"}\n- Duración de ${duration} Noche${duration === "1" ? "" : "s"}\n\nEsta acción no se puede deshacer.`
+        ? `¿Está seguro de que desea restablecer todos los datos para el pack de ${duration} Noche${duration === "1" ? "" : "s"}?\n\nEsto eliminará todas las fechas habilitadas, fechas bloqueadas y precios personalizados para:\n- Ligas ${selectedCompetition === "national" ? "Nacionales" : "Europeas"}\n- ${selectedSport === "football" ? "Fútbol" : selectedSport === "basketball" ? "Basket" : "Ambos"}\n- Duración de ${duration} Noche${duration === "1" ? "" : "s"}\n\nEsta acción no se puede deshacer.`
         : `Are you sure you want to reset all data for ${duration} Night${duration === "1" ? "" : "s"} package?\n\nThis will delete all enabled dates, blocked dates, and custom prices for:\n- ${selectedCompetition === "national" ? "National" : "European"} Leagues\n- ${selectedSport === "football" ? "Football" : selectedSport === "basketball" ? "Basketball" : "Both"}\n- ${duration} Night${duration === "1" ? "" : "s"} duration\n\nThis action cannot be undone.`;
 
     if (!window.confirm(confirmMessage)) {
@@ -861,7 +861,7 @@ export default function DateManagement() {
           language === "es" ? "Restablecimiento Completo" : "Reset Complete",
         description:
           language === "es"
-            ? `Todos los datos para el paquete de ${duration} Noche${duration === "1" ? "" : "s"} se han restablecido exitosamente`
+            ? `Todos los datos para el pack de ${duration} Noche${duration === "1" ? "" : "s"} se han restablecido exitosamente`
             : `All data for ${duration} Night${duration === "1" ? "" : "s"} package has been reset successfully`,
         duration: 4000,
       });
@@ -1113,7 +1113,7 @@ export default function DateManagement() {
                   <span className="text-gray-700 font-medium font-['Poppins'] text-sm md:text-base">
                     <TranslatedText
                       english="Select Package Duration"
-                      text="Seleccionar Duración del Paquete"
+                      text="Seleccionar Duración del Pack"
                     />
                   </span>
                   <div className="flex flex-col sm:flex-row gap-2 items-center justify-between">

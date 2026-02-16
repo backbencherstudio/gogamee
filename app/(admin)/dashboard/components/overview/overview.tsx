@@ -322,7 +322,7 @@ const RecentRequestsTable: React.FC = () => {
                     <TranslatedText english="Customer" text="Cliente" />
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    <TranslatedText english="Package" text="Paquete" />
+                    <TranslatedText english="Package" text="Pack" />
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
                     <TranslatedText english="Date" text="Fecha" />

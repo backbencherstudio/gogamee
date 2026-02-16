@@ -27,6 +27,7 @@ import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
 
 interface SidebarMenuItem {
   title: string;
+  titleEs: string;
   icon: React.ElementType;
   url: string;
   badge?: string;
@@ -36,21 +37,54 @@ interface SidebarMenuItem {
 
 interface SidebarSection {
   title: string;
+  titleEs: string;
   items: SidebarMenuItem[];
 }
 
 const sidebarData: SidebarSection[] = [
   {
     title: "MENU",
+    titleEs: "MENÚ",
     items: [
-      { title: "Dashboard", icon: LayoutGrid, url: "/dashboard" },
-      { title: "All request", icon: FileText, url: "/dashboard/allrequest" },
-      { title: "FAQ", icon: HelpCircle, url: "/dashboard/faq" },
-      { title: "Package", icon: Package, url: "/dashboard/package" },
-      { title: "Testimonial", icon: Star, url: "/dashboard/testimonial" },
-      { title: "About Page", icon: Info, url: "/dashboard/about" },
+      {
+        title: "Dashboard",
+        titleEs: "Tablero",
+        icon: LayoutGrid,
+        url: "/dashboard",
+      },
+      {
+        title: "All request",
+        titleEs: "Todas las solicitudes",
+        icon: FileText,
+        url: "/dashboard/allrequest",
+      },
+      {
+        title: "FAQ",
+        titleEs: "Preguntas Frecuentes",
+        icon: HelpCircle,
+        url: "/dashboard/faq",
+      },
+      {
+        title: "Package",
+        titleEs: "Pack",
+        icon: Package,
+        url: "/dashboard/package",
+      },
+      {
+        title: "Testimonial",
+        titleEs: "Testimonios",
+        icon: Star,
+        url: "/dashboard/testimonial",
+      },
+      {
+        title: "About Page",
+        titleEs: "Página Sobre Nosotros",
+        icon: Info,
+        url: "/dashboard/about",
+      },
       {
         title: "Date Management",
+        titleEs: "Gestión de Fechas",
         icon: Calendar,
         url: "/dashboard/managedate",
       },
@@ -58,14 +92,17 @@ const sidebarData: SidebarSection[] = [
   },
   {
     title: "SETTINGS",
+    titleEs: "AJUSTES",
     items: [
       {
         title: "Social Media & Contact",
+        titleEs: "Redes Sociales y Contacto",
         icon: Share2,
         url: "/dashboard/settings/social-contact",
         subItems: [
           {
             title: "Social Media & Contact",
+            titleEs: "Redes Sociales y Contacto",
             icon: Share2,
             url: "/dashboard/settings/social-contact",
           },
@@ -73,26 +110,31 @@ const sidebarData: SidebarSection[] = [
       },
       {
         title: "Legal Pages",
+        titleEs: "Páginas Legales",
         icon: Shield,
         url: "/dashboard/settings/legal",
         subItems: [
           {
             title: "Overview",
+            titleEs: "Visión General",
             icon: FileText,
             url: "/dashboard/settings/legal",
           },
           {
             title: "Privacy Policy",
+            titleEs: "Política de Privacidad",
             icon: FileText,
             url: "/dashboard/settings/legal/privacy",
           },
           {
             title: "Cookie Policy",
+            titleEs: "Política de Cookies",
             icon: FileText,
             url: "/dashboard/settings/legal/cookie",
           },
           {
             title: "Terms & Conditions",
+            titleEs: "Términos y Condiciones",
             icon: FileText,
             url: "/dashboard/settings/legal/terms",
           },
@@ -149,7 +191,10 @@ export function Sidebar() {
             >
               {section.title && (
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-                  <TranslatedText text={section.title} />
+                  <TranslatedText
+                    english={section.title}
+                    text={section.titleEs}
+                  />
                 </h3>
               )}
               <ul>
@@ -181,7 +226,10 @@ export function Sidebar() {
                                 )}
                               />
                               <span className="font-medium">
-                                <TranslatedText text={item.title} />
+                                <TranslatedText
+                                  english={item.title}
+                                  text={item.titleEs}
+                                />
                               </span>
                             </div>
                             {isExpanded ? (
@@ -224,7 +272,10 @@ export function Sidebar() {
                                         )}
                                       />
                                       <span>
-                                        <TranslatedText text={subItem.title} />
+                                        <TranslatedText
+                                          english={subItem.title}
+                                          text={subItem.titleEs}
+                                        />
                                       </span>
                                     </Link>
                                   </li>
@@ -251,7 +302,10 @@ export function Sidebar() {
                             )}
                           />
                           <span className="font-medium">
-                            <TranslatedText text={item.title} />
+                            <TranslatedText
+                              english={item.title}
+                              text={item.titleEs}
+                            />
                           </span>
                         </Link>
                       )}
@@ -310,7 +364,7 @@ export function Sidebar() {
           >
             <LogOut className="w-5 h-5 text-[#76C043]" />
             <span className="font-medium text-[#76C043]">
-              <TranslatedText text="Log out" />
+              <TranslatedText english="Log out" text="Cerrar Sesión" />
             </span>
           </button>
         </div>
@@ -345,7 +399,10 @@ export function Sidebar() {
               <div key={section.title} className="py-2">
                 {section.title && (
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-                    <TranslatedText text={section.title} />
+                    <TranslatedText
+                      english={section.title}
+                      text={section.titleEs}
+                    />
                   </h3>
                 )}
                 <ul className="space-y-1">
@@ -377,7 +434,10 @@ export function Sidebar() {
                                   )}
                                 />
                                 <span className="font-medium">
-                                  <TranslatedText text={item.title} />
+                                  <TranslatedText
+                                    english={item.title}
+                                    text={item.titleEs}
+                                  />
                                 </span>
                               </div>
                               {isExpanded ? (
@@ -423,7 +483,8 @@ export function Sidebar() {
                                         />
                                         <span>
                                           <TranslatedText
-                                            text={subItem.title}
+                                            english={subItem.title}
+                                            text={subItem.titleEs}
                                           />
                                         </span>
                                       </Link>
@@ -451,7 +512,10 @@ export function Sidebar() {
                               )}
                             />
                             <span className="font-medium">
-                              <TranslatedText text={item.title} />
+                              <TranslatedText
+                                english={item.title}
+                                text={item.titleEs}
+                              />
                             </span>
                           </Link>
                         )}

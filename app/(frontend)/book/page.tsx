@@ -37,7 +37,7 @@ function BookingContent() {
         <TranslatedText
           text="Package Type"
           english="Package Type"
-          spanish="Tipo de Paquete"
+          spanish="Tipo de Pack"
           skipTranslation
         />
       ),

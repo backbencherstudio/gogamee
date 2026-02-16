@@ -98,7 +98,7 @@ export default function Payment() {
         } else {
           throw new Error(
             t(
-              "Faltan datos de la reserva (Ciudad, Deporte o Paquete).",
+              "Faltan datos de la reserva (Ciudad, Deporte o Pack).",
               "Booking data (City, Sport, or Package) is missing.",
             ),
           );
