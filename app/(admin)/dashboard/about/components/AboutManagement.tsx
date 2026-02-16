@@ -83,11 +83,19 @@ export default function AboutManagement() {
         setHeadline(content.headline || "");
         setHeadlineText(content.headline || "");
       } else {
-        setError("Failed to fetch about management data");
+        setError(
+          language === "es"
+            ? "Error al obtener los datos de la gestión de acerca de"
+            : "Failed to fetch about management data",
+        );
       }
     } catch (err) {
       console.error("Error fetching about management data:", err);
-      setError("Failed to load about management data. Please try again later.");
+      setError(
+        language === "es"
+          ? "Error al cargar los datos. Por favor inténtelo de nuevo más tarde."
+          : "Failed to load about management data. Please try again later.",
+      );
     } finally {
       setLoading(false);
     }
@@ -151,11 +159,19 @@ export default function AboutManagement() {
       if (response && response.success) {
         await loadData();
       } else {
-        alert("Failed to delete item");
+        alert(
+          language === "es"
+            ? "Error al eliminar el elemento"
+            : "Failed to delete item",
+        );
       }
     } catch (err) {
       console.error("Error deleting item:", err);
-      alert("An error occurred while deleting");
+      alert(
+        language === "es"
+          ? "Ocurrió un error al eliminar"
+          : "An error occurred while deleting",
+      );
     } finally {
       setActionLoading(false);
     }
@@ -163,7 +179,11 @@ export default function AboutManagement() {
 
   const handleSaveHeadline = async () => {
     if (!headlineText.trim()) {
-      alert("Headline cannot be empty");
+      alert(
+        language === "es"
+          ? "El titular no puede estar vacío"
+          : "Headline cannot be empty",
+      );
       return;
     }
     try {
@@ -175,7 +195,11 @@ export default function AboutManagement() {
       }
     } catch (err) {
       console.error("Error saving headline:", err);
-      alert("Failed to save headline");
+      alert(
+        language === "es"
+          ? "Error al guardar el titular"
+          : "Failed to save headline",
+      );
     } finally {
       setActionLoading(false);
     }
@@ -183,7 +207,9 @@ export default function AboutManagement() {
 
   const handleSaveItem = async () => {
     if (!formData.title.trim()) {
-      alert("Title is required");
+      alert(
+        language === "es" ? "El título es obligatorio" : "Title is required",
+      );
       return;
     }
 
@@ -246,7 +272,11 @@ export default function AboutManagement() {
       handleCancel();
     } catch (err) {
       console.error("Error saving data:", err);
-      setError("Failed to save changes. Please try again.");
+      setError(
+        language === "es"
+          ? "Error al guardar los cambios. Por favor inténtelo de nuevo."
+          : "Failed to save changes. Please try again.",
+      );
     } finally {
       setActionLoading(false);
     }

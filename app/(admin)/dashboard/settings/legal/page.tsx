@@ -1,22 +1,68 @@
-import React from 'react'
-import Link from 'next/link'
-import { FileText } from 'lucide-react'
+import React from "react";
+import Link from "next/link";
+import { FileText } from "lucide-react";
+import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
 
 export default function LegalPagesOverview() {
   const legalPages = [
-    { title: 'Privacy Policy', href: '/dashboard/settings/legal/privacy', description: 'Manage privacy policy content in English and Spanish' },
-    { title: 'Cookie Policy', href: '/dashboard/settings/legal/cookie', description: 'Manage cookie policy content in English and Spanish' },
-    { title: 'Terms & Conditions', href: '/dashboard/settings/legal/terms', description: 'Manage terms and conditions content in English and Spanish' },
-  ]
+    {
+      title: (
+        <TranslatedText
+          english="Privacy Policy"
+          text="Política de Privacidad"
+        />
+      ),
+      href: "/dashboard/settings/legal/privacy",
+      description: (
+        <TranslatedText
+          english="Manage privacy policy content in English and Spanish"
+          text="Gestione el contenido de la política de privacidad en inglés y español"
+        />
+      ),
+    },
+    {
+      title: (
+        <TranslatedText english="Cookie Policy" text="Política de Cookies" />
+      ),
+      href: "/dashboard/settings/legal/cookie",
+      description: (
+        <TranslatedText
+          english="Manage cookie policy content in English and Spanish"
+          text="Gestione el contenido de la política de cookies en inglés y español"
+        />
+      ),
+    },
+    {
+      title: (
+        <TranslatedText
+          english="Terms & Conditions"
+          text="Términos y Condiciones"
+        />
+      ),
+      href: "/dashboard/settings/legal/terms",
+      description: (
+        <TranslatedText
+          english="Manage terms and conditions content in English and Spanish"
+          text="Gestione el contenido de los términos y condiciones en inglés y español"
+        />
+      ),
+    },
+  ];
 
   return (
     <div className="pt-4 min-h-screen mb-4 p-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight mb-6 pt-8">
-          Legal Pages Management
+          <TranslatedText
+            english="Legal Pages Management"
+            text="Gestión de Páginas Legales"
+          />
         </h1>
         <p className="text-gray-600 mb-8">
-          Manage the content for all legal pages. Each page supports both English and Spanish translations.
+          <TranslatedText
+            english="Manage the content for all legal pages. Each page supports both English and Spanish translations."
+            text="Gestione el contenido de todas las páginas legales. Cada página soporta traducciones en inglés y español."
+          />
         </p>
 
         <div className="grid gap-4 md:grid-cols-1">
@@ -33,7 +79,9 @@ export default function LegalPagesOverview() {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">{page.title}</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    {page.title}
+                  </h3>
                   <p className="text-sm text-gray-600">{page.description}</p>
                 </div>
               </div>
@@ -42,6 +90,5 @@ export default function LegalPagesOverview() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

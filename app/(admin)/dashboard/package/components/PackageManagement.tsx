@@ -20,6 +20,7 @@ import {
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 import { Pagination } from "../../../../../components/ui/Pagination";
 import { TranslatedText } from "../../../../(frontend)/_components/TranslatedText";
+import { useLanguage } from "@/app/context/LanguageContext";
 
 interface PackageManagementProps {
   onPackageAdd?: (packageData: PackageItem) => void;
@@ -30,6 +31,7 @@ export default function PackageManagement({
   onPackageAdd,
   onPackageDelete,
 }: PackageManagementProps) {
+  const { language } = useLanguage();
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [selectedDuration, setSelectedDuration] = useState<number | "all">(
     "all",
@@ -192,10 +194,16 @@ export default function PackageManagement({
         <div className="flex items-start flex-col gap-4">
           <div className="flex flex-col gap-2">
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
-              Package Management
+              <TranslatedText
+                english="Package Management"
+                text="Gestión de Paquetes"
+              />
             </h1>
             <p className="text-gray-600 font-['Poppins']">
-              Manage travel packages for football and basketball events
+              <TranslatedText
+                english="Manage travel packages for football and basketball events"
+                text="Gestione paquetes de viaje para eventos de fútbol y baloncesto"
+              />
             </p>
           </div>
 
@@ -205,7 +213,7 @@ export default function PackageManagement({
             className="flex items-center gap-2 px-6 py-3 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
           >
             <Plus className="w-5 h-5" />
-            Add Package
+            <TranslatedText english="Add Package" text="Añadir Paquete" />
           </button>
         </div>
 
@@ -519,7 +527,10 @@ export default function PackageManagement({
           >
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">
-                Update Package Prices
+                <TranslatedText
+                  english="Update Package Prices"
+                  text="Actualizar Precios del Paquete"
+                />
               </h2>
               <button
                 onClick={() => setEditingPriceId(null)}
@@ -551,8 +562,15 @@ export default function PackageManagement({
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={() => deleteConfirm && handleDeletePackage(deleteConfirm)}
-        title="Delete Package"
-        message="Are you sure you want to delete this package?"
+        title={
+          <TranslatedText english="Delete Package" text="Eliminar Paquete" />
+        }
+        message={
+          <TranslatedText
+            english="Are you sure you want to delete this package?"
+            text="¿Está seguro de que desea eliminar este paquete?"
+          />
+        }
       />
     </div>
   );
@@ -574,6 +592,7 @@ function PriceEditForm({
   onSubmit,
   onCancel,
 }: PriceEditFormProps) {
+  const { language } = useLanguage();
   const [formData, setFormData] = useState({
     standardPrice: packageData.standardPrice || 0,
     premiumPrice: packageData.premiumPrice || 0,
@@ -600,14 +619,22 @@ function PriceEditForm({
     const newErrors: { standardPrice?: string; premiumPrice?: string } = {};
 
     if (formData.standardPrice < 0) {
-      newErrors.standardPrice = "Standard price must be positive";
+      newErrors.standardPrice =
+        language === "es"
+          ? "El precio estándar debe ser positivo"
+          : "Standard price must be positive";
     }
     if (formData.premiumPrice < 0) {
-      newErrors.premiumPrice = "Premium price must be positive";
+      newErrors.premiumPrice =
+        language === "es"
+          ? "El precio premium debe ser positivo"
+          : "Premium price must be positive";
     }
     if (formData.premiumPrice <= formData.standardPrice) {
       newErrors.premiumPrice =
-        "Premium price must be higher than standard price";
+        language === "es"
+          ? "El precio premium debe ser mayor que el precio estándar"
+          : "Premium price must be higher than standard price";
     }
 
     setErrors(newErrors);
@@ -642,7 +669,7 @@ function PriceEditForm({
       {/* Currency Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-          Currency *
+          <TranslatedText english="Currency *" text="Moneda *" />
         </label>
         <select
           value={formData.currency}
@@ -661,7 +688,10 @@ function PriceEditForm({
           htmlFor="standardPrice"
           className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']"
         >
-          Standard Package Price *
+          <TranslatedText
+            english="Standard Package Price *"
+            text="Precio del Paquete Estándar *"
+          />
         </label>
         <div className="relative">
           <input
@@ -676,7 +706,11 @@ function PriceEditForm({
                 parseFloat(e.target.value) || 0,
               )
             }
-            placeholder="Enter standard package price"
+            placeholder={
+              language === "es"
+                ? "Ingrese el precio del paquete estándar"
+                : "Enter standard package price"
+            }
             className={`w-full px-4 py-3 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors ${
               errors.standardPrice ? "border-red-500" : "border-gray-300"
             }`}
@@ -702,7 +736,10 @@ function PriceEditForm({
           htmlFor="premiumPrice"
           className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']"
         >
-          Premium Package Price *
+          <TranslatedText
+            english="Premium Package Price *"
+            text="Precio del Paquete Premium *"
+          />
         </label>
         <div className="relative">
           <input
@@ -714,7 +751,11 @@ function PriceEditForm({
             onChange={(e) =>
               handleInputChange("premiumPrice", parseFloat(e.target.value) || 0)
             }
-            placeholder="Enter premium package price"
+            placeholder={
+              language === "es"
+                ? "Ingrese el precio del paquete premium"
+                : "Enter premium package price"
+            }
             className={`w-full px-4 py-3 pr-12 border rounded-lg font-['Poppins'] focus:outline-none focus:ring-2 focus:ring-[#76C043]/20 focus:border-[#76C043] transition-colors ${
               errors.premiumPrice ? "border-red-500" : "border-gray-300"
             }`}
@@ -742,14 +783,14 @@ function PriceEditForm({
           className="flex items-center gap-2 px-6 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium font-['Poppins'] transition-all duration-200"
         >
           <X className="w-4 h-4" />
-          Cancel
+          <TranslatedText english="Cancel" text="Cancelar" />
         </button>
         <button
           type="submit"
           className="flex items-center gap-2 px-6 py-3 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
         >
           <DollarSign className="w-4 h-4" />
-          Update Prices
+          <TranslatedText english="Update Prices" text="Actualizar Precios" />
         </button>
       </div>
     </form>

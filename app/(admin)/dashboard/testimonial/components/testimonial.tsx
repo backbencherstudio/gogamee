@@ -14,6 +14,7 @@ import DeleteConfirmationModal from "../../../../../components/ui/delete-confirm
 import { Pagination } from "../../../../../components/ui/Pagination";
 import { autoTranslateContent } from "../../../../../services/translationService";
 import { TranslatedText } from "../../../../(frontend)/_components/TranslatedText";
+import { useLanguage } from "@/app/context/LanguageContext";
 
 // Local interface matching the API response items
 interface ReviewItem extends TestimonialItem {}
@@ -25,6 +26,7 @@ export default function TestimonialPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const { language } = useLanguage();
   const [saving, setSaving] = useState(false);
 
   // Stats State
@@ -242,10 +244,16 @@ export default function TestimonialPage() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
-              Testimonial Management
+              <TranslatedText
+                english="Testimonial Management"
+                text="Gestión de Testimonios"
+              />
             </h1>
             <p className="text-gray-600 font-['Poppins']">
-              Manage customer reviews and testimonials displayed on the website
+              <TranslatedText
+                english="Manage customer reviews and testimonials displayed on the website"
+                text="Gestione las reseñas y testimonios de clientes que se muestran en el sitio web"
+              />
             </p>
           </div>
 
@@ -255,7 +263,7 @@ export default function TestimonialPage() {
             className="flex items-center gap-2 py-3 px-2 whitespace-nowrap bg-[#76C043] hover:bg-lime-600 rounded-lg font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md text-white w-fit"
           >
             <Plus className="w-5 h-5 text-white" />
-            Add Review
+            <TranslatedText english="Add Review" text="Agregar Reseña" />
           </button>
         </div>
 
@@ -270,7 +278,12 @@ export default function TestimonialPage() {
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.total}
                 </p>
-                <p className="text-gray-600 font-['Poppins']">Total Reviews</p>
+                <p className="text-gray-600 font-['Poppins']">
+                  <TranslatedText
+                    english="Total Reviews"
+                    text="Total de Reseñas"
+                  />
+                </p>
               </div>
             </div>
           </div>
@@ -284,7 +297,12 @@ export default function TestimonialPage() {
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.averageRating}
                 </p>
-                <p className="text-gray-600 font-['Poppins']">Average Rating</p>
+                <p className="text-gray-600 font-['Poppins']">
+                  <TranslatedText
+                    english="Average Rating"
+                    text="Calificación Promedio"
+                  />
+                </p>
               </div>
             </div>
           </div>
@@ -298,7 +316,12 @@ export default function TestimonialPage() {
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.fiveStarCount}
                 </p>
-                <p className="text-gray-600 font-['Poppins']">5-Star Reviews</p>
+                <p className="text-gray-600 font-['Poppins']">
+                  <TranslatedText
+                    english="5-Star Reviews"
+                    text="Reseñas de 5 Estrellas"
+                  />
+                </p>
               </div>
             </div>
           </div>
@@ -309,7 +332,14 @@ export default function TestimonialPage() {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold font-['Poppins'] text-gray-800">
-                {editingId ? "Edit Review" : "Add New Review"}
+                {editingId ? (
+                  <TranslatedText english="Edit Review" text="Editar Reseña" />
+                ) : (
+                  <TranslatedText
+                    english="Add New Review"
+                    text="Agregar Nueva Reseña"
+                  />
+                )}
               </h2>
               <button
                 onClick={handleCancel}
@@ -322,7 +352,10 @@ export default function TestimonialPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Customer Name
+                  <TranslatedText
+                    english="Customer Name"
+                    text="Nombre del Cliente"
+                  />
                 </label>
                 <input
                   type="text"
@@ -331,13 +364,17 @@ export default function TestimonialPage() {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
-                  placeholder="Enter customer name"
+                  placeholder={
+                    language === "es"
+                      ? "Ingrese el nombre del cliente"
+                      : "Enter customer name"
+                  }
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role/Title
+                  <TranslatedText english="Role/Title" text="Rol/Título" />
                 </label>
                 <input
                   type="text"
@@ -346,14 +383,21 @@ export default function TestimonialPage() {
                     setFormData({ ...formData, role: e.target.value })
                   }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
-                  placeholder="Enter role or title"
+                  placeholder={
+                    language === "es"
+                      ? "Ingrese rol o título"
+                      : "Enter role or title"
+                  }
                 />
               </div>
             </div>
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Review Content
+                <TranslatedText
+                  english="Review Content"
+                  text="Contenido de la Reseña"
+                />
               </label>
               <textarea
                 value={formData.review}
@@ -362,7 +406,11 @@ export default function TestimonialPage() {
                 }
                 rows={4}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
-                placeholder="Enter review content"
+                placeholder={
+                  language === "es"
+                    ? "Ingrese el contenido de la reseña"
+                    : "Enter review content"
+                }
               />
             </div>
 
@@ -373,13 +421,20 @@ export default function TestimonialPage() {
                 className="px-6 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium transition-colors flex items-center"
               >
                 <Save className="w-4 h-4 inline mr-2" />
-                {editingId ? "Update Review" : "Save Review"}
+                {editingId ? (
+                  <TranslatedText
+                    english="Update Review"
+                    text="Actualizar Reseña"
+                  />
+                ) : (
+                  <TranslatedText english="Save Review" text="Guardar Reseña" />
+                )}
               </button>
               <button
                 onClick={handleCancel}
                 className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
               >
-                Cancel
+                <TranslatedText english="Cancel" text="Cancelar" />
               </button>
             </div>
           </div>
@@ -490,7 +545,11 @@ export default function TestimonialPage() {
               disabled={loading || currentPage >= totalPages}
               className="px-6 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Loading..." : "View More"}
+              {loading ? (
+                <TranslatedText english="Loading..." text="Cargando..." />
+              ) : (
+                <TranslatedText english="View More" text="Ver Más" />
+              )}
             </button>
           </div>
         )}
@@ -500,8 +559,15 @@ export default function TestimonialPage() {
           isOpen={!!deleteConfirm}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={() => deleteConfirm && handleDeleteReview(deleteConfirm)}
-          title="Delete Review"
-          message="Are you sure you want to delete this review? This action cannot be undone."
+          title={
+            <TranslatedText english="Delete Review" text="Eliminar Reseña" />
+          }
+          message={
+            <TranslatedText
+              english="Are you sure you want to delete this review? This action cannot be undone."
+              text="¿Está seguro de que desea eliminar esta reseña? Esta acción no se puede deshacer."
+            />
+          }
         />
       </div>
     </div>
