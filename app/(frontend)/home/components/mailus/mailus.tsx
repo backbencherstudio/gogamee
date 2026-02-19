@@ -60,8 +60,8 @@ export default function Mailus() {
           <div className="w-full md:w-[60%] flex flex-col justify-start items-start gap-6 md:gap-24">
             <div className="w-full text-center md:text-left justify-start text-white text-3xl md:text-6xl font-semibold font-['Inter'] leading-tight md:leading-[67.20px]">
               <TranslatedText
-                text="Contáctanos ahora y sé de los primeros en viajar con "
-                english="Contact us now and be the first to travel with "
+                text="Sé de los primeros en enterarte de nuestras ofertas en viajes sorpresa y grandes partidos"
+                english="Be the first to know about our offers on surprise trips and big matches"
                 as="span"
               />
               <span className="text-[#76C043]">GoGame</span>
@@ -129,7 +129,6 @@ export default function Mailus() {
                       : "Escribe tu mensaje"
                   }
                   className="w-full h-36 px-3.5 py-1.5 bg-white rounded border border-neutral-300 text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed resize-none outline-none"
-                  required
                 />
               </div>
               <button

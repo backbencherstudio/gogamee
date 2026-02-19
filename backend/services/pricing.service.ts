@@ -18,7 +18,7 @@ export const PricingConfig = {
   },
 
   singleTravelerSupplement: 50,
-  bookingFee: 50,
+  bookingFee: 0,
 
   extras: {
     breakfast: 10,

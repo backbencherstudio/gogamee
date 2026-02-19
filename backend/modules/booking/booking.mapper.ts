@@ -15,57 +15,51 @@ const formatDate = (dateStr: string | undefined): string => {
   }
 };
 
-export function mapBookingToLegacy(booking: IBooking): any {
-  const travelers = booking.travelers || {};
-  const primaryContact = travelers.primaryContact || {};
-  const selection = booking.selection || {};
-  const dates = booking.dates || {};
-  const payment = booking.payment || {};
-  const flight = booking.flight || {};
+export const mapBookingToLegacy = (booking: IBooking) => {
+  const travelersList = booking.travelers?.list || [];
+
+  const adults = travelersList.filter((t) => t.type === "adult");
+  const kids = travelersList.filter((t) => t.type === "kid");
+  const babies = travelersList.filter((t) => t.type === "baby");
 
   return {
-    id: booking._id.toString(),
+    _id: booking._id,
+    bookingReference: booking.bookingReference,
     status: booking.status,
-    payment_status: payment.status || (booking as any).payment_status,
-    stripe_payment_intent_id:
-      payment.stripePaymentIntentId ||
-      (booking as any).stripe_payment_intent_id ||
-      null,
-    selectedSport: selection.sport || (booking as any).selectedSport,
-    selectedPackage: selection.package || (booking as any).selectedPackage,
-    selectedCity: selection.city || (booking as any).selectedCity,
-    selectedLeague:
-      (booking as any).selectedLeague ||
-      (booking.leagues?.hasRemovedLeagues ? "National" : "European"), // Simplified approximation
-
     // Travelers
-    adults: travelers.adults?.length || 0,
-    kids: travelers.kids?.length || 0,
-    babies: travelers.babies?.length || 0,
-    totalPeople: travelers.totalCount || 0,
+    adults: adults.length,
+    kids: kids.length,
+    babies: babies.length,
+    totalPeople: booking.travelers.totalCount || travelersList.length,
 
     // Dates
-    departureDate: dates.departure,
-    returnDate: dates.return,
+    departureDate: booking.dates.departure,
+    returnDate: booking.dates.return,
     departureDateFormatted:
-      (booking as any).departureDateFormatted || formatDate(dates.departure),
+      (booking as any).departureDateFormatted ||
+      formatDate(booking.dates.departure),
     returnDateFormatted:
-      (booking as any).returnDateFormatted || formatDate(dates.return),
+      (booking as any).returnDateFormatted || formatDate(booking.dates.return),
 
     // Flight
-    departureTimeStart: flight.preferences?.departureTimeStart,
-    departureTimeEnd: flight.preferences?.departureTimeEnd,
-    arrivalTimeStart: flight.preferences?.arrivalTimeStart,
-    arrivalTimeEnd: flight.preferences?.arrivalTimeEnd,
-    departureTimeRange: flight.schedule?.departureBetween,
-    arrivalTimeRange: flight.schedule?.returnBetween,
+    departureTimeStart: booking.flight.preferences?.departureTimeStart,
+    departureTimeEnd: booking.flight.preferences?.departureTimeEnd,
+    arrivalTimeStart: booking.flight.preferences?.arrivalTimeStart,
+    arrivalTimeEnd: booking.flight.preferences?.arrivalTimeEnd,
+    departureTimeRange: booking.flight.schedule?.departureBetween,
+    returnTimeRange: booking.flight.schedule?.returnBetween,
 
-    // Contact Info
-    firstName: primaryContact.name?.split(" ")[0] || "Guest",
-    lastName: primaryContact.name?.split(" ").slice(1).join(" ") || "",
-    fullName: primaryContact.name || "Guest",
-    email: primaryContact.email || "",
-    phone: primaryContact.phone || "",
+    // Contact
+    contact: booking.travelers.primaryContact,
+    email: booking.travelers.primaryContact?.email,
+    phone: booking.travelers.primaryContact?.phone,
+    firstName: booking.travelers.primaryContact?.name?.split(" ")[0] || "",
+    lastName:
+      booking.travelers.primaryContact?.name?.split(" ").slice(1).join(" ") ||
+      "",
+
+    // Flight (Raw - if needed for frontend specific logic)
+    flight: booking.flight,
 
     // Metadata
     totalCost: booking.totalCost,
@@ -73,7 +67,7 @@ export function mapBookingToLegacy(booking: IBooking): any {
     bookingExtras: booking.extras?.selected || [],
     totalExtrasCost: booking.extras?.totalCost || 0,
     extrasCount: booking.extras?.selected?.length || 0,
-    allTravelers: travelers.all || [],
+    allTravelers: travelersList || [], // Changed from travelers.all to travelersList
 
     // Other legacy fields
     approve_status:
@@ -97,8 +91,8 @@ export function mapBookingToLegacy(booking: IBooking): any {
       : "",
 
     // Additional legacy fields
-    travelDuration: dates.durationDays || 0,
-    hasFlightPreferences: flight.preferences?.hasPreferences || false,
+    travelDuration: booking.dates.durationDays || 0,
+    hasFlightPreferences: booking.flight.preferences?.hasPreferences || false,
     requiresEuropeanLeagueHandling: !booking.leagues?.hasRemovedLeagues,
     removedLeagues: booking.leagues?.list || [],
     removedLeaguesCount: booking.leagues?.removedCount || 0,
@@ -113,4 +107,4 @@ export function mapBookingToLegacy(booking: IBooking): any {
     updated_at: (booking as any).updatedAt || booking.updatedAt,
     deleted_at: (booking as any).deletedAt || null,
   };
-}
+};

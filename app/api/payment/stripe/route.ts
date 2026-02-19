@@ -72,9 +72,10 @@ interface CreateBookingPayload {
     babies: number;
   };
   travelers?: {
-    adults: Traveler[];
-    kids: Traveler[];
-    babies: Traveler[];
+    list?: Traveler[]; // [NEW] Unified list
+    adults?: Traveler[];
+    kids?: Traveler[];
+    babies?: Traveler[];
   };
 
   // Flat fields (Used by current frontend)
@@ -150,21 +151,81 @@ export async function POST(request: Request) {
     const totalAmountInCents = Math.round(calculatedTotalCost * 100);
 
     // 2. Prepare Data for Database
-    const travelersData = payload.travelers || {
-      adults: payload.allTravelers?.filter((t) => t.type === "adult") || [],
-      kids: payload.allTravelers?.filter((t) => t.type === "kid") || [],
-      babies: payload.allTravelers?.filter((t) => t.type === "baby") || [],
+    const travelersList: Traveler[] = [];
+
+    // Helper to add travelers to the list
+    const addTravelersToList = (source: Traveler[] | undefined) => {
+      if (source && Array.isArray(source)) {
+        travelersList.push(...source);
+      }
     };
 
+    if (payload.travelers && Array.isArray(payload.travelers.list)) {
+      // New unified structure
+      addTravelersToList(payload.travelers.list);
+    } else if (payload.travelers) {
+      // Legacy separate arrays
+      addTravelersToList(payload.travelers.adults);
+      addTravelersToList(payload.travelers.kids);
+      addTravelersToList(payload.travelers.babies);
+    } else if (payload.allTravelers) {
+      // Legacy flat list
+      addTravelersToList(payload.allTravelers);
+    }
+
     const primaryAdult =
-      travelersData.adults.find((a: any) => a.isPrimary) ||
-      travelersData.adults[0];
+      travelersList.find((a: any) => a.isPrimary && a.type === "adult") ||
+      travelersList.find((a: any) => a.type === "adult");
+
+    // Age Validation for Primary Traveler
+    if (primaryAdult && primaryAdult.dateOfBirth) {
+      const today = new Date();
+      const birthDate = new Date(primaryAdult.dateOfBirth);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      ) {
+        age--;
+      }
+
+      if (age < 18) {
+        return NextResponse.json(
+          {
+            message: "The main traveler must be over 18 years old",
+          },
+          { status: 400 },
+        );
+      }
+    }
 
     // Fallbacks for contact info
     const email = primaryAdult?.email || payload.email || "";
     const phone = primaryAdult?.phone || payload.phone || "";
 
     const fullName = primaryAdult?.name || "Guest";
+
+    // Determine League Category
+    const selectedLeagueObj = leaguesList.find((l) => l.isSelected);
+    let leagueCategory = "National";
+    if (selectedLeagueObj) {
+      if (selectedLeagueObj.group === "European") {
+        leagueCategory = "European";
+      } else if (selectedLeagueObj.group === "National") {
+        leagueCategory = "National";
+      } else {
+        // Fallback logic if group is missing
+        const europeanLeagues = [
+          "Champions League",
+          "Europa League",
+          "Conference League",
+        ];
+        if (europeanLeagues.some((l) => selectedLeagueObj.name.includes(l))) {
+          leagueCategory = "European";
+        }
+      }
+    }
 
     // Create Booking Record
     const booking = await BookingService.create({
@@ -180,6 +241,7 @@ export async function POST(request: Request) {
         sport: payload.selectedSport || "football",
         package: payload.selectedPackage || "standard",
         city: payload.selectedCity || "TBD",
+        league: leagueCategory,
       },
 
       // 2. Dates
@@ -192,9 +254,7 @@ export async function POST(request: Request) {
 
       // 3. Travelers
       travelers: {
-        adults: travelersData.adults || [],
-        kids: travelersData.kids || [],
-        babies: travelersData.babies || [],
+        list: travelersList,
         totalCount: totalPeople,
         primaryContact: {
           name: fullName,

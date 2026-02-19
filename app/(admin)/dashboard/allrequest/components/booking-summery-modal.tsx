@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, differenceInCalendarDays } from "date-fns";
 import {
   CalendarIcon,
   Users,
@@ -51,6 +51,13 @@ export default function BookingSummaryModal({
   );
   const [status, setStatus] = useState(bookingData.status);
   const [isTravelersExpanded, setIsTravelersExpanded] = useState(false);
+
+  // Derive travelers from unified list
+  const allTravelers = bookingData.travelers?.list || [];
+  const adults = allTravelers.filter((t: any) => t.type === "adult");
+  const kids = allTravelers.filter((t: any) => t.type === "kid");
+  const babies = allTravelers.filter((t: any) => t.type === "baby");
+
   const formatCurrency = (value: number | null | undefined) => {
     const amount = Number(value ?? 0);
     return amount.toFixed(2);
@@ -72,6 +79,63 @@ export default function BookingSummaryModal({
     } catch {
       return "";
     }
+  };
+
+  const calculateNights = () => {
+    if (
+      bookingData.dates?.durationNights &&
+      bookingData.dates.durationNights > 0
+    ) {
+      return bookingData.dates.durationNights;
+    }
+    if (bookingData.dates?.departure && bookingData.dates?.return) {
+      try {
+        return differenceInCalendarDays(
+          parseISO(bookingData.dates.return),
+          parseISO(bookingData.dates.departure),
+        );
+      } catch (e) {
+        return 0;
+      }
+    }
+    return 0;
+  };
+
+  const getCompetitionLabel = () => {
+    // 1. Prefer the new direct field from selection
+    if (bookingData.selection?.league) {
+      return bookingData.selection.league === "European"
+        ? "European Competition"
+        : "National League";
+    }
+
+    // 2. Fallback to extracting from leagues list (Legacy)
+    const selectedLeague = bookingData.leagues?.list?.find(
+      (l: any) => l.isSelected,
+    );
+
+    // If we have a removed count > 0 but no selected league, it implies National (since European doesn't allow removal usually)
+    if (!selectedLeague && (bookingData.leagues?.removedCount || 0) > 0) {
+      return "National League";
+    }
+
+    if (!selectedLeague) return "N/A";
+
+    // Use the group field if available
+    if (selectedLeague.group === "National") return "National League";
+    if (selectedLeague.group === "European") return "European Competition";
+
+    // Fallback based on name if group is missing
+    const europeanLeagues = [
+      "Champions League",
+      "Europa League",
+      "Conference League",
+    ];
+    if (europeanLeagues.some((l) => selectedLeague.name.includes(l))) {
+      return "European Competition";
+    }
+
+    return "National League"; // Default fallback
   };
 
   // Initialize state when modal opens
@@ -200,8 +264,7 @@ export default function BookingSummaryModal({
                     <TranslatedText text="Competition" />
                   </p>
                   <p className="text-sm font-semibold text-black capitalize">
-                    {bookingData.leagues?.list?.find((l: any) => l.isSelected)
-                      ?.name || "N/A"}
+                    <TranslatedText text={getCompetitionLabel()} />
                   </p>
                 </div>
                 <div>
@@ -209,8 +272,7 @@ export default function BookingSummaryModal({
                     <TranslatedText text="Travel Duration" />
                   </p>
                   <p className="text-sm font-semibold text-black">
-                    {bookingData.dates?.durationNights}{" "}
-                    <TranslatedText text="Nights" />
+                    {calculateNights()} <TranslatedText text="Nights" />
                   </p>
                 </div>
                 {(destinationCity || bookingData.destinationCity) && (
@@ -288,23 +350,21 @@ export default function BookingSummaryModal({
                     <TranslatedText text="Adults" />
                   </p>
                   <p className="text-lg font-bold text-black">
-                    {bookingData.travelers?.adults?.length || 0}
+                    {adults.length}
                   </p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs font-medium text-gray-500 uppercase mb-1">
                     <TranslatedText text="Kids" />
                   </p>
-                  <p className="text-lg font-bold text-black">
-                    {bookingData.travelers?.kids?.length || 0}
-                  </p>
+                  <p className="text-lg font-bold text-black">{kids.length}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs font-medium text-gray-500 uppercase mb-1">
                     <TranslatedText text="Babies" />
                   </p>
                   <p className="text-lg font-bold text-black">
-                    {bookingData.travelers?.babies?.length || 0}
+                    {babies.length}
                   </p>
                 </div>
               </div>
@@ -531,7 +591,7 @@ export default function BookingSummaryModal({
                     All Travelers Information
                   </CardTitle>
                   <p className="text-xs text-gray-500 font-medium">
-                    {bookingData.travelers?.all?.length || 0}{" "}
+                    {allTravelers.length}{" "}
                     <TranslatedText text="People Registered" />
                   </p>
                 </div>
@@ -558,90 +618,87 @@ export default function BookingSummaryModal({
                   </div>
                 )}
 
-                {bookingData.travelers?.all &&
-                bookingData.travelers.all.length > 0 ? (
+                {allTravelers.length > 0 ? (
                   <div className="grid grid-cols-1 gap-3">
-                    {bookingData.travelers.all.map(
-                      (traveler: any, index: number) => (
-                        <div
-                          key={index}
-                          className="p-4 rounded border border-gray-200 bg-white"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">
-                                {index + 1}
-                              </div>
-                              <span className="font-semibold text-black">
-                                {traveler.name}
-                              </span>
+                    {allTravelers.map((traveler: any, index: number) => (
+                      <div
+                        key={index}
+                        className="p-4 rounded border border-gray-200 bg-white"
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">
+                              {index + 1}
                             </div>
-                            {traveler.isPrimary && (
-                              <span className="text-xs font-medium text-gray-500 uppercase">
-                                <TranslatedText text="Primary Contact" />
-                              </span>
-                            )}
+                            <span className="font-semibold text-black">
+                              {traveler.name}
+                            </span>
                           </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm font-['Poppins']">
-                            {traveler.email && (
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                  <TranslatedText text="Email" />
-                                </span>
-                                <div className="flex items-center gap-2">
-                                  <Mail className="h-3.5 w-3.5 text-gray-400" />
-                                  <span className="text-gray-700 truncate">
-                                    {traveler.email}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                            {traveler.phone && (
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                  <TranslatedText text="Phone" />
-                                </span>
-                                <div className="flex items-center gap-2">
-                                  <Phone className="h-3.5 w-3.5 text-gray-400" />
-                                  <span className="text-gray-700 truncate">
-                                    {traveler.phone}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                            {traveler.dateOfBirth && (
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                  <TranslatedText text="Date of Birth" />
-                                </span>
-                                <div className="flex items-center gap-2">
-                                  <CalendarIcon className="h-3.5 w-3.5 text-gray-400" />
-                                  <span className="text-gray-700">
-                                    {new Date(
-                                      traveler.dateOfBirth,
-                                    ).toLocaleDateString()}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                            {traveler.documentType && (
-                              <div className="flex flex-col gap-1">
-                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                  {traveler.documentType}
-                                </span>
-                                <div className="flex items-center gap-2">
-                                  <CreditCard className="h-3.5 w-3.5 text-gray-400" />
-                                  <span className="text-gray-700 truncate">
-                                    {traveler.documentNumber}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
+                          {traveler.isPrimary && (
+                            <span className="text-xs font-medium text-gray-500 uppercase">
+                              <TranslatedText text="Primary Contact" />
+                            </span>
+                          )}
                         </div>
-                      ),
-                    )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm font-['Poppins']">
+                          {traveler.email && (
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                <TranslatedText text="Email" />
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-3.5 w-3.5 text-gray-400" />
+                                <span className="text-gray-700 break-all">
+                                  {traveler.email}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {traveler.phone && (
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                <TranslatedText text="Phone" />
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-3.5 w-3.5 text-gray-400" />
+                                <span className="text-gray-700 truncate">
+                                  {traveler.phone}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {traveler.dateOfBirth && (
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                <TranslatedText text="Date of Birth" />
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <CalendarIcon className="h-3.5 w-3.5 text-gray-400" />
+                                <span className="text-gray-700">
+                                  {new Date(
+                                    traveler.dateOfBirth,
+                                  ).toLocaleDateString()}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {traveler.documentType && (
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                {traveler.documentType}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <CreditCard className="h-3.5 w-3.5 text-gray-400" />
+                                <span className="text-gray-700 truncate">
+                                  {traveler.documentNumber}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">

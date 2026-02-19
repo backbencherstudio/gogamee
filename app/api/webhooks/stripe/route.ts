@@ -123,11 +123,7 @@ export async function POST(request: NextRequest) {
               try {
                 const { sendBookingConfirmationEmail } =
                   await import("../../mail/send-booking-email");
-                const { mapBookingToLegacy } =
-                  await import("@/backend/modules/booking/booking.mapper");
-                await sendBookingConfirmationEmail(
-                  mapBookingToLegacy(updatedBooking),
-                );
+                await sendBookingConfirmationEmail(updatedBooking);
                 console.log("📧 Confirmation email sent");
               } catch (e) {
                 console.error("❌ Email failed:", e);

@@ -292,7 +292,24 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                 <Controller
                   name="primaryTraveler.dateOfBirth"
                   control={control}
-                  rules={{ required: "REQUIRED_DOB" }}
+                  rules={{
+                    required: "REQUIRED_DOB",
+                    validate: (value) => {
+                      if (!value) return true;
+                      const today = new Date();
+                      const birthDate = new Date(value);
+                      let age = today.getFullYear() - birthDate.getFullYear();
+                      const monthDiff = today.getMonth() - birthDate.getMonth();
+                      if (
+                        monthDiff < 0 ||
+                        (monthDiff === 0 &&
+                          today.getDate() < birthDate.getDate())
+                      ) {
+                        age--;
+                      }
+                      return age >= 18 || "MUST_BE_ADULT";
+                    },
+                  }}
                   render={({ field }) => (
                     <FormInput
                       label={t(

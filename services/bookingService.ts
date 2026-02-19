@@ -35,6 +35,7 @@ export interface BookingItem {
     sport: "football" | "basketball" | "both";
     package: "standard" | "premium" | "combined";
     city: string;
+    league?: "National" | "European"; // [NEW] Optional until fully migrated
   };
 
   // 2. Dates
@@ -47,10 +48,7 @@ export interface BookingItem {
 
   // 3. Travelers
   travelers: {
-    adults: any[];
-    kids: any[];
-    babies: any[];
-    all: any[]; // Flat list for easy access
+    list: any[]; // Unified list
     totalCount: number;
     primaryContact: {
       name: string;
@@ -153,41 +151,82 @@ export interface StripeSessionResponse extends PaymentIntentResponse {
 }
 
 export interface CreateBookingPayload {
+  // Core Selection
   selectedSport: string;
   selectedPackage: string;
   selectedCity: string;
-  selectedLeague?: string; // Optional - being phased out
-  adults: number;
-  kids: number;
-  babies: number;
+  selectedLeague?: string; // Legacy/Optional
+
+  // People Counts
+  peopleCount: {
+    adults: number;
+    kids: number;
+    babies: number;
+  };
   totalPeople: number;
+
+  // Travelers (Unified)
+  travelers: {
+    list: TravelerInfo[];
+    totalCount: number;
+    primaryContact: TravelerInfo;
+  };
+
+  // Leagues
+  leagues: any[]; // Full list
+
+  // Dates
   departureDate: string;
   returnDate: string;
   departureDateFormatted: string;
   returnDateFormatted: string;
+
+  // Duration
+  duration: {
+    days: number;
+    nights: number;
+  };
+
+  // Flight Schedule
   departureTimeStart: number;
   departureTimeEnd: number;
   arrivalTimeStart: number;
   arrivalTimeEnd: number;
   departureTimeRange: string;
   arrivalTimeRange: string;
+  flightSchedule: any; // Nested structure
+
+  // League Removal Info (Legacy/Flat)
   removedLeagues: string[];
   removedLeaguesCount: number;
   hasRemovedLeagues: boolean;
+
+  // Costs
   totalExtrasCost: number;
   extrasCount: number;
+  totalCost: string;
+
+  // Contact (Flat - Legacy/Easy Access)
   firstName: string;
   lastName: string;
   fullName: string;
   email: string;
   phone: string;
+
+  // Meta
   previousTravelInfo: string;
   travelDuration: number;
   hasFlightPreferences: boolean;
   requiresEuropeanLeagueHandling: boolean;
-  totalCost: string;
+
+  // Extras
   bookingExtras: BookingExtra[];
-  allTravelers?: TravelerInfo[];
+  extras: any[]; // New structured extras
+
+  // Payment
+  paymentInfo: {
+    cardholderName: string;
+  };
 }
 
 export interface UpdateBookingPayload {

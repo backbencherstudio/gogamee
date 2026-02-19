@@ -6,6 +6,7 @@ export interface CreateBookingData {
     sport: string;
     package: string;
     city: string;
+    league: string; // [NEW] "National" | "European"
   };
 
   // 2. Dates
@@ -18,9 +19,7 @@ export interface CreateBookingData {
 
   // 3. Travelers
   travelers: {
-    adults: any[];
-    kids: any[];
-    babies: any[];
+    list: any[]; // Unified list
     totalCount: number;
     primaryContact: {
       name: string;

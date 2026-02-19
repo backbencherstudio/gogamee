@@ -111,6 +111,7 @@ export interface IBooking extends Document {
     sport: "football" | "basketball" | "both";
     package: "standard" | "premium" | "combined";
     city: string;
+    league: "National" | "European"; // [NEW] Primary league category
   };
 
   // 2. Dates
@@ -121,12 +122,9 @@ export interface IBooking extends Document {
     durationNights: number;
   };
 
-  // 3. Travelers (The new requested array structure)
+  // 3. Travelers (Unified Structure)
   travelers: {
-    adults: any[];
-    kids: any[];
-    babies: any[];
-    all: any[]; // Flat list for easy access
+    list: any[]; // Unified list of all travelers
     totalCount: number;
     primaryContact: any; // Snapshot of primary contact
   };
@@ -201,6 +199,7 @@ const BookingSchema = new Schema<IBooking>(
       sport: { type: String, required: true },
       package: { type: String, required: true },
       city: { type: String, required: true },
+      league: { type: String, enum: ["National", "European"] }, // [NEW]
     },
 
     // 2. Dates
@@ -213,10 +212,7 @@ const BookingSchema = new Schema<IBooking>(
 
     // 3. Travelers
     travelers: {
-      adults: [TravelerSchema],
-      kids: [TravelerSchema],
-      babies: [TravelerSchema],
-      all: [TravelerSchema], // Aggregated list populated pre-save
+      list: [TravelerSchema], // Unified list
       totalCount: { type: Number, required: true },
       primaryContact: { type: Schema.Types.Mixed }, // Snapshot
     },
@@ -264,7 +260,8 @@ const BookingSchema = new Schema<IBooking>(
 
 // Indexes
 BookingSchema.index({ "payment.stripePaymentIntentId": 1 });
-BookingSchema.index({ "travelers.all.email": 1 });
+BookingSchema.index({ "travelers.list.email": 1 }); // Updated index
+BookingSchema.index({ "selection.league": 1 }); // New index
 BookingSchema.index({ createdAt: -1 });
 
 // Generate Short Booking Reference (e.g., GG-123456)
@@ -273,13 +270,12 @@ BookingSchema.pre("save", async function (this: IBooking) {
     const random = Math.floor(100000 + Math.random() * 900000);
     this.bookingReference = `GG-${random}`;
   }
-  // Populate 'all' travelers flat list for easy querying
-  const all: any[] = [];
-  if (this.travelers.adults) all.push(...this.travelers.adults);
-  if (this.travelers.kids) all.push(...this.travelers.kids);
-  if (this.travelers.babies) all.push(...this.travelers.babies);
-  this.travelers.all = all;
 });
+
+// Force recompilation if model exists (Dev mode fix)
+if (process.env.NODE_ENV !== "production") {
+  delete mongoose.models.Booking;
+}
 
 export default mongoose.models.Booking ||
   mongoose.model<IBooking>("Booking", BookingSchema);

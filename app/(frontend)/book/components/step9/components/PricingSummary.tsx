@@ -176,22 +176,24 @@ export function PricingSummary({
             )}
 
             {/* Booking Fee Row (Mobile) */}
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                <TranslatedText
-                  text="Tarifa de Reserva"
-                  english="Booking Fee"
-                />
-              </span>
-              <div className="text-right">
-                <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
-                  {BOOKING_CONSTANTS.BOOKING_FEE}€
-                </div>
-                <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  {BOOKING_CONSTANTS.BOOKING_FEE.toFixed(2)}€
+            {BOOKING_CONSTANTS.BOOKING_FEE > 0 && (
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                  <TranslatedText
+                    text="Tarifa de Reserva"
+                    english="Booking Fee"
+                  />
+                </span>
+                <div className="text-right">
+                  <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
+                    {BOOKING_CONSTANTS.BOOKING_FEE}€
+                  </div>
+                  <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                    {BOOKING_CONSTANTS.BOOKING_FEE.toFixed(2)}€
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Subtotal Row */}
             <div className="flex justify-between items-center py-4 border-t-2 border-lime-400 bg-lime-50 rounded-lg px-3">
@@ -372,20 +374,25 @@ export function PricingSummary({
           )}
 
           {/* Booking Fee Row (Desktop) */}
-          <div className="w-full grid grid-cols-4 gap-4 py-3">
-            <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800">
-              <TranslatedText text="Tarifa de Reserva" english="Booking Fee" />
+          {BOOKING_CONSTANTS.BOOKING_FEE > 0 && (
+            <div className="w-full grid grid-cols-4 gap-4 py-3">
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800">
+                <TranslatedText
+                  text="Tarifa de Reserva"
+                  english="Booking Fee"
+                />
+              </div>
+              <div className="text-base font-normal font-['Poppins'] leading-none text-neutral-800 text-center">
+                {BOOKING_CONSTANTS.BOOKING_FEE}€
+              </div>
+              <div className="text-base font-normal font-['Poppins'] leading-none text-neutral-800 text-center">
+                x1
+              </div>
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-end">
+                {BOOKING_CONSTANTS.BOOKING_FEE.toFixed(2)}€
+              </div>
             </div>
-            <div className="text-base font-normal font-['Poppins'] leading-none text-neutral-800 text-center">
-              {BOOKING_CONSTANTS.BOOKING_FEE}€
-            </div>
-            <div className="text-base font-normal font-['Poppins'] leading-none text-neutral-800 text-center">
-              x1
-            </div>
-            <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-end">
-              {BOOKING_CONSTANTS.BOOKING_FEE.toFixed(2)}€
-            </div>
-          </div>
+          )}
 
           {/* Subtotal Row */}
           <div className="w-full grid grid-cols-4 gap-4 py-3 border-t-2 border-gray-300">

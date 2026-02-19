@@ -127,6 +127,7 @@ export default function Payment() {
         selectedSport: workingData.selectedSport,
         selectedPackage: workingData.selectedPackage,
         selectedCity: workingData.selectedCity,
+        selectedLeague: "National", // Default, will be overridden by logic if needed or removed
 
         // People counts (nested)
         peopleCount: {
@@ -134,13 +135,20 @@ export default function Payment() {
           kids: formData.travelers?.kids?.length || 0,
           babies: formData.travelers?.babies?.length || 0,
         },
+        totalPeople: normalizedTravelers.length, // Add totalPeople
 
-        // Travelers (nested with categorized arrays)
+        // Travelers (Unified)
         travelers: {
-          adults: formData.travelers?.adults || [],
-          kids: formData.travelers?.kids || [],
-          babies: formData.travelers?.babies || [],
+          list: normalizedTravelers,
+          totalCount: normalizedTravelers.length,
+          primaryContact: primaryTraveler || fallbackTraveler,
         },
+        // Legacy flat fields for compatibility if needed (can be removed if backend fully migrated)
+        firstName: primaryTraveler?.name?.split(" ")[0] || "",
+        lastName: primaryTraveler?.name?.split(" ").slice(1).join(" ") || "",
+        fullName: primaryTraveler?.name || "",
+        email: primaryTraveler?.email || "",
+        phone: primaryTraveler?.phone || "",
 
         // Leagues (full array with selection status)
         leagues: formData.leagues || [],
@@ -162,6 +170,11 @@ export default function Payment() {
               year: "numeric",
             })
           : "",
+
+        // Travel Duration & Flight Prefs (Legacy/Flat)
+        travelDuration: formData.duration.days || 0,
+        hasFlightPreferences: !!formData.flightSchedule,
+        requiresEuropeanLeagueHandling: false, // Default
 
         // Duration (nested)
         duration: {
@@ -206,8 +219,46 @@ export default function Payment() {
             }
           : null,
 
+        // Flat flight times for legacy compatibility
+        departureTimeStart: formData.flightSchedule?.departure.start || 0,
+        departureTimeEnd: formData.flightSchedule?.departure.end || 0,
+        arrivalTimeStart: formData.flightSchedule?.arrival.start || 0,
+        arrivalTimeEnd: formData.flightSchedule?.arrival.end || 0,
+        departureTimeRange: formData.flightSchedule
+          ? `${minutesToTime(formData.flightSchedule.departure.start)} - ${minutesToTime(formData.flightSchedule.departure.end)}`
+          : "",
+        arrivalTimeRange: formData.flightSchedule
+          ? `${minutesToTime(formData.flightSchedule.arrival.start)} - ${minutesToTime(formData.flightSchedule.arrival.end)}`
+          : "",
+
+        // League Removal Info (Legacy/Flat)
+        removedLeagues:
+          formData.leagues
+            ?.filter((l) => l.group === "National" && !l.isSelected)
+            .map((l) => l.id) || [],
+        removedLeaguesCount:
+          formData.leagues?.filter(
+            (l) => l.group === "National" && !l.isSelected,
+          ).length || 0,
+        hasRemovedLeagues:
+          (formData.leagues?.filter(
+            (l) => l.group === "National" && !l.isSelected,
+          ).length || 0) > 0,
+
+        // Cost info
+        totalExtrasCost: formData.calculatedTotals?.extrasCost || 0,
+        extrasCount: formData.extras.filter((e) => e.isSelected).length,
+        totalCost: formData.calculatedTotals?.totalCost?.toFixed(2) || "0.00",
+
         // Extras (selected with proper structure)
         extras: formData.extras
+          .filter((extra) => extra.isSelected)
+          .map((extra) => ({
+            ...extra,
+            currency: "EUR",
+          })),
+
+        bookingExtras: formData.extras // Legacy name
           .filter((extra) => extra.isSelected)
           .map((extra) => ({
             ...extra,

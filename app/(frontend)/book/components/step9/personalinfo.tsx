@@ -96,6 +96,10 @@ const ERROR_MESSAGES = {
     es: "El número de documento es obligatorio",
     en: "Document number is required",
   },
+  MUST_BE_ADULT: {
+    es: "El viajero principal debe tener más de 18 años",
+    en: "The main traveler must be over 18 years old",
+  },
 };
 
 const usePerNightPricing = () => {
@@ -449,7 +453,7 @@ export default function Personalinfo() {
       leagueTotal +
       removalTotal +
       singleTravelerSupplement +
-      BOOKING_CONSTANTS.BOOKING_FEE; // Added booking fee to match backend calculation
+      singleTravelerSupplement;
 
     return {
       departureCity:
