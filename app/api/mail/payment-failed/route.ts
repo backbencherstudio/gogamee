@@ -150,7 +150,11 @@ export async function POST(request: NextRequest) {
         if (booking) {
           const legacyBooking = mapBookingToLegacy(booking);
           finalUserEmail = finalUserEmail || legacyBooking.email;
-          finalUserName = finalUserName || legacyBooking.fullName || "Guest";
+          finalUserName =
+            finalUserName ||
+            legacyBooking.contact?.name ||
+            `${legacyBooking.firstName} ${legacyBooking.lastName}`.trim() ||
+            "Guest";
           finalAmount = finalAmount || Number(legacyBooking.totalCost);
         }
       } catch (err) {

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { sendBookingConfirmationEmail } from "../send-booking-email";
 import { mapBookingToLegacy } from "@/backend/modules/booking/booking.mapper";
 
+import { IBooking } from "@/backend/models/Booking.model";
+
 export async function POST(request: NextRequest) {
   try {
     // Check if email configuration is available
@@ -51,7 +53,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Use shared email function
-    const emailResult = await sendBookingConfirmationEmail(booking);
+    // Pass rawBooking as it has the full structure required by the email service (IBooking interface)
+    // The mapped 'booking' object is a legacy structure that is missing required fields
+    const emailResult = await sendBookingConfirmationEmail(
+      rawBooking as IBooking,
+    );
 
     if (emailResult.success) {
       return NextResponse.json({
