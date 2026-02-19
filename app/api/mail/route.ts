@@ -5,7 +5,7 @@ export async function POST(request: NextRequest) {
   try {
     const { name, email, message, source } = await request.json();
 
-    if (!name || !email || !message) {
+    if (!name || !email) {
       return NextResponse.json(
         { success: false, error: "All fields are required." },
         { status: 400 },

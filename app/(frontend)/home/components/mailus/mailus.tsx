@@ -118,7 +118,11 @@ export default function Mailus() {
               </div>
               <div className="w-full flex flex-col justify-center items-start gap-1">
                 <div className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-                  <TranslatedText text="Mensaje" english="Message" as="span" />
+                  <TranslatedText
+                    text="Mensaje (opcional)"
+                    english="Message (optional)"
+                    as="span"
+                  />
                 </div>
                 <textarea
                   value={form.message}

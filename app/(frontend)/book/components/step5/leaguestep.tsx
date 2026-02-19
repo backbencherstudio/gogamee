@@ -206,8 +206,8 @@ export default function LeagueStep() {
               </div>
               <div className="text-xs xl:text-sm text-zinc-600 font-['Poppins'] mt-1">
                 <TranslatedText
-                  text="Esta tarifa solo se aplica cuando se viaja solo y aparecerá en su resumen final."
-                  english="This fee applies only when traveling alone and will appear in your final summary."
+                  text="Esta tarifa aparecerá en su resumen final."
+                  english="This fee will appear in your final summary."
                 />
               </div>
             </div>
