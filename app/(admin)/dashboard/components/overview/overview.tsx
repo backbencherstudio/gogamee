@@ -198,8 +198,10 @@ const RecentRequestsTable: React.FC = () => {
 
         if (response && response.success && Array.isArray(response.data)) {
           const bookings = response.data;
-          const requests: RecentRequest[] = bookings.map((booking) => ({
-            id: `REQ-${String(booking.id || booking._id).slice(0, 8)}`,
+          const requests: RecentRequest[] = bookings.map((booking: any) => ({
+            id:
+              booking.bookingReference ||
+              `REQ-${String(booking.id || booking._id).slice(0, 8)}`,
             customer: booking.travelers?.primaryContact?.name || "Guest",
             package: `${booking.selection?.sport || "N/A"} - ${booking.selection?.package || "N/A"}`,
             date: booking.createdAt,

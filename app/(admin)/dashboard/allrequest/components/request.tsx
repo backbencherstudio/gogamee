@@ -383,8 +383,8 @@ export default function EventReqTable() {
                   <tr>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       <TranslatedText
-                        english="Booking Date"
-                        text="Fecha de Reserva"
+                        english="Booking ID & Date"
+                        text="ID de Reserva y Fecha"
                       />
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -427,6 +427,7 @@ export default function EventReqTable() {
                     ? Array.from({ length: 5 }).map((_, index) => (
                         <tr key={index} className="animate-pulse">
                           <td className="px-6 py-4">
+                            <div className="h-4 bg-gray-200 rounded w-28 mb-2"></div>
                             <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
                             <div className="h-3 bg-gray-100 rounded w-16"></div>
                           </td>
@@ -462,11 +463,19 @@ export default function EventReqTable() {
                       ))
                     : bookings.map((booking) => (
                         <tr
-                          key={booking._id || booking.id}
+                          key={
+                            booking.bookingReference ||
+                            booking._id ||
+                            booking.id
+                          }
                           className="hover:bg-gray-50 transition-colors"
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-bold text-gray-900 mb-1">
+                              {booking.bookingReference ||
+                                `REQ-${String(booking.id || booking._id).slice(0, 8)}`}
+                            </div>
+                            <div className="text-sm font-medium text-gray-700">
                               {formatDate(booking.createdAt)}
                             </div>
                             <div className="text-xs text-gray-500">

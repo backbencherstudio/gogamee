@@ -264,11 +264,16 @@ BookingSchema.index({ "travelers.list.email": 1 }); // Updated index
 BookingSchema.index({ "selection.league": 1 }); // New index
 BookingSchema.index({ createdAt: -1 });
 
-// Generate Short Booking Reference (e.g., GG-123456)
+// Generate Short Booking Reference (e.g., GG-YYYYMMDD-NNN)
 BookingSchema.pre("save", async function (this: IBooking) {
   if (!this.bookingReference) {
-    const random = Math.floor(100000 + Math.random() * 900000);
-    this.bookingReference = `GG-${random}`;
+    const now = new Date();
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(now.getUTCDate()).padStart(2, "0");
+    const dateStr = `${year}${month}${day}`;
+    const random = Math.floor(100 + Math.random() * 900);
+    this.bookingReference = `GG-${dateStr}-${random}`;
   }
 });
 
