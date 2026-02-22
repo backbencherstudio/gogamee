@@ -160,10 +160,9 @@ export default function RemoveLeague() {
 
     // If European competition is selected
     if (hasEuropeanLeague) {
-      const footballLeagues = homepageLeaguesData.getFootballLeagues();
-      const basketballLeagues = homepageLeaguesData.getBasketballLeagues();
-      const allLeagues = [...footballLeagues, ...basketballLeagues];
-      return allLeagues;
+      // Step 4.5 should be skipped if European is selected,
+      // but returning empty array as a safe fallback.
+      return [];
     }
 
     // If only national leagues are selected

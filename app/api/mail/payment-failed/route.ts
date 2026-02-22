@@ -140,29 +140,26 @@ export async function POST(request: NextRequest) {
     let finalUserEmail = userEmail;
     let finalUserName = userName;
     let finalAmount = amount;
+    let displayBookingId = bookingId;
 
-    if (!finalUserEmail || !finalUserName) {
-      try {
-        const { BookingService } = await import("@/backend");
-        const { mapBookingToLegacy } =
-          await import("@/backend/modules/booking/booking.mapper");
-        const booking = await BookingService.getById(bookingId);
-        if (booking) {
-          const legacyBooking = mapBookingToLegacy(booking);
-          finalUserEmail = finalUserEmail || legacyBooking.email;
-          finalUserName =
-            finalUserName ||
-            legacyBooking.contact?.name ||
-            `${legacyBooking.firstName} ${legacyBooking.lastName}`.trim() ||
-            "Guest";
-          finalAmount = finalAmount || Number(legacyBooking.totalCost);
-        }
-      } catch (err) {
-        console.error(
-          "Error fetching booking details for failed payment:",
-          err,
-        );
+    try {
+      const { BookingService } = await import("@/backend");
+      const { mapBookingToLegacy } =
+        await import("@/backend/modules/booking/booking.mapper");
+      const booking = await BookingService.getById(bookingId);
+      if (booking) {
+        displayBookingId = (booking as any).bookingReference || bookingId;
+        const legacyBooking = mapBookingToLegacy(booking);
+        finalUserEmail = finalUserEmail || legacyBooking.email;
+        finalUserName =
+          finalUserName ||
+          legacyBooking.contact?.name ||
+          `${legacyBooking.firstName} ${legacyBooking.lastName}`.trim() ||
+          "Guest";
+        finalAmount = finalAmount || Number(legacyBooking.totalCost);
       }
+    } catch (err) {
+      console.error("Error fetching booking details for failed payment:", err);
     }
 
     if (!finalUserEmail) {
@@ -177,6 +174,7 @@ export async function POST(request: NextRequest) {
     // Update body data for template generation
     const templateData = {
       ...body,
+      bookingId: displayBookingId,
       userEmail: finalUserEmail,
       userName: finalUserName,
       amount: finalAmount,
@@ -188,9 +186,9 @@ export async function POST(request: NextRequest) {
       await transporter.sendMail({
         from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
         to: finalUserEmail,
-        subject: `Payment Failed - Booking #${bookingId} - GoGame`,
+        subject: `Payment Failed - Booking #${displayBookingId} - GoGame`,
         html: htmlContent,
-        text: `Payment Failed\n\nDear ${finalUserName},\n\nUnfortunately, your payment for booking #${bookingId} could not be processed.\n\nBooking Details:\n- Booking ID: #${bookingId}\n- Amount: €${Number(finalAmount).toFixed(2)}\n${errorMessage ? `- Error: ${errorMessage}\n` : ""}\nIMPORTANT: If any amount was deducted from your account, please contact our admin team immediately.\n\nContact: ${process.env.MAIL_TO || "info@gogame2025.com"}\n\nThank you,\nGoGame Team`,
+        text: `Payment Failed\n\nDear ${finalUserName},\n\nUnfortunately, your payment for booking #${displayBookingId} could not be processed.\n\nBooking Details:\n- Booking ID: #${displayBookingId}\n- Amount: €${Number(finalAmount).toFixed(2)}\n${errorMessage ? `- Error: ${errorMessage}\n` : ""}\nIMPORTANT: If any amount was deducted from your account, please contact our admin team immediately.\n\nContact: ${process.env.MAIL_TO || "info@gogame2025.com"}\n\nThank you,\nGoGame Team`,
       });
 
       return NextResponse.json({
@@ -206,9 +204,9 @@ export async function POST(request: NextRequest) {
         await emailQueue.addToQueue({
           type: "booking",
           to: finalUserEmail,
-          subject: `Payment Failed - Booking #${bookingId} - GoGame`,
+          subject: `Payment Failed - Booking #${displayBookingId} - GoGame`,
           html: htmlContent,
-          text: `Payment failed for booking #${bookingId}. Amount: €${finalAmount}. Contact: ${process.env.MAIL_TO}`,
+          text: `Payment failed for booking #${displayBookingId}. Amount: €${finalAmount}. Contact: ${process.env.MAIL_TO}`,
         });
 
         return NextResponse.json({

@@ -7,6 +7,7 @@ import { IBooking } from "@/backend/models/Booking.model";
 export interface BookingData {
   id?: string;
   _id?: string;
+  bookingReference?: string;
   fullName?: string; // or travelers.primaryContact.name
   travelers?: {
     primaryContact?: {
@@ -91,7 +92,10 @@ export function generateUserEmailContent(
 ) {
   const showReveal = options?.showReveal ?? true;
   const bookingData = booking as unknown as BookingData;
-  const bookingId = bookingData._id?.toString() || bookingData.id;
+  const bookingId =
+    bookingData.bookingReference ||
+    bookingData._id?.toString() ||
+    bookingData.id;
   const fullName =
     bookingData.travelers?.primaryContact?.name ||
     bookingData.fullName ||
@@ -309,7 +313,8 @@ export function generateUserEmailContent(
 }
 
 export function generateAdminEmailContent(booking: IBooking) {
-  const bookingId = booking._id?.toString();
+  const bookingData = booking as any;
+  const bookingId = bookingData.bookingReference || booking._id?.toString();
   const fullName = booking.travelers?.primaryContact?.name || "Guest";
   const email = booking.travelers?.primaryContact?.email || "";
   const phone = booking.travelers?.primaryContact?.phone || "";

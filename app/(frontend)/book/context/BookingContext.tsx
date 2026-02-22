@@ -402,10 +402,17 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     immediateData?: Partial<BookingContextType["formData"]>,
   ) => {
     const currentData = { ...formData, ...immediateData };
+    const hasEuropeanLeague = currentData.leagues?.some(
+      (l) => l.group === "European",
+    );
 
     if (currentStep === 4) {
-      // ALWAYS go to step 4.5 (Remove League) regardless of league type
-      setCurrentStep(4.5);
+      // Skip step 4.5 (Remove League) if European is selected
+      if (hasEuropeanLeague) {
+        setCurrentStep(5);
+      } else {
+        setCurrentStep(4.5);
+      }
     } else if (currentStep === 4.5) {
       setCurrentStep(5);
     } else {
@@ -414,11 +421,19 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const previousStep = () => {
+    const hasEuropeanLeague = formData.leagues?.some(
+      (l) => l.group === "European",
+    );
+
     if (currentStep === 4.5) {
       setCurrentStep(4);
     } else if (currentStep === 5) {
-      // ALWAYS go back to step 4.5 (Remove League)
-      setCurrentStep(4.5);
+      // Go back to step 4 instead of 4.5 if European is selected
+      if (hasEuropeanLeague) {
+        setCurrentStep(4);
+      } else {
+        setCurrentStep(4.5);
+      }
     } else {
       setCurrentStep((prev) => Math.max(prev - 1, 0));
     }

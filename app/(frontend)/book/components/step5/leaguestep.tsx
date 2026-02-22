@@ -94,7 +94,7 @@ export default function LeagueStep() {
         // Populate with all national leagues
         leagues = mappedNationalLeagues;
       } else {
-        // European competition - Include National leagues so they can be removed in next step
+        // European competition - Only add European Competition since removal step is skipped
         leagues = [
           {
             id: "european",
@@ -102,7 +102,6 @@ export default function LeagueStep() {
             group: "European" as const,
             isSelected: true,
           },
-          ...mappedNationalLeagues,
         ];
       }
 
