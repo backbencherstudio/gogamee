@@ -89,6 +89,7 @@ export class PricingService {
         durationKey,
         input.selectedSport,
         input.selectedPackage,
+        input.selectedLeague,
       );
 
       const totalBaseCost = basePricePerPerson * input.totalPeople;
@@ -239,45 +240,45 @@ export class PricingService {
     durationKey: "1" | "2" | "3" | "4",
     sport: string,
     pkg: string,
+    league?: string,
   ): Promise<number> {
     try {
       await connectToDatabase();
 
-      const dateObj = new Date(date);
-      const year = dateObj.getFullYear();
-      const month = dateObj.getMonth();
-      const day = dateObj.getDate();
+      // Extract "YYYY-MM-DD" from either "YYYY-MM-DD" or ISO string directly, avoiding timezone shifting.
+      const formattedDate = date.substring(0, 10);
 
-      const startOfDay = new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
-      const endOfDay = new Date(Date.UTC(year, month, day, 23, 59, 59, 999));
+      const sportLower = sport?.toLowerCase();
+      const pkgLower = pkg?.toLowerCase() as "standard" | "premium";
+      let sportQueryName = sportLower;
+      if (sportLower === "both") sportQueryName = "combined";
 
+      const leagueFilter =
+        league?.toLowerCase() === "european" ? "european" : "national";
       const dateEntry = await DateManagement.findOne({
-        date: { $gte: startOfDay, $lte: endOfDay },
-        status: "enabled",
+        date: { $regex: `^${formattedDate}` },
+        [`sports.${sportQueryName}.status`]: "enabled",
         duration: durationKey,
+        league: leagueFilter,
       });
 
       if (dateEntry) {
         let basePrice = 0;
-        const sportLower = sport?.toLowerCase();
-        const pkgLower = pkg?.toLowerCase() as "standard" | "premium";
 
-        if (sportLower === "both" || sportLower === "combined") {
-          // Direct lookup for Combined Package (Standard/Premium)
-          basePrice = dateEntry.prices?.combined?.[pkgLower] ?? 0;
-        } else if (sportLower === "football") {
-          basePrice = dateEntry.prices?.football?.[pkgLower] ?? 0;
-        } else if (sportLower === "basketball") {
-          basePrice = dateEntry.prices?.basketball?.[pkgLower] ?? 0;
+        if (sportQueryName === "combined") {
+          basePrice = dateEntry.sports?.combined?.[pkgLower] || 0;
+        } else if (sportQueryName === "football") {
+          basePrice = dateEntry.sports?.football?.[pkgLower] || 0;
+        } else if (sportQueryName === "basketball") {
+          basePrice = dateEntry.sports?.basketball?.[pkgLower] || 0;
         }
 
-        return basePrice;
+        if (basePrice > 0) {
+          return basePrice;
+        }
       }
 
-      const sportLower = sport?.toLowerCase();
-      const pkgLower = pkg?.toLowerCase() as "standard" | "premium";
-
-      // Handle "both" sport type
+      // Handle "both" sport type fallback
       if (sportLower === "both") {
         const footballPrice = await StartingPrice.findOne({
           type: "football",

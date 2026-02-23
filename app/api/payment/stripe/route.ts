@@ -113,10 +113,10 @@ export async function POST(request: Request) {
     const totalPeople =
       payload.totalPeople ?? adultsCount + kidsCount + babiesCount;
 
-    // Duration extraction
-    const travelDuration = payload.travelDuration ?? 0;
-    const durationDays = travelDuration || 1;
-    const durationNights = Math.max(0, durationDays - 1);
+    // Duration extraction — use payload.duration.days which is always correctly set by frontend
+    const durationDays = payload.duration?.days || 1;
+    const durationNights =
+      payload.duration?.nights ?? Math.max(0, durationDays - 1);
 
     // Extras for pricing (flattened list of selected extras)
     const bookingExtras = (payload.extras || []).map((extra: any) => ({
@@ -129,13 +129,23 @@ export async function POST(request: Request) {
       currency: extra.currency || "EUR",
     }));
 
+    // Avoid timezone shift issues by decoding the exact day user intended
+    let pricingDepartureDate = payload.departureDate;
+    const depFormatted = (payload as any).departureDateFormatted;
+    if (depFormatted && depFormatted.includes("/")) {
+      const [day, month, year] = depFormatted.split("/");
+      if (day && month && year) {
+        pricingDepartureDate = `${year}-${month}-${day}`;
+      }
+    }
+
     // Calculate Price Server-Side
     const priceBreakdown = await PricingService.calculatePrice({
       selectedSport: payload.selectedSport,
       selectedPackage: payload.selectedPackage,
       selectedLeague: isEuropeanCompetition ? "european" : "national",
       totalPeople: totalPeople,
-      departureDate: payload.departureDate,
+      departureDate: pricingDepartureDate,
       travelDuration: payload.duration?.days || 0,
       removedLeaguesCount: removedLeaguesCount,
       hasRemovedLeagues: removedLeaguesCount > 0,
