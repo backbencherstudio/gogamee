@@ -398,6 +398,12 @@ export async function sendBookingConfirmationEmail(
   booking: IBooking,
   options?: { showReveal?: boolean },
 ): Promise<{ success: boolean; message: string; error?: string }> {
+  const bookingData = booking as unknown as BookingData;
+  const bookingId =
+    bookingData.bookingReference ||
+    bookingData._id?.toString() ||
+    bookingData.id;
+
   try {
     if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
       console.error("❌ Email configuration missing");
@@ -425,7 +431,7 @@ export async function sendBookingConfirmationEmail(
       to: email,
       subject: userEmailContent.subject,
       html: userEmailContent.htmlContent,
-      text: `Booking Confirmed #${booking._id}`,
+      text: `Booking Confirmed #${bookingId}`,
       replyTo: process.env.MAIL_FROM ?? process.env.MAIL_USER,
     });
 
@@ -439,7 +445,7 @@ export async function sendBookingConfirmationEmail(
           to: adminEmail,
           subject: adminEmailContent.subject,
           html: adminEmailContent.htmlContent,
-          text: `New Booking #${booking._id}`,
+          text: `New Booking #${bookingId}`,
           replyTo: email,
         });
       } catch (adminError) {
@@ -466,7 +472,7 @@ export async function sendBookingConfirmationEmail(
             to: email,
             subject: userContent.subject,
             html: userContent.htmlContent,
-            text: `Booking Confirmed #${booking._id}`,
+            text: `Booking Confirmed #${bookingId}`,
             from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
             replyTo: process.env.MAIL_FROM ?? process.env.MAIL_USER,
             bookingId: booking._id?.toString() || "",
@@ -502,6 +508,12 @@ export async function queueBookingConfirmationEmails(
     return;
   }
 
+  const bookingData = booking as unknown as BookingData;
+  const bookingId =
+    bookingData.bookingReference ||
+    bookingData._id?.toString() ||
+    bookingData.id;
+
   // Queue User Email
   const userContent = generateUserEmailContent(booking, options);
   await emailQueue.addToQueue(
@@ -526,7 +538,7 @@ export async function queueBookingConfirmationEmails(
         to: adminEmail,
         subject: adminContent.subject,
         html: adminContent.htmlContent,
-        text: `New Booking #${booking._id}`,
+        text: `New Booking #${bookingId}`,
         from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
         type: "booking",
         bookingId: booking._id?.toString() || "",
