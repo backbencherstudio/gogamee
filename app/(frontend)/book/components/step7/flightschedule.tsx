@@ -5,7 +5,6 @@ import { MdFlightTakeoff, MdFlightLand } from "react-icons/md";
 import { Range } from "react-range";
 import { useBooking } from "../../context/BookingContext";
 import { flightScheduleData } from "../../../../lib/appdata";
-import { TranslatedText } from "../../../_components/TranslatedText";
 
 // ========================= TYPES =========================
 interface TimeRange {
@@ -100,13 +99,11 @@ const FlightInfoHeader = React.memo(
   }) => {
     // Translate label based on its value
     const translatedLabel =
-      label === "Departure from" ? (
-        <TranslatedText text="Salida desde" english="Departure from" />
-      ) : label === "Arrival" ? (
-        <TranslatedText text="Vuelta a" english="Return to" />
-      ) : (
-        label
-      );
+      label === "Departure from"
+        ? "Salida desde"
+        : label === "Arrival"
+          ? "Vuelta a"
+          : label;
 
     return (
       <div className="self-stretch inline-flex justify-start items-center gap-20">
@@ -127,7 +124,7 @@ const FlightInfoHeader = React.memo(
               {price}
             </div>
             <div className="self-stretch text-right justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
-              <TranslatedText text="Por persona" english="Per person" />
+              Por persona
             </div>
           </div>
         </div>
@@ -158,14 +155,9 @@ const TimeDisplay = React.memo(
     return (
       <div className="self-stretch px-4 py-2.5 bg-neutral-50 rounded ring-1 ring-inset ring-gray-200 inline-flex justify-center items-center gap-2.5">
         <div className="justify-start text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-          <TranslatedText
-            text={
-              isDeparture
-                ? `Tu vuelo saldrá entre las ${startTime} y las ${endTime}`
-                : `Tu vuelo llegará entre las ${startTime} y las ${endTime}`
-            }
-            english={`Your flight will ${isDeparture ? "depart" : "land"} between ${startTime} and ${endTime}`}
-          />
+          {isDeparture
+            ? `Tu vuelo saldrá entre las ${startTime} y las ${endTime}`
+            : `Tu vuelo llegará entre las ${startTime} y las ${endTime}`}
         </div>
       </div>
     );
@@ -515,10 +507,7 @@ export default function FlightSchedule() {
       <div className="self-stretch xl:h-[587px] flex flex-col justify-center items-start gap-3">
         <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
           <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-            <TranslatedText
-              text="Horarios de vuelo"
-              english="Flight Schedule"
-            />
+            Horarios de vuelo
           </div>
         </div>
 
@@ -541,10 +530,7 @@ export default function FlightSchedule() {
             <div className="w-full p-4 bg-yellow-50 rounded-lg border border-yellow-200">
               <div className="flex justify-between items-center">
                 <div className="text-sm text-yellow-800 font-medium">
-                  <TranslatedText
-                    text="Coste Extra de Horarios:"
-                    english="Total Additional Cost:"
-                  />
+                  Coste Extra de Horarios:
                 </div>
                 <div className="text-lg font-bold text-yellow-700">
                   +{totalAdditionalCost}€
@@ -559,7 +545,7 @@ export default function FlightSchedule() {
             type="button"
           >
             <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-              <TranslatedText text="Confirmar" english="Confirm" />
+              Confirmar
             </div>
           </button>
         </div>

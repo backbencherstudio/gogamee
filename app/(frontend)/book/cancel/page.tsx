@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { TranslatedText } from "../../_components/TranslatedText";
+
 import Link from "next/link";
 
 // Force dynamic rendering
@@ -50,36 +50,27 @@ function CancelContent() {
 
         {/* Cancel Message */}
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4 font-['Poppins']">
-          <TranslatedText text="Pago Cancelado" english="Payment Cancelled" />
+          Pago Cancelado
         </h1>
 
         <p className="text-lg text-gray-600 mb-6 font-['Poppins']">
-          <TranslatedText
-            text="Tu pago ha sido cancelado. No se ha realizado ningún cargo."
-            english="Your payment has been cancelled. No charges have been made."
-          />
+          Tu pago ha sido cancelado. No se ha realizado ningún cargo.
         </p>
 
         {/* Booking Details */}
         {bookingId && (
           <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 font-['Poppins']">
-              <TranslatedText
-                text="Información de la Reserva"
-                english="Booking Information"
-              />
+              Información de la Reserva
             </h2>
             <p className="text-gray-700">
               <span className="font-semibold">
-                <TranslatedText text="ID de Reserva:" english="Booking ID:" />
+                ID de Reserva:
               </span>{" "}
               <span className="font-mono text-sm">{bookingId}</span>
             </p>
             <p className="text-gray-600 text-sm mt-2">
-              <TranslatedText
-                text="Tu reserva se ha guardado pero está pendiente de pago. Puedes completar el pago más tarde."
-                english="Your booking has been saved but is pending payment. You can complete the payment later."
-              />
+              Tu reserva se ha guardado pero está pendiente de pago. Puedes completar el pago más tarde.
             </p>
           </div>
         )}
@@ -87,10 +78,7 @@ function CancelContent() {
         {/* Notice */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <p className="text-yellow-800 text-sm font-['Poppins']">
-            <TranslatedText
-              text="💡 Si cambias de opinión, puedes volver a intentar completar tu reserva desde el panel de administración."
-              english="💡 If you change your mind, you can try to complete your booking again from the admin panel."
-            />
+            💡 Si cambias de opinión, puedes volver a intentar completar tu reserva desde el panel de administración.
           </p>
         </div>
 
@@ -100,23 +88,20 @@ function CancelContent() {
             href="/book"
             className="px-6 py-3 bg-lime-600 text-white rounded-lg font-semibold hover:bg-lime-700 transition-colors font-['Poppins']"
           >
-            <TranslatedText text="Intentar de Nuevo" english="Try Again" />
+            Intentar de Nuevo
           </Link>
           <Link
             href="/"
             className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors font-['Poppins']"
           >
-            <TranslatedText text="Volver al Inicio" english="Back to Home" />
+            Volver al Inicio
           </Link>
         </div>
 
         {/* Additional Info */}
         <div className="mt-8 pt-6 border-t border-gray-200">
           <p className="text-sm text-gray-500 font-['Poppins']">
-            <TranslatedText
-              text="Si experimentaste algún problema durante el pago, por favor contáctanos para obtener ayuda."
-              english="If you experienced any issues during payment, please contact us for assistance."
-            />
+            Si experimentaste algún problema durante el pago, por favor contáctanos para obtener ayuda.
           </p>
         </div>
       </div>

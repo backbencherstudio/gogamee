@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useBooking } from "../../context/BookingContext";
 import { packageTypeData } from "../../../../lib/appdata";
-import { TranslatedText } from "../../../_components/TranslatedText";
 import { SelectionCard } from "../shared/cards/SelectionCard";
 
 // Types
@@ -61,11 +60,7 @@ const PackageCard: React.FC<PackageCardProps> = React.memo(
         ariaLabel={`Select ${packageOption.label} package`}
       >
         <h3 className="text-white text-base xl:text-lg font-semibold font-['Poppins'] text-center drop-shadow-lg">
-          <TranslatedText
-            text={packageLabel.es}
-            english={packageLabel.en}
-            as="span"
-          />
+          {packageLabel.es}
         </h3>
       </SelectionCard>
     );
@@ -149,10 +144,7 @@ const PackageType: React.FC = () => {
       {/* Header Section */}
       <header className="mb-6 xl:mb-8">
         <h1 className="text-2xl xl:text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-8 xl:leading-10">
-          <TranslatedText
-            text="¿Cómo quieres que sea tu experiencia?"
-            english="How do you want to experience it?"
-          />
+          ¿Cómo quieres que sea tu experiencia?
         </h1>
       </header>
 
@@ -197,9 +189,7 @@ const PackageType: React.FC = () => {
           className={buttonClassName}
           aria-label="Proceed to next step"
         >
-          <span className={buttonTextClassName}>
-            <TranslatedText text="Siguiente" english="Next" />
-          </span>
+          <span className={buttonTextClassName}>Siguiente</span>
         </button>
       </form>
     </div>

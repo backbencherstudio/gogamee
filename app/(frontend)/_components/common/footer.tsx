@@ -3,7 +3,7 @@ import { Mail, Heart, Instagram, MessageCircle, Linkedin } from "lucide-react";
 import { FaTiktok, FaWhatsapp } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
-import { TranslatedText } from "../TranslatedText";
+
 import { useEffect, useState } from "react";
 import {
   getPublicSocialLinks,
@@ -57,11 +57,10 @@ export default function Footer() {
                 height={100}
               />
               <p className="text-neutral-300 text-lg font-normal font-['Inter'] leading-7">
-                <TranslatedText
-                  text="GoGame es una plataforma de viajes sorpresa que crea experiencias deportivas inolvidables."
-                  english="GoGame is a surprise travel platform that creates unforgettable sports experiences."
-                  as="span"
-                />
+                <span className="text-neutral-300 text-lg font-normal font-['Inter'] leading-7">
+                  GoGame es una plataforma de viajes sorpresa que crea
+                  experiencias deportivas inolvidables.
+                </span>
               </p>
               <div className="space-y-4">
                 {links.email && (
@@ -96,28 +95,26 @@ export default function Footer() {
               {/* Quick Links */}
               <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[180px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
                 <h3 className="text-white text-xl font-medium font-['Inter'] whitespace-nowrap">
-                  <TranslatedText
-                    text="Enlaces rápidos"
-                    english="Quick links"
-                    as="span"
-                  />
+                  <span className="text-white text-xl font-medium font-['Inter'] whitespace-nowrap">
+                    Enlaces rápidos
+                  </span>
                 </h3>
                 <div className="space-y-4">
                   <Link
                     href="/"
                     className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer"
                   >
-                    <TranslatedText text="Inicio" english="Home" as="span" />
+                    <span className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
+                      Inicio
+                    </span>
                   </Link>
                   <Link
                     href="/faqs"
                     className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer whitespace-nowrap"
                   >
-                    <TranslatedText
-                      text="Preguntas frecuentes"
-                      english="FAQs"
-                      as="span"
-                    />
+                    <span className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer whitespace-nowrap">
+                      Preguntas frecuentes
+                    </span>
                   </Link>
                 </div>
               </div>
@@ -125,28 +122,26 @@ export default function Footer() {
               {/* Packs */}
               <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
                 <h3 className="text-white text-xl font-medium font-['Inter']">
-                  <TranslatedText text="Packs" english="Packs" as="span" />
+                  <span className="text-white text-xl font-medium font-['Inter']">
+                    Packs
+                  </span>
                 </h3>
                 <div className="space-y-4">
                   <Link
                     href="/packages"
                     className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer"
                   >
-                    <TranslatedText
-                      text="Pack Estándar"
-                      english="Standard pack"
-                      as="span"
-                    />
+                    <span className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
+                      Pack Estándar
+                    </span>
                   </Link>
                   <Link
                     href="/packages"
                     className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer"
                   >
-                    <TranslatedText
-                      text="Pack Premium"
-                      english="Premium pack"
-                      as="span"
-                    />
+                    <span className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer">
+                      Pack Premium
+                    </span>
                   </Link>
                 </div>
               </div>
@@ -154,11 +149,9 @@ export default function Footer() {
               {/* Social Media */}
               <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
                 <h3 className="text-white text-xl font-medium font-['Inter']">
-                  <TranslatedText
-                    text="Redes sociales"
-                    english="Social Media"
-                    as="span"
-                  />
+                  <span className="text-white text-xl font-medium font-['Inter']">
+                    Redes sociales
+                  </span>
                 </h3>
                 <div className="space-y-4 flex flex-col items-center sm:items-start">
                   {links.tiktok && (
@@ -172,11 +165,9 @@ export default function Footer() {
                         <FaTiktok className="w-5 h-5 text-white" />
                       </div>
                       <span className="text-white text-lg font-normal font-['Inter']">
-                        <TranslatedText
-                          text="TikTok"
-                          english="TikTok"
-                          as="span"
-                        />
+                        <span className="text-white text-lg font-normal font-['Inter']">
+                          TikTok
+                        </span>
                       </span>
                     </Link>
                   )}
@@ -191,11 +182,9 @@ export default function Footer() {
                         <Instagram className="w-5 h-5 text-white" />
                       </div>
                       <span className="text-white text-lg font-normal font-['Inter']">
-                        <TranslatedText
-                          text="Instagram"
-                          english="Instagram"
-                          as="span"
-                        />
+                        <span className="text-white text-lg font-normal font-['Inter']">
+                          Instagram
+                        </span>
                       </span>
                     </Link>
                   )}
@@ -211,11 +200,9 @@ export default function Footer() {
                         <Linkedin className="w-5 h-5 text-white" />
                       </div>
                       <span className="text-white text-lg font-normal font-['Inter']">
-                        <TranslatedText
-                          text="LinkedIn"
-                          english="LinkedIn"
-                          as="span"
-                        />
+                        <span className="text-white text-lg font-normal font-['Inter']">
+                          LinkedIn
+                        </span>
                       </span>
                     </Link>
                   )}
@@ -229,42 +216,34 @@ export default function Footer() {
             <hr className="opacity-50 border-zinc-500" />
             <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4 md:gap-0 text-center md:text-left">
               <p className="text-neutral-300 text-base font-normal font-['Inter']">
-                <TranslatedText
-                  text="Copyright 2025 by GoGame. Todos los derechos reservados."
-                  english="Copyright 2025 by GoGame. All rights reserved."
-                  as="span"
-                />
+                <span className="text-neutral-300 text-base font-normal font-['Inter']">
+                  Copyright 2025 by GoGame. Todos los derechos reservados.
+                </span>
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 items-center sm:items-start">
                 <Link
                   href="/privacy"
                   className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer"
                 >
-                  <TranslatedText
-                    text="Política de privacidad"
-                    english="Privacy Policy"
-                    as="span"
-                  />
+                  <span className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer">
+                    Política de privacidad
+                  </span>
                 </Link>
                 <Link
                   href="/cookies"
                   className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer"
                 >
-                  <TranslatedText
-                    text="Política de cookies"
-                    english="Cookie Policy"
-                    as="span"
-                  />
+                  <span className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer">
+                    Política de cookies
+                  </span>
                 </Link>
                 <Link
                   href="/terms"
                   className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer"
                 >
-                  <TranslatedText
-                    text="Términos y condiciones"
-                    english="Terms & Conditions"
-                    as="span"
-                  />
+                  <span className="text-neutral-300 text-base font-normal font-['Inter'] cursor-pointer">
+                    Términos y condiciones
+                  </span>
                 </Link>
               </div>
             </div>

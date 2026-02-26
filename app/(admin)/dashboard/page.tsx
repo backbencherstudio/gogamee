@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
+
 import { SalesOverview } from "./components/overview/overview";
 
 const Dashboard = () => {
@@ -9,7 +9,7 @@ const Dashboard = () => {
     <div className="pt-4 min-h-screen mb-4 p-4">
       <div className="flex flex-col gap-2">
         <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight mb-6 pt-8">
-          <TranslatedText english="Quick Overview" text="Resumen Rápido" />
+          Resumen Rápido
         </h1>
         {/* <div className="text-sm text-gray-600 mb-4">
           {loading ? (

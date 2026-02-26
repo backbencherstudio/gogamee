@@ -10,7 +10,7 @@ import {
 import { MdKeyboardArrowDown } from "react-icons/md";
 
 import { format, parseISO } from "date-fns";
-import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
+
 import BookingSummaryModal from "./booking-summery-modal";
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 import { Pagination } from "../../../../../components/ui/Pagination";
@@ -218,29 +218,17 @@ export default function EventReqTable() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                    <TranslatedText
-                      english="Sports Travel Bookings"
-                      text="Reservas de Viajes Deportivos"
-                    />
+                    Reservas de Viajes Deportivos
                   </h1>
                   <p className="text-gray-600">
-                    <TranslatedText
-                      english="Manage and review all travel booking requests"
-                      text="Gestionar y revisar todas las solicitudes de reserva de viajes"
-                    />
+                    Gestionar y revisar todas las solicitudes de reserva de
+                    viajes
                   </p>
                   <div className="text-xs text-gray-400 mt-1">
                     {loading ? (
                       <div className="h-4 w-32 bg-gray-200 animate-pulse rounded" />
                     ) : (
-                      <>
-                        <TranslatedText english="Total" text="Total" />{" "}
-                        {totalItems}{" "}
-                        <TranslatedText
-                          english="bookings found"
-                          text="reservas encontradas"
-                        />
-                      </>
+                      <>Total {totalItems} reservas encontradas</>
                     )}
                   </div>
                 </div>
@@ -254,21 +242,12 @@ export default function EventReqTable() {
                   >
                     <FaCalendarAlt className="text-blue-600 w-4 h-4" />
                     <span className="text-gray-700 font-medium">
-                      <TranslatedText
-                        english={
-                          dateRangeOptions.find(
-                            (opt) => opt.value === timeFilter,
-                          )?.label || ""
-                        }
-                        text={
-                          {
-                            alltime: "Todo el tiempo",
-                            "7days": "Últimos 7 días",
-                            "15days": "Últimos 15 días",
-                            "30days": "Últimos 30 días",
-                          }[timeFilter] || "Todo el tiempo"
-                        }
-                      />
+                      {{
+                        alltime: "Todo el tiempo",
+                        "7days": "Últimos 7 días",
+                        "15days": "Últimos 15 días",
+                        "30days": "Últimos 30 días",
+                      }[timeFilter] || "Todo el tiempo"}
                     </span>
                     <MdKeyboardArrowDown className="text-gray-400 w-5 h-5" />
                   </button>
@@ -282,17 +261,12 @@ export default function EventReqTable() {
                           className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors
                       ${timeFilter === option.value ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700"}`}
                         >
-                          <TranslatedText
-                            english={option.label}
-                            text={
-                              {
-                                alltime: "Todo el tiempo",
-                                "7days": "Últimos 7 días",
-                                "15days": "Últimos 15 días",
-                                "30days": "Últimos 30 días",
-                              }[option.value] || option.label
-                            }
-                          />
+                          {{
+                            alltime: "Todo el tiempo",
+                            "7days": "Últimos 7 días",
+                            "15days": "Últimos 15 días",
+                            "30days": "Últimos 30 días",
+                          }[option.value] || option.label}
                         </button>
                       ))}
                     </div>
@@ -310,31 +284,31 @@ export default function EventReqTable() {
                     onClick={() => handleTabChange("all")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "all" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    <TranslatedText english="All" text="Todos" />
+                    Todos
                   </button>
                   <button
                     onClick={() => handleTabChange("pending")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "pending" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    <TranslatedText english="Pending" text="Pendiente" />
+                    Pendiente
                   </button>
                   <button
                     onClick={() => handleTabChange("confirmed")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "confirmed" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    <TranslatedText english="Confirmed" text="Confirmado" />
+                    Confirmado
                   </button>
                   <button
                     onClick={() => handleTabChange("completed")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "completed" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    <TranslatedText english="Completed" text="Completado" />
+                    Completado
                   </button>
                   <button
                     onClick={() => handleTabChange("rejected")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "rejected" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    <TranslatedText english="Rejected" text="Rechazado" />
+                    Rechazado
                   </button>
                 </div>
               </div>
@@ -359,18 +333,13 @@ export default function EventReqTable() {
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
                   >
-                    <TranslatedText
-                      english={tab.label}
-                      text={
-                        {
-                          "All Bookings": "Todas las Reservas",
-                          Pending: "Pendiente",
-                          Confirmed: "Confirmado",
-                          Completed: "Completado",
-                          Rejected: "Rechazado",
-                        }[tab.label] || tab.label
-                      }
-                    />
+                    {{
+                      "All Bookings": "Todas las Reservas",
+                      Pending: "Pendiente",
+                      Confirmed: "Confirmado",
+                      Completed: "Completado",
+                      Rejected: "Rechazado",
+                    }[tab.label] || tab.label}
                   </button>
                 ))}
               </div>
@@ -382,43 +351,25 @@ export default function EventReqTable() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <TranslatedText
-                        english="Booking ID & Date"
-                        text="ID de Reserva y Fecha"
-                      />
+                      ID de Reserva y Fecha
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <TranslatedText
-                        english="Customer & Sport"
-                        text="Cliente y Deporte"
-                      />
+                      Cliente y Deporte
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <TranslatedText
-                        english="Travel Details"
-                        text="Detalles del Viaje"
-                      />
+                      Detalles del Viaje
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <TranslatedText
-                        english="Booking Info"
-                        text="Info de Reserva"
-                      />
+                      Info de Reserva
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <TranslatedText
-                        english="Booking Status"
-                        text="Estado de Reserva"
-                      />
+                      Estado de Reserva
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <TranslatedText
-                        english="Payment Status"
-                        text="Estado de Pago"
-                      />
+                      Estado de Pago
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      <TranslatedText english="Actions" text="Acciones" />
+                      Acciones
                     </th>
                   </tr>
                 </thead>
@@ -519,11 +470,7 @@ export default function EventReqTable() {
                               </div>
                               <div className="flex items-center text-sm text-gray-600">
                                 <FaUsers className="w-3 h-3 mr-2 text-gray-400" />
-                                {booking.travelers?.totalCount || 0}{" "}
-                                <TranslatedText
-                                  english="travelers"
-                                  text="viajeros"
-                                />
+                                {booking.travelers?.totalCount || 0} viajeros
                               </div>
                               <div className="mt-1">
                                 <span
@@ -543,17 +490,10 @@ export default function EventReqTable() {
                                 {booking.totalCost}
                               </div>
                               <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">
-                                <TranslatedText
-                                  english="Total amount paid"
-                                  text="Monto total pagado"
-                                />
+                                Monto total pagado
                               </div>
                               <div className="text-xs text-gray-400">
-                                {booking.dates?.durationDays}{" "}
-                                <TranslatedText
-                                  english="days travel"
-                                  text="días de viaje"
-                                />
+                                {booking.dates?.durationDays} días de viaje
                               </div>
                             </div>
                           </td>
@@ -561,43 +501,29 @@ export default function EventReqTable() {
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusStyle(booking.status)}`}
                             >
-                              <TranslatedText
-                                english={getStatusText(booking.status)}
-                                text={
-                                  {
-                                    Confirmed: "Confirmado",
-                                    Completed: "Completado",
-                                    Rejected: "Rechazado",
-                                    Cancelled: "Cancelado",
-                                    Pending: "Pendiente",
-                                  }[getStatusText(booking.status)] ||
-                                  getStatusText(booking.status)
-                                }
-                              />
+                              {{
+                                Confirmed: "Confirmado",
+                                Completed: "Completado",
+                                Rejected: "Rechazado",
+                                Cancelled: "Cancelado",
+                                Pending: "Pendiente",
+                              }[getStatusText(booking.status)] ||
+                                getStatusText(booking.status)}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusStyle(booking.payment?.status)}`}
                             >
-                              <TranslatedText
-                                english={getPaymentStatusText(
-                                  booking.payment?.status,
-                                )}
-                                text={
-                                  {
-                                    Paid: "Pagado",
-                                    Pending: "Pendiente",
-                                    Failed: "Fallido",
-                                    Unknown: "Desconocido",
-                                  }[
-                                    getPaymentStatusText(
-                                      booking.payment?.status,
-                                    )
-                                  ] ||
-                                  getPaymentStatusText(booking.payment?.status)
-                                }
-                              />
+                              {{
+                                Paid: "Pagado",
+                                Pending: "Pendiente",
+                                Failed: "Fallido",
+                                Unknown: "Desconocido",
+                              }[
+                                getPaymentStatusText(booking.payment?.status)
+                              ] ||
+                                getPaymentStatusText(booking.payment?.status)}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -642,22 +568,13 @@ export default function EventReqTable() {
                   <FaCalendarAlt className="w-12 h-12 mx-auto" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  <TranslatedText
-                    english="No bookings found"
-                    text="No se encontraron reservas"
-                  />
+                  No se encontraron reservas
                 </h3>
                 <p className="text-gray-500">
-                  <TranslatedText
-                    english="Try adjusting your filters to see more results."
-                    text="Intente ajustar sus filtros para ver más resultados."
-                  />
+                  Intente ajustar sus filtros para ver más resultados.
                 </p>
                 <div className="text-xs text-gray-400 mt-2">
-                  <TranslatedText english="Filter" text="Filtro" />: {activeTab}{" "}
-                  |{" "}
-                  <TranslatedText english="Date Range" text="Rango de Fechas" />
-                  : {timeFilter}
+                  Filtro: {activeTab} | Rango de Fechas : {timeFilter}
                 </div>
               </div>
             )}
@@ -679,20 +596,8 @@ export default function EventReqTable() {
           isOpen={!!deleteConfirm}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={() => deleteConfirm && handleDeleteBooking(deleteConfirm)}
-          title={
-            <TranslatedText
-              english="Delete Booking"
-              text="Eliminar Reserva"
-              as="span"
-            />
-          }
-          message={
-            <TranslatedText
-              english="Are you sure you want to delete this booking? This action cannot be undone."
-              text="¿Está seguro de que desea eliminar esta reserva? Esta acción no se puede deshacer."
-              as="span"
-            />
-          }
+          title="Eliminar Reserva"
+          message="¿Está seguro de que desea eliminar esta reserva? Esta acción no se puede deshacer."
         />
       </div>
     </div>

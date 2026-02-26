@@ -4,8 +4,6 @@ import AboutTop from "./components/abouttop";
 import AboutPage from "./components/aboutpage";
 import { AboutService } from "@/backend";
 import { AboutContent } from "@/services/aboutService";
-import { translateTextBackend } from "@/backend/lib/translation";
-
 export const dynamic = "force-dynamic";
 
 async function getInitialData() {
@@ -18,64 +16,8 @@ async function getInitialData() {
   }
 }
 
-async function translateAboutContent(
-  content: AboutContent,
-  targetLang: string,
-): Promise<AboutContent> {
-  if (targetLang === "es") return content;
-  const [headline, sections, values, whyChooseUs] = await Promise.all([
-    translateTextBackend(content.headline || "", targetLang),
-    Promise.all(
-      (content.sections || []).map(async (s) => ({
-        ...s,
-        title: await translateTextBackend(s.title, targetLang),
-        description: await translateTextBackend(s.description, targetLang),
-      })),
-    ),
-    Promise.all(
-      (content.values?.items || []).map(async (v) => ({
-        ...v,
-        title: await translateTextBackend(v.title, targetLang),
-        description: await translateTextBackend(v.description, targetLang),
-      })),
-    ),
-    Promise.all(
-      (content.whyChooseUs?.items || []).map(async (w) => ({
-        ...w,
-        title: await translateTextBackend(w.title, targetLang),
-        description: await translateTextBackend(w.description, targetLang),
-      })),
-    ),
-  ]);
-
-  return {
-    ...content,
-    headline,
-    sections,
-    values: {
-      ...content.values,
-      title: content.values?.title || "",
-      items: values,
-    },
-    whyChooseUs: {
-      ...content.whyChooseUs,
-      title: content.whyChooseUs?.title || "",
-      items: whyChooseUs,
-    },
-  };
-}
-
 export default async function Page() {
-  const cookieStore = await cookies();
-  const userLang = cookieStore.get("user_lang")?.value || "es";
-
-  let initialContent = await getInitialData();
-
-  if (initialContent) {
-    // Perform SSR translation
-    // We assume source is 'auto' handled by translateTextBackend
-    initialContent = await translateAboutContent(initialContent, userLang);
-  }
+  const initialContent = await getInitialData();
 
   return (
     <>

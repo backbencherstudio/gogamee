@@ -1,51 +1,26 @@
 import React from "react";
 import Link from "next/link";
 import { FileText } from "lucide-react";
-import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
 
 export default function LegalPagesOverview() {
   const legalPages = [
     {
-      title: (
-        <TranslatedText
-          english="Privacy Policy"
-          text="Política de Privacidad"
-        />
-      ),
+      title: "Política de Privacidad",
       href: "/dashboard/settings/legal/privacy",
-      description: (
-        <TranslatedText
-          english="Manage privacy policy content in English and Spanish"
-          text="Gestione el contenido de la política de privacidad en inglés y español"
-        />
-      ),
+      description:
+        "Gestione el contenido de la política de privacidad en inglés y español",
     },
     {
-      title: (
-        <TranslatedText english="Cookie Policy" text="Política de Cookies" />
-      ),
+      title: "Política de Cookies",
       href: "/dashboard/settings/legal/cookie",
-      description: (
-        <TranslatedText
-          english="Manage cookie policy content in English and Spanish"
-          text="Gestione el contenido de la política de cookies en inglés y español"
-        />
-      ),
+      description:
+        "Gestione el contenido de la política de cookies en inglés y español",
     },
     {
-      title: (
-        <TranslatedText
-          english="Terms & Conditions"
-          text="Términos y Condiciones"
-        />
-      ),
+      title: "Términos y Condiciones",
       href: "/dashboard/settings/legal/terms",
-      description: (
-        <TranslatedText
-          english="Manage terms and conditions content in English and Spanish"
-          text="Gestione el contenido de los términos y condiciones en inglés y español"
-        />
-      ),
+      description:
+        "Gestione el contenido de los términos y condiciones en inglés y español",
     },
   ];
 
@@ -53,16 +28,11 @@ export default function LegalPagesOverview() {
     <div className="pt-4 min-h-screen mb-4 p-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight mb-6 pt-8">
-          <TranslatedText
-            english="Legal Pages Management"
-            text="Gestión de Páginas Legales"
-          />
+          Gestión de Páginas Legales
         </h1>
         <p className="text-gray-600 mb-8">
-          <TranslatedText
-            english="Manage the content for all legal pages. Each page supports both English and Spanish translations."
-            text="Gestione el contenido de todas las páginas legales. Cada página soporta traducciones en inglés y español."
-          />
+          Gestione el contenido de todas las páginas legales. Cada página
+          soporta traducciones en inglés y español.
         </p>
 
         <div className="grid gap-4 md:grid-cols-1">

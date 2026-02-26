@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useLanguage } from "../../../../../context/LanguageContext";
+
 
 interface FormInputProps {
   label: string;
@@ -28,8 +28,8 @@ export const FormInput: React.FC<FormInputProps> = ({
   error,
   errorEn,
 }) => {
-  const { language } = useLanguage();
-  const t = (es: string, en?: string) => (language === "en" && en ? en : es);
+  const language = "es";
+  const t = (es: string, en?: string) => (false && en ? en : es);
 
   return (
     <div

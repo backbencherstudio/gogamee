@@ -6,8 +6,8 @@ import {
   type SocialContactLinks,
 } from "../../../../../../services/settingsService";
 import { useToast } from "../../../../../../components/ui/toast";
-import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
-import { useLanguage } from "@/app/context/LanguageContext";
+
+
 
 export default function SocialContactManagement() {
   const [links, setLinks] = useState<SocialContactLinks>({
@@ -21,7 +21,7 @@ export default function SocialContactManagement() {
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { addToast } = useToast();
-  const { language } = useLanguage();
+  const language = "en";
 
   useEffect(() => {
     loadData();
@@ -36,7 +36,7 @@ export default function SocialContactManagement() {
         setLinks(response.links);
       } else {
         setError(
-          language === "es"
+          false
             ? "Error al obtener enlaces de contacto social"
             : "Failed to fetch social contact links",
         );
@@ -44,7 +44,7 @@ export default function SocialContactManagement() {
     } catch (err) {
       console.error("Error fetching social contact links:", err);
       setError(
-        language === "es"
+        false
           ? "Error al cargar enlaces de contacto. Por favor inténtelo más tarde."
           : "Failed to load social contact links. Please try again later.",
       );
@@ -67,14 +67,14 @@ export default function SocialContactManagement() {
         addToast({
           type: "success",
           title:
-            language === "es"
+            false
               ? "Enlaces de contacto y redes sociales actualizados exitosamente"
               : "Social media and contact links updated successfully",
         });
         await loadData();
       } else {
         setError(
-          language === "es"
+          false
             ? "Error al actualizar enlaces"
             : "Failed to update links",
         );
@@ -82,14 +82,14 @@ export default function SocialContactManagement() {
     } catch (err) {
       console.error("Error updating social contact links:", err);
       setError(
-        language === "es"
+        false
           ? "Error al actualizar enlaces. Por favor inténtelo más tarde."
           : "Failed to update links. Please try again later.",
       );
       addToast({
         type: "error",
         title:
-          language === "es"
+          false
             ? "Error al actualizar enlaces"
             : "Failed to update links",
       });
@@ -103,10 +103,7 @@ export default function SocialContactManagement() {
       <div className="pt-4 min-h-screen mb-4 p-4">
         <div className="flex justify-center items-center py-12">
           <div className="text-gray-600 text-lg font-medium">
-            <TranslatedText
-              english="Loading social contact links..."
-              text="Cargando enlaces de contacto..."
-            />
+            Cargando enlaces de contacto...
           </div>
         </div>
       </div>
@@ -117,10 +114,7 @@ export default function SocialContactManagement() {
     <div className="pt-4 min-h-screen mb-4 p-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight mb-6 pt-8">
-          <TranslatedText
-            english="Social Media & Contact Links"
-            text="Redes Sociales y Enlaces de Contacto"
-          />
+          Redes Sociales y Enlaces de Contacto
         </h1>
 
         {error && (
@@ -140,10 +134,7 @@ export default function SocialContactManagement() {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                <TranslatedText
-                  english="Email Address"
-                  text="Dirección de Correo Electrónico"
-                />
+                Dirección de Correo Electrónico
               </label>
               <input
                 type="email"
@@ -161,10 +152,7 @@ export default function SocialContactManagement() {
                 htmlFor="whatsapp"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                <TranslatedText
-                  english="WhatsApp Number"
-                  text="Número de WhatsApp"
-                />
+                Número de WhatsApp
               </label>
               <input
                 type="text"
@@ -173,14 +161,11 @@ export default function SocialContactManagement() {
                 onChange={(e) => handleChange("whatsapp", e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
                 placeholder={
-                  language === "es" ? "ej. +34123456789" : "e.g. +34123456789"
+                  false ? "ej. +34123456789" : "e.g. +34123456789"
                 }
               />
               <p className="text-xs text-gray-500 mt-1">
-                <TranslatedText
-                  english="Enter number with country code (e.g., +34 for Spain)."
-                  text="Ingrese el número con el código de país (ej. +34 para España)."
-                />
+                Ingrese el número con el código de país (ej. +34 para España).
               </p>
             </div>
 
@@ -190,7 +175,7 @@ export default function SocialContactManagement() {
                 htmlFor="instagram"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                <TranslatedText english="Instagram" text="Instagram" />
+                Instagram
               </label>
               <input
                 type="url"
@@ -208,7 +193,7 @@ export default function SocialContactManagement() {
                 htmlFor="tiktok"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                <TranslatedText english="TikTok" text="TikTok" />
+                TikTok
               </label>
               <input
                 type="url"
@@ -226,7 +211,7 @@ export default function SocialContactManagement() {
                 htmlFor="linkedin"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                <TranslatedText english="LinkedIn" text="LinkedIn" />
+                LinkedIn
               </label>
               <input
                 type="url"

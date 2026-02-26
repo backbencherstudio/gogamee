@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { TranslatedText } from "../../_components/TranslatedText";
+
 import {
   CheckCircle2,
   Calendar,
@@ -61,26 +61,17 @@ function PaymentSuccessContent() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4 font-['Poppins']">
-            <TranslatedText
-              text="¡Pago realizado con éxito, GoGamer!"
-              english="Payment successful, GoGamer!"
-            />
+            ¡Pago realizado con éxito, GoGamer!
           </h1>
 
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto font-['Poppins']">
-            <TranslatedText
-              text="Tu aventura ya está en marcha. Hemos recibido tu solicitud de reserva y en las próximas horas recibirás un email con la confirmación de tu viaje y los siguientes pasos."
-              english="Your adventure is underway. We have received your booking request and in the next few hours you will receive an email with your trip confirmation and next steps."
-            />
+            Tu aventura ya está en marcha. Hemos recibido tu solicitud de reserva y en las próximas horas recibirás un email con la confirmación de tu viaje y los siguientes pasos.
           </p>
 
           {/* Booking Details Box */}
           <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-200">
             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4 font-['Poppins']">
-              <TranslatedText
-                text="Detalles de la Reserva"
-                english="Booking Details"
-              />
+              Detalles de la Reserva
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col items-center justify-center p-3">
@@ -88,7 +79,7 @@ function PaymentSuccessContent() {
                   <CheckCircle2 size={24} />
                 </div>
                 <span className="text-sm text-gray-500">
-                  <TranslatedText text="Referencia" english="Reference" />
+                  Referencia
                 </span>
                 <span className="font-bold text-gray-900 font-mono text-lg">
                   {bookingId}
@@ -99,7 +90,7 @@ function PaymentSuccessContent() {
                   <Calendar size={24} />
                 </div>
                 <span className="text-sm text-gray-500">
-                  <TranslatedText text="Fecha" english="Date" />
+                  Fecha
                 </span>
                 <span className="font-bold text-gray-900">{currentDate}</span>
               </div>
@@ -108,7 +99,7 @@ function PaymentSuccessContent() {
                   <CreditCard size={24} />
                 </div>
                 <span className="text-sm text-gray-500">
-                  <TranslatedText text="Total Pagado" english="Total Paid" />
+                  Total Pagado
                 </span>
                 <span className="font-bold text-lime-600 text-lg">
                   {amount}€
@@ -127,10 +118,7 @@ function PaymentSuccessContent() {
                   <CheckCircle2 className="h-5 w-5 text-white" />
                 </div>
                 <span className="mt-2 text-xs sm:text-sm font-medium text-gray-900">
-                  <TranslatedText
-                    text="Pago Confirmado"
-                    english="Payment Confirmed"
-                  />
+                  Pago Confirmado
                 </span>
               </div>
 
@@ -140,10 +128,7 @@ function PaymentSuccessContent() {
                   <div className="h-2.5 w-2.5 bg-white rounded-full"></div>
                 </div>
                 <span className="mt-2 text-xs sm:text-sm font-bold text-blue-600">
-                  <TranslatedText
-                    text="Procesando Reserva"
-                    english="Processing Booking"
-                  />
+                  Procesando Reserva
                 </span>
               </div>
 
@@ -153,10 +138,7 @@ function PaymentSuccessContent() {
                   <Mail className="h-4 w-4 text-gray-400" />
                 </div>
                 <span className="mt-2 text-xs sm:text-sm text-gray-500">
-                  <TranslatedText
-                    text="Email Confirmación"
-                    english="Confirmation Email"
-                  />
+                  Email Confirmación
                 </span>
               </div>
 
@@ -166,7 +148,7 @@ function PaymentSuccessContent() {
                   <span className="text-gray-400 text-xs">✈️</span>
                 </div>
                 <span className="mt-2 text-xs sm:text-sm text-gray-500">
-                  <TranslatedText text="¡A Viajar!" english="Let's Travel!" />
+                  ¡A Viajar!
                 </span>
               </div>
             </div>
@@ -178,7 +160,7 @@ function PaymentSuccessContent() {
               href="/"
               className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-lime-600 hover:bg-lime-700 transition-all shadow-lg hover:shadow-xl w-full sm:w-auto"
             >
-              <TranslatedText text="Volver al Inicio" english="Go Back" />
+              Volver al Inicio
             </Link>
           </div>
         </div>
@@ -195,10 +177,7 @@ export default function PaymentSuccessPage() {
           <div className="flex flex-col items-center gap-4">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-lime-200 border-t-lime-600"></div>
             <p className="text-gray-400 text-sm font-['Poppins']">
-              <TranslatedText
-                text="Cargando confirmación..."
-                english="Loading confirmation..."
-              />
+              Cargando confirmación...
             </p>
           </div>
         </div>

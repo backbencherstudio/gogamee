@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { TranslatedText } from "../../../_components/TranslatedText";
-import { useLanguage } from "../../../../context/LanguageContext";
 
 export default function Mailus() {
-  const { language } = useLanguage();
   const [form, setForm] = useState({ name: "", email: "", message: "" });
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
@@ -59,11 +56,10 @@ export default function Mailus() {
         <div className="w-full flex flex-col md:flex-row justify-between items-center gap-8 md:gap-4">
           <div className="w-full md:w-[60%] flex flex-col justify-start items-start gap-6 md:gap-24">
             <div className="w-full text-center md:text-left justify-start text-white text-3xl md:text-6xl font-semibold font-['Inter'] leading-tight md:leading-[67.20px]">
-              <TranslatedText
-                text="Sé de los primeros en enterarte de nuestras ofertas en viajes sorpresa y grandes partidos"
-                english="Be the first to know about our offers on surprise trips and big matches"
-                as="span"
-              />
+              <span>
+                Sé de los primeros en enterarte de nuestras ofertas en viajes
+                sorpresa y grandes partidos{" "}
+              </span>
               <span className="text-[#76C043]">GoGame</span>
             </div>
           </div>
@@ -74,18 +70,14 @@ export default function Mailus() {
             <div className="w-full p-3 bg-gray-50 rounded-xl flex flex-col justify-end items-start gap-3">
               <div className="w-full flex flex-col justify-center items-start gap-1">
                 <div className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-                  <TranslatedText text="Nombre" english="Name" as="span" />
+                  <span>Nombre</span>
                 </div>
                 <div className="w-full h-11 px-3.5 py-1.5 bg-white rounded outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-start items-center gap-2.5">
                   <input
                     type="text"
                     value={form.name}
                     onChange={handleChange("name")}
-                    placeholder={
-                      language === "en"
-                        ? "Enter your name"
-                        : "Introduce tu nombre"
-                    }
+                    placeholder="Introduce tu nombre"
                     className="w-full text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed bg-transparent outline-none"
                     required
                   />
@@ -94,22 +86,14 @@ export default function Mailus() {
               <div className="w-full flex justify-start items-start gap-3">
                 <div className="w-full flex flex-col justify-center items-start gap-1">
                   <div className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-                    <TranslatedText
-                      text="Correo electrónico"
-                      english="Email"
-                      as="span"
-                    />
+                    <span>Correo electrónico</span>
                   </div>
                   <div className="w-full h-11 px-3.5 py-1.5 bg-white rounded outline-1 outline-offset-[-1px] outline-neutral-300 flex justify-start items-center gap-2.5">
                     <input
                       type="email"
                       value={form.email}
                       onChange={handleChange("email")}
-                      placeholder={
-                        language === "en"
-                          ? "example@gmail.com"
-                          : "ejemplo@gmail.com"
-                      }
+                      placeholder="ejemplo@gmail.com"
                       className="w-full text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed bg-transparent outline-none"
                       required
                     />
@@ -118,20 +102,12 @@ export default function Mailus() {
               </div>
               <div className="w-full flex flex-col justify-center items-start gap-1">
                 <div className="text-zinc-500 text-sm font-normal font-['Poppins'] leading-relaxed">
-                  <TranslatedText
-                    text="Mensaje (opcional)"
-                    english="Message (optional)"
-                    as="span"
-                  />
+                  <span>Mensaje (opcional)</span>
                 </div>
                 <textarea
                   value={form.message}
                   onChange={handleChange("message")}
-                  placeholder={
-                    language === "en"
-                      ? "Enter your message"
-                      : "Escribe tu mensaje"
-                  }
+                  placeholder="Escribe tu mensaje"
                   className="w-full h-36 px-3.5 py-1.5 bg-white rounded border border-neutral-300 text-zinc-950 text-sm font-normal font-['Poppins'] leading-relaxed resize-none outline-none"
                 />
               </div>
@@ -144,30 +120,20 @@ export default function Mailus() {
                     : "bg-[#76C043] hover:bg-lime-600 cursor-pointer"
                 }`}
               >
-                <TranslatedText
-                  text={status === "loading" ? "Enviando..." : "Enviar"}
-                  english={status === "loading" ? "Sending..." : "Send"}
-                  className="text-white text-base font-normal font-['Inter']"
-                />
+                <div className="text-white text-base font-normal font-['Inter']">
+                  {status === "loading" ? "Enviando..." : "Enviar"}
+                </div>
               </button>
               {status === "success" && (
                 <p className="text-sm text-green-600 font-medium">
-                  <TranslatedText
-                    text="¡Mensaje enviado! Te responderemos pronto."
-                    english="Message sent! We’ll get back to you soon."
-                    as="span"
-                  />
+                  <span>¡Mensaje enviado! Te responderemos pronto.</span>
                 </p>
               )}
               {status === "error" && (
                 <p className="text-sm text-red-600 font-medium">
-                  <TranslatedText
-                    text={
-                      error ?? "No se pudo enviar tu mensaje en este momento."
-                    }
-                    english={error ?? "Unable to send your message right now."}
-                    as="span"
-                  />
+                  <span>
+                    {error ?? "No se pudo enviar tu mensaje en este momento."}
+                  </span>
                 </p>
               )}
             </div>

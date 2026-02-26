@@ -1,23 +1,22 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getLegalPageContent } from "../../../../../services/publicSettingsService";
-import { useLanguage } from "../../../../context/LanguageContext";
-import { translateText } from "../../../../../services/translationService";
 
 interface TermProps {
   initialContent?: string;
 }
 
 export default function Terms({ initialContent = "" }: TermProps) {
-  const { language } = useLanguage();
   const [content, setContent] = useState<string>(initialContent);
   const [loading, setLoading] = useState<boolean>(!initialContent);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadContent();
+    if (!initialContent) {
+      loadContent();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
+  }, []);
 
   const loadContent = async () => {
     try {
@@ -29,9 +28,7 @@ export default function Terms({ initialContent = "" }: TermProps) {
         response.content &&
         typeof response.content === "string"
       ) {
-        const rawContent = response.content;
-        const translated = await translateText(rawContent, language);
-        setContent(translated);
+        setContent(response.content);
       } else {
         setError("Failed to load terms and conditions content");
       }
@@ -49,7 +46,7 @@ export default function Terms({ initialContent = "" }: TermProps) {
         <div className="w-full flex flex-col justify-start items-center gap-8 lg:gap-12 py-12 sm:py-16 lg:py-[100px]">
           <div className="flex justify-center items-center py-12">
             <div className="text-neutral-600 text-lg font-medium">
-              Loading terms and conditions...
+              Cargando términos y condiciones...
             </div>
           </div>
         </div>
@@ -67,7 +64,7 @@ export default function Terms({ initialContent = "" }: TermProps) {
               onClick={loadContent}
               className="px-4 py-2 bg-[#76C043] text-white rounded-lg hover:bg-lime-600 transition-colors"
             >
-              Try Again
+              Intentar de nuevo
             </button>
           </div>
         </div>
@@ -81,7 +78,7 @@ export default function Terms({ initialContent = "" }: TermProps) {
         <div className="w-full flex flex-col justify-start items-center gap-8 lg:gap-12 py-12 sm:py-16 lg:py-[100px]">
           <div className="flex justify-center items-center py-12">
             <div className="text-neutral-600 text-lg font-medium">
-              Terms and conditions content is not available.
+              El contenido de términos y condiciones no está disponible.
             </div>
           </div>
         </div>

@@ -4,9 +4,8 @@ import { FaCheck } from "react-icons/fa";
 import { useBooking } from "../../context/BookingContext";
 import { BOOKING_CONSTANTS } from "../../context/BookingContext";
 import { ContinueButton } from "../shared/buttons/ContinueButton";
-import { TranslatedText } from "../../../_components/TranslatedText";
-import { homepageLeaguesData } from "../../../../lib/appdata";
 import { useState } from "react";
+import { homepageLeaguesData } from "@/app/lib/appdata";
 
 interface LeagueOption {
   id: string;
@@ -78,11 +77,11 @@ export default function LeagueStep() {
 
       // Filter out the "european-competition" entry from the national list
       const nationalLeaguesRaw = sportLeagues.filter(
-        (l) => l.id !== "european-competition",
+        (l: any) => l.id !== "european-competition",
       );
 
       // Map to context structure
-      const mappedNationalLeagues = nationalLeaguesRaw.map((l) => ({
+      const mappedNationalLeagues = nationalLeaguesRaw.map((l: any) => ({
         id: l.id,
         name: l.name,
         group: "National" as const,
@@ -146,14 +145,9 @@ export default function LeagueStep() {
 
         {/* League Title */}
         <div className="relative z-10 self-stretch text-center justify-start text-white text-base xl:text-lg font-bold font-['Poppins'] leading-loose drop-shadow-lg">
-          <TranslatedText
-            text={
-              option.id === "national"
-                ? "Ligas nacionales"
-                : `Competiciones europeas`
-            }
-            english={`${option.title}`}
-          />
+          {option.id === "national"
+            ? "Ligas nacionales"
+            : "Competiciones europeas"}
         </div>
 
         {/* Selection Indicator */}
@@ -172,10 +166,7 @@ export default function LeagueStep() {
         {/* Header Section */}
         <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
           <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-            <TranslatedText
-              text="¿Qué tipo de competición quieres ver?"
-              english="Which type of competition do you want to attend?"
-            />
+            ¿Qué tipo de competición quieres ver?
           </div>
         </div>
 
@@ -198,16 +189,11 @@ export default function LeagueStep() {
           {showEuropeanSupplement && (
             <div className="w-full xl:w-[600] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900">
               <div className="text-sm xl:text-base font-medium font-['Poppins']">
-                <TranslatedText
-                  text={`Sumplemento para competiciones europeas: se aplicarán ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€.`}
-                  english={`European competitions supplement: ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ will be applied.`}
-                />
+                Sumplemento para competiciones europeas: se aplicarán{" "}
+                {BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€.
               </div>
               <div className="text-xs xl:text-sm text-zinc-600 font-['Poppins'] mt-1">
-                <TranslatedText
-                  text="Esta tarifa aparecerá en su resumen final."
-                  english="This fee will appear in your final summary."
-                />
+                Esta tarifa aparecerá en su resumen final.
               </div>
             </div>
           )}
@@ -216,7 +202,6 @@ export default function LeagueStep() {
             onClick={handleSubmit(onSubmit)}
             disabled={!selectedLeague}
             text="Siguiente"
-            englishText="Next"
             className="w-full xl:w-44"
           />
         </div>

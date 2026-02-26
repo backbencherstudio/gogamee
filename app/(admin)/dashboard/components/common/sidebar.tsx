@@ -20,10 +20,10 @@ import {
   ChevronRight,
   Globe,
 } from "lucide-react";
-import { useLanguage } from "../../../../context/LanguageContext";
+
 import { cn } from "@/app/lib/utils";
 import { logout } from "../../../../../services/authService";
-import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
+
 
 interface SidebarMenuItem {
   title: string;
@@ -146,7 +146,8 @@ const sidebarData: SidebarSection[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { language, toggleLanguage } = useLanguage();
+  const language = "en";
+  const toggleLanguage = () => {};
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -191,10 +192,7 @@ export function Sidebar() {
             >
               {section.title && (
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-                  <TranslatedText
-                    english={section.title}
-                    text={section.titleEs}
-                  />
+                  {section.titleEs}
                 </h3>
               )}
               <ul>
@@ -226,10 +224,7 @@ export function Sidebar() {
                                 )}
                               />
                               <span className="font-medium">
-                                <TranslatedText
-                                  english={item.title}
-                                  text={item.titleEs}
-                                />
+                                {item.titleEs}
                               </span>
                             </div>
                             {isExpanded ? (
@@ -272,10 +267,7 @@ export function Sidebar() {
                                         )}
                                       />
                                       <span>
-                                        <TranslatedText
-                                          english={subItem.title}
-                                          text={subItem.titleEs}
-                                        />
+                                        {subItem.titleEs}
                                       </span>
                                     </Link>
                                   </li>
@@ -302,10 +294,7 @@ export function Sidebar() {
                             )}
                           />
                           <span className="font-medium">
-                            <TranslatedText
-                              english={item.title}
-                              text={item.titleEs}
-                            />
+                            {item.titleEs}
                           </span>
                         </Link>
                       )}
@@ -326,10 +315,10 @@ export function Sidebar() {
             </div>
             <div className="flex bg-white border border-gray-200 rounded-md p-1 scale-90 origin-right">
               <button
-                onClick={() => language !== "es" && toggleLanguage()}
+                onClick={() => true && toggleLanguage()}
                 className={cn(
                   "px-2 py-0.5 text-xs rounded transition-colors cursor-pointer",
-                  language === "es"
+                  false
                     ? "bg-[#76C043] text-white"
                     : "text-gray-500 hover:text-gray-700",
                 )}
@@ -337,10 +326,10 @@ export function Sidebar() {
                 ES
               </button>
               <button
-                onClick={() => language !== "en" && toggleLanguage()}
+                onClick={() => false && toggleLanguage()}
                 className={cn(
                   "px-2 py-0.5 text-xs rounded transition-colors cursor-pointer",
-                  language === "en"
+                  true
                     ? "bg-[#76C043] text-white"
                     : "text-gray-500 hover:text-gray-700",
                 )}
@@ -364,7 +353,7 @@ export function Sidebar() {
           >
             <LogOut className="w-5 h-5 text-[#76C043]" />
             <span className="font-medium text-[#76C043]">
-              <TranslatedText english="Log out" text="Cerrar Sesión" />
+              Cerrar Sesión
             </span>
           </button>
         </div>
@@ -399,10 +388,7 @@ export function Sidebar() {
               <div key={section.title} className="py-2">
                 {section.title && (
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-                    <TranslatedText
-                      english={section.title}
-                      text={section.titleEs}
-                    />
+                    {section.titleEs}
                   </h3>
                 )}
                 <ul className="space-y-1">
@@ -434,10 +420,7 @@ export function Sidebar() {
                                   )}
                                 />
                                 <span className="font-medium">
-                                  <TranslatedText
-                                    english={item.title}
-                                    text={item.titleEs}
-                                  />
+                                  {item.titleEs}
                                 </span>
                               </div>
                               {isExpanded ? (
@@ -482,10 +465,7 @@ export function Sidebar() {
                                           )}
                                         />
                                         <span>
-                                          <TranslatedText
-                                            english={subItem.title}
-                                            text={subItem.titleEs}
-                                          />
+                                          {subItem.titleEs}
                                         </span>
                                       </Link>
                                     </li>
@@ -512,10 +492,7 @@ export function Sidebar() {
                               )}
                             />
                             <span className="font-medium">
-                              <TranslatedText
-                                english={item.title}
-                                text={item.titleEs}
-                              />
+                              {item.titleEs}
                             </span>
                           </Link>
                         )}

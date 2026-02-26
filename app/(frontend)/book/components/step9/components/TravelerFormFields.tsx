@@ -2,16 +2,15 @@
 
 import React from "react";
 import { Controller } from "react-hook-form";
-import { TranslatedText } from "../../../../_components/TranslatedText";
+import { personalInfoData } from "../../../../../lib/appdata";
 import { FormInput } from "../../shared/forms/FormInput";
 import { DocumentTypeRadio } from "../../shared/forms/DocumentTypeRadio";
 
 interface TravelerFormFieldsProps {
   control: any;
   errors: any;
-  t: (es: string, en: string) => string;
   personalInfoData: any;
-  getTranslatedError: (errorKey: string | undefined) => string | undefined;
+  getError: (errorKey: string | undefined) => string | undefined;
   travelerCounts: {
     adults: number;
     kids: number;
@@ -23,9 +22,8 @@ interface TravelerFormFieldsProps {
 export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
   control,
   errors,
-  t,
   personalInfoData,
-  getTranslatedError,
+  getError,
   travelerCounts,
   hasMultipleTravelers,
 }) => {
@@ -43,7 +41,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
     >
       <div className="self-stretch inline-flex justify-start items-center gap-2">
         <div className="justify-start text-neutral-800 text-base font-semibold font-['Poppins'] leading-loose">
-          <TranslatedText text={label} english={label} /> {count}
+          {label} {count}
         </div>
       </div>
       <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -54,16 +52,13 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
             rules={{ required: "REQUIRED_NAME" }}
             render={({ field }) => (
               <FormInput
-                label={t(
-                  personalInfoData.formFields.travelerName.label,
-                  "Traveler Name",
-                )}
+                label={personalInfoData.formFields.travelerName.label}
                 placeholder={
                   personalInfoData.formFields.travelerName.placeholder
                 }
                 value={field.value}
                 onChange={field.onChange}
-                error={getTranslatedError(
+                error={getError(
                   errors.extraTravelers?.[globalIndex]?.name?.message,
                 )}
               />
@@ -75,14 +70,11 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
             rules={{ required: "REQUIRED_DOB" }}
             render={({ field }) => (
               <FormInput
-                label={t(
-                  personalInfoData.formFields.dateOfBirth.label,
-                  "Date of Birth",
-                )}
+                label={personalInfoData.formFields.dateOfBirth.label}
                 type="date"
                 value={field.value}
                 onChange={field.onChange}
-                error={getTranslatedError(
+                error={getError(
                   errors.extraTravelers?.[globalIndex]?.dateOfBirth?.message,
                 )}
               />
@@ -93,10 +85,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
           <div className="self-stretch flex flex-col justify-center items-start gap-4">
             <div className="self-stretch inline-flex justify-start items-center gap-2">
               <div className="justify-start text-neutral-800 text-base font-semibold font-['Poppins'] leading-loose">
-                {t(
-                  personalInfoData.formFields.documentType.label,
-                  "Document Type",
-                )}
+                {personalInfoData.formFields.documentType.label}
               </div>
             </div>
           </div>
@@ -114,10 +103,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                       value="ID"
                       selectedValue={field.value}
                       onChange={field.onChange}
-                      label={t(
-                        personalInfoData.formFields.documentType.id,
-                        "ID Card",
-                      )}
+                      label={personalInfoData.formFields.documentType.id}
                     />
                     <DocumentTypeRadio
                       id={`extra${globalIndex}Passport`}
@@ -125,17 +111,14 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                       value="Passport"
                       selectedValue={field.value}
                       onChange={field.onChange}
-                      label={t(
-                        personalInfoData.formFields.documentType.passport,
-                        "Passport",
-                      )}
+                      label={personalInfoData.formFields.documentType.passport}
                     />
                   </>
                 )}
               />
               {errors.extraTravelers?.[globalIndex]?.documentType && (
                 <div className="text-red-500 text-sm font-normal font-['Poppins']">
-                  {getTranslatedError(
+                  {getError(
                     errors.extraTravelers?.[globalIndex]?.documentType?.message,
                   )}
                 </div>
@@ -143,10 +126,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
             </div>
             <div className="self-stretch flex flex-col justify-start items-start gap-2">
               <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
-                {t(
-                  personalInfoData.formFields.documentNumber.label,
-                  "Document Number",
-                )}
+                {personalInfoData.formFields.documentNumber.label}
               </div>
               <Controller
                 name={`extraTravelers.${globalIndex}.documentNumber`}
@@ -158,11 +138,9 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                       type="text"
                       value={field.value}
                       onChange={field.onChange}
-                      placeholder={t(
-                        personalInfoData.formFields.documentNumber.placeholder,
-                        personalInfoData.formFields.documentNumber
-                          .placeholderEn || "Enter your document number",
-                      )}
+                      placeholder={
+                        personalInfoData.formFields.documentNumber.placeholder
+                      }
                       className={`self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 w-full ${
                         errors.extraTravelers?.[globalIndex]?.documentNumber
                           ? "outline-red-500"
@@ -171,7 +149,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                     />
                     {errors.extraTravelers?.[globalIndex]?.documentNumber && (
                       <div className="text-red-500 text-sm font-normal font-['Poppins']">
-                        {getTranslatedError(
+                        {getError(
                           errors.extraTravelers?.[globalIndex]?.documentNumber
                             ?.message,
                         )}
@@ -194,21 +172,14 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
         {/* Section Header if multiple types exist, optional */}
         <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4">
           <div className="text-neutral-800 text-lg font-bold font-['Poppins']">
-            <TranslatedText
-              text={personalInfoData.text.adultsTitle || "Adultos"}
-              english={personalInfoData.text.adultsTitleEn || "Adults"}
-            />{" "}
-            ({adults})
+            {personalInfoData.text.adultsTitle || "Adultos"} ({adults})
           </div>
 
           {/* Primary Traveler (Always Adult 1) */}
           <div className="self-stretch flex flex-col justify-start items-start gap-5">
             <div className="self-stretch inline-flex justify-start items-center gap-2">
               <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                <TranslatedText
-                  text={personalInfoData.text.primaryTravelerTitle}
-                  english={personalInfoData.text.primaryTravelerTitleEn}
-                />
+                {personalInfoData.text.primaryTravelerTitle}
               </div>
             </div>
             <div className="self-stretch flex flex-col justify-start items-start gap-4">
@@ -220,19 +191,13 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                   rules={{ required: "REQUIRED_NAME" }}
                   render={({ field }) => (
                     <FormInput
-                      label={t(
-                        personalInfoData.formFields.travelerName.label,
-                        "Traveler Name",
-                      )}
-                      placeholder={t(
-                        personalInfoData.formFields.travelerName.placeholder,
-                        "John Doe",
-                      )}
+                      label={personalInfoData.formFields.travelerName.label}
+                      placeholder={
+                        personalInfoData.formFields.travelerName.placeholder
+                      }
                       value={field.value}
                       onChange={field.onChange}
-                      error={getTranslatedError(
-                        errors.primaryTraveler?.name?.message,
-                      )}
+                      error={getError(errors.primaryTraveler?.name?.message)}
                     />
                   )}
                 />
@@ -248,20 +213,14 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                   }}
                   render={({ field }) => (
                     <FormInput
-                      label={t(
-                        personalInfoData.formFields.email.label,
-                        "Traveler Email",
-                      )}
+                      label={personalInfoData.formFields.email.label}
                       type="email"
-                      placeholder={t(
-                        personalInfoData.formFields.email.placeholder,
-                        "example@email.com",
-                      )}
+                      placeholder={
+                        personalInfoData.formFields.email.placeholder
+                      }
                       value={field.value}
                       onChange={field.onChange}
-                      error={getTranslatedError(
-                        errors.primaryTraveler?.email?.message,
-                      )}
+                      error={getError(errors.primaryTraveler?.email?.message)}
                     />
                   )}
                 />
@@ -273,19 +232,14 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                   rules={{ required: "REQUIRED_PHONE" }}
                   render={({ field }) => (
                     <FormInput
-                      label={t(
-                        personalInfoData.formFields.phone.label,
-                        "Traveler Phone Number",
-                      )}
+                      label={personalInfoData.formFields.phone.label}
                       type="tel"
                       placeholder={
                         personalInfoData.formFields.phone.placeholder
                       }
                       value={field.value}
                       onChange={field.onChange}
-                      error={getTranslatedError(
-                        errors.primaryTraveler?.phone?.message,
-                      )}
+                      error={getError(errors.primaryTraveler?.phone?.message)}
                     />
                   )}
                 />
@@ -312,14 +266,11 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                   }}
                   render={({ field }) => (
                     <FormInput
-                      label={t(
-                        personalInfoData.formFields.dateOfBirth.label,
-                        "Date of Birth",
-                      )}
+                      label={personalInfoData.formFields.dateOfBirth.label}
                       type="date"
                       value={field.value}
                       onChange={field.onChange}
-                      error={getTranslatedError(
+                      error={getError(
                         errors.primaryTraveler?.dateOfBirth?.message,
                       )}
                     />
@@ -331,10 +282,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                 <div className="self-stretch flex flex-col justify-center items-start gap-4">
                   <div className="self-stretch inline-flex justify-start items-center gap-2">
                     <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-                      {t(
-                        personalInfoData.formFields.documentType.label,
-                        "Document Type",
-                      )}
+                      {personalInfoData.formFields.documentType.label}
                     </div>
                   </div>
                 </div>
@@ -352,10 +300,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                             value="ID"
                             selectedValue={field.value}
                             onChange={field.onChange}
-                            label={t(
-                              personalInfoData.formFields.documentType.id,
-                              "ID Card",
-                            )}
+                            label={personalInfoData.formFields.documentType.id}
                           />
                           <DocumentTypeRadio
                             id="primaryPassport"
@@ -363,28 +308,22 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                             value="Passport"
                             selectedValue={field.value}
                             onChange={field.onChange}
-                            label={t(
-                              personalInfoData.formFields.documentType.passport,
-                              "Passport",
-                            )}
+                            label={
+                              personalInfoData.formFields.documentType.passport
+                            }
                           />
                         </>
                       )}
                     />
                     {errors.primaryTraveler?.documentType && (
                       <div className="text-red-500 text-sm font-normal font-['Poppins']">
-                        {getTranslatedError(
-                          errors.primaryTraveler.documentType.message,
-                        )}
+                        {getError(errors.primaryTraveler.documentType.message)}
                       </div>
                     )}
                   </div>
                   <div className="self-stretch flex flex-col justify-start items-start gap-2">
                     <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
-                      {t(
-                        personalInfoData.formFields.documentNumber.label,
-                        "Document Number",
-                      )}
+                      {personalInfoData.formFields.documentNumber.label}
                     </div>
                     <Controller
                       name="primaryTraveler.documentNumber"
@@ -396,12 +335,10 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                             type="text"
                             value={field.value}
                             onChange={field.onChange}
-                            placeholder={t(
+                            placeholder={
                               personalInfoData.formFields.documentNumber
-                                .placeholder,
-                              personalInfoData.formFields.documentNumber
-                                .placeholderEn || "Enter your document number",
-                            )}
+                                .placeholder
+                            }
                             className={`self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 w-full ${
                               errors.primaryTraveler?.documentNumber
                                 ? "outline-red-500"
@@ -410,7 +347,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                           />
                           {errors.primaryTraveler?.documentNumber && (
                             <div className="text-red-500 text-sm font-normal font-['Poppins']">
-                              {getTranslatedError(
+                              {getError(
                                 errors.primaryTraveler.documentNumber.message,
                               )}
                             </div>
@@ -425,10 +362,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
               {/* Previous Travel Info - Keep with Primary */}
               <div className="self-stretch flex flex-col justify-start items-start gap-2">
                 <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
-                  {t(
-                    personalInfoData.formFields.previousTravelInfo.label,
-                    "Previous travel information",
-                  )}
+                  {personalInfoData.formFields.previousTravelInfo.label}
                 </div>
                 <Controller
                   name="previousTravelInfo"
@@ -437,12 +371,10 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                     <textarea
                       value={field.value}
                       onChange={field.onChange}
-                      placeholder={t(
+                      placeholder={
                         personalInfoData.formFields.previousTravelInfo
-                          .placeholder,
-                        personalInfoData.formFields.previousTravelInfo
-                          .placeholderEn || "Have you traveled with us before?",
-                      )}
+                          .placeholder
+                      }
                       className="self-stretch h-24 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C] resize-none"
                       rows={4}
                     />
@@ -458,7 +390,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
               {Array.from({ length: adults - 1 }, (_, i) =>
                 renderExtraTraveler(
                   i,
-                  t(personalInfoData.text.extraAdultLabel, "Adult"),
+                  personalInfoData.text.extraAdultLabel || "Adulto",
                   i + 2,
                 ),
               )}
@@ -471,18 +403,14 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
       {kids > 0 && (
         <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4">
           <div className="text-neutral-800 text-lg font-bold font-['Poppins']">
-            <TranslatedText
-              text={personalInfoData.text.childrenTitle || "Niños"}
-              english={personalInfoData.text.childrenTitleEn || "Children"}
-            />{" "}
-            ({kids})
+            {personalInfoData.text.childrenTitle || "Niños"} ({kids})
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             {Array.from({ length: kids }, (_, i) =>
               // Offset index: (Adults - 1) + i
               renderExtraTraveler(
                 adults - 1 + i,
-                t(personalInfoData.text.childLabel, "Child"),
+                personalInfoData.text.childLabel || "Niño",
                 i + 1,
               ),
             )}
@@ -494,18 +422,14 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
       {babies > 0 && (
         <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4">
           <div className="text-neutral-800 text-lg font-bold font-['Poppins']">
-            <TranslatedText
-              text={personalInfoData.text.babiesTitle || "Bebés"}
-              english={personalInfoData.text.babiesTitleEn || "Babies"}
-            />{" "}
-            ({babies})
+            {personalInfoData.text.babiesTitle || "Bebés"} ({babies})
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             {Array.from({ length: babies }, (_, i) =>
               // Offset index: (Adults - 1) + Kids + i
               renderExtraTraveler(
                 adults - 1 + kids + i,
-                t(personalInfoData.text.babyLabel, "Baby"),
+                personalInfoData.text.babyLabel || "Bebé",
                 i + 1,
               ),
             )}

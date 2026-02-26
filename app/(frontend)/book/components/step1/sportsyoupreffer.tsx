@@ -4,7 +4,6 @@ import React, { useCallback, useMemo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useBooking } from "../../context/BookingContext";
 import { sportsPreferenceData } from "../../../../lib/appdata";
-import { TranslatedText } from "../../../_components/TranslatedText";
 import { SelectionCard } from "../shared/cards/SelectionCard";
 
 // Types
@@ -65,11 +64,7 @@ const SportCard: React.FC<SportCardProps> = React.memo(
         ariaLabel={`Select ${sportOption.label}`}
       >
         <h3 className="text-white text-base xl:text-lg font-semibold font-['Poppins'] text-center drop-shadow-lg">
-          <TranslatedText
-            text={sportLabel.es}
-            english={sportLabel.en}
-            as="span"
-          />
+          {sportLabel.es}
         </h3>
       </SelectionCard>
     );
@@ -151,20 +146,10 @@ export default function SportsYouPreffer() {
       {/* Header Section */}
       <div className="mb-6 xl:mb-8">
         <h1 className="text-2xl xl:text-3xl font-semibold text-neutral-800 font-['Poppins'] leading-8 xl:leading-10 mb-3">
-          <TranslatedText
-            text="¿Qué deporte prefieres?"
-            english="What sport do you prefer?"
-          />
+          ¿Qué deporte prefieres?
         </h1>
         <p className="text-sm xl:text-base text-neutral-600 font-['Poppins'] leading-6 xl:leading-7">
-          <TranslatedText
-            text="Siempre intentamos que puedas maximizar tu tiempo en el destino."
-            english={
-              sportsPreferenceData.getSportByValue(selectedSport)
-                ?.description ||
-              "We always try to maximize the time at the destination"
-            }
-          />
+          Siempre intentamos que puedas maximizar tu tiempo en el destino.
         </p>
       </div>
 
@@ -208,9 +193,7 @@ export default function SportsYouPreffer() {
           className={buttonClassName}
           aria-label="Proceed to next step"
         >
-          <span className={buttonTextClassName}>
-            <TranslatedText text="Siguiente" english="Next" />
-          </span>
+          <span className={buttonTextClassName}>Siguiente</span>
         </button>
       </form>
     </div>

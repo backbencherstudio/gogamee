@@ -3,7 +3,7 @@
 import React, { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { TranslatedText } from "../../_components/TranslatedText";
+
 import { XCircle, AlertCircle } from "lucide-react";
 
 // Suspense wrapper component
@@ -28,14 +28,11 @@ function PaymentFailedContent() {
           </div>
 
           <h1 className="text-3xl font-extrabold text-gray-900 mb-4 font-['Poppins']">
-            <TranslatedText text="¡Pago Fallido!" english="Payment Failed!" />
+            ¡Pago Fallido!
           </h1>
 
           <p className="text-lg text-gray-600 mb-8 font-['Poppins']">
-            <TranslatedText
-              text="Lo sentimos, no hemos podido procesar tu pago. Por favor, inténtalo de nuevo o contacta con nosotros."
-              english="We're sorry, we couldn't process your payment. Please try again or contact us."
-            />
+            Lo sentimos, no hemos podido procesar tu pago. Por favor, inténtalo de nuevo o contacta con nosotros.
           </p>
 
           {errorMessage && (
@@ -43,10 +40,7 @@ function PaymentFailedContent() {
               <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
               <div>
                 <h4 className="text-sm font-semibold text-red-800 mb-1">
-                  <TranslatedText
-                    text="Detalles del error:"
-                    english="Error details:"
-                  />
+                  Detalles del error:
                 </h4>
                 <p className="text-sm text-red-700 break-words">
                   {errorMessage}
@@ -60,7 +54,7 @@ function PaymentFailedContent() {
               href="/"
               className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-lime-600 hover:bg-lime-700 transition-all shadow-lg hover:shadow-xl w-full sm:w-auto"
             >
-              <TranslatedText text="Volver al Inicio" english="Go Back" />
+              Volver al Inicio
             </Link>
           </div>
         </div>

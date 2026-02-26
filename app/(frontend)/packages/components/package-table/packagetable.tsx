@@ -7,8 +7,6 @@ import {
   PackageItem,
   StartingPriceItem,
 } from "../../../../../services/packageService";
-import { useLanguage } from "../../../../context/LanguageContext";
-import { TranslatedText } from "../../../_components/TranslatedText";
 
 interface PackageTableProps {
   initialPackages?: PackageItem[];
@@ -23,15 +21,11 @@ export default function PackageTable({
   initialPackages = [],
   initialStartingPrices,
 }: PackageTableProps) {
-  const { language, translateText } = useLanguage();
   const [selectedSport, setSelectedSport] = useState<"football" | "basketball">(
     "football",
   );
   // const [selectedDuration, setSelectedDuration] = useState<1 | 2 | 3 | 4>(1); // Removed duration filter state
   const [packages, setPackages] = useState<PackageItem[]>(initialPackages);
-  const [translatedPackages, setTranslatedPackages] = useState<PackageItem[]>(
-    [],
-  );
   const [startingPrices, setStartingPrices] = useState<{
     football: StartingPriceItem | null;
     basketball: StartingPriceItem | null;
@@ -49,8 +43,6 @@ export default function PackageTable({
           combined: null,
         },
   );
-
-  const [showAllFeatures, setShowAllFeatures] = useState(false);
 
   const [loading, setLoading] = useState<boolean>(!initialPackages.length);
   const [error, setError] = useState<string | null>(null);
@@ -100,9 +92,17 @@ export default function PackageTable({
         const filteredPackages = loadedPackages.filter(
           (pkg) => pkg.included !== "Starting Price",
         );
+
+        // Map packages to use Spanish fields if available
+        const spanishPackages = filteredPackages.map((pkg) => ({
+          ...pkg,
+          included: pkg.included_es || pkg.included,
+          description: pkg.description_es || pkg.description,
+        }));
+
         // Remove duplicates by ID just in case
         const uniquePackages = Array.from(
-          new Map(filteredPackages.map((p) => [p.id, p])).values(),
+          new Map(spanishPackages.map((p) => [p.id, p])).values(),
         );
         setPackages(uniquePackages);
 
@@ -118,15 +118,7 @@ export default function PackageTable({
               combined: combinedPrice,
             });
           }
-        } else {
-          // If initial prices provided but missing combined, verify?
-          // Assuming if initial provided, we might still want combined.
-          // But for now let's just handle the state update if fetching manually.
-          // Actually, if initial provided, we skip this block.
-          // But valid point: initialStartingPrices might fail to include combined if getInitialData didn't fetch it.
         }
-        // Small fix: if initialPresent, we skipped fetchData entirely in the original code logic (except if !initialPackages.length).
-        // But here we might be inside fetchData called because initialPackages was empty.
 
         // If we are here, we are setting prices.
         const footballPrice =
@@ -152,44 +144,24 @@ export default function PackageTable({
       fetchData();
     } else {
       // If initial packages exist, we might still need to fetch combined price if it's missing
-      // But useEffect dependencies include initialStartingPrices.
-      // Let's assume we need to patch fetching combined price if not present.
       const fetchCombinedPriceOnly = async () => {
         const res = await getStartingPrice("combined");
         if (res.success && res.data?.[0]) {
           setStartingPrices((prev) => ({ ...prev, combined: res.data[0] }));
         }
       };
-      fetchCombinedPriceOnly();
 
-      // Also ensure combined PACKAGES are in the list if not already.
-      // The initialPackages from page.tsx fetches ALL active packages (limit 1000).
-      // So hopefully combined packages are there.
-    }
-  }, [selectedSport, initialPackages, initialStartingPrices]);
-
-  // Handle language switching locally using DB fields
-  useEffect(() => {
-    if (language === "es") {
-      // Map packages to use Spanish fields if available, otherwise fallback to English
-      const spanishPackages = packages.map((pkg) => ({
+      // Map initial packages to use Spanish fields if available
+      const spanishInitialPackages = initialPackages.map((pkg) => ({
         ...pkg,
         included: pkg.included_es || pkg.included,
         description: pkg.description_es || pkg.description,
       }));
-      setTranslatedPackages(spanishPackages);
-    } else {
-      // Use original packages (English)
-      setTranslatedPackages(packages);
-    }
-  }, [language, packages]);
+      setPackages(spanishInitialPackages);
 
-  const getFilteredPackagesForDuration = (duration: number) => {
-    const targetSport = selectedSport;
-    return translatedPackages.filter(
-      (pkg) => pkg.sport === targetSport && pkg.duration === duration,
-    );
-  };
+      fetchCombinedPriceOnly();
+    }
+  }, [selectedSport, initialPackages, initialStartingPrices]);
 
   // Helper to get Price value
   const getPriceValue = (type: string, duration: number) => {
@@ -208,8 +180,7 @@ export default function PackageTable({
           ? priceEntry.premium
           : priceEntry.standard;
 
-    const fromLabel = language === "en" ? "From " : "Desde ";
-    return `${fromLabel}${price}${getCurrencySymbol(currentPrices.currency)}`;
+    return `Desde ${price}${getCurrencySymbol(currentPrices.currency)}`;
   };
 
   // Helper to get all packages (features) for a specific plan and duration
@@ -217,7 +188,7 @@ export default function PackageTable({
     const lowerType = type.toLowerCase();
     const targetSport = selectedSport;
 
-    return translatedPackages.filter(
+    return packages.filter(
       (pkg) =>
         pkg.sport === targetSport &&
         pkg.duration === duration &&
@@ -257,10 +228,7 @@ export default function PackageTable({
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="flex flex-col justify-start items-center gap-2 md:gap-3">
               <div className="text-center justify-start text-zinc-950 text-2xl md:text-5xl font-semibold font-['Poppins'] leading-tight md:leading-[57.60px]">
-                <TranslatedText
-                  text="Tipos de packs disponibles"
-                  english="Types of packs offered"
-                />
+                Tipos de packs disponibles
               </div>
             </div>
           </div>
@@ -278,7 +246,7 @@ export default function PackageTable({
             }`}
             onClick={() => setSelectedSport("football")}
           >
-            <TranslatedText text="Fútbol" english="Football" />
+            Fútbol
           </span>
 
           <div
@@ -304,14 +272,14 @@ export default function PackageTable({
             }`}
             onClick={() => setSelectedSport("basketball")}
           >
-            <TranslatedText text="Basket" english="Basketball" />
+            Basket
           </span>
         </div>
         {/* Loading State */}
         {loading ? (
           <div className="flex justify-center items-center py-12">
             <div className="text-neutral-600 text-lg font-medium">
-              Loading packages...
+              Cargando packs...
             </div>
           </div>
         ) : error ? (
@@ -321,13 +289,14 @@ export default function PackageTable({
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"
             >
-              Try Again
+              Intentar de nuevo
             </button>
           </div>
-        ) : translatedPackages.length === 0 ? (
+        ) : packages.length === 0 ? (
           <div className="flex justify-center items-center py-12">
             <div className="text-neutral-600 text-lg font-medium">
-              No packages available for {selectedSport}.
+              No hay packs disponibles para{" "}
+              {selectedSport === "football" ? "fútbol" : "basket"}.
             </div>
           </div>
         ) : (
@@ -344,37 +313,17 @@ export default function PackageTable({
                   <div className="p-4 border-b border-slate-200 flex flex-col justify-center items-center">
                     <div className="inline-flex px-2 py-1.5 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mb-1">
                       <span className="text-[#76C043] text-xs font-medium font-['Poppins']">
-                        <TranslatedText
-                          text={
-                            type === "Standard"
-                              ? "Pack Estándar"
-                              : "Pack Premium"
-                          }
-                          english={`${type} pack`}
-                        />
+                        {type === "Standard" ? "Pack Estándar" : "Pack Premium"}
                       </span>
                     </div>
                     <div className="text-zinc-950 text-lg font-bold font-['Poppins']">
-                      <TranslatedText
-                        text={
-                          type === "Standard"
-                            ? selectedSport === "football"
-                              ? "Estándar GoGame Kickoff"
-                              : "Estándar GoGame Slam"
-                            : selectedSport === "football"
-                              ? "Premium GoGame Legend"
-                              : "Premium GoGame MVP"
-                        }
-                        english={
-                          type === "Standard"
-                            ? selectedSport === "football"
-                              ? "Standard GoGame Kickoff"
-                              : "Standard GoGame Slam"
-                            : selectedSport === "football"
-                              ? "Premium GoGame Legend"
-                              : "Premium GoGame MVP"
-                        }
-                      />
+                      {type === "Standard"
+                        ? selectedSport === "football"
+                          ? "Estándar GoGame Kickoff"
+                          : "Estándar GoGame Slam"
+                        : selectedSport === "football"
+                          ? "Premium GoGame Legend"
+                          : "Premium GoGame MVP"}
                     </div>
                   </div>
                   <div className="divide-y divide-slate-200">
@@ -383,7 +332,7 @@ export default function PackageTable({
                     {/* Included Features List (Mobile) */}
                     <div className="px-4 py-3 flex flex-col justify-center items-center gap-3 bg-white">
                       <div className="text-[#76C043] text-sm font-bold font-['Poppins'] uppercase tracking-wider">
-                        <TranslatedText text="Qué incluye" english="Included" />
+                        Qué incluye
                       </div>
                       <p className="text-sm text-neutral-800 font-['Poppins'] leading-relaxed">
                         {getPackagesForPlan(type, 1).length > 0
@@ -397,10 +346,7 @@ export default function PackageTable({
                           : null}
                         {getPackagesForPlan(type, 1).length === 0 && (
                           <span className="text-neutral-400 italic">
-                            <TranslatedText
-                              text="Sin características incluidas"
-                              english="No features included"
-                            />
+                            Sin características incluidas
                           </span>
                         )}
                       </p>
@@ -409,10 +355,7 @@ export default function PackageTable({
                     {/* Description Row (Mobile) */}
                     <div className="px-4 py-3 flex flex-col justify-center items-center gap-3 bg-gray-50/30">
                       <div className="text-[#76C043] text-sm font-bold font-['Poppins'] uppercase tracking-wider">
-                        <TranslatedText
-                          text="Descripción"
-                          english="Description"
-                        />
+                        Descripción
                       </div>
                       <div className="text-sm text-neutral-800 font-['Poppins'] leading-relaxed">
                         {getPackagesForPlan(type, 1).length > 0 ? (
@@ -429,10 +372,7 @@ export default function PackageTable({
                           ))
                         ) : (
                           <span className="text-neutral-400 italic">
-                            <TranslatedText
-                              text="Sin descripción disponible"
-                              english="No description available"
-                            />
+                            Sin descripción disponible
                           </span>
                         )}
                       </div>
@@ -441,15 +381,10 @@ export default function PackageTable({
                     {/* Price Row */}
                     <div className="px-4 py-3 flex items-start gap-3 bg-green-50/30">
                       <div className="hidden md:block min-w-[140px] text-neutral-600 text-sm font-medium font-['Poppins']">
-                        <TranslatedText
-                          text="Precio"
-                          english="Starting Price"
-                        />
+                        Precio
                       </div>
                       <div className="flex-1 flex items-center justify-center text-neutral-900 text-sm font-normal font-['Poppins']">
-                        <span className="font-normal">
-                          <TranslatedText text="Desde " english="From " />
-                        </span>
+                        <span className="font-normal">Desde </span>
                         <span className="font-bold text-lg text-[#76C043]">
                           {getPriceValue(type.toLowerCase(), 1).replace(
                             /^(From|Desde)\s*/,
@@ -470,10 +405,7 @@ export default function PackageTable({
                   <thead>
                     <tr className="md:w-96 border-b border-slate-200">
                       <th className="w-56 md:w-96 self-stretch text-start  pl-3 md:pl-6 text-neutral-800 text-lg md:text-3xl font-bold font-['Poppins'] whitespace-nowrap leading-loose border-r border-slate-200">
-                        <TranslatedText
-                          text="Compara nuestros packs"
-                          english="Compare packs"
-                        />
+                        Compara nuestros packs
                       </th>
                       {["Standard", "Premium"].map((type, idx) => (
                         <th
@@ -487,37 +419,19 @@ export default function PackageTable({
                               <span
                                 className={`text-[#76C043] text-xs md:text-sm font-medium font-['Poppins'] flex items-center justify-center`}
                               >
-                                <TranslatedText
-                                  text={
-                                    type === "Standard"
-                                      ? "Pack Estándar"
-                                      : "Pack Premium"
-                                  }
-                                  english={`${type} pack`}
-                                />
+                                {type === "Standard"
+                                  ? "Pack Estándar"
+                                  : "Pack Premium"}
                               </span>
                             </div>
                             <span className="text-lg md:text-2xl font-bold font-['Poppins'] text-zinc-950">
-                              <TranslatedText
-                                text={
-                                  type === "Standard"
-                                    ? selectedSport === "football"
-                                      ? "Estándar GoGame Kickoff"
-                                      : "Estándar GoGame Slam"
-                                    : selectedSport === "football"
-                                      ? "Premium GoGame Legend"
-                                      : "Premium GoGame MVP"
-                                }
-                                english={
-                                  type === "Standard"
-                                    ? selectedSport === "football"
-                                      ? "Standard GoGame Kickoff"
-                                      : "Standard GoGame Slam"
-                                    : selectedSport === "football"
-                                      ? "Premium GoGame Legend"
-                                      : "Premium GoGame MVP"
-                                }
-                              />
+                              {type === "Standard"
+                                ? selectedSport === "football"
+                                  ? "Estándar GoGame Kickoff"
+                                  : "Estándar GoGame Slam"
+                                : selectedSport === "football"
+                                  ? "Premium GoGame Legend"
+                                  : "Premium GoGame MVP"}
                             </span>
                           </div>
                         </th>
@@ -528,7 +442,7 @@ export default function PackageTable({
                     {/* Included Row with List */}
                     <tr>
                       <th className="w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-base md:text-lg font-medium font-['Poppins'] text-neutral-800 text-left align-middle border-r">
-                        <TranslatedText text="Qué incluye" english="Included" />
+                        Qué incluye
                       </th>
                       {["standard", "premium"].map((type, idx) => {
                         const packagesForPlan = getPackagesForPlan(type, 1);
@@ -549,10 +463,7 @@ export default function PackageTable({
                                 ).join(", ")
                               ) : (
                                 <span className="text-neutral-400 italic">
-                                  <TranslatedText
-                                    text="Sin características incluidas"
-                                    english="No features included"
-                                  />
+                                  Sin características incluidas
                                 </span>
                               )}
                             </p>
@@ -564,10 +475,7 @@ export default function PackageTable({
                     {/* Description Row (Added below Included) */}
                     <tr>
                       <th className="w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-base md:text-lg font-medium font-['Poppins'] text-neutral-800 text-left align-middle border-r bg-gray-50/50">
-                        <TranslatedText
-                          text="Descripción"
-                          english="Description"
-                        />
+                        Descripción
                       </th>
                       {["standard", "premium"].map((type, idx) => {
                         const packagesForPlan = getPackagesForPlan(type, 1);
@@ -593,10 +501,7 @@ export default function PackageTable({
                                 ))
                               ) : (
                                 <span className="text-neutral-400 italic">
-                                  <TranslatedText
-                                    text="Sin descripción disponible"
-                                    english="No description available"
-                                  />
+                                  Sin descripción disponible
                                 </span>
                               )}
                             </div>
@@ -608,10 +513,7 @@ export default function PackageTable({
                     {/* Price Row */}
                     <tr>
                       <th className="w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-base md:text-lg font-medium font-['Poppins'] text-neutral-800 text-left bg-[#F1F9EC] align-middle border-r">
-                        <TranslatedText
-                          text="Precio"
-                          english="Starting Price"
-                        />
+                        Precio
                       </th>
                       {["standard", "premium"].map((type, idx) => (
                         <td
@@ -619,9 +521,7 @@ export default function PackageTable({
                           className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-sm md:text-base font-normal font-['Poppins'] text-neutral-800 bg-[#F1F9EC] align-middle ${idx < 2 ? "border-r border-slate-200" : ""}`}
                         >
                           <div className="flex items-center gap-2">
-                            <span className="font-normal">
-                              <TranslatedText text="Desde " english="From " />
-                            </span>
+                            <span className="font-normal">Desde </span>
                             <span className="font-bold text-lg text-[#76C043]">
                               {getPriceValue(type, 1).replace(
                                 /^(From|Desde)\s*/,
@@ -643,7 +543,7 @@ export default function PackageTable({
       <Link href="/book">
         <div className="w-44 px-4 py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer transition-all shadow-lg shadow-green-100 hover:shadow-xl hover:shadow-green-200">
           <div className="text-center justify-start text-white text-lg font-normal font-['Inter'] leading-7">
-            <TranslatedText text="Reserva ahora" english="Book Now" />
+            Reserva ahora
           </div>
         </div>
       </Link>

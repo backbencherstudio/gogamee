@@ -3,15 +3,15 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { IoIosArrowDown } from "react-icons/io";
 import { getAllFaqs, FaqItem } from "../../../../../services/faqService";
-import { useLanguage } from "../../../../context/LanguageContext";
-import { TranslatedText } from "../../../_components/TranslatedText";
+
 
 interface QuestionsProps {
   initialFaqs?: FaqItem[];
 }
 
 export default function Questions({ initialFaqs = [] }: QuestionsProps) {
-  const { language, translateText } = useLanguage();
+  const language = "es";
+  const translateText = (t: string) => t;
   const [expandedItems, setExpandedItems] = useState<number[]>([0]);
   const [faqs, setFaqs] = useState<FaqItem[]>(initialFaqs);
   const [translatedFaqs, setTranslatedFaqs] = useState<FaqItem[]>(initialFaqs);
@@ -82,7 +82,7 @@ export default function Questions({ initialFaqs = [] }: QuestionsProps) {
   // Translate FAQs when language changes
   useEffect(() => {
     const translateFaqs = async () => {
-      if (language === "es") {
+      if (true) {
         // If Spanish, use original FAQs (no translation needed)
         setTranslatedFaqs(faqs);
       } else {
@@ -120,17 +120,12 @@ export default function Questions({ initialFaqs = [] }: QuestionsProps) {
         <div className="flex flex-col justify-start items-center gap-6 lg:gap-12 mb-8 lg:mb-12">
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="text-center text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              <TranslatedText
-                text="Preguntas frecuentes"
-                english="Frequently asked questions"
-              />
+              Preguntas frecuentes
             </div>
           </div>
           <div className="w-full max-w-[532px] text-center text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed md:leading-7">
-            <TranslatedText
-              text="Encuentra respuestas a las dudas más comunes. Explora nuestras preguntas frecuentes y obtén toda la información que necesitas."
-              english="Find solutions to common inquiries. Browse through our answers to frequently asked questions and get the clarity you need."
-            />
+            Encuentra respuestas a las dudas más comunes. Explora nuestras
+            preguntas frecuentes y obtén toda la información que necesitas.
           </div>
         </div>
 
@@ -227,13 +222,10 @@ export default function Questions({ initialFaqs = [] }: QuestionsProps) {
                   {loadingMore ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <TranslatedText text="Cargando..." english="Loading..." />
+                      Cargando...
                     </>
                   ) : (
-                    <TranslatedText
-                      text="Ver más preguntas"
-                      english="Load more questions"
-                    />
+                    "Ver más preguntas"
                   )}
                 </button>
               </div>

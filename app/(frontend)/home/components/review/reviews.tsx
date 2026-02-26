@@ -11,8 +11,6 @@ import {
   getAllTestimonials,
   TestimonialItem,
 } from "../../../../../services/testimonialService";
-import { useLanguage } from "../../../../context/LanguageContext";
-import { TranslatedText } from "../../../_components/TranslatedText";
 import { formatTimeAgo } from "../../../../lib/utils";
 
 // Import Swiper styles
@@ -24,14 +22,11 @@ interface ReviewsProps {
 }
 
 export default function Reviews({ initialReviews = [] }: ReviewsProps) {
-  const { language, translateText } = useLanguage();
   const [swiper, setSwiper] = useState<SwiperType>();
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [apiReviews, setApiReviews] =
-    useState<TestimonialItem[]>(initialReviews);
-  const [translatedReviews, setTranslatedReviews] =
     useState<TestimonialItem[]>(initialReviews);
 
   useEffect(() => {
@@ -52,31 +47,6 @@ export default function Reviews({ initialReviews = [] }: ReviewsProps) {
     load();
   }, [initialReviews]);
 
-  // Translate reviews when language changes
-  useEffect(() => {
-    const translateReviews = async () => {
-      if (language === "es") {
-        // If Spanish, use original reviews (no translation needed)
-        setTranslatedReviews(apiReviews);
-      } else {
-        // If English, translate reviews
-        const translated = await Promise.all(
-          apiReviews.map(async (review) => ({
-            ...review,
-            name: await translateText(review.name),
-            role: await translateText(review.role),
-            review: await translateText(review.review),
-          })),
-        );
-        setTranslatedReviews(translated);
-      }
-    };
-
-    if (apiReviews.length > 0) {
-      translateReviews();
-    }
-  }, [language, apiReviews, translateText]);
-
   const handleImageError = (
     imagePath: string,
     e: React.SyntheticEvent<HTMLImageElement, Event>,
@@ -93,18 +63,14 @@ export default function Reviews({ initialReviews = [] }: ReviewsProps) {
       {/* Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 lg:gap-24 mb-12">
         <h2 className="w-full lg:w-[533px] text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] text-zinc-950 leading-tight lg:leading-[57.60px]">
-          <TranslatedText
-            text="Qué dicen nuestros viajeros"
-            english="What our customers are saying"
-            as="span"
-          />
+          <span>Qué dicen nuestros viajeros</span>
         </h2>
         <p className="flex-1 text-sm md:text-base font-normal font-['Poppins'] text-neutral-600 leading-relaxed lg:leading-7">
-          <TranslatedText
-            text="Conoce las experiencias de quienes ya disfrutaron de aventuras deportivas inolvidables... ¡y vivieron la emoción de descubrir su destino por sorpresa!"
-            english="Hear from our thrilled travelers who embarked on unforgettable sports adventures and embraced the excitement of surprise destinations!"
-            as="span"
-          />
+          <span>
+            Conoce las experiencias de quienes ya disfrutaron de aventuras
+            deportivas inolvidables... ¡y vivieron la emoción de descubrir su
+            destino por sorpresa!
+          </span>
         </p>
       </div>
 
@@ -150,7 +116,7 @@ export default function Reviews({ initialReviews = [] }: ReviewsProps) {
           }}
           className="pb-12"
         >
-          {translatedReviews.map((review) => (
+          {apiReviews.map((review) => (
             <SwiperSlide key={review.id} className="h-auto">
               <div className="h-[298px] p-4 bg-white rounded-lg border border-gray-200 flex flex-col gap-4">
                 {/* Review Header */}
@@ -181,11 +147,7 @@ export default function Reviews({ initialReviews = [] }: ReviewsProps) {
                       ))}
                     </div>
                     <p className="text-xs md:text-sm text-zinc-500 whitespace-nowrap">
-                      <TranslatedText
-                        text={formatTimeAgo(review.created_at, "es")}
-                        english={formatTimeAgo(review.created_at, "en")}
-                        as="span"
-                      />
+                      <span>{formatTimeAgo(review.created_at, "es")}</span>
                     </p>
                   </div>
                 </div>
@@ -206,7 +168,7 @@ export default function Reviews({ initialReviews = [] }: ReviewsProps) {
       <div className="flex justify-center mt-8">
         <Link href="/book">
           <button className="w-full md:w-44 px-4 py-2.5 bg-[#76C043] rounded-full text-white text-lg font-['Inter'] hover:bg-lime-600 transition-colors cursor-pointer">
-            <TranslatedText text="Reserva ahora" english="Book Now" as="span" />
+            <span>Reserva ahora</span>
           </button>
         </Link>
       </div>

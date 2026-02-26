@@ -8,7 +8,6 @@ import {
   StartingPriceService,
 } from "@/backend";
 import { cookies } from "next/headers";
-import { translateTextBackend } from "@/backend/lib/translation";
 
 export const dynamic = "force-dynamic";
 
@@ -108,66 +107,9 @@ async function getInitialData() {
   }
 }
 
-async function translatePackagesData(
-  packages: any[],
-  targetLang: string,
-): Promise<any[]> {
-  if (targetLang === "es") return packages; // Spanish is usually source or already has _es fields
-
-  return Promise.all(
-    packages.map(async (pkg) => {
-      const translatedPkg = { ...pkg };
-      translatedPkg.plan = await translateTextBackend(pkg.plan, targetLang);
-      translatedPkg.duration = await translateTextBackend(
-        pkg.duration,
-        targetLang,
-      );
-      translatedPkg.description = await translateTextBackend(
-        pkg.description,
-        targetLang,
-      );
-      translatedPkg.included = await translateTextBackend(
-        pkg.included,
-        targetLang,
-      );
-      return translatedPkg;
-    }),
-  );
-}
-
-async function translateReviewsData(
-  reviews: any[],
-  targetLang: string,
-): Promise<any[]> {
-  return Promise.all(
-    reviews.map(async (review) => {
-      const translatedReview = { ...review };
-      translatedReview.role = await translateTextBackend(
-        review.role,
-        targetLang,
-      );
-      translatedReview.review = await translateTextBackend(
-        review.review,
-        targetLang,
-      );
-      return translatedReview;
-    }),
-  );
-}
-
 export default async function PackagesPage() {
-  const cookieStore = await cookies();
-  const userLang = cookieStore.get("user_lang")?.value || "es";
-
-  let { initialPackages, initialStartingPrices, initialReviews } =
+  const { initialPackages, initialStartingPrices, initialReviews } =
     await getInitialData();
-
-  if (userLang !== "es") {
-    [initialPackages, initialReviews] = await Promise.all([
-      translatePackagesData(initialPackages, userLang),
-      translateReviewsData(initialReviews, userLang),
-    ]);
-  }
 
   return (
     <Suspense

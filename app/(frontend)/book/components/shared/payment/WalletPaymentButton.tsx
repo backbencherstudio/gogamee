@@ -1,6 +1,5 @@
 import React from "react";
 import { PaymentRequestButtonElement } from "@stripe/react-stripe-js";
-import { TranslatedText } from "../../../../_components/TranslatedText";
 
 interface WalletPaymentButtonProps {
   isLoading: boolean;
@@ -30,41 +29,22 @@ export const WalletPaymentButton: React.FC<WalletPaymentButtonProps> = ({
         <div className="flex justify-center items-center p-6">
           <div className="w-6 h-6 border-3 border-[#6AAD3C] border-t-transparent rounded-full animate-spin"></div>
           <span className="ml-3 text-sm text-gray-600 font-['Poppins']">
-            <TranslatedText
-              text="Comprobando disponibilidad..."
-              english="Checking availability..."
-            />
+            Comprobando disponibilidad...
           </span>
         </div>
       ) : isAvailable ? (
         <PaymentRequestButtonElement options={{ paymentRequest }} />
       ) : (
         <div className="p-4 bg-orange-50 border border-orange-200 rounded text-sm text-orange-800 font-['Poppins']">
-          <p className="font-bold">
-            <TranslatedText
-              text={unavailableMessage.title}
-              english={unavailableMessage.titleEn}
-            />
-          </p>
+          <p className="font-bold">{unavailableMessage.title}</p>
           {isLocalhost ? (
             <p className="mt-1">
-              <TranslatedText
-                text={`${walletName} está desactivado en localhost (HTTP).`}
-                english={`${walletName} is disabled on localhost (HTTP).`}
-              />
+              {walletName} está desactivado en localhost (HTTP).
               <br />
-              <TranslatedText
-                text="Para probarlo, utilice la opción de Tarjeta de Crédito."
-                english="To test, please use the Credit Card option."
-              />
+              Para probarlo, utilice la opción de Tarjeta de Crédito.
             </p>
           ) : (
-            <p className="mt-1">
-              <TranslatedText
-                text={unavailableMessage.unsupported}
-                english={unavailableMessage.unsupportedEn}
-              />
-            </p>
+            <p className="mt-1">{unavailableMessage.unsupported}</p>
           )}
         </div>
       )}

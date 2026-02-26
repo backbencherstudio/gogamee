@@ -28,8 +28,8 @@ import {
   formatApiDateForComparison,
   createCalendarDate,
 } from "../../../../../lib/dateUtils";
-import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
-import { useLanguage } from "@/app/context/LanguageContext";
+
+
 
 // Date restriction interface for calendar-based system
 interface DateRestrictions {
@@ -104,7 +104,7 @@ export default function DateManagement() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const { language } = useLanguage();
+  const language = "en";
 
   // Helper to update URL
   const updateFilter = useCallback(
@@ -256,8 +256,8 @@ export default function DateManagement() {
   const WEEK_DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const WEEK_DAYS_ES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
-  const displayMonths = language === "es" ? MONTH_NAMES_ES : MONTH_NAMES;
-  const displayWeekDays = language === "es" ? WEEK_DAYS_ES : WEEK_DAYS;
+  const displayMonths = false ? MONTH_NAMES_ES : MONTH_NAMES;
+  const displayWeekDays = false ? WEEK_DAYS_ES : WEEK_DAYS;
 
   // Load API date data
   const loadApiDateData = useCallback(
@@ -576,9 +576,9 @@ export default function DateManagement() {
 
           addToast({
             type: "success",
-            title: language === "es" ? "Fecha Creada" : "Date Created",
+            title: false ? "Fecha Creada" : "Date Created",
             description:
-              language === "es"
+              false
                 ? "La nueva fecha se ha creado exitosamente"
                 : "New date has been created successfully",
             duration: 3000,
@@ -589,7 +589,7 @@ export default function DateManagement() {
             type: "error",
             title: "Error",
             description:
-              language === "es"
+              false
                 ? "Error al crear nueva fecha"
                 : "Failed to create new date",
             duration: 5000,
@@ -605,7 +605,7 @@ export default function DateManagement() {
         type: "error",
         title: "Error",
         description:
-          language === "es"
+          false
             ? "Error al actualizar el estado de la fecha"
             : "Failed to update date status",
         duration: 5000,
@@ -646,9 +646,9 @@ export default function DateManagement() {
     if (!apiDateItem || apiDateItem.status !== "enabled") {
       addToast({
         type: "warning",
-        title: language === "es" ? "Fecha No Habilitada" : "Date Not Enabled",
+        title: false ? "Fecha No Habilitada" : "Date Not Enabled",
         description:
-          language === "es"
+          false
             ? "Por favor habilite esta fecha antes de establecer precios personalizados"
             : "Please enable this date first before setting custom prices",
         duration: 4000,
@@ -731,9 +731,9 @@ export default function DateManagement() {
 
       addToast({
         type: "success",
-        title: language === "es" ? "¡Éxito!" : "Success!",
+        title: false ? "¡Éxito!" : "Success!",
         description:
-          language === "es"
+          false
             ? "Todos los precios actualizados exitosamente"
             : "All prices updated successfully",
         duration: 3000,
@@ -746,7 +746,7 @@ export default function DateManagement() {
         type: "error",
         title: "Error",
         description:
-          language === "es"
+          false
             ? "Error al actualizar precios"
             : "Failed to update prices",
         duration: 5000,
@@ -781,9 +781,9 @@ export default function DateManagement() {
       // Show success message
       addToast({
         type: "success",
-        title: language === "es" ? "¡Éxito!" : "Success!",
+        title: false ? "¡Éxito!" : "Success!",
         description:
-          language === "es"
+          false
             ? "¡Restricciones de fechas y precios personalizados actualizados exitosamente!"
             : "Date restrictions and custom prices updated successfully!",
         duration: 4000,
@@ -794,7 +794,7 @@ export default function DateManagement() {
         type: "error",
         title: "Error",
         description:
-          language === "es"
+          false
             ? "Error al guardar restricciones de fechas. Por favor inténtelo de nuevo."
             : "Error saving date restrictions. Please try again.",
         duration: 5000,
@@ -822,7 +822,7 @@ export default function DateManagement() {
   const handleResetDuration = async (duration: "1" | "2" | "3" | "4") => {
     // Confirm before resetting
     const confirmMessage =
-      language === "es"
+      false
         ? `¿Está seguro de que desea restablecer todos los datos para el pack de ${duration} Noche${duration === "1" ? "" : "s"}?\n\nEsto eliminará todas las fechas habilitadas, fechas bloqueadas y precios personalizados para:\n- Ligas ${selectedCompetition === "national" ? "Nacionales" : "Europeas"}\n- ${selectedSport === "football" ? "Fútbol" : selectedSport === "basketball" ? "Basket" : "Ambos"}\n- Duración de ${duration} Noche${duration === "1" ? "" : "s"}\n\nEsta acción no se puede deshacer.`
         : `Are you sure you want to reset all data for ${duration} Night${duration === "1" ? "" : "s"} package?\n\nThis will delete all enabled dates, blocked dates, and custom prices for:\n- ${selectedCompetition === "national" ? "National" : "European"} Leagues\n- ${selectedSport === "football" ? "Football" : selectedSport === "basketball" ? "Basketball" : "Both"}\n- ${duration} Night${duration === "1" ? "" : "s"} duration\n\nThis action cannot be undone.`;
 
@@ -858,9 +858,9 @@ export default function DateManagement() {
       addToast({
         type: "success",
         title:
-          language === "es" ? "Restablecimiento Completo" : "Reset Complete",
+          false ? "Restablecimiento Completo" : "Reset Complete",
         description:
-          language === "es"
+          false
             ? `Todos los datos para el pack de ${duration} Noche${duration === "1" ? "" : "s"} se han restablecido exitosamente`
             : `All data for ${duration} Night${duration === "1" ? "" : "s"} package has been reset successfully`,
         duration: 4000,
@@ -873,7 +873,7 @@ export default function DateManagement() {
         type: "error",
         title: "Error",
         description:
-          language === "es"
+          false
             ? "Error al restablecer los datos de duración. Por favor inténtelo de nuevo."
             : "Failed to reset duration data. Please try again.",
         duration: 5000,
@@ -909,16 +909,10 @@ export default function DateManagement() {
         <div className="flex items-start flex-col gap-4">
           <div className="flex flex-col gap-2">
             <h1 className="text-zinc-950 text-2xl md:text-3xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-4 md:pt-8">
-              <TranslatedText
-                english="Enable/Block Dates"
-                text="Habilitar/Bloquear Fechas"
-              />
+              Habilitar/Bloquear Fechas
             </h1>
             <p className="text-gray-600 font-['Poppins'] text-sm md:text-base">
-              <TranslatedText
-                english="Manage specific dates for different competition types using the calendar interface"
-                text="Gestione fechas específicas para diferentes tipos de competición utilizando la interfaz del calendario"
-              />
+              Gestione fechas específicas para diferentes tipos de competición utilizando la interfaz del calendario
             </p>
           </div>
         </div>
@@ -927,10 +921,7 @@ export default function DateManagement() {
         <div className="bg-white rounded-lg border border-gray-200 p-3 md:p-4 lg:p-6 shadow-sm">
           <div className="flex flex-col gap-3">
             <span className="text-gray-700 font-medium font-['Poppins'] text-sm md:text-base">
-              <TranslatedText
-                english="Select Competition Type"
-                text="Seleccionar Tipo de Competición"
-              />
+              Seleccionar Tipo de Competición
             </span>
             <div className="flex flex-col sm:flex-row gap-2">
               {competitionTypes.map((comp) => (
@@ -975,13 +966,10 @@ export default function DateManagement() {
                       >
                         <Calendar className="w-4 h-4" />
                         <span className="hidden sm:inline">
-                          <TranslatedText
-                            english="Edit Calendar"
-                            text="Editar Calendario"
-                          />
+                          Editar Calendario
                         </span>
                         <span className="sm:hidden">
-                          <TranslatedText english="Edit" text="Editar" />
+                          Editar
                         </span>
                       </button>
                       <button
@@ -990,13 +978,10 @@ export default function DateManagement() {
                       >
                         <DollarSign className="w-4 h-4" />
                         <span className="hidden sm:inline">
-                          <TranslatedText
-                            english="Edit Prices"
-                            text="Editar Precios"
-                          />
+                          Editar Precios
                         </span>
                         <span className="sm:hidden">
-                          <TranslatedText english="Prices" text="Precios" />
+                          Precios
                         </span>
                       </button>
                     </>
@@ -1006,7 +991,7 @@ export default function DateManagement() {
                         onClick={handleCancel}
                         className="flex items-center justify-center gap-2 px-3 py-2 md:px-4 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium font-['Poppins'] transition-all duration-200 text-sm md:text-base"
                       >
-                        <TranslatedText english="Cancel" text="Cancelar" />
+                        Cancelar
                       </button>
                       <button
                         onClick={handleSave}
@@ -1021,13 +1006,10 @@ export default function DateManagement() {
                           <>
                             <RefreshCw className="w-4 h-4 animate-spin" />
                             <span className="hidden sm:inline">
-                              <TranslatedText
-                                english="Saving..."
-                                text="Guardando..."
-                              />
+                              Guardando...
                             </span>
                             <span className="sm:hidden">
-                              <TranslatedText english="Save" text="Guardar" />
+                              Guardar
                             </span>
                           </>
                         ) : (
@@ -1049,10 +1031,7 @@ export default function DateManagement() {
               <div className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200">
                 <div className="flex flex-col gap-3">
                   <span className="text-gray-700 font-medium font-['Poppins'] text-sm md:text-base">
-                    <TranslatedText
-                      english="Select Sport"
-                      text="Seleccionar Deporte"
-                    />
+                    Seleccionar Deporte
                   </span>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <button
@@ -1068,7 +1047,7 @@ export default function DateManagement() {
                     >
                       <span>⚽</span>
                       <span>
-                        <TranslatedText english="Football" text="Fútbol" />
+                        Fútbol
                       </span>
                     </button>
                     <button
@@ -1084,7 +1063,7 @@ export default function DateManagement() {
                     >
                       <span>🏀</span>
                       <span>
-                        <TranslatedText english="Basketball" text="Basket" />
+                        Basket
                       </span>
                     </button>
                     <button
@@ -1100,7 +1079,7 @@ export default function DateManagement() {
                     >
                       <span>⚽🏀</span>
                       <span>
-                        <TranslatedText english="Both" text="Ambos" />
+                        Ambos
                       </span>
                     </button>
                   </div>
@@ -1111,10 +1090,7 @@ export default function DateManagement() {
               <div className="bg-gray-50 rounded-lg p-3 md:p-4 border border-gray-200">
                 <div className="flex flex-col gap-3">
                   <span className="text-gray-700 font-medium font-['Poppins'] text-sm md:text-base">
-                    <TranslatedText
-                      english="Select Package Duration"
-                      text="Seleccionar Duración del Pack"
-                    />
+                    Seleccionar Duración del Pack
                   </span>
                   <div className="flex flex-col sm:flex-row gap-2 items-center justify-between">
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -1133,10 +1109,7 @@ export default function DateManagement() {
                         >
                           <span>{duration}</span>
                           <span>
-                            <TranslatedText
-                              english={duration === "1" ? "Night" : "Nights"}
-                              text={duration === "1" ? "Noche" : "Noches"}
-                            />
+                            {duration === "1" ? "Noche" : "Noches"}
                           </span>
                         </button>
                       ))}
@@ -1153,7 +1126,7 @@ export default function DateManagement() {
                     >
                       <RefreshCw className="w-4 h-4" />
                       <span className="hidden sm:inline">
-                        <TranslatedText english="Reset" text="Restablecer" />
+                        Restablecer
                       </span>
                     </button>
                   </div>
@@ -1164,10 +1137,7 @@ export default function DateManagement() {
               <div className="flex flex-col gap-3 md:gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <h3 className="text-base md:text-lg font-medium text-gray-900 font-['Poppins']">
-                    <TranslatedText
-                      english="Calendar Management"
-                      text="Gestión del Calendario"
-                    />
+                    Gestión del Calendario
                   </h3>
                   <div className="flex items-center justify-center gap-2">
                     <button
@@ -1363,19 +1333,19 @@ export default function DateManagement() {
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 md:w-4 md:h-4 bg-green-100 border-2 border-green-500 rounded"></div>
                     <span className="text-green-700">
-                      <TranslatedText english="Enabled" text="Habilitado" />
+                      Habilitado
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 md:w-4 md:h-4 bg-red-100 border-2 border-red-500 rounded"></div>
                     <span className="text-red-700">
-                      <TranslatedText english="Blocked" text="Bloqueado" />
+                      Bloqueado
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 md:w-4 md:h-4 bg-white border-2 border-gray-300 rounded"></div>
                     <span className="text-gray-700">
-                      <TranslatedText english="Neutral" text="Neutral" />
+                      Neutral
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -1383,10 +1353,7 @@ export default function DateManagement() {
                       <DollarSign className="w-2 h-2 text-white" />
                     </div>
                     <span className="text-blue-700">
-                      <TranslatedText
-                        english="Custom Price"
-                        text="Precio Personalizado"
-                      />
+                      Precio Personalizado
                     </span>
                   </div>
                 </div>
@@ -1524,10 +1491,7 @@ export default function DateManagement() {
           >
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">
-                <TranslatedText
-                  english="Set Custom Prices"
-                  text="Establecer Precios Personalizados"
-                />
+                Establecer Precios Personalizados
               </h2>
               <button
                 onClick={() => setShowPriceModal(false)}
@@ -1575,10 +1539,7 @@ export default function DateManagement() {
               <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mb-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700 font-['Poppins']">
-                    <TranslatedText
-                      english="Updating Prices For:"
-                      text="Actualizando Precios Para:"
-                    />
+                    Actualizando Precios Para:
                   </span>
                   <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 font-['Poppins'] capitalize">
                     {selectedSport === "both"
@@ -1700,17 +1661,14 @@ export default function DateManagement() {
                   className="flex items-center gap-2 px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium font-['Poppins'] transition-all duration-200"
                 >
                   <X className="w-4 h-4" />
-                  <TranslatedText english="Cancel" text="Cancelar" />
+                  Cancelar
                 </button>
                 <button
                   onClick={handleSavePrice}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200"
                 >
                   <DollarSign className="w-4 h-4" />
-                  <TranslatedText
-                    english="Save All Prices"
-                    text="Guardar Todos los Precios"
-                  />
+                  Guardar Todos los Precios
                 </button>
               </div>
             </div>

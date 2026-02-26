@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { TranslatedText } from "./TranslatedText";
+
 
 export default function PaymentNotification() {
   const searchParams = useSearchParams();
@@ -70,20 +70,14 @@ export default function PaymentNotification() {
             </div>
             <div className="flex-1">
               <h3 className="text-green-800 font-semibold font-['Poppins'] mb-1">
-                <TranslatedText
-                  text="¡Pago Exitoso!"
-                  english="Payment Successful!"
-                />
+                ¡Pago Exitoso!
               </h3>
               <p className="text-green-700 text-sm font-['Poppins']">
-                <TranslatedText
-                  text="Tu reserva ha sido confirmada. Recibirás un correo de confirmación pronto."
-                  english="Your booking has been confirmed. You will receive a confirmation email shortly."
-                />
+                Tu reserva ha sido confirmada. Recibirás un correo de confirmación pronto.
               </p>
               {bookingId && (
                 <p className="text-green-600 text-xs font-mono mt-2">
-                  <TranslatedText text="ID de Reserva:" english="Booking ID:" />{" "}
+                  ID de Reserva:{" "}
                   {bookingId}
                 </p>
               )}
@@ -134,16 +128,10 @@ export default function PaymentNotification() {
             </div>
             <div className="flex-1">
               <h3 className="text-orange-800 font-semibold font-['Poppins'] mb-1">
-                <TranslatedText
-                  text="Pago Cancelado"
-                  english="Payment Cancelled"
-                />
+                Pago Cancelado
               </h3>
               <p className="text-orange-700 text-sm font-['Poppins']">
-                <TranslatedText
-                  text="Tu pago ha sido cancelado. No se ha realizado ningún cargo."
-                  english="Your payment has been cancelled. No charges have been made."
-                />
+                Tu pago ha sido cancelado. No se ha realizado ningún cargo.
               </p>
             </div>
             <button

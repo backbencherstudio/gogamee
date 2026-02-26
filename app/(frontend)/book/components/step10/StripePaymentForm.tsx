@@ -6,7 +6,6 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { TranslatedText } from "../../../_components/TranslatedText";
 
 interface StripePaymentFormProps {
   bookingId: string;
@@ -88,11 +87,7 @@ export default function StripePaymentForm({
         }`}
       >
         <div className="text-center justify-start text-white text-sm md:text-base font-medium md:font-normal font-['Inter']">
-          {isProcessing ? (
-            <TranslatedText text="Procesando..." english="Processing..." />
-          ) : (
-            <TranslatedText text="Confirmar Pago" english="Confirm Payment" />
-          )}
+          {isProcessing ? <>Procesando...</> : <>Confirmar Pago</>}
         </div>
       </button>
     </form>

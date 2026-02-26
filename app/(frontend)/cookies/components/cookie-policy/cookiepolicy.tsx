@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { getLegalPageContent } from "../../../../../services/publicSettingsService";
-import { useLanguage } from "../../../../context/LanguageContext";
+
 import { translateText } from "../../../../../services/translationService";
 
 interface CookiePolicyProps {
@@ -11,7 +11,7 @@ interface CookiePolicyProps {
 export default function CookiePolicy({
   initialContent = "",
 }: CookiePolicyProps) {
-  const { language } = useLanguage();
+  const language = "es";
   const [content, setContent] = useState<string>(initialContent);
   const [loading, setLoading] = useState<boolean>(!initialContent);
   const [error, setError] = useState<string | null>(null);

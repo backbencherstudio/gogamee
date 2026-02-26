@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 
-import { LanguageProvider } from "./context/LanguageContext";
-
 const inter = Inter({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
@@ -41,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased ${fontClasses}`} suppressHydrationWarning>
-        <LanguageProvider>{children}</LanguageProvider>
+        {children}
       </body>
     </html>
   );

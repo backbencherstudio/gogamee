@@ -15,7 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
-import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
+
 import {
   getAllBookings,
   getBookingStats,
@@ -66,7 +66,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
         <div className="p-5 pb-2">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">
-              <TranslatedText english={title} text={titleSpanish || title} />
+              {titleSpanish || title}
             </h3>
             <div
               className={cn(
@@ -101,8 +101,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
               {change}
             </span>
             <span className="text-gray-500 ml-2">
-              <TranslatedText english="vs" text="vs" /> {lastMonth}{" "}
-              <TranslatedText english="last month" text="mes pasado" />
+              vs {lastMonth} mes pasado
             </span>
           </div>
         </div>
@@ -128,8 +127,7 @@ const Pagination: React.FC<PaginationProps> = ({
   return (
     <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
       <div className="text-sm text-gray-700 flex gap-1">
-        <TranslatedText english="Showing page" text="Mostrando página" />{" "}
-        {currentPage} <TranslatedText english="of" text="de" /> {totalPages}
+        Mostrando página {currentPage} de {totalPages}
       </div>
 
       <div className="flex items-center space-x-2">
@@ -144,7 +142,7 @@ const Pagination: React.FC<PaginationProps> = ({
           )}
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
-          <TranslatedText english="Previous" text="Anterior" />
+          Anterior
         </button>
 
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -172,7 +170,7 @@ const Pagination: React.FC<PaginationProps> = ({
               : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50",
           )}
         >
-          <TranslatedText english="Next" text="Siguiente" />
+          Siguiente
           <ChevronRight className="w-4 h-4 ml-1" />
         </button>
       </div>
@@ -286,25 +284,15 @@ const RecentRequestsTable: React.FC = () => {
     <div className="mt-8 bg-white border border-gray-200 rounded-lg shadow-sm">
       <div className="pb-0">
         <h2 className="text-lg font-semibold text-gray-900 m-6">
-          <TranslatedText
-            english="Recent Requests (Latest 5)"
-            text="Solicitudes Recientes (Últimas 5)"
-          />
+          Solicitudes Recientes (Últimas 5)
         </h2>
       </div>
 
       {/* Error State */}
       {error && (
         <div className="p-6 text-center text-red-600">
-          <p className="font-semibold">
-            <TranslatedText
-              english="Error loading bookings"
-              text="Error al cargar las reservas"
-            />
-          </p>
-          <p className="text-sm mt-2">
-            <TranslatedText text={error} />
-          </p>
+          <p className="font-semibold">Error al cargar las reservas</p>
+          <p className="text-sm mt-2">{error}</p>
         </div>
       )}
 
@@ -315,28 +303,25 @@ const RecentRequestsTable: React.FC = () => {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    <TranslatedText
-                      english="Request ID"
-                      text="ID de Solicitud"
-                    />
+                    ID de Solicitud
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    <TranslatedText english="Customer" text="Cliente" />
+                    Cliente
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    <TranslatedText english="Package" text="Pack" />
+                    Pack
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    <TranslatedText english="Date" text="Fecha" />
+                    Fecha
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    <TranslatedText english="Status" text="Estado" />
+                    Estado
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    <TranslatedText english="Payment" text="Pago" />
+                    Pago
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    <TranslatedText english="Amount" text="Monto" />
+                    Monto
                   </th>
                 </tr>
               </thead>
@@ -391,19 +376,13 @@ const RecentRequestsTable: React.FC = () => {
                         <td className="py-3 px-4">
                           <span className={getStatusBadge(request.status)}>
                             {getStatusIcon(request.status)}
-                            <TranslatedText
-                              english={request.status}
-                              text={
-                                {
-                                  pending: "pendiente",
-                                  completed: "completado",
-                                  rejected: "rechazado",
-                                  approved: "aprobado",
-                                  confirmed: "confirmado",
-                                }[request.status] || request.status
-                              }
-                              className="ml-1 capitalize"
-                            />
+                            {{
+                              pending: "pendiente",
+                              completed: "completado",
+                              rejected: "rechazado",
+                              approved: "aprobado",
+                              confirmed: "confirmado",
+                            }[request.status] || request.status}
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -412,19 +391,12 @@ const RecentRequestsTable: React.FC = () => {
                               request.payment_status,
                             )}
                           >
-                            <TranslatedText
-                              english={request.payment_status || "unknown"}
-                              text={
-                                {
-                                  paid: "pagado",
-                                  unpaid: "no pagado",
-                                  pending: "pendiente",
-                                  failed: "fallido",
-                                }[request.payment_status] ||
-                                request.payment_status
-                              }
-                              className="capitalize"
-                            />
+                            {{
+                              paid: "pagado",
+                              unpaid: "no pagado",
+                              pending: "pendiente",
+                              failed: "fallido",
+                            }[request.payment_status] || request.payment_status}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-sm font-medium text-gray-900">

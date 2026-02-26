@@ -1,5 +1,4 @@
 "use client";
-import { TranslatedText } from "../../../../_components/TranslatedText";
 import { pricingData, personalInfoData } from "../../../../../lib/appdata";
 import { BOOKING_CONSTANTS } from "../../../context/BookingContext";
 
@@ -48,12 +47,7 @@ export function PricingSummary({
                 {pricingData.getPackageName(
                   formData.selectedSport as "football" | "basketball",
                   formData.selectedPackage as "standard" | "premium",
-                ) || (
-                  <TranslatedText
-                    text={personalInfoData.text.packageFallback}
-                    english={personalInfoData.text.packageFallbackEn}
-                  />
-                )}
+                ) || personalInfoData.text.packageFallback}
               </span>
               <div className="text-right">
                 <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -75,11 +69,7 @@ export function PricingSummary({
                     className="flex justify-between items-center py-2 border-b border-gray-100"
                   >
                     <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                      <TranslatedText
-                        text={extra.name}
-                        english={extra.nameEn}
-                      />{" "}
-                      x{extra.quantity}
+                      {extra.name} x{extra.quantity}
                     </span>
                     <div className="text-right">
                       <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -96,10 +86,7 @@ export function PricingSummary({
             {reservationData.flightScheduleTotal > 0 && (
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  <TranslatedText
-                    text={personalInfoData.text.flightScheduleAdjustments}
-                    english={personalInfoData.text.flightScheduleAdjustmentsEn}
-                  />
+                  {personalInfoData.text.flightScheduleAdjustments}
                 </span>
                 <div className="text-right">
                   <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -117,10 +104,7 @@ export function PricingSummary({
             {reservationData.leagueTotal > 0 && (
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  <TranslatedText
-                    text={personalInfoData.text.europeanCompetition}
-                    english={personalInfoData.text.europeanCompetitionEn}
-                  />
+                  {personalInfoData.text.europeanCompetition}
                 </span>
                 <div className="text-right">
                   <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -138,10 +122,7 @@ export function PricingSummary({
             {reservationData.removalTotal > 0 && (
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  <TranslatedText
-                    text={personalInfoData.text.leagueRemovals}
-                    english={personalInfoData.text.leagueRemovalsEn}
-                  />
+                  {personalInfoData.text.leagueRemovals}
                 </span>
                 <div className="text-right">
                   <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -159,10 +140,7 @@ export function PricingSummary({
             {reservationData.singleTravelerSupplement > 0 && (
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  <TranslatedText
-                    text={personalInfoData.text.singleTravelerSupplement}
-                    english={personalInfoData.text.singleTravelerSupplementEn}
-                  />
+                  {personalInfoData.text.singleTravelerSupplement}
                 </span>
                 <div className="text-right">
                   <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -179,10 +157,7 @@ export function PricingSummary({
             {BOOKING_CONSTANTS.BOOKING_FEE > 0 && (
               <div className="flex justify-between items-center py-2 border-b border-gray-100">
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  <TranslatedText
-                    text="Tarifa de Reserva"
-                    english="Booking Fee"
-                  />
+                  Tarifa de Reserva
                 </span>
                 <div className="text-right">
                   <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
@@ -198,10 +173,7 @@ export function PricingSummary({
             {/* Subtotal Row */}
             <div className="flex justify-between items-center py-4 border-t-2 border-lime-400 bg-lime-50 rounded-lg px-3">
               <span className="text-lg font-bold font-['Poppins'] text-gray-800">
-                <TranslatedText
-                  text={personalInfoData.text.totalCost}
-                  english={personalInfoData.text.totalCostEn}
-                />
+                {personalInfoData.text.totalCost}
               </span>
               <div className="text-right">
                 <div className="text-xl font-bold font-['Poppins'] text-lime-700">
@@ -216,28 +188,16 @@ export function PricingSummary({
         <div className="hidden md:block w-full">
           <div className="w-full grid grid-cols-4 gap-4 border-b-2 border-gray-300 pb-4 mb-2">
             <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
-              <TranslatedText
-                text={personalInfoData.text.concept}
-                english={personalInfoData.text.conceptEn}
-              />
+              {personalInfoData.text.concept}
             </div>
             <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
-              <TranslatedText
-                text={personalInfoData.text.price}
-                english={personalInfoData.text.priceEn}
-              />
+              {personalInfoData.text.price}
             </div>
             <div className="text-center text-base font-bold font-['Poppins'] leading-none text-gray-700">
-              <TranslatedText
-                text={personalInfoData.text.quantity}
-                english={personalInfoData.text.quantityEn}
-              />
+              {personalInfoData.text.quantity}
             </div>
             <div className="text-right text-base font-bold font-['Poppins'] leading-none text-gray-700">
-              <TranslatedText
-                text={personalInfoData.text.total}
-                english={personalInfoData.text.totalEn}
-              />
+              {personalInfoData.text.total}
             </div>
           </div>
 
@@ -247,12 +207,7 @@ export function PricingSummary({
               {pricingData.getPackageName(
                 formData.selectedSport as "football" | "basketball",
                 formData.selectedPackage as "standard" | "premium",
-              ) || (
-                <TranslatedText
-                  text={personalInfoData.text.packageFallback}
-                  english={personalInfoData.text.packageFallbackEn}
-                />
-              )}
+              ) || personalInfoData.text.packageFallback}
             </div>
             <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
               {reservationData.basePrice}€
@@ -275,7 +230,7 @@ export function PricingSummary({
                   className="w-full grid grid-cols-4 gap-4 py-2 border-b border-gray-100"
                 >
                   <div className="text-left text-neutral-800 text-sm font-medium font-['Poppins'] leading-none">
-                    <TranslatedText text={extra.name} english={extra.nameEn} />
+                    {extra.name}
                   </div>
                   <div className="text-center text-neutral-800 text-sm font-normal font-['Poppins'] leading-none">
                     {extra.price}€
@@ -293,10 +248,7 @@ export function PricingSummary({
           {reservationData.flightScheduleTotal > 0 && (
             <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
               <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                <TranslatedText
-                  text={personalInfoData.text.flightScheduleAdjustments}
-                  english={personalInfoData.text.flightScheduleAdjustmentsEn}
-                />
+                {personalInfoData.text.flightScheduleAdjustments}
               </div>
               <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                 {reservationData.flightScheduleCost}€
@@ -314,10 +266,7 @@ export function PricingSummary({
           {reservationData.leagueTotal > 0 && (
             <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
               <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                <TranslatedText
-                  text={personalInfoData.text.europeanCompetition}
-                  english={personalInfoData.text.europeanCompetitionEn}
-                />
+                {personalInfoData.text.europeanCompetition}
               </div>
               <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                 {reservationData.leagueCost}€
@@ -335,10 +284,7 @@ export function PricingSummary({
           {reservationData.removalTotal > 0 && (
             <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
               <div className="text-left text-neutral-800 text-base font-medium font-['Poppins'] leading-none">
-                <TranslatedText
-                  text={personalInfoData.text.leagueRemovals}
-                  english={personalInfoData.text.leagueRemovalsEn}
-                />
+                {personalInfoData.text.leagueRemovals}
               </div>
               <div className="text-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
                 {reservationData.removalCostPerPerson}€
@@ -356,10 +302,7 @@ export function PricingSummary({
           {reservationData.singleTravelerSupplement > 0 && (
             <div className="w-full grid grid-cols-4 gap-4 border-b-2 border-gray-200 py-3">
               <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800">
-                <TranslatedText
-                  text={personalInfoData.text.singleTravelerSupplement}
-                  english={personalInfoData.text.singleTravelerSupplementEn}
-                />
+                {personalInfoData.text.singleTravelerSupplement}
               </div>
               <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
                 {BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT}€
@@ -377,10 +320,7 @@ export function PricingSummary({
           {BOOKING_CONSTANTS.BOOKING_FEE > 0 && (
             <div className="w-full grid grid-cols-4 gap-4 py-3">
               <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800">
-                <TranslatedText
-                  text="Tarifa de Reserva"
-                  english="Booking Fee"
-                />
+                Tarifa de Reserva
               </div>
               <div className="text-base font-normal font-['Poppins'] leading-none text-neutral-800 text-center">
                 {BOOKING_CONSTANTS.BOOKING_FEE}€
@@ -397,10 +337,7 @@ export function PricingSummary({
           {/* Subtotal Row */}
           <div className="w-full grid grid-cols-4 gap-4 py-3 border-t-2 border-gray-300">
             <div className="text-left text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
-              <TranslatedText
-                text={personalInfoData.text.subtotal}
-                english={personalInfoData.text.subtotalEn}
-              />
+              {personalInfoData.text.subtotal}
             </div>
             <div className="text-center text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
               -
@@ -420,20 +357,14 @@ export function PricingSummary({
         <div className="space-y-3">
           <div className="text-center mb-4">
             <h3 className="text-lg font-bold text-gray-800 font-['Poppins']">
-              <TranslatedText
-                text={personalInfoData.text.letsGo}
-                english={personalInfoData.text.letsGoEn}
-              />
+              {personalInfoData.text.letsGo}
             </h3>
           </div>
 
           <div className="space-y-2">
             <div className="flex justify-between items-center py-2 border-b border-lime-200">
               <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                <TranslatedText
-                  text={personalInfoData.text.packageTotal}
-                  english={personalInfoData.text.packageTotalEn}
-                />
+                {personalInfoData.text.packageTotal}
               </span>
               <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                 {reservationData.packageTotal.toFixed(2)}€
@@ -443,10 +374,7 @@ export function PricingSummary({
             {reservationData.extrasTotal > 0 && (
               <div className="flex justify-between items-center py-2 border-b border-lime-200">
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  <TranslatedText
-                    text={personalInfoData.text.extrasTotal}
-                    english={personalInfoData.text.extrasTotalEn}
-                  />
+                  {personalInfoData.text.extrasTotal}
                 </span>
                 <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                   {reservationData.extrasTotal.toFixed(2)}€
@@ -457,10 +385,7 @@ export function PricingSummary({
             {reservationData.flightScheduleTotal > 0 && (
               <div className="flex justify-between items-center py-2 border-b border-lime-200">
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  <TranslatedText
-                    text={personalInfoData.text.flightScheduleTotal}
-                    english={personalInfoData.text.flightScheduleTotalEn}
-                  />
+                  {personalInfoData.text.flightScheduleTotal}
                 </span>
                 <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                   {reservationData.flightScheduleTotal.toFixed(2)}€
@@ -471,10 +396,7 @@ export function PricingSummary({
             {reservationData.leagueTotal > 0 && (
               <div className="flex justify-between items-center py-2 border-b border-lime-200">
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  <TranslatedText
-                    text={personalInfoData.text.europeanCompetition}
-                    english={personalInfoData.text.europeanCompetitionEn}
-                  />
+                  {personalInfoData.text.europeanCompetition}
                 </span>
                 <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                   {reservationData.leagueTotal.toFixed(2)}€
@@ -485,10 +407,7 @@ export function PricingSummary({
             {reservationData.singleTravelerSupplement > 0 && (
               <div className="flex justify-between items-center py-2 border-b border-lime-200">
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  <TranslatedText
-                    text={personalInfoData.text.singleTravelerSupplement}
-                    english={personalInfoData.text.singleTravelerSupplementEn}
-                  />
+                  {personalInfoData.text.singleTravelerSupplement}
                 </span>
                 <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                   {reservationData.singleTravelerSupplement.toFixed(2)}€
@@ -499,10 +418,7 @@ export function PricingSummary({
             {reservationData.removalTotal > 0 && (
               <div className="flex justify-between items-center py-2 border-b border-lime-200">
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
-                  <TranslatedText
-                    text={personalInfoData.text.leagueRemovals}
-                    english={personalInfoData.text.leagueRemovalsEn}
-                  />
+                  {personalInfoData.text.leagueRemovals}
                 </span>
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
                   {reservationData.removalTotal.toFixed(2)}€
@@ -514,10 +430,7 @@ export function PricingSummary({
           <div className="border-t-2 border-lime-400 pt-4 mt-4">
             <div className="flex justify-between items-center">
               <span className=" text-xl font-bold font-['Poppins'] text-gray-800">
-                <TranslatedText
-                  text={personalInfoData.text.totalCost}
-                  english={personalInfoData.text.totalCostEn}
-                />
+                {personalInfoData.text.totalCost}
               </span>
               <span className=" text-2xl font-bold font-['Poppins'] text-lime-700">
                 {reservationData.grandTotal.toFixed(2)}€

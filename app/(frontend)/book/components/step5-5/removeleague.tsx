@@ -5,7 +5,6 @@ import Image from "next/image";
 import { useBooking } from "../../context/BookingContext";
 import { BOOKING_CONSTANTS } from "../../context/BookingContext";
 import { homepageLeaguesData } from "../../../../lib/appdata";
-import { TranslatedText } from "../../../_components/TranslatedText";
 import { translateCountryName } from "../../../../lib/utils";
 
 // Types
@@ -90,10 +89,7 @@ const LeagueCard = React.memo(
                 />
               </div>
               <div className="text-center justify-start text-white text-sm font-medium font-['Poppins'] leading-none">
-                <TranslatedText
-                  text={translateCountryName(league.country)}
-                  english={league.country}
-                />
+                {translateCountryName(league.country)}
               </div>
             </div>
           </div>
@@ -110,7 +106,7 @@ const LeagueCard = React.memo(
           >
             <div className="self-stretch px-4 py-2 w-full bg-[#6AAD3C] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 transition-colors cursor-pointer">
               <div className="text-center justify-start text-white text-sm font-semibold font-['Inter'] leading-snug">
-                <TranslatedText text="No me mola" english="Remove" />
+                No me mola
               </div>
             </div>
           </div>
@@ -119,14 +115,12 @@ const LeagueCard = React.memo(
         {/* Removed overlay with undo button */}
         {league.removed && (
           <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3">
-            <div className="text-white text-lg font-bold">
-              <TranslatedText text="Eliminada" english="REMOVED" />
-            </div>
+            <div className="text-white text-lg font-bold">Eliminada</div>
             <button
               onClick={handleUndoClick}
               className="px-4 py-2 bg-[#6AAD3C] hover:bg-lime-600 rounded-[999px] text-white text-sm font-semibold transition-colors cursor-pointer"
             >
-              <TranslatedText text="Sí me mola" english="Undo" />
+              Sí me mola
             </button>
           </div>
         )}
@@ -276,16 +270,11 @@ export default function RemoveLeague() {
       <div className="w-full xl:w-[894px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-center items-center gap-6 min-h-[600px] xl:min-h-0">
         <div className="text-center">
           <div className="text-neutral-800 text-xl xl:text-2xl font-bold font-['Poppins'] mb-4">
-            <TranslatedText
-              text="Cargando ligas..."
-              english="Loading leagues..."
-            />
+            Cargando ligas...
           </div>
           <div className="text-neutral-600 text-base font-normal font-['Poppins']">
-            <TranslatedText
-              text="Asegúrate de haber elegido un deporte y tipo de competición en los pasos anteriores."
-              english="Please ensure you have selected a sport and league type in the previous steps."
-            />
+            Asegúrate de haber elegido un deporte y tipo de competición en los
+            pasos anteriores.
           </div>
         </div>
       </div>
@@ -296,27 +285,18 @@ export default function RemoveLeague() {
     <div className="w-full xl:w-[894px] p-4 xl:p-6 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-center items-center gap-6 min-h-[600px] xl:min-h-0">
       <div className="self-stretch flex flex-col justify-start items-start gap-4">
         <div className="justify-start text-neutral-800 text-xl xl:text-2xl font-bold font-['Poppins'] leading-loose">
-          <TranslatedText
-            text="¿Qué ligas no te gustan?"
-            english="Which leagues don't you like?"
-          />
+          ¿Qué ligas no te gustan?
         </div>
         <div className="self-stretch px-3.5 py-3 bg-green-100 rounded outline-1 outline-offset-[-1px] outline-[#76C043] inline-flex justify-center items-center gap-2.5">
           <div className="justify-start">
             <span className="text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
-              <TranslatedText
-                text="Descarta el primero GRATIS y el resto por solo "
-                english="Remove one for free, the rest "
-              />
+              Descarta el primero GRATIS y el resto por solo
             </span>
             <span className="text-[#76C043] text-base font-medium font-['Poppins'] leading-7">
               +{removalCost}€
             </span>
             <span className="text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
-              <TranslatedText
-                text="(por destino y persona)."
-                english=" (per destination & person)."
-              />
+              (por destino y persona).
             </span>
           </div>
         </div>
@@ -339,7 +319,7 @@ export default function RemoveLeague() {
         className="w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
       >
         <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-          <TranslatedText text="Siguiente" english="Next" />
+          Siguiente
         </div>
       </button>
     </div>

@@ -12,9 +12,6 @@ import {
 } from "@stripe/react-stripe-js";
 import { paymentData } from "../../../../lib/appdata";
 import StripeInput from "./StripeInput";
-import { TranslatedText } from "../../../_components/TranslatedText";
-import { useLanguage } from "../../../../context/LanguageContext";
-
 import { PaymentMethodOption } from "../shared/payment/PaymentMethodOption";
 import { WalletPaymentButton } from "../shared/payment/WalletPaymentButton";
 
@@ -40,9 +37,6 @@ export default function CustomStripeForm({
   onSuccess,
   onError,
 }: CustomStripeFormProps) {
-  const { language } = useLanguage();
-  const t = (es: string, en: string) => (language === "en" ? en : es);
-
   const stripe = useStripe();
   const elements = useElements();
   const [selectedPayment, setSelectedPayment] = useState<string>(
@@ -72,7 +66,7 @@ export default function CustomStripeForm({
         country: "ES",
         currency: "eur",
         total: {
-          label: t("Pago Total", "Total Payment"),
+          label: "Pago Total",
           amount: Math.round(amount * 100), // Stripe uses cents
         },
         requestPayerName: true,
@@ -110,7 +104,7 @@ export default function CustomStripeForm({
 
         if (confirmError) {
           ev.complete("fail");
-          onError(confirmError.message || t("Pago fallido", "Payment failed"));
+          onError(confirmError.message || "Pago fallido");
         } else {
           ev.complete("success");
           if (paymentIntent.status === "succeeded") {
@@ -127,9 +121,7 @@ export default function CustomStripeForm({
 
     try {
       setPaymentStatus(
-        attempts > 0
-          ? t("Finalizando reserva...", "Finalizing booking...")
-          : t("Verificando pago...", "Verifying payment..."),
+        attempts > 0 ? "Finalizando reserva..." : "Verificando pago...",
       );
 
       // Call verify endpoint (Wait for webhook)
@@ -155,16 +147,13 @@ export default function CustomStripeForm({
           );
         } else {
           // Max attempts reached - Redirect to failed page
-          const errorMsg = t(
-            "La verificación está tardando más de lo esperado. Por favor, revisa tu correo para la confirmación.",
-            "Verification is taking longer than expected. Please check your email for confirmation.",
-          );
+          const errorMsg =
+            "La verificación está tardando más de lo esperado. Por favor, revisa tu correo para la confirmación.";
           window.location.href = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
         }
       } else {
         // Hard failure
-        const errorMessage =
-          data.message || t("Error en la verificación", "Verification failed");
+        const errorMessage = data.message || "Error en la verificación";
 
         // Send failure email
         try {
@@ -186,7 +175,7 @@ export default function CustomStripeForm({
         window.location.href = `/payment/failed?error=${encodeURIComponent(errorMessage)}`;
       }
     } catch (error) {
-      const errorMsg = t("Error de red", "Network error");
+      const errorMsg = "Error de red";
       window.location.href = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
     } finally {
       if (attempts >= MAX_ATTEMPTS || !isProcessing) {
@@ -201,7 +190,7 @@ export default function CustomStripeForm({
     if (!stripe || !elements) return;
 
     setIsProcessing(true);
-    setPaymentStatus(t("Procesando pago...", "Processing payment..."));
+    setPaymentStatus("Procesando pago...");
 
     // Handle Card Payment
     if (selectedPayment === PAYMENT_METHODS.CREDIT) {
@@ -246,12 +235,10 @@ export default function CustomStripeForm({
         }
 
         // Redirect to failed page
-        const errorMsg =
-          error.message ||
-          t("El pago con tarjeta falló", "Card payment failed");
+        const errorMsg = error.message || "El pago con tarjeta falló";
         window.location.href = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
-        setPaymentStatus(t("Confirmando reserva...", "Confirming booking..."));
+        setPaymentStatus("Confirmando reserva...");
         confirmBackend(paymentIntent.id);
       } else {
         setIsProcessing(false);
@@ -284,10 +271,7 @@ export default function CustomStripeForm({
           <div className="self-stretch flex flex-col justify-center items-start gap-3">
             <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
               <div className="justify-center text-neutral-800 text-xl md:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 md:leading-8 xl:leading-10">
-                <TranslatedText
-                  text={paymentData.text.title}
-                  english={paymentData.text.titleEn}
-                />
+                {paymentData.text.title}
               </div>
             </div>
 
@@ -295,10 +279,7 @@ export default function CustomStripeForm({
               <div className="self-stretch px-4 md:px-5 py-5 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
                 <div className="self-stretch inline-flex justify-start items-center gap-2">
                   <div className="justify-start text-neutral-800 text-base md:text-lg font-semibold font-['Poppins'] leading-loose">
-                    <TranslatedText
-                      text={paymentData.text.paymentMethodTitle}
-                      english={paymentData.text.paymentMethodTitleEn}
-                    />
+                    {paymentData.text.paymentMethodTitle}
                   </div>
                 </div>
 
@@ -338,17 +319,11 @@ export default function CustomStripeForm({
                       <div className="self-stretch flex flex-col md:flex-row justify-start items-start gap-4 md:gap-6">
                         <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            <TranslatedText
-                              text={paymentData.text.nameOnCardLabel}
-                              english={paymentData.text.nameOnCardLabelEn}
-                            />
+                            {paymentData.text.nameOnCardLabel}
                           </div>
                           <input
                             type="text"
-                            placeholder={t(
-                              paymentData.text.nameOnCardPlaceholder,
-                              paymentData.text.nameOnCardPlaceholderEn,
-                            )}
+                            placeholder={paymentData.text.nameOnCardPlaceholder}
                             value={cardholderName}
                             onChange={(e) => setCardholderName(e.target.value)}
                             className="self-stretch h-12 md:h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C]"
@@ -357,10 +332,7 @@ export default function CustomStripeForm({
                         </div>
                         <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            <TranslatedText
-                              text={paymentData.text.expiryLabel}
-                              english={paymentData.text.expiryLabelEn}
-                            />
+                            {paymentData.text.expiryLabel}
                           </div>
                           <StripeInput component={CardExpiryElement} />
                         </div>
@@ -370,19 +342,13 @@ export default function CustomStripeForm({
                       <div className="self-stretch flex flex-col md:flex-row justify-start items-start gap-4">
                         <div className="w-full md:flex-1 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            <TranslatedText
-                              text={paymentData.text.cardNumberLabel}
-                              english={paymentData.text.cardNumberLabelEn}
-                            />
+                            {paymentData.text.cardNumberLabel}
                           </div>
                           <StripeInput component={CardNumberElement} />
                         </div>
                         <div className="w-full md:w-32 inline-flex flex-col justify-start items-start gap-2">
                           <div className="justify-start text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-relaxed">
-                            <TranslatedText
-                              text={paymentData.text.cvvLabel}
-                              english={paymentData.text.cvvLabelEn}
-                            />
+                            {paymentData.text.cvvLabel}
                           </div>
                           <StripeInput component={CardCvcElement} />
                         </div>
@@ -481,16 +447,10 @@ export default function CustomStripeForm({
                     {isProcessing ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <TranslatedText
-                          text={paymentData.text.processingButton}
-                          english={paymentData.text.processingButtonEn}
-                        />
+                        {paymentData.text.processingButton}
                       </>
                     ) : (
-                      <TranslatedText
-                        text={paymentData.text.confirmButton}
-                        english={paymentData.text.confirmButtonEn}
-                      />
+                      <>{paymentData.text.confirmButton}</>
                     )}
                   </div>
                 </button>

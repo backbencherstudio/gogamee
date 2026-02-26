@@ -8,15 +8,12 @@ import {
   type WhyChooseUs,
   type AboutContent,
 } from "../../../../services/aboutService";
-import { useLanguage } from "../../../context/LanguageContext";
-import { TranslatedText } from "../../_components/TranslatedText";
 
 interface AboutPageProps {
   initialContent?: AboutContent;
 }
 
 export default function AboutPage({ initialContent }: AboutPageProps) {
-  const { language, translateText } = useLanguage();
   const [sections, setSections] = useState<MainSection[]>(
     initialContent?.sections || [],
   );
@@ -31,18 +28,6 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
       "Experience unforgettable live sports adventures.",
   );
 
-  const [translatedSections, setTranslatedSections] = useState<MainSection[]>(
-    initialContent?.sections || [],
-  );
-  const [translatedValues, setTranslatedValues] = useState<OurValue[]>(
-    initialContent?.values?.items || [],
-  );
-  const [translatedWhyChooseUs, setTranslatedWhyChooseUs] = useState<
-    WhyChooseUs[]
-  >(initialContent?.whyChooseUs?.items || []);
-  const [translatedHeadline, setTranslatedHeadline] = useState(
-    initialContent?.headline || "",
-  );
   const [loading, setLoading] = useState<boolean>(!initialContent);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,56 +61,6 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
     fetchAboutData();
   }, [initialContent]);
 
-  // Translate content when language changes
-  useEffect(() => {
-    const translateContent = async () => {
-      // Translate all content using auto-detection
-      const [
-        translatedHeadlineText,
-        translatedSectionsData,
-        translatedValuesData,
-        translatedWhyChooseUsData,
-      ] = await Promise.all([
-        translateText(headline),
-        Promise.all(
-          sections.map(async (section) => ({
-            ...section,
-            title: await translateText(section.title),
-            description: await translateText(section.description),
-          })),
-        ),
-        Promise.all(
-          values.map(async (value) => ({
-            ...value,
-            title: await translateText(value.title),
-            description: await translateText(value.description),
-          })),
-        ),
-        Promise.all(
-          whyChooseUs.map(async (item) => ({
-            ...item,
-            title: await translateText(item.title),
-            description: await translateText(item.description),
-          })),
-        ),
-      ]);
-
-      setTranslatedHeadline(translatedHeadlineText);
-      setTranslatedSections(translatedSectionsData);
-      setTranslatedValues(translatedValuesData);
-      setTranslatedWhyChooseUs(translatedWhyChooseUsData);
-    };
-
-    if (
-      sections.length > 0 ||
-      values.length > 0 ||
-      whyChooseUs.length > 0 ||
-      headline
-    ) {
-      translateContent();
-    }
-  }, [language, sections, values, whyChooseUs, headline, translateText]);
-
   return (
     <div className="w-full bg-[#FCFEFB] py-12 md:py-16 lg:py-24">
       <div className="w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-0">
@@ -133,7 +68,7 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
         <div className="flex flex-col justify-start items-center gap-6 lg:gap-12 mb-8 lg:mb-12">
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="text-center text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              {translatedHeadline || headline}
+              {headline}
             </div>
           </div>
         </div>
@@ -144,7 +79,7 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
             {loading ? (
               <div className="flex justify-center items-center py-12">
                 <div className="text-neutral-600 text-lg font-medium">
-                  Loading about page content...
+                  Cargando...
                 </div>
               </div>
             ) : error ? (
@@ -154,14 +89,14 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
                   onClick={() => window.location.reload()}
                   className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"
                 >
-                  Try Again
+                  Intentar de nuevo
                 </button>
               </div>
             ) : (
               <div className="flex flex-col gap-8 md:gap-10 w-full">
                 {/* Dynamic Sections (only if data exists) */}
-                {translatedSections.length > 0 &&
-                  translatedSections.map((section, index) => (
+                {sections.length > 0 &&
+                  sections.map((section, index) => (
                     <React.Fragment key={section.id}>
                       <div className="flex flex-col gap-4 md:gap-5 w-full">
                         <div className="flex items-center gap-2 md:gap-3">
@@ -173,30 +108,27 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
                           {section.description}
                         </div>
                       </div>
-                      {index < translatedSections.length - 1 && (
+                      {index < sections.length - 1 && (
                         <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
                       )}
                     </React.Fragment>
                   ))}
 
-                {translatedSections.length > 0 && (
+                {sections.length > 0 && (
                   <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
                 )}
 
                 {/* Our Values Section (only if data exists) */}
-                {translatedValues.length > 0 && (
+                {values.length > 0 && (
                   <>
                     <div className="flex flex-col gap-4 md:gap-5 w-full">
                       <div className="flex items-center gap-2 md:gap-3">
                         <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9">
-                          <TranslatedText
-                            text="Nuestros valores"
-                            english="Our Values"
-                          />
+                          Nuestros valores
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
-                        {translatedValues.map((value) => (
+                        {values.map((value) => (
                           <div key={value.id} className="flex flex-col gap-2">
                             <div className="text-lime-900 text-base md:text-lg font-medium font-['Poppins']">
                               {value.title}
@@ -214,19 +146,16 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
                 )}
 
                 {/* Why Choose Us Section (only if data exists) */}
-                {translatedWhyChooseUs.length > 0 && (
+                {whyChooseUs.length > 0 && (
                   <>
                     <div className="flex flex-col gap-4 md:gap-5 w-full">
                       <div className="flex items-center gap-2 md:gap-3">
                         <div className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9">
-                          <TranslatedText
-                            text="¿Por qué elegir GoGame?"
-                            english="Why Choose Us"
-                          />
+                          ¿Por qué elegir GoGame?
                         </div>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 w-full">
-                        {translatedWhyChooseUs.map((item) => (
+                        {whyChooseUs.map((item) => (
                           <div key={item.id} className="flex flex-col gap-2">
                             <div className="text-lime-900 text-base md:text-lg font-medium font-['Poppins']">
                               {item.title}
@@ -246,10 +175,8 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
                 {/* CTA Section */}
                 <div className="flex flex-col gap-4 md:gap-5 w-full">
                   <div className="text-center text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full">
-                    <TranslatedText
-                      text="¿Listo para vivir el deporte como nunca antes? Elige tu pack."
-                      english="Ready to play the game of your life? Discover your pack today."
-                    />
+                    ¿Listo para vivir el deporte como nunca antes? Elige tu
+                    pack.
                   </div>
                   <div className="flex justify-center w-full pt-4">
                     <Link
@@ -257,10 +184,7 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
                       className="px-6 py-3 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
                     >
                       <span className="text-center text-white text-lg font-normal font-['Inter'] leading-7">
-                        <TranslatedText
-                          text="Empieza el juego"
-                          english="Start the Game"
-                        />
+                        Empieza el juego
                       </span>
                     </Link>
                   </div>

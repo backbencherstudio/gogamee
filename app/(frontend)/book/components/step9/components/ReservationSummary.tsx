@@ -1,29 +1,23 @@
 import React from "react";
 import { FaPlane } from "react-icons/fa";
-import { TranslatedText } from "../../../../_components/TranslatedText";
+import { personalInfoData } from "../../../../../lib/appdata";
 import { PricingSummary } from "./PricingSummary";
 
 interface ReservationSummaryProps {
   reservationData: any;
   personalInfoData: any;
   formData: any;
-  t: (es: string, en: string) => string;
 }
-
 export const ReservationSummary: React.FC<ReservationSummaryProps> = ({
   reservationData,
   personalInfoData,
   formData,
-  t,
 }) => {
   return (
     <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4 md:gap-5">
       <div className="self-stretch inline-flex justify-start items-center gap-2">
         <div className="justify-start text-neutral-800 text-lg font-semibold font-['Poppins'] leading-loose">
-          <TranslatedText
-            text={personalInfoData.text.reservationTitle}
-            english="Your Reservation Summary"
-          />
+          {personalInfoData.text.reservationTitle}
         </div>
       </div>
       <div className="w-full p-3 md:p-6 bg-white rounded-xl outline-1 outline-offset-[-1px] outline-green-50 flex flex-col justify-start items-start gap-3 md:gap-5">
@@ -31,10 +25,7 @@ export const ReservationSummary: React.FC<ReservationSummaryProps> = ({
           <div className="flex-1 flex justify-start items-center gap-4">
             <div className="flex-1 inline-flex flex-col justify-start items-start gap-1.5">
               <div className="justify-center text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
-                <TranslatedText
-                  text={personalInfoData.text.flightHotel}
-                  english={personalInfoData.text.flightHotelEn}
-                />
+                {personalInfoData.text.flightHotel}
               </div>
             </div>
           </div>
@@ -49,11 +40,8 @@ export const ReservationSummary: React.FC<ReservationSummaryProps> = ({
                   </div>
                   <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
                     <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none whitespace-nowrap">
-                      {t(
-                        personalInfoData.text.departure,
-                        personalInfoData.text.departureEn,
-                      )}
-                      : {reservationData.departureCity}
+                      {personalInfoData.text.departure}:{" "}
+                      {reservationData.departureCity}
                     </div>
                     <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">
                       {reservationData.departureDate}
@@ -75,15 +63,8 @@ export const ReservationSummary: React.FC<ReservationSummaryProps> = ({
                   </div>
                   <div className="flex-1 md:w-32 inline-flex flex-col justify-start items-start gap-1.5">
                     <div className="justify-center text-neutral-800 text-sm md:text-base font-medium font-['Poppins'] leading-none whitespace-nowrap">
-                      {t(
-                        personalInfoData.text.arrival,
-                        personalInfoData.text.arrivalEn,
-                      )}
-                      :{" "}
-                      {t(
-                        personalInfoData.text.backTo,
-                        personalInfoData.text.backToEn,
-                      )}{" "}
+                      {personalInfoData.text.arrival}:{" "}
+                      {personalInfoData.text.backTo}{" "}
                       {reservationData.departureCity}
                     </div>
                     <div className="self-stretch justify-center text-zinc-500 text-xs md:text-sm font-normal font-['Poppins'] leading-relaxed">

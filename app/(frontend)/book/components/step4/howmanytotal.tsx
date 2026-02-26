@@ -5,8 +5,6 @@ import { useForm, Controller } from "react-hook-form";
 import { HiMinus, HiPlus } from "react-icons/hi2";
 import { useBooking } from "../../context/BookingContext";
 import { BOOKING_CONSTANTS } from "../../context/BookingContext";
-import { TranslatedText } from "../../../_components/TranslatedText";
-import { useLanguage } from "../../../../context/LanguageContext";
 
 // Types
 interface CounterFormData {
@@ -123,8 +121,6 @@ const CounterItem: React.FC<CounterItemProps> = ({
 // Main Component
 export default function HowManyTotal() {
   const { formData, updateFormData, nextStep } = useBooking();
-  const { language } = useLanguage();
-  const t = (es: string, en: string) => (language === "en" ? en : es);
 
   // Calculate default values from existing data or defaults
   const getDefaultValues = useCallback((): CounterFormData => {
@@ -267,10 +263,7 @@ export default function HowManyTotal() {
           {/* Header */}
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
             <h2 className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-              <TranslatedText
-                text="¿Cuántos fanáticos/as viajarán?"
-                english="How many are you?"
-              />
+              ¿Cuántos fanáticos/as viajarán?
             </h2>
           </div>
 
@@ -287,17 +280,17 @@ export default function HowManyTotal() {
                     <CounterItem
                       title={
                         key === "adults"
-                          ? t("Adultos", "Adults")
+                          ? "Adultos"
                           : key === "kids"
-                            ? t("Niños o niñas", "Kids")
-                            : t("Bebés", "Baby")
+                            ? "Niños o niñas"
+                            : "Bebés"
                       }
                       description={
                         key === "adults"
-                          ? t("12 años o más", "12 years or more")
+                          ? "12 años o más"
                           : key === "kids"
-                            ? t("De 2 a 11 años", "2-11 years old")
-                            : t("De 0 a 2 años", "0 to 2 years old")
+                            ? "De 2 a 11 años"
+                            : "De 0 a 2 años"
                       }
                       count={field.value}
                       onIncrement={() =>
@@ -318,16 +311,12 @@ export default function HowManyTotal() {
             {totalCount === 1 && (
               <div className="w-full xl:w-[600px] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900">
                 <div className="text-sm xl:text-base font-medium font-['Poppins']">
-                  <TranslatedText
-                    text={`Suplemento de viajero individual: se aplicarán ${BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT}€.`}
-                    english={`Single traveler supplement: ${BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT}€ will be applied.`}
-                  />
+                  Suplemento de viajero individual: se aplicarán{" "}
+                  {BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT}€.
                 </div>
                 <div className="text-xs xl:text-sm text-zinc-600 font-['Poppins'] mt-1">
-                  <TranslatedText
-                    text="Esta tarifa solo se aplica cuando se viaja solo y aparecerá en su resumen final."
-                    english="This fee applies only when traveling alone and will appear in your final summary."
-                  />
+                  Esta tarifa solo se aplica cuando se viaja solo y aparecerá en
+                  su resumen final.
                 </div>
               </div>
             )}
@@ -336,7 +325,7 @@ export default function HowManyTotal() {
               className="w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
             >
               <span className="text-center justify-start text-white text-base font-normal font-['Inter']">
-                <TranslatedText text="Siguiente" english="Next" />
+                Siguiente
               </span>
             </button>
           </div>

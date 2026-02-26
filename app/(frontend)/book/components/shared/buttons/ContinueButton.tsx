@@ -1,13 +1,11 @@
 "use client";
 
 import React from "react";
-import { TranslatedText } from "../../../../_components/TranslatedText";
 
 interface ContinueButtonProps {
   onClick: () => void;
   disabled?: boolean;
   text?: string;
-  englishText?: string;
   className?: string;
 }
 
@@ -19,7 +17,6 @@ export function ContinueButton({
   onClick,
   disabled = false,
   text = "Continuar",
-  englishText = "Continue",
   className = "",
 }: ContinueButtonProps) {
   const baseStyles =
@@ -36,7 +33,7 @@ export function ContinueButton({
       type="button"
     >
       <div className="text-center text-white text-sm font-medium font-['Poppins'] leading-snug">
-        <TranslatedText text={text} english={englishText} />
+        {text}
       </div>
     </button>
   );

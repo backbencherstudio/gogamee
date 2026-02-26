@@ -14,121 +14,49 @@ import PersonalInfo from "./components/step9/personalinfo";
 import Payment from "./components/step10/payment";
 import Stepper from "./components/stepper/stepper";
 import { BookingProvider, useBooking } from "./context/BookingContext";
-import { TranslatedText } from "../_components/TranslatedText";
-
 // Component that uses the context (needs to be inside provider)
 function BookingContent() {
   const { currentStep, goToStep, isHydrated, formData } = useBooking();
   const steps = [
     {
       id: 1,
-      title: (
-        <TranslatedText
-          text="Sports"
-          english="Sports"
-          spanish="Deporte"
-          skipTranslation
-        />
-      ),
+      title: "Deporte",
     },
     {
       id: 2,
-      title: (
-        <TranslatedText
-          text="Package Type"
-          english="Package Type"
-          spanish="Tipo de Pack"
-          skipTranslation
-        />
-      ),
+      title: "Tipo de Pack",
     },
     {
       id: 3,
-      title: (
-        <TranslatedText
-          text="Departure City"
-          english="Departure City"
-          spanish="Ciudad de Salida"
-          skipTranslation
-        />
-      ),
+      title: "Ciudad de Salida",
     },
     {
       id: 4,
-      title: (
-        <TranslatedText
-          text="Total Travelers"
-          english="Total Travelers"
-          spanish="Total Viajeros"
-          skipTranslation
-        />
-      ),
+      title: "Total Viajeros",
     },
     {
       id: 5,
-      title: (
-        <TranslatedText
-          text="Leagues"
-          english="Leagues"
-          spanish="Ligas"
-          skipTranslation
-        />
-      ),
+      title: "Ligas",
     },
     {
       id: 6,
-      title: (
-        <TranslatedText
-          text="Date Selection"
-          english="Date Selection"
-          spanish="Selección de Fechas"
-          skipTranslation
-        />
-      ),
+      title: "Selección de Fechas",
     },
     {
       id: 7,
-      title: (
-        <TranslatedText
-          text="Flight Schedule"
-          english="Flight Schedule"
-          spanish="Horario de Vuelos"
-          skipTranslation
-        />
-      ),
+      title: "Horario de Vuelos",
     },
     {
       id: 8,
-      title: (
-        <TranslatedText
-          text="Extras"
-          english="Extras"
-          spanish="Extras"
-          skipTranslation
-        />
-      ),
+      title: "Extras",
     },
     {
       id: 9,
-      title: (
-        <TranslatedText
-          text="Personal Information"
-          english="Personal Information"
-          spanish="Información Personal"
-          skipTranslation
-        />
-      ),
+      title: "Información Personal",
     },
     {
       id: 10,
-      title: (
-        <TranslatedText
-          text="Payment"
-          english="Payment"
-          spanish="Pago"
-          skipTranslation
-        />
-      ),
+      title: "Pago",
     },
   ];
 
@@ -202,16 +130,11 @@ function BookingContent() {
               <span className="text-lime-600 text-sm">🎯</span>
               <div className="flex flex-col">
                 <span className="text-lime-700 text-xs font-medium">
-                  <TranslatedText
-                    text="Pasos del 1-4 rellenados desde la página de inicio."
-                    english="Steps 1-4 pre-filled from home page"
-                  />
+                  Pasos del 1-4 rellenados desde la página de inicio.
                 </span>
                 <span className="text-lime-600 text-xs">
-                  <TranslatedText
-                    text="¡Puedes revisarlos/modificarlos clicando en los pasos anteriores!"
-                    english="You can review/modify by clicking on previous steps"
-                  />
+                  ¡Puedes revisarlos/modificarlos clicando en los pasos
+                  anteriores!
                 </span>
               </div>
             </div>

@@ -23,8 +23,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "../../../../../components/ui/toast";
-import { TranslatedText } from "@/app/(frontend)/_components/TranslatedText";
-import { useLanguage } from "@/app/context/LanguageContext";
+
 import {
   updateBooking,
   BookingItem,
@@ -40,7 +39,7 @@ export default function BookingSummaryModal({
   onStatusUpdate,
 }: BookingSummaryModalProps) {
   const { addToast } = useToast();
-  const { translateText } = useLanguage();
+  const translateText = (t: string) => t;
   const [isOpen, setIsOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [destinationCity, setDestinationCity] = useState(
@@ -156,7 +155,7 @@ export default function BookingSummaryModal({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium shadow-sm">
-          <TranslatedText text="View Booking Summary" />
+          View Booking Summary
         </Button>
       </DialogTrigger>
       <DialogContent className="min-w-[50vw] max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-lg">
@@ -169,7 +168,7 @@ export default function BookingSummaryModal({
 
             {/* Booking ID and Date */}
             <DialogDescription className="text-sm text-gray-600">
-              <TranslatedText text="Booking ID" />:{" "}
+              Booking ID:{" "}
               {bookingData.bookingReference ||
                 bookingData.id ||
                 bookingData._id}{" "}
@@ -183,7 +182,7 @@ export default function BookingSummaryModal({
             <div className="flex flex-col sm:flex-row gap-4 mt-2">
               <div className="flex-1 bg-gray-50 rounded-lg p-3 border border-gray-100 flex items-center justify-between">
                 <span className="text-sm text-gray-500 font-medium">
-                  <TranslatedText text="Booking Status" />:
+                  Booking Status:
                 </span>
                 <Badge
                   className={`${
@@ -201,7 +200,7 @@ export default function BookingSummaryModal({
               </div>
               <div className="flex-1 bg-gray-50 rounded-lg p-3 border border-gray-100 flex items-center justify-between">
                 <span className="text-sm text-gray-500 font-medium">
-                  <TranslatedText text="Payment Status" />:
+                  Payment Status:
                 </span>
                 <Badge
                   className={`${
@@ -228,57 +227,55 @@ export default function BookingSummaryModal({
           <Card className="border border-[#6AAD3C]/20 bg-white">
             <CardHeader className="pb-3 border-b border-[#6AAD3C]/10">
               <CardTitle className="text-lg font-bold text-[#6AAD3C]">
-                <TranslatedText text="Trip Overview" />
+                Trip Overview
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase">
-                    <TranslatedText text="Sport" />
+                    Sport
                   </p>
                   <p className="text-sm font-semibold text-black capitalize">
-                    <TranslatedText text={bookingData.selection?.sport || ""} />
+                    {bookingData.selection?.sport || ""}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase">
-                    <TranslatedText text="Package" />
+                    Package
                   </p>
                   <p className="text-sm font-semibold text-black capitalize">
-                    <TranslatedText
-                      text={bookingData.selection?.package || ""}
-                    />
+                    {bookingData.selection?.package || ""}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase">
-                    <TranslatedText text="Departure City" />
+                    Departure City
                   </p>
                   <p className="text-sm font-semibold text-black capitalize">
-                    <TranslatedText text={bookingData.selection?.city || ""} />
+                    {bookingData.selection?.city || ""}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase">
-                    <TranslatedText text="Competition" />
+                    Competition
                   </p>
                   <p className="text-sm font-semibold text-black capitalize">
-                    <TranslatedText text={getCompetitionLabel()} />
+                    {getCompetitionLabel()}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase">
-                    <TranslatedText text="Travel Duration" />
+                    Travel Duration
                   </p>
                   <p className="text-sm font-semibold text-black">
-                    {calculateNights()} <TranslatedText text="Nights" />
+                    {calculateNights()} Nights
                   </p>
                 </div>
                 {(destinationCity || bookingData.destinationCity) && (
                   <div>
                     <p className="text-xs font-medium text-gray-500 uppercase">
-                      <TranslatedText text="Target Destination" />
+                      Target Destination
                     </p>
                     <p className="text-sm font-semibold text-black">
                       {destinationCity || bookingData.destinationCity}
@@ -288,7 +285,7 @@ export default function BookingSummaryModal({
                 {(assignedMatch || bookingData.assignedMatch) && (
                   <div className="md:col-span-2">
                     <p className="text-xs font-medium text-gray-500 uppercase">
-                      <TranslatedText text="Assigned Match" />
+                      Assigned Match
                     </p>
                     <p className="text-sm font-semibold text-black">
                       {assignedMatch || bookingData.assignedMatch}
@@ -303,14 +300,14 @@ export default function BookingSummaryModal({
           <Card className="border border-gray-300 bg-white">
             <CardHeader className="pb-3 border-b border-gray-200">
               <CardTitle className="text-lg font-bold text-black">
-                <TranslatedText text="Travel Dates" />
+                Travel Dates
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase mb-1">
-                    <TranslatedText text="Departure" />
+                    Departure
                   </p>
                   <p className="text-sm font-semibold text-black">
                     {formatDate(bookingData.dates?.departure)}
@@ -321,7 +318,7 @@ export default function BookingSummaryModal({
                 </div>
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase mb-1">
-                    <TranslatedText text="Return" />
+                    Return
                   </p>
                   <p className="text-sm font-semibold text-black">
                     {formatDate(bookingData.dates?.return)}
@@ -340,14 +337,14 @@ export default function BookingSummaryModal({
           <Card className="border border-gray-300 bg-white">
             <CardHeader className="pb-3 border-b border-gray-200">
               <CardTitle className="text-lg font-bold text-black">
-                <TranslatedText text="Travelers" />
+                Travelers
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="grid grid-cols-3 gap-3">
                 <div className="text-center">
                   <p className="text-xs font-medium text-gray-500 uppercase mb-1">
-                    <TranslatedText text="Adults" />
+                    Adults
                   </p>
                   <p className="text-lg font-bold text-black">
                     {adults.length}
@@ -355,13 +352,13 @@ export default function BookingSummaryModal({
                 </div>
                 <div className="text-center">
                   <p className="text-xs font-medium text-gray-500 uppercase mb-1">
-                    <TranslatedText text="Kids" />
+                    Kids
                   </p>
                   <p className="text-lg font-bold text-black">{kids.length}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs font-medium text-gray-500 uppercase mb-1">
-                    <TranslatedText text="Babies" />
+                    Babies
                   </p>
                   <p className="text-lg font-bold text-black">
                     {babies.length}
@@ -370,9 +367,7 @@ export default function BookingSummaryModal({
               </div>
               <div className="mt-3 pt-3 border-t border-gray-200 text-center">
                 <p className="text-sm font-semibold text-black">
-                  <TranslatedText text="Total" />:{" "}
-                  {bookingData.travelers?.totalCount || 0}{" "}
-                  <TranslatedText text="People" />
+                  Total: {bookingData.travelers?.totalCount || 0} People
                 </p>
               </div>
             </CardContent>
@@ -383,7 +378,7 @@ export default function BookingSummaryModal({
             <Card className="border border-gray-300 bg-white">
               <CardHeader className="pb-3 border-b border-gray-200">
                 <CardTitle className="text-lg font-bold text-black">
-                  <TranslatedText text="Previous Travel Information" />
+                  Previous Travel Information
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
@@ -399,10 +394,9 @@ export default function BookingSummaryModal({
             <Card className="border border-gray-300 bg-white">
               <CardHeader className="pb-3 border-b border-gray-200">
                 <CardTitle className="text-lg font-bold text-black flex items-center gap-2">
-                  <TranslatedText text="Removed Leagues" />
+                  Removed Leagues
                   <span className="text-red-500 text-sm font-normal">
-                    ({bookingData.leagues.removedCount}{" "}
-                    <TranslatedText text="Removed" />)
+                    ({bookingData.leagues.removedCount} Removed)
                   </span>
                 </CardTitle>
               </CardHeader>
@@ -431,7 +425,7 @@ export default function BookingSummaryModal({
           <Card className="border border-gray-300 bg-white">
             <CardHeader className="pb-3 border-b border-gray-200">
               <CardTitle className="text-lg font-bold text-black">
-                <TranslatedText text="Selected Extras" />
+                Selected Extras
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
@@ -444,22 +438,16 @@ export default function BookingSummaryModal({
                       className="flex items-center justify-between p-3 border border-gray-200 rounded"
                     >
                       <div>
-                        <p className="font-semibold text-black">
-                          <TranslatedText text={extra.name} />
-                        </p>
+                        <p className="font-semibold text-black">{extra.name}</p>
                         <p className="text-xs text-gray-600">
-                          <TranslatedText text="Quantity" />: {extra.quantity} ×{" "}
-                          {extra.price === 0 ? (
-                            <TranslatedText text="Free" />
-                          ) : (
-                            `€${extra.price}`
-                          )}
+                          Quantity: {extra.quantity} ×{" "}
+                          {extra.price === 0 ? "Free" : `€${extra.price}`}
                         </p>
                       </div>
                       <div className="text-right">
                         {extra.price === 0 ? (
                           <span className="text-xs font-medium text-gray-500">
-                            <TranslatedText text="INCLUDED" />
+                            INCLUDED
                           </span>
                         ) : (
                           <div className="font-bold text-black">
@@ -471,7 +459,7 @@ export default function BookingSummaryModal({
                   ))}
                   <div className="mt-3 pt-3 border-t border-gray-300 flex items-center justify-between">
                     <span className="font-semibold text-black">
-                      <TranslatedText text="Subtotal Extras" />
+                      Subtotal Extras
                     </span>
                     <span className="text-lg font-bold text-black">
                       €{formatCurrency(bookingData.extras?.totalCost)}
@@ -481,7 +469,7 @@ export default function BookingSummaryModal({
               ) : (
                 <div className="py-6 text-center border border-dashed border-gray-300 rounded">
                   <p className="text-sm text-gray-500">
-                    <TranslatedText text="No extras selected for this booking" />
+                    No extras selected for this booking
                   </p>
                 </div>
               )}
@@ -492,7 +480,7 @@ export default function BookingSummaryModal({
           <Card className="border border-gray-300 bg-white">
             <CardHeader className="pb-3 border-b border-gray-200">
               <CardTitle className="text-lg font-bold text-black">
-                <TranslatedText text="Payment Summary" />
+                Payment Summary
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
@@ -504,7 +492,7 @@ export default function BookingSummaryModal({
                       className="flex items-center justify-between text-sm"
                     >
                       <span className="text-gray-600">
-                        <TranslatedText text={item.description} />
+                        {item.description}
                         {item.quantity && item.quantity > 1
                           ? ` (x${item.quantity})`
                           : ""}
@@ -520,11 +508,10 @@ export default function BookingSummaryModal({
                   <div className="flex items-center justify-between p-3 bg-[#6AAD3C] text-white rounded">
                     <div>
                       <p className="text-xs font-medium uppercase">
-                        <TranslatedText text="Total Amount Paid" />
+                        Total Amount Paid
                       </p>
                       <p className="text-xs opacity-80">
-                        {bookingData.travelers?.totalCount}{" "}
-                        <TranslatedText text="Traveler" />
+                        {bookingData.travelers?.totalCount} Traveler
                         {bookingData.travelers?.totalCount > 1 ? "s" : ""}
                       </p>
                     </div>
@@ -552,11 +539,10 @@ export default function BookingSummaryModal({
                   <div className="flex items-center justify-between p-3 bg-[#6AAD3C] text-white rounded">
                     <div>
                       <p className="text-xs font-medium uppercase">
-                        <TranslatedText text="Total Amount Paid" />
+                        Total Amount Paid
                       </p>
                       <p className="text-xs opacity-80">
-                        {bookingData.travelers?.totalCount}{" "}
-                        <TranslatedText text="Traveler" />
+                        {bookingData.travelers?.totalCount} Traveler
                         {bookingData.travelers?.totalCount > 1 ? "s" : ""}
                       </p>
                     </div>
@@ -591,8 +577,7 @@ export default function BookingSummaryModal({
                     All Travelers Information
                   </CardTitle>
                   <p className="text-xs text-gray-500 font-medium">
-                    {allTravelers.length}{" "}
-                    <TranslatedText text="People Registered" />
+                    {allTravelers.length} People Registered
                   </p>
                 </div>
                 <div
@@ -636,7 +621,7 @@ export default function BookingSummaryModal({
                           </div>
                           {traveler.isPrimary && (
                             <span className="text-xs font-medium text-gray-500 uppercase">
-                              <TranslatedText text="Primary Contact" />
+                              Primary Contact
                             </span>
                           )}
                         </div>
@@ -645,7 +630,7 @@ export default function BookingSummaryModal({
                           {traveler.email && (
                             <div className="flex flex-col gap-1">
                               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                <TranslatedText text="Email" />
+                                Email
                               </span>
                               <div className="flex items-center gap-2">
                                 <Mail className="h-3.5 w-3.5 text-gray-400" />
@@ -658,7 +643,7 @@ export default function BookingSummaryModal({
                           {traveler.phone && (
                             <div className="flex flex-col gap-1">
                               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                <TranslatedText text="Phone" />
+                                Phone
                               </span>
                               <div className="flex items-center gap-2">
                                 <Phone className="h-3.5 w-3.5 text-gray-400" />
@@ -671,7 +656,7 @@ export default function BookingSummaryModal({
                           {traveler.dateOfBirth && (
                             <div className="flex flex-col gap-1">
                               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                <TranslatedText text="Date of Birth" />
+                                Date of Birth
                               </span>
                               <div className="flex items-center gap-2">
                                 <CalendarIcon className="h-3.5 w-3.5 text-gray-400" />
@@ -704,7 +689,7 @@ export default function BookingSummaryModal({
                   <div className="p-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
                     <Users className="h-8 w-8 text-gray-300 mx-auto mb-3" />
                     <p className="text-sm text-gray-500 font-medium font-['Poppins']">
-                      <TranslatedText text="No additional traveler details available" />
+                      No additional traveler details available
                     </p>
                   </div>
                 )}
@@ -716,19 +701,17 @@ export default function BookingSummaryModal({
           <Card className="border border-gray-300 bg-white">
             <CardHeader className="pb-3 border-b border-gray-200">
               <CardTitle className="text-lg font-bold text-black">
-                <TranslatedText text="Payment & Timing" />
+                Payment & Timing
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase">
-                    <TranslatedText text="Payment Method" />
+                    Payment Method
                   </p>
                   <p className="text-sm font-semibold text-black capitalize">
-                    <TranslatedText
-                      text={bookingData.payment?.method || "N/A"}
-                    />
+                    {bookingData.payment?.method || "N/A"}
                   </p>
                 </div>
                 <div>
@@ -736,14 +719,12 @@ export default function BookingSummaryModal({
                     Payment Status
                   </p>
                   <p className="text-sm font-semibold text-black capitalize">
-                    <TranslatedText
-                      text={bookingData.payment?.status || "N/A"}
-                    />
+                    {bookingData.payment?.status || "N/A"}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs font-medium text-gray-500 uppercase">
-                    <TranslatedText text="Booking Date" />
+                    Booking Date
                   </p>
                   <p className="text-sm font-semibold text-black">
                     {formatDate(bookingData.createdAt)}{" "}
@@ -758,23 +739,25 @@ export default function BookingSummaryModal({
           <Card className="border border-gray-300 bg-white mt-4">
             <CardHeader className="pb-3 border-b border-gray-200 flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-bold text-black">
-                <TranslatedText text="GoGame Internal Management" />
+                GoGame Internal Management
               </CardTitle>
               <span className="text-xs font-medium text-gray-500 uppercase">
-                <TranslatedText text="Admin Only" />
+                Admin Only
               </span>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
               <div className="p-3 bg-gray-50 rounded border border-gray-200">
                 <p className="text-xs text-gray-600">
-                  <TranslatedText text="Reveal destination and match details to customers 48 hours before departure. Ensure these fields are filled before approving the booking." />
+                  Reveal destination and match details to customers 48 hours
+                  before departure. Ensure these fields are filled before
+                  approving the booking.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-gray-500 uppercase">
-                    <TranslatedText text="Destination City" /> *
+                    Destination City *
                   </label>
                   <input
                     type="text"
@@ -789,7 +772,7 @@ export default function BookingSummaryModal({
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-gray-500 uppercase">
-                    <TranslatedText text="Assigned Match" /> *
+                    Assigned Match *
                   </label>
                   <input
                     type="text"
@@ -872,7 +855,7 @@ export default function BookingSummaryModal({
                 disabled={isProcessing}
                 className="bg-[#6AAD3C] hover:bg-[#5a9332] text-white px-6 py-2 rounded font-semibold transition-all"
               >
-                <TranslatedText text="Approve Booking" />
+                Approve Booking
               </Button>
             )}
 
@@ -920,7 +903,7 @@ export default function BookingSummaryModal({
                 disabled={isProcessing}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-semibold transition-all"
               >
-                <TranslatedText text="Update Details" />
+                Update Details
               </Button>
             )}
 
@@ -972,7 +955,7 @@ export default function BookingSummaryModal({
                 disabled={isProcessing}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded font-semibold transition-all"
               >
-                <TranslatedText text="Complete Booking" />
+                Complete Booking
               </Button>
             )}
 
@@ -1025,7 +1008,7 @@ export default function BookingSummaryModal({
                 variant="destructive"
                 className="bg-white hover:bg-gray-50 text-red-600 border border-red-300 px-6 py-2 rounded font-semibold transition-all"
               >
-                <TranslatedText text="Reject Booking" />
+                Reject Booking
               </Button>
             )}
 
@@ -1034,7 +1017,7 @@ export default function BookingSummaryModal({
               variant="ghost"
               className="text-gray-600 hover:text-[#6AAD3C] hover:bg-[#F1F9EC] px-6 py-2 rounded font-medium transition-all"
             >
-              <TranslatedText text="Close" />
+              Close
             </Button>
           </div>
         </div>

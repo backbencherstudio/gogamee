@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { TranslatedText } from '../../_components/TranslatedText'
+
 import Link from 'next/link'
 
 // Force dynamic rendering
@@ -54,39 +54,30 @@ function SuccessContent() {
 
         {/* Success Message */}
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4 font-['Poppins']">
-          <TranslatedText 
-            text="¡Pago Exitoso!" 
-            english="Payment Successful!" 
-          />
+          ¡Pago Exitoso!
         </h1>
 
         <p className="text-lg text-gray-600 mb-6 font-['Poppins']">
-          <TranslatedText 
-            text="Tu reserva ha sido confirmada y el pago se ha procesado correctamente." 
-            english="Your booking has been confirmed and payment has been processed successfully." 
-          />
+          Tu reserva ha sido confirmada y el pago se ha procesado correctamente.
         </p>
 
         {/* Booking Details */}
         {bookingId && (
           <div className="bg-gray-50 rounded-lg p-6 mb-6 text-left">
             <h2 className="text-xl font-semibold text-gray-800 mb-4 font-['Poppins']">
-              <TranslatedText 
-                text="Detalles de la Reserva" 
-                english="Booking Details" 
-              />
+              Detalles de la Reserva
             </h2>
             <div className="space-y-2">
               <p className="text-gray-700">
                 <span className="font-semibold">
-                  <TranslatedText text="ID de Reserva:" english="Booking ID:" />
+                  ID de Reserva:
                 </span>{' '}
                 <span className="font-mono text-sm">{bookingId}</span>
               </p>
               {sessionId && (
                 <p className="text-gray-700">
                   <span className="font-semibold">
-                    <TranslatedText text="ID de Sesión:" english="Session ID:" />
+                    ID de Sesión:
                   </span>{' '}
                   <span className="font-mono text-sm">{sessionId}</span>
                 </p>
@@ -98,10 +89,7 @@ function SuccessContent() {
         {/* Email Notice */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <p className="text-blue-800 text-sm font-['Poppins']">
-            <TranslatedText 
-              text="📧 Recibirás un correo electrónico de confirmación con todos los detalles de tu reserva en breve." 
-              english="📧 You will receive a confirmation email with all your booking details shortly." 
-            />
+            📧 Recibirás un correo electrónico de confirmación con todos los detalles de tu reserva en breve.
           </p>
         </div>
 
@@ -111,23 +99,20 @@ function SuccessContent() {
             href="/"
             className="px-6 py-3 bg-lime-600 text-white rounded-lg font-semibold hover:bg-lime-700 transition-colors font-['Poppins']"
           >
-            <TranslatedText text="Volver al Inicio" english="Back to Home" />
+            Volver al Inicio
           </Link>
           <Link
             href="/dashboard/allrequest"
             className="px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition-colors font-['Poppins']"
           >
-            <TranslatedText text="Ver Reservas" english="View Bookings" />
+            Ver Reservas
           </Link>
         </div>
 
         {/* Additional Info */}
         <div className="mt-8 pt-6 border-t border-gray-200">
           <p className="text-sm text-gray-500 font-['Poppins']">
-            <TranslatedText 
-              text="Si tienes alguna pregunta sobre tu reserva, no dudes en contactarnos." 
-              english="If you have any questions about your booking, please don't hesitate to contact us." 
-            />
+            Si tienes alguna pregunta sobre tu reserva, no dudes en contactarnos.
           </p>
         </div>
       </div>

@@ -5,8 +5,6 @@ import { useForm } from "react-hook-form";
 
 import { useBooking } from "../../context/BookingContext";
 import { BOOKING_CONSTANTS } from "../../context/BookingContext";
-import { TranslatedText } from "../../../_components/TranslatedText";
-import { useLanguage } from "../../../../context/LanguageContext";
 import {
   personalInfoData,
   pricingData,
@@ -24,10 +22,10 @@ import { TravelerFormFields } from "./components/TravelerFormFields";
 import { ReservationSummary } from "./components/ReservationSummary";
 
 // Utility functions for dynamic data calculation
-const formatDate = (dateString: string, language: string): string => {
+const formatDate = (dateString: string): string => {
   if (!dateString) return "";
   const date = new Date(dateString);
-  return date.toLocaleDateString(language === "en" ? "en-US" : "es-ES", {
+  return date.toLocaleDateString("es-ES", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -68,38 +66,14 @@ type DateRestrictions = {
 
 // Validation Error Keys and Messages
 const ERROR_MESSAGES = {
-  REQUIRED_NAME: {
-    es: "El nombre del viajero es obligatorio",
-    en: "Traveler name is required",
-  },
-  REQUIRED_EMAIL: {
-    es: "El correo electrónico es obligatorio",
-    en: "Email is required",
-  },
-  INVALID_EMAIL: {
-    es: "Dirección de correo electrónico no válida",
-    en: "Invalid email address",
-  },
-  REQUIRED_PHONE: {
-    es: "El teléfono es obligatorio",
-    en: "Phone number is required",
-  },
-  REQUIRED_DOB: {
-    es: "La fecha de nacimiento es obligatoria",
-    en: "Date of birth is required",
-  },
-  REQUIRED_DOC_TYPE: {
-    es: "El tipo de documento es obligatorio",
-    en: "Document type is required",
-  },
-  REQUIRED_DOC_NUM: {
-    es: "El número de documento es obligatorio",
-    en: "Document number is required",
-  },
-  MUST_BE_ADULT: {
-    es: "El viajero principal debe tener más de 18 años",
-    en: "The main traveler must be over 18 years old",
-  },
+  REQUIRED_NAME: "El nombre del viajero es obligatorio",
+  REQUIRED_EMAIL: "El correo electrónico es obligatorio",
+  INVALID_EMAIL: "Dirección de correo electrónico no válida",
+  REQUIRED_PHONE: "El teléfono es obligatorio",
+  REQUIRED_DOB: "La fecha de nacimiento es obligatoria",
+  REQUIRED_DOC_TYPE: "El tipo de documento es obligatorio",
+  REQUIRED_DOC_NUM: "El número de documento es obligatorio",
+  MUST_BE_ADULT: "El viajero principal debe tener más de 18 años",
 };
 
 const usePerNightPricing = () => {
@@ -348,14 +322,16 @@ const loadFromStorage = (): PersonalInfoFormData | null => {
 export default function Personalinfo() {
   const { updateFormData, nextStep, formData } = useBooking();
   const { sumPerNight } = usePerNightPricing();
-  const { language } = useLanguage();
-  const t = (es: string, en: string) => (language === "en" ? en : es);
-
-  const getTranslatedError = (errorKey: string | undefined) => {
+  const getError = (errorKey: string | undefined) => {
     if (!errorKey) return undefined;
-    const messageObj = ERROR_MESSAGES[errorKey as keyof typeof ERROR_MESSAGES];
-    if (messageObj) {
-      return t(messageObj.es, messageObj.en);
+    const message = ERROR_MESSAGES[
+      errorKey as keyof typeof ERROR_MESSAGES
+    ] as any;
+    if (message) {
+      if (typeof message === "object" && "es" in message) {
+        return message.es; // Always return Spanish
+      }
+      return message as string;
     }
     return errorKey;
   };
@@ -459,8 +435,8 @@ export default function Personalinfo() {
       departureCity:
         formData.selectedCity?.charAt(0).toUpperCase() +
           formData.selectedCity?.slice(1) || "Madrid",
-      departureDate: formatDate(formData.departureDate || "", language),
-      returnDate: formatDate(formData.returnDate || "", language),
+      departureDate: formatDate(formData.departureDate || ""),
+      returnDate: formatDate(formData.returnDate || ""),
       duration,
       nights,
       basePrice,
@@ -650,19 +626,15 @@ export default function Personalinfo() {
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
           <div className="self-stretch h-auto xl:h-12 flex flex-col justify-start items-start gap-3">
             <div className="justify-center text-neutral-800 text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-8 xl:leading-10">
-              <TranslatedText
-                text={personalInfoData.text.title}
-                english={personalInfoData.text.titleEn}
-              />
+              {personalInfoData.text.title}
             </div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             <TravelerFormFields
               control={control}
               errors={errors}
-              t={t}
               personalInfoData={personalInfoData}
-              getTranslatedError={getTranslatedError}
+              getError={getError}
               travelerCounts={{
                 adults: formData.travelers?.adults?.length || 1,
                 kids: formData.travelers?.kids?.length || 0,
@@ -675,7 +647,6 @@ export default function Personalinfo() {
               reservationData={reservationData}
               personalInfoData={personalInfoData}
               formData={formData}
-              t={t}
             />
             <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-full md:w-auto">
               <button
@@ -683,10 +654,7 @@ export default function Personalinfo() {
                 className="w-full md:w-44 h-12 md:h-11 px-4 md:px-3.5 py-2 md:py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
               >
                 <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-                  <TranslatedText
-                    text={personalInfoData.text.confirm}
-                    english="Confirm"
-                  />
+                  {personalInfoData.text.confirm}
                 </div>
               </button>
             </div>

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { TranslatedText } from "../../../_components/TranslatedText";
+
 
 export default function HowItWorks() {
   return (
@@ -10,19 +10,11 @@ export default function HowItWorks() {
       <div className="w-full flex flex-col xl:flex-row justify-start items-start xl:items-center gap-4 md:gap-6 xl:gap-24 px-4 xl:px-0">
         <div className="w-full xl:w-[533px]">
           <span className="text-zinc-950 text-3xl md:text-4xl xl:text-5xl font-semibold font-poppins leading-tight xl:leading-[57.60px]">
-            <TranslatedText
-              text="Cómo funciona GoGame"
-              english="How it works"
-              as="span"
-            />
+            Cómo funciona GoGame
           </span>
         </div>
         <div className="flex-1 text-black text-sm md:text-base font-normal font-poppins leading-6 xl:leading-7">
-          <TranslatedText
-            text="Sigue unos pasos muy sencillos y nosotros te sorprenderemos con el viaje deportivo perfecto, totalmente organizado."
-            english="Follow a few easy steps, and we’ll surprise you with the perfect sports trip all planned for you!"
-            as="span"
-          />
+          Sigue unos pasos muy sencillos y nosotros te sorprenderemos con el viaje deportivo perfecto, totalmente organizado.
         </div>
       </div>
 
@@ -41,18 +33,10 @@ export default function HowItWorks() {
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
               <div className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
-                <TranslatedText
-                  text="Personaliza tu aventura"
-                  english="Customize your adventure"
-                  as="span"
-                />
+                Personaliza tu aventura
               </div>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                <TranslatedText
-                  text="Cuéntanos tu deporte favorito (fútbol o basket), desde qué ciudad sales y cuántas personas sois."
-                  english="Tell us your favorite sport, where you're flying from, and your travel dates."
-                  as="span"
-                />
+                Cuéntanos tu deporte favorito (fútbol o basket), desde qué ciudad sales y cuántas personas sois.
               </div>
             </div>
           </div>
@@ -79,18 +63,10 @@ export default function HowItWorks() {
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
               <div className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
-                <TranslatedText
-                  text="Nosotros preparamos la sorpresa"
-                  english="We plan the surprise"
-                  as="span"
-                />
+                Nosotros preparamos la sorpresa
               </div>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                <TranslatedText
-                  text="Nos encargamos de reservar tus vuelos, el hotel y las entradas al partido. Tú solo tienes que esperar al gran momento sorpresa."
-                  english="We'll book your flights, hotel, and game tickets; all you have to do is wait for the big reveal."
-                  as="span"
-                />
+                Nos encargamos de reservar tus vuelos, el hotel y las entradas al partido. Tú solo tienes que esperar al gran momento sorpresa.
               </div>
             </div>
           </div>
@@ -117,18 +93,10 @@ export default function HowItWorks() {
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
               <div className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
-                <TranslatedText
-                  text="Prepárate para irte"
-                  english="Get ready to go"
-                  as="span"
-                />
+                Prepárate para irte
               </div>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                <TranslatedText
-                  text="Recibirás tu plan de viaje secreto. Haz la maleta y empieza a emocionarte: sabrás tu destino 48 horas antes."
-                  english="Receive your secret travel plan. Pack your bags and get excited! You will know where 48 hours before!"
-                  as="span"
-                />
+                Recibirás tu plan de viaje secreto. Haz la maleta y empieza a emocionarte: sabrás tu destino 48 horas antes.
               </div>
             </div>
           </div>
@@ -155,18 +123,10 @@ export default function HowItWorks() {
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
               <div className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
-                <TranslatedText
-                  text="Vive la experiencia"
-                  english="Live the experience"
-                  as="span"
-                />
+                Vive la experiencia
               </div>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                <TranslatedText
-                  text="Disfruta del partido, explora una nueva ciudad y crea recuerdos inolvidables."
-                  english="Enjoy the game, explore a new city, and make unforgettable memories."
-                  as="span"
-                />
+                Disfruta del partido, explora una nueva ciudad y crea recuerdos inolvidables.
               </div>
             </div>
           </div>
@@ -175,11 +135,7 @@ export default function HowItWorks() {
 
       <Link href="/book">
         <button className="w-1/2 mx-20 md:w-auto px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer">
-          <TranslatedText
-            text="Empieza el juego"
-            english="Start the game"
-            className="text-center text-white text-base md:text-lg font-normal font-inter leading-7"
-          />
+          Empieza el juego
         </button>
       </Link>
     </div>

@@ -6,8 +6,6 @@ import { useBooking } from "../../context/BookingContext";
 import { CreateBookingPayload } from "../../../../../services/bookingService";
 import StripeProvider from "./StripeProvider";
 import CustomStripeForm from "./CustomStripeForm";
-import { TranslatedText } from "../../../_components/TranslatedText";
-import { useLanguage } from "../../../../context/LanguageContext";
 import { paymentData } from "../../../../lib/appdata";
 
 // Helper function definitions
@@ -21,9 +19,6 @@ const minutesToTime = (minutes: number): string => {
 };
 
 export default function Payment() {
-  const { language } = useLanguage();
-  const t = (es: string, en: string) => (language === "en" ? en : es);
-
   const { formData, clearBookingData, isHydrated } = useBooking();
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -97,10 +92,7 @@ export default function Payment() {
           }
         } else {
           throw new Error(
-            t(
-              "Faltan datos de la reserva (Ciudad, Deporte o Pack).",
-              "Booking data (City, Sport, or Package) is missing.",
-            ),
+            "Faltan datos de la reserva (Ciudad, Deporte o Pack).",
           );
         }
       }
@@ -283,16 +275,10 @@ export default function Payment() {
         setClientSecret(data.clientSecret);
         setBookingId(data.bookingId);
       } else {
-        throw new Error(
-          data.message ||
-            t("Error al crear el pago", "Failed to create payment"),
-        );
+        throw new Error(data.message || "Error al crear el pago");
       }
     } catch (err: any) {
-      setError(
-        err.message ||
-          t("Error al iniciar el pago", "Failed to initiate payment"),
-      );
+      setError(err.message || "Error al iniciar el pago");
       hasInitiatedRef.current = false;
     } finally {
       setIsProcessing(false);
@@ -317,9 +303,7 @@ export default function Payment() {
   if (error && !clientSecret) {
     return (
       <div className="w-full xl:w-[894px] px-4 py-8 bg-red-50 rounded-xl flex flex-col items-center">
-        <h3 className="text-red-700 font-bold mb-2">
-          <TranslatedText text="Error" english="Error" />
-        </h3>
+        <h3 className="text-red-700 font-bold mb-2">Error</h3>
         <p className="text-red-600 mb-4">{error}</p>
         <div className="flex flex-col gap-3">
           <button
@@ -333,18 +317,15 @@ export default function Payment() {
             }}
             className="px-4 py-2 bg-[#6AAD3C] text-white rounded hover:bg-lime-600"
           >
-            <TranslatedText
-              text="Reiniciar Reserva"
-              english="Reset & Restart Booking"
-            />
+            Reiniciar Reserva
           </button>
 
-          {!error.includes(t("Faltan datos", "Missing data")) && (
+          {!error.includes("Faltan datos") && (
             <button
               onClick={handleInitiatePayment}
               className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
             >
-              <TranslatedText text="Reintentar Pago" english="Retry Payment" />
+              Reintentar Pago
             </button>
           )}
         </div>
@@ -359,10 +340,7 @@ export default function Payment() {
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-[#6AAD3C] border-t-transparent rounded-full animate-spin"></div>
           <p className="font-['Poppins'] text-gray-600">
-            <TranslatedText
-              text="Cargando detalles de pago..."
-              english="Loading payment details..."
-            />
+            Cargando detalles de pago...
           </p>
         </div>
       </div>
