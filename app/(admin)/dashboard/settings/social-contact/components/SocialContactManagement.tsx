@@ -21,7 +21,7 @@ export default function SocialContactManagement() {
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { addToast } = useToast();
-  const language = "en";
+  
 
   useEffect(() => {
     loadData();
@@ -36,17 +36,13 @@ export default function SocialContactManagement() {
         setLinks(response.links);
       } else {
         setError(
-          false
-            ? "Error al obtener enlaces de contacto social"
-            : "Failed to fetch social contact links",
+          "Failed to fetch social contact links",
         );
       }
     } catch (err) {
       console.error("Error fetching social contact links:", err);
       setError(
-        false
-          ? "Error al cargar enlaces de contacto. Por favor inténtelo más tarde."
-          : "Failed to load social contact links. Please try again later.",
+        "Failed to load social contact links. Please try again later.",
       );
     } finally {
       setLoading(false);
@@ -67,31 +63,23 @@ export default function SocialContactManagement() {
         addToast({
           type: "success",
           title:
-            false
-              ? "Enlaces de contacto y redes sociales actualizados exitosamente"
-              : "Social media and contact links updated successfully",
+            "Social media and contact links updated successfully",
         });
         await loadData();
       } else {
         setError(
-          false
-            ? "Error al actualizar enlaces"
-            : "Failed to update links",
+          "Failed to update links",
         );
       }
     } catch (err) {
       console.error("Error updating social contact links:", err);
       setError(
-        false
-          ? "Error al actualizar enlaces. Por favor inténtelo más tarde."
-          : "Failed to update links. Please try again later.",
+        "Failed to update links. Please try again later.",
       );
       addToast({
         type: "error",
         title:
-          false
-            ? "Error al actualizar enlaces"
-            : "Failed to update links",
+          "Failed to update links",
       });
     } finally {
       setSaving(false);
@@ -103,7 +91,7 @@ export default function SocialContactManagement() {
       <div className="pt-4 min-h-screen mb-4 p-4">
         <div className="flex justify-center items-center py-12">
           <div className="text-gray-600 text-lg font-medium">
-            Cargando enlaces de contacto...
+            Loading social contact links...
           </div>
         </div>
       </div>
@@ -114,7 +102,7 @@ export default function SocialContactManagement() {
     <div className="pt-4 min-h-screen mb-4 p-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight mb-6 pt-8">
-          Redes Sociales y Enlaces de Contacto
+          Social Media & Contact Links
         </h1>
 
         {error && (
@@ -134,7 +122,7 @@ export default function SocialContactManagement() {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Dirección de Correo Electrónico
+                Email Address
               </label>
               <input
                 type="email"
@@ -152,7 +140,7 @@ export default function SocialContactManagement() {
                 htmlFor="whatsapp"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Número de WhatsApp
+                WhatsApp Number
               </label>
               <input
                 type="text"
@@ -165,7 +153,7 @@ export default function SocialContactManagement() {
                 }
               />
               <p className="text-xs text-gray-500 mt-1">
-                Ingrese el número con el código de país (ej. +34 para España).
+                Enter number with country code (e.g., +34 for Spain).
               </p>
             </div>
 

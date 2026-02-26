@@ -1,53 +1,57 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import { homepageLeaguesData } from "@/app/lib/appdata"
-import Link from "next/link"
-
+import { useState, useEffect, useRef } from "react";
+import { homepageLeaguesData } from "@/app/lib/appdata";
+import Link from "next/link";
 
 export default function SportsLeagues() {
-  const [isFootball, setIsFootball] = useState(true)
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [isFootball, setIsFootball] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Get leagues data from appdata.ts
-  const footballLeagues = homepageLeaguesData.getFootballLeagues()
-  const basketballLeagues = homepageLeaguesData.getBasketballLeagues()
+  const footballLeagues = homepageLeaguesData.getFootballLeagues();
+  const basketballLeagues = homepageLeaguesData.getBasketballLeagues();
 
-  const currentLeagues = isFootball ? footballLeagues : basketballLeagues
+  const currentLeagues = isFootball ? footballLeagues : basketballLeagues;
 
   // Auto-slide for desktop only
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % currentLeagues.length)
-    }, 2000) // Change slide every 2 seconds
+      setCurrentIndex((prevIndex) => (prevIndex + 1) % currentLeagues.length);
+    }, 2000); // Change slide every 2 seconds
 
-    return () => clearInterval(interval)
-  }, [currentLeagues.length])
+    return () => clearInterval(interval);
+  }, [currentLeagues.length]);
 
-  const extendedLeagues = [...currentLeagues, ...currentLeagues, ...currentLeagues]
+  const extendedLeagues = [
+    ...currentLeagues,
+    ...currentLeagues,
+    ...currentLeagues,
+  ];
 
   // Handle manual scroll for mobile
   const handleScroll = () => {
     if (scrollContainerRef.current) {
-      const scrollLeft = scrollContainerRef.current.scrollLeft
-      const cardWidth = 128 + 16 // mobile card width + gap
-      const newIndex = Math.round(scrollLeft / cardWidth) % currentLeagues.length
-      setCurrentIndex(newIndex)
+      const scrollLeft = scrollContainerRef.current.scrollLeft;
+      const cardWidth = 128 + 16; // mobile card width + gap
+      const newIndex =
+        Math.round(scrollLeft / cardWidth) % currentLeagues.length;
+      setCurrentIndex(newIndex);
     }
-  }
+  };
 
   // Auto-scroll effect for desktop
   useEffect(() => {
     if (scrollContainerRef.current) {
-      const cardWidth = 128 + 16 // mobile card width + gap
-      const scrollPosition = currentIndex * cardWidth
+      const cardWidth = 128 + 16; // mobile card width + gap
+      const scrollPosition = currentIndex * cardWidth;
       scrollContainerRef.current.scrollTo({
         left: scrollPosition,
-        behavior: 'smooth'
-      })
+        behavior: "smooth",
+      });
     }
-  }, [currentIndex])
+  }, [currentIndex]);
 
   return (
     <div className="w-full min-h-[645px] px-4 sm:px-8 md:px-16 lg:px-28 py-24 bg-[#D5EBC5] flex flex-col justify-start items-center gap-12">
@@ -62,18 +66,24 @@ export default function SportsLeagues() {
           </div>
         </div>
         <div className="inline-flex justify-start items-center gap-5">
-          <div className={`text-lg font-medium font-poppins leading-loose ${isFootball ? 'text-neutral-800' : 'text-zinc-500'}`}>
+          <div
+            className={`text-lg font-medium font-poppins leading-loose ${isFootball ? "text-neutral-800" : "text-zinc-500"}`}
+          >
             Fútbol
           </div>
           <button
             onClick={() => setIsFootball(!isFootball)}
             className={`w-11 h-6 p-0.5 rounded-xl flex items-center transition-colors ${
-              isFootball ? "bg-lime-500 justify-start" : "bg-lime-500 justify-end"
+              isFootball
+                ? "bg-lime-500 justify-start"
+                : "bg-lime-500 justify-end"
             }`}
           >
             <div className="w-5 h-5 bg-white rounded-full shadow-[0px_1px_2px_0px_rgba(16,24,40,0.06)] " />
           </button>
-          <div className={`text-lg font-medium font-poppins leading-loose ${!isFootball ? 'text-neutral-800' : 'text-zinc-500'}`}>
+          <div
+            className={`text-lg font-medium font-poppins leading-loose ${!isFootball ? "text-neutral-800" : "text-zinc-500"}`}
+          >
             Basket
           </div>
         </div>
@@ -83,7 +93,7 @@ export default function SportsLeagues() {
         {/* <div className="hidden sm:block w-full text-center text-sm text-zinc-600 mb-2">
           ← Cards auto-slide every 2 seconds → <span className="text-lime-600 font-medium">• Auto-sliding active</span>
         </div> */}
-        
+
         {/* Mobile: Horizontal scrollable, Desktop: Auto-slide */}
         <div className="w-full overflow-hidden">
           {/* Mobile: Scrollable container */}
@@ -108,13 +118,15 @@ export default function SportsLeagues() {
                 >
                   <div className="absolute inset-0 bg-black/30" />
                   <div className="relative z-10 h-full flex flex-col justify-center items-center">
-                    <div className="text-center text-white text-sm font-bold font-poppins leading-tight px-2">{league.name}</div>
+                    <div className="text-center text-white text-sm font-bold font-poppins leading-tight px-2">
+                      {league.name}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          
+
           {/* Desktop: Auto-slide container */}
           <div className="hidden sm:block w-full overflow-hidden">
             <div
@@ -136,7 +148,9 @@ export default function SportsLeagues() {
                 >
                   <div className="absolute inset-0 bg-black/30" />
                   <div className="relative z-10 h-full flex flex-col justify-center items-center">
-                    <div className="text-center text-white text-base font-bold font-poppins leading-7">{league.name}</div>
+                    <div className="text-center text-white text-base font-bold font-poppins leading-7">
+                      {league.name}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -144,13 +158,12 @@ export default function SportsLeagues() {
           </div>
         </div>
       </div>
-      
+
       <Link href="/packages">
-        <div className="px-4 py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer">
+        <div className="px-4 py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer text-center text-white text-sm sm:text-base lg:text-lg font-normal font-poppins leading-7">
           Ver packs
-      </div>
+        </div>
       </Link>
-      
     </div>
-  )
+  );
 }

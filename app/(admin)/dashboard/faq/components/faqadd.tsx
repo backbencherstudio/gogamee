@@ -14,13 +14,10 @@ import DeleteConfirmationModal from "../../../../../components/ui/delete-confirm
 import { Pagination } from "../../../../../components/ui/Pagination";
 import { autoTranslateContent } from "../../../../../services/translationService";
 
-
-
 // Local type aligned with API
 type FAQItem = ApiFaqItem;
 
 export default function FaqAdd() {
-  const language = "en";
   const [faqData, setFaqData] = useState<FAQItem[]>([]);
   const [expandedItems, setExpandedItems] = useState<number[]>([]);
   const [editingItem, setEditingItem] = useState<string | null>(null);
@@ -166,11 +163,11 @@ export default function FaqAdd() {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 lg:gap-24 mb-8">
           <div className="flex flex-col gap-2">
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight">
-              Gestión de Preguntas Frecuentes
+              FAQ Management
             </h1>
             <p className="text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed">
-              Gestione las preguntas frecuentes para su sitio web. Añada, edite
-              o elimine elementos de FAQ.
+              Manage frequently asked questions for your website. Add, edit, or
+              remove FAQ items.
             </p>
           </div>
           <button
@@ -178,7 +175,7 @@ export default function FaqAdd() {
             className="px-6 py-3 bg-[#76C043] hover:bg-lime-600 rounded-lg flex justify-center items-center gap-2 text-white font-medium transition-colors"
           >
             <Plus className="w-5 h-5" />
-            Añadir Nueva FAQ
+            Add New FAQ
           </button>
         </div>
 
@@ -186,12 +183,12 @@ export default function FaqAdd() {
         {showAddForm && (
           <div className="mb-8 bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300">
             <h3 className="text-xl font-semibold text-zinc-950 mb-4">
-              Añadir Nueva FAQ
+              Add New FAQ
             </h3>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Pregunta
+                  Question
                 </label>
                 <input
                   type="text"
@@ -204,15 +201,13 @@ export default function FaqAdd() {
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent outline-none"
                   placeholder={
-                    false
-                      ? "Ingrese su pregunta..."
-                      : "Enter your question..."
+                    false ? "Ingrese su pregunta..." : "Enter your question..."
                   }
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Respuesta
+                  Answer
                 </label>
                 <textarea
                   value={newFaqForm.answer}
@@ -225,9 +220,7 @@ export default function FaqAdd() {
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent outline-none resize-none"
                   placeholder={
-                    false
-                      ? "Ingrese su respuesta..."
-                      : "Enter your answer..."
+                    false ? "Ingrese su respuesta..." : "Enter your answer..."
                   }
                 />
               </div>
@@ -237,14 +230,14 @@ export default function FaqAdd() {
                   className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg flex items-center gap-2 transition-colors"
                 >
                   <Save className="w-4 h-4" />
-                  Guardar FAQ
+                  Save FAQ
                 </button>
                 <button
                   onClick={handleCancelAdd}
                   className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg flex items-center gap-2 transition-colors"
                 >
                   <X className="w-4 h-4" />
-                  Cancelar
+                  Cancel
                 </button>
               </div>
             </div>
@@ -255,7 +248,7 @@ export default function FaqAdd() {
         <div className="bg-white flex flex-col justify-start items-start gap-6 w-full">
           <div className="w-full p-5 md:p-8 lg:p-10 rounded-lg border border-gray-200 shadow-sm">
             {loading ? (
-              <div className="py-6 text-gray-600">Cargando FAQs...</div>
+              <div className="py-6 text-gray-600">Loading FAQs...</div>
             ) : error ? (
               <div className="py-6 text-red-600">{error}</div>
             ) : (
@@ -270,7 +263,7 @@ export default function FaqAdd() {
                       <div className="space-y-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Pregunta
+                            Question
                           </label>
                           <input
                             type="text"
@@ -286,7 +279,7 @@ export default function FaqAdd() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Respuesta
+                            Answer
                           </label>
                           <textarea
                             value={editForm.answer}
@@ -307,14 +300,14 @@ export default function FaqAdd() {
                             className="px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg flex items-center gap-2 transition-colors"
                           >
                             <Save className="w-4 h-4" />
-                            Guardar
+                            Save
                           </button>
                           <button
                             onClick={handleCancelEdit}
                             className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg flex items-center gap-2 transition-colors"
                           >
                             <X className="w-4 h-4" />
-                            Cancelar
+                            Cancel
                           </button>
                         </div>
                       </div>
@@ -395,7 +388,7 @@ export default function FaqAdd() {
         {/* Stats */}
         <div className="mt-8 p-4 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-600">
-            Total de FAQs: <span className="font-semibold">{totalItems}</span>
+            Total FAQ Items: <span className="font-semibold">{totalItems}</span>
           </p>
         </div>
       </div>
@@ -405,8 +398,8 @@ export default function FaqAdd() {
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={() => deleteConfirm && handleConfirmDelete(deleteConfirm)}
-        title="Eliminar FAQ"
-        message="¿Está seguro de que desea eliminar este elemento de FAQ?"
+        title="Delete FAQ"
+        message="Are you sure you want to delete this FAQ item?"
       />
     </div>
   );

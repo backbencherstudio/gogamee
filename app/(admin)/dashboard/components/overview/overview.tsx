@@ -66,7 +66,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
         <div className="p-5 pb-2">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-medium text-gray-600 uppercase tracking-wide">
-              {titleSpanish || title}
+              {title}
             </h3>
             <div
               className={cn(
@@ -101,7 +101,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
               {change}
             </span>
             <span className="text-gray-500 ml-2">
-              vs {lastMonth} mes pasado
+              vs {lastMonth} last month
             </span>
           </div>
         </div>
@@ -127,7 +127,7 @@ const Pagination: React.FC<PaginationProps> = ({
   return (
     <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
       <div className="text-sm text-gray-700 flex gap-1">
-        Mostrando página {currentPage} de {totalPages}
+        Showing page {currentPage} of {totalPages}
       </div>
 
       <div className="flex items-center space-x-2">
@@ -142,7 +142,7 @@ const Pagination: React.FC<PaginationProps> = ({
           )}
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
-          Anterior
+          Previous
         </button>
 
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -170,7 +170,7 @@ const Pagination: React.FC<PaginationProps> = ({
               : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50",
           )}
         >
-          Siguiente
+          Next
           <ChevronRight className="w-4 h-4 ml-1" />
         </button>
       </div>
@@ -284,14 +284,14 @@ const RecentRequestsTable: React.FC = () => {
     <div className="mt-8 bg-white border border-gray-200 rounded-lg shadow-sm">
       <div className="pb-0">
         <h2 className="text-lg font-semibold text-gray-900 m-6">
-          Solicitudes Recientes (Últimas 5)
+          Recent Requests (Latest 5)
         </h2>
       </div>
 
       {/* Error State */}
       {error && (
         <div className="p-6 text-center text-red-600">
-          <p className="font-semibold">Error al cargar las reservas</p>
+          <p className="font-semibold">Error loading bookings</p>
           <p className="text-sm mt-2">{error}</p>
         </div>
       )}
@@ -303,25 +303,25 @@ const RecentRequestsTable: React.FC = () => {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    ID de Solicitud
+                    Request ID
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Cliente
+                    Customer
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Pack
+                    Package
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Fecha
+                    Date
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Estado
+                    Status
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Pago
+                    Payment
                   </th>
                   <th className="text-left py-3 px-4 font-medium text-gray-600">
-                    Monto
+                    Amount
                   </th>
                 </tr>
               </thead>
@@ -376,13 +376,9 @@ const RecentRequestsTable: React.FC = () => {
                         <td className="py-3 px-4">
                           <span className={getStatusBadge(request.status)}>
                             {getStatusIcon(request.status)}
-                            {{
-                              pending: "pendiente",
-                              completed: "completado",
-                              rejected: "rechazado",
-                              approved: "aprobado",
-                              confirmed: "confirmado",
-                            }[request.status] || request.status}
+                            <span className="ml-1 capitalize">
+                              {request.status}
+                            </span>
                           </span>
                         </td>
                         <td className="py-3 px-4">
@@ -391,12 +387,9 @@ const RecentRequestsTable: React.FC = () => {
                               request.payment_status,
                             )}
                           >
-                            {{
-                              paid: "pagado",
-                              unpaid: "no pagado",
-                              pending: "pendiente",
-                              failed: "fallido",
-                            }[request.payment_status] || request.payment_status}
+                            <span className="capitalize">
+                              {request.payment_status || "unknown"}
+                            </span>
                           </span>
                         </td>
                         <td className="py-3 px-4 text-sm font-medium text-gray-900">

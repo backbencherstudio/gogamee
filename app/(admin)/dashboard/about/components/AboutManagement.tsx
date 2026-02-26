@@ -22,22 +22,7 @@ import {
   type OurValueUpdatePayload,
   type WhyChooseUsUpdatePayload,
 } from "../../../../../services/aboutService";
-import { useToast } from "../../../../../components/ui/toast";
-import {
-  Loader2,
-  Edit2,
-  Trash2,
-  Plus,
-  LayoutGrid,
-  Target,
-  List,
-  Type,
-  AlignLeft,
-  ListOrdered,
-  Save,
-  X,
-  AlertTriangle,
-} from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 type TabId = "sections" | "values" | "whyChooseUs";
 
@@ -54,7 +39,6 @@ export default function AboutManagement() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
-  const language = "en";
 
   const [formData, setFormData] = useState({
     title: "",
@@ -81,19 +65,11 @@ export default function AboutManagement() {
         setHeadline(content.headline || "");
         setHeadlineText(content.headline || "");
       } else {
-        setError(
-          false
-            ? "Error al obtener los datos de la gestión de acerca de"
-            : "Failed to fetch about management data",
-        );
+        setError("Failed to fetch about management data");
       }
     } catch (err) {
       console.error("Error fetching about management data:", err);
-      setError(
-        false
-          ? "Error al cargar los datos. Por favor inténtelo de nuevo más tarde."
-          : "Failed to load about management data. Please try again later.",
-      );
+      setError("Failed to load about management data. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -134,9 +110,7 @@ export default function AboutManagement() {
 
   const handleDelete = async (id: string, type: TabId) => {
     const confirmMessage =
-      false
-        ? "¿Estás seguro de que quieres eliminar este elemento? Esta acción no se puede deshacer."
-        : "Are you sure you want to delete this item? This action cannot be undone.";
+      "Are you sure you want to delete this item? This action cannot be undone.";
 
     if (!window.confirm(confirmMessage)) {
       return;
@@ -157,19 +131,11 @@ export default function AboutManagement() {
       if (response && response.success) {
         await loadData();
       } else {
-        alert(
-          false
-            ? "Error al eliminar el elemento"
-            : "Failed to delete item",
-        );
+        alert("Failed to delete item");
       }
     } catch (err) {
       console.error("Error deleting item:", err);
-      alert(
-        false
-          ? "Ocurrió un error al eliminar"
-          : "An error occurred while deleting",
-      );
+      alert("An error occurred while deleting");
     } finally {
       setActionLoading(false);
     }
@@ -177,11 +143,7 @@ export default function AboutManagement() {
 
   const handleSaveHeadline = async () => {
     if (!headlineText.trim()) {
-      alert(
-        false
-          ? "El titular no puede estar vacío"
-          : "Headline cannot be empty",
-      );
+      alert("Headline cannot be empty");
       return;
     }
     try {
@@ -193,11 +155,7 @@ export default function AboutManagement() {
       }
     } catch (err) {
       console.error("Error saving headline:", err);
-      alert(
-        false
-          ? "Error al guardar el titular"
-          : "Failed to save headline",
-      );
+      alert("Failed to save headline");
     } finally {
       setActionLoading(false);
     }
@@ -205,9 +163,7 @@ export default function AboutManagement() {
 
   const handleSaveItem = async () => {
     if (!formData.title.trim()) {
-      alert(
-        false ? "El título es obligatorio" : "Title is required",
-      );
+      alert("Title is required");
       return;
     }
 
@@ -270,11 +226,7 @@ export default function AboutManagement() {
       handleCancel();
     } catch (err) {
       console.error("Error saving data:", err);
-      setError(
-        false
-          ? "Error al guardar los cambios. Por favor inténtelo de nuevo."
-          : "Failed to save changes. Please try again.",
-      );
+      setError("Failed to save changes. Please try again.");
     } finally {
       setActionLoading(false);
     }
@@ -321,16 +273,16 @@ export default function AboutManagement() {
       return (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 ">
           <h3 className="text-xl font-semibold font-['Poppins'] text-gray-800 mb-6">
-            {isAdding && activeTab === "sections" && <>Add New Section</>}
-            {isAdding && activeTab === "values" && <>Add New Value</>}
-            {isAdding && activeTab === "whyChooseUs" && (
-              <>Add New Why Choose Us Item</>
-            )}
-            {isEditing && activeTab === "sections" && <>Edit Section</>}
-            {isEditing && activeTab === "values" && <>Edit Value</>}
-            {isEditing && activeTab === "whyChooseUs" && (
-              <>Edit Why Choose Us Item</>
-            )}
+            {isAdding && activeTab === "sections" && "Add New Section"}
+            {isAdding && activeTab === "values" && "Add New Value"}
+            {isAdding &&
+              activeTab === "whyChooseUs" &&
+              "Add New Why Choose Us Item"}
+            {isEditing && activeTab === "sections" && "Edit Section"}
+            {isEditing && activeTab === "values" && "Edit Value"}
+            {isEditing &&
+              activeTab === "whyChooseUs" &&
+              "Edit Why Choose Us Item"}
           </h3>
 
           <div className="space-y-6">
@@ -346,9 +298,7 @@ export default function AboutManagement() {
                 }
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
                 placeholder={
-                  false
-                    ? "Ingrese el título del elemento"
-                    : "Enter item title"
+                  false ? "Ingrese el título del elemento" : "Enter item title"
                 }
               />
             </div>
@@ -534,7 +484,9 @@ export default function AboutManagement() {
                 onChange={(e) => setHeadlineText(e.target.value)}
                 rows={2}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
-                placeholder="Enter main headline"
+                placeholder={
+                  false ? "Ingrese el titular principal" : "Enter main headline"
+                }
               />
               <div className="flex gap-2">
                 <button

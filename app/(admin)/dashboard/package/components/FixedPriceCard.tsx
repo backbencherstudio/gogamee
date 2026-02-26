@@ -40,7 +40,7 @@ export default function FixedPriceCard({
   onPriceUpdate,
   onDurationChange,
 }: FixedPriceCardProps) {
-  const language = "en";
+  
   const [selectedDuration, setSelectedDuration] = useState<DurationValue>(1);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -386,7 +386,7 @@ export default function FixedPriceCard({
         <div className="flex items-center gap-3">
           <DollarSign className="w-6 h-6 text-[#76C043]" />
           <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">
-            Precios del Pack
+            Package Pricing
           </h2>
         </div>
         {!isEditing && (
@@ -395,7 +395,7 @@ export default function FixedPriceCard({
             className="flex items-center gap-2 px-4 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200"
           >
             <Edit className="w-4 h-4" />
-            Editar Precios
+            Edit Prices
           </button>
         )}
       </div>
@@ -407,7 +407,7 @@ export default function FixedPriceCard({
             onClick={() => setError(null)}
             className="mt-2 text-red-600 hover:text-red-800 underline"
           >
-            Descartar
+            Dismiss
           </button>
         </div>
       )}
@@ -416,7 +416,7 @@ export default function FixedPriceCard({
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-3 font-['Poppins']">
           <Calendar className="w-4 h-4 inline mr-2" />
-          Seleccionar Duración *
+          Select Duration *
         </label>
         <div className="grid grid-cols-4 gap-3">
           {DURATION_OPTIONS.map((option) => (
@@ -436,7 +436,7 @@ export default function FixedPriceCard({
           ))}
         </div>
         <p className="mt-2 text-sm text-gray-500 font-['Poppins']">
-          Seleccione el número de noches para establecer precios para esta duración
+          Select the number of nights to set prices for this duration
         </p>
       </div>
 
@@ -450,10 +450,10 @@ export default function FixedPriceCard({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">
-                Fútbol
+                Football
               </h3>
               <span className="text-sm text-green-600 font-medium">
-                Precios del Paquete
+                Package Prices
               </span>
             </div>
           </div>
@@ -474,7 +474,7 @@ export default function FixedPriceCard({
               <div className="bg-white rounded-lg p-4 border border-green-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-600 font-['Poppins']">
-                    Paquete Estándar
+                    Standard Package
                   </span>
                   <span className="text-lg font-bold text-green-600 font-['Poppins']">
                     {priceData.football[selectedDuration].standardPrice}
@@ -486,7 +486,7 @@ export default function FixedPriceCard({
               <div className="bg-white rounded-lg p-4 border border-green-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-600 font-['Poppins']">
-                    Paquete Premium
+                    Premium Package
                   </span>
                   <span className="text-lg font-bold text-blue-600 font-['Poppins']">
                     {priceData.football[selectedDuration].premiumPrice}
@@ -506,10 +506,10 @@ export default function FixedPriceCard({
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">
-                Basket
+                Basketball
               </h3>
               <span className="text-sm text-blue-600 font-medium">
-                Precios del Paquete
+                Package Prices
               </span>
             </div>
           </div>
@@ -530,7 +530,7 @@ export default function FixedPriceCard({
               <div className="bg-white rounded-lg p-4 border border-blue-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-600 font-['Poppins']">
-                    Paquete Estándar
+                    Standard Package
                   </span>
                   <span className="text-lg font-bold text-green-600 font-['Poppins']">
                     {priceData.basketball[selectedDuration].standardPrice}
@@ -542,7 +542,7 @@ export default function FixedPriceCard({
               <div className="bg-white rounded-lg p-4 border border-blue-200">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-600 font-['Poppins']">
-                    Paquete Premium
+                    Premium Package
                   </span>
                   <span className="text-lg font-bold text-blue-600 font-['Poppins']">
                     {priceData.basketball[selectedDuration].premiumPrice}
@@ -569,10 +569,10 @@ export default function FixedPriceCard({
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900 font-['Poppins']">
-              Ambos Deportes Combinados
+              Both Sports Combined
             </h3>
             <span className="text-sm text-purple-600 font-medium">
-              Precios Combinados Personalizados
+              Custom Combined Pricing
             </span>
           </div>
         </div>
@@ -597,7 +597,7 @@ export default function FixedPriceCard({
           <div className="flex items-center gap-8">
             <div className="text-center">
               <div className="text-sm font-medium text-gray-600 font-['Poppins'] mb-2">
-                Total Estándar
+                Standard Total
               </div>
               <div className="text-xl font-bold text-green-600 font-['Poppins']">
                 {priceData.combined[selectedDuration].standardPrice || 0}
@@ -611,7 +611,7 @@ export default function FixedPriceCard({
 
             <div className="text-center">
               <div className="text-sm font-medium text-gray-600 font-['Poppins'] mb-2">
-                Total Premium
+                Premium Total
               </div>
               <div className="text-xl font-bold text-blue-600 font-['Poppins']">
                 {priceData.combined[selectedDuration].premiumPrice || 0}
@@ -636,7 +636,7 @@ export default function FixedPriceCard({
             className="flex items-center gap-2 px-6 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium font-['Poppins'] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X className="w-4 h-4" />
-            Cancelar
+            Cancel
           </button>
           <button
             type="button"
@@ -647,12 +647,12 @@ export default function FixedPriceCard({
             {isSaving ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin" />
-                Guardando...
+                Saving...
               </>
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                Guardar Precios
+                Save Prices
               </>
             )}
           </button>
@@ -662,9 +662,9 @@ export default function FixedPriceCard({
       <div className="mt-6 bg-blue-50 p-4 rounded-lg">
         <p className="text-sm text-blue-800 font-['Poppins']">
           <strong>
-            Nota:
+            Note:
           </strong>{" "}
-          Estos precios controlan el precio base para todos los paquetes en la aplicación. Los cambios afectarán al sistema de reservas inmediatamente. Seleccione una duración para establecer precios para ese número específico de noches.
+          These prices control the base pricing for all packages in the application. Changes will affect the booking system immediately. Select a duration to set prices for that specific number of nights.
         </p>
       </div>
     </div>
@@ -685,7 +685,7 @@ function SportPriceEditForm({
   onPriceChange,
   onCurrencyChange,
 }: SportPriceEditFormProps) {
-  const language = "en";
+  
   const getCurrencySymbol = (currency: string) =>
     currency === "USD" ? "$" : currency === "GBP" ? "£" : "€";
   const currentPrices = priceData[duration];
@@ -711,9 +711,9 @@ function SportPriceEditForm({
       {/* Standard Price */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-          Precio del Paquete Estándar{" "}
+          Standard Package Price{" "}
           ({duration}{" "}
-          {duration === 1 ? "Noche" : "Noches"}
+          {duration === 1 ? "Night" : "Nights"}
           ) *
         </label>
         <div className="relative">
@@ -741,9 +741,9 @@ function SportPriceEditForm({
       {/* Premium Price */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-          Precio del Paquete Premium{" "}
+          Premium Package Price{" "}
           ({duration}{" "}
-          {duration === 1 ? "Noche" : "Noches"}
+          {duration === 1 ? "Night" : "Nights"}
           ) *
         </label>
         <div className="relative">
@@ -787,7 +787,7 @@ function CombinedPriceEditForm({
   onCurrencyChange,
   defaultCurrency,
 }: CombinedPriceEditFormProps) {
-  const language = "en";
+  
   const getCurrencySymbol = (currency: string) =>
     currency === "USD" ? "$" : currency === "GBP" ? "£" : "€";
   const currency = priceData.currency || defaultCurrency;
@@ -814,9 +814,9 @@ function CombinedPriceEditForm({
       {/* Standard Combined Price */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-          Precio Combinado Estándar{" "}
+          Standard Combined Price{" "}
           ({duration}{" "}
-          {duration === 1 ? "Noche" : "Noches"}
+          {duration === 1 ? "Night" : "Nights"}
           ) *
         </label>
         <div className="relative">
@@ -840,16 +840,16 @@ function CombinedPriceEditForm({
           </span>
         </div>
         <p className="mt-1 text-xs text-gray-500 font-['Poppins']">
-          Precio personalizado para ambos deportes combinados (paquete estándar)
+          Custom price for both sports combined (standard package)
         </p>
       </div>
 
       {/* Premium Combined Price */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-          Precio Combinado Premium{" "}
+          Premium Combined Price{" "}
           ({duration}{" "}
-          {duration === 1 ? "Noche" : "Noches"}
+          {duration === 1 ? "Night" : "Nights"}
           ) *
         </label>
         <div className="relative">
@@ -873,7 +873,7 @@ function CombinedPriceEditForm({
           </span>
         </div>
         <p className="mt-1 text-xs text-gray-500 font-['Poppins']">
-          Precio personalizado para ambos deportes combinados (paquete premium)
+          Custom price for both sports combined (premium package)
         </p>
       </div>
     </div>

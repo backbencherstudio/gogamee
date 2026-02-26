@@ -39,7 +39,7 @@ export default function BookingSummaryModal({
   onStatusUpdate,
 }: BookingSummaryModalProps) {
   const { addToast } = useToast();
-  const translateText = (t: string) => t;
+
   const [isOpen, setIsOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [destinationCity, setDestinationCity] = useState(
@@ -440,7 +440,6 @@ export default function BookingSummaryModal({
                       <div>
                         <p className="font-semibold text-black">{extra.name}</p>
                         <p className="text-xs text-gray-600">
-                          Quantity: {extra.quantity} ×{" "}
                           {extra.price === 0 ? "Free" : `€${extra.price}`}
                         </p>
                       </div>
@@ -803,10 +802,9 @@ export default function BookingSummaryModal({
                   if (isProcessing) return;
 
                   if (!destinationCity.trim() || !assignedMatch.trim()) {
-                    const title = await translateText("Missing Details");
-                    const description = await translateText(
-                      "Please fill in Destination City and Assigned Match before approving.",
-                    );
+                    const title = "Missing Details";
+                    const description =
+                      "Please fill in Destination City and Assigned Match before approving.";
                     addToast({
                       type: "error",
                       title,
@@ -824,10 +822,9 @@ export default function BookingSummaryModal({
                       status: "confirmed",
                     });
 
-                    const title = await translateText("Booking Approved");
-                    const description = await translateText(
-                      "Booking has been confirmed and user notified.",
-                    );
+                    const title = "Booking Approved";
+                    const description =
+                      "Booking has been confirmed and user notified.";
                     addToast({
                       type: "success",
                       title,
@@ -839,10 +836,8 @@ export default function BookingSummaryModal({
                     if (onStatusUpdate) onStatusUpdate();
                     setIsOpen(false);
                   } catch {
-                    const title = await translateText("Approval Failed");
-                    const description = await translateText(
-                      "Could not approve booking.",
-                    );
+                    const title = "Approval Failed";
+                    const description = "Could not approve booking.";
                     addToast({
                       type: "error",
                       title,
@@ -875,10 +870,9 @@ export default function BookingSummaryModal({
                       status: "confirmed", // Keep confirmed
                     });
 
-                    const title = await translateText("Details Updated");
-                    const description = await translateText(
-                      "Booking details have been updated successfully.",
-                    );
+                    const title = "Details Updated";
+                    const description =
+                      "Booking details have been updated successfully.";
                     addToast({
                       type: "success",
                       title,
@@ -887,10 +881,8 @@ export default function BookingSummaryModal({
 
                     if (onStatusUpdate) onStatusUpdate();
                   } catch {
-                    const title = await translateText("Update Failed");
-                    const description = await translateText(
-                      "Could not update details.",
-                    );
+                    const title = "Update Failed";
+                    const description = "Could not update details.";
                     addToast({
                       type: "error",
                       title,
@@ -912,9 +904,8 @@ export default function BookingSummaryModal({
               <Button
                 onClick={async () => {
                   if (isProcessing) return;
-                  const confirmMsg = await translateText(
-                    "Are you sure you want to mark this booking as Completed? This will lock the booking.",
-                  );
+                  const confirmMsg =
+                    "Are you sure you want to mark this booking as Completed? This will lock the booking.";
                   if (!confirm(confirmMsg)) return;
 
                   setIsProcessing(true);
@@ -924,10 +915,8 @@ export default function BookingSummaryModal({
                       status: "completed",
                     });
 
-                    const title = await translateText("Booking Completed");
-                    const description = await translateText(
-                      "Booking marked as completed.",
-                    );
+                    const title = "Booking Completed";
+                    const description = "Booking marked as completed.";
                     addToast({
                       type: "success",
                       title,
@@ -939,10 +928,8 @@ export default function BookingSummaryModal({
                     if (onStatusUpdate) onStatusUpdate();
                     setIsOpen(false);
                   } catch {
-                    const title = await translateText("Action Failed");
-                    const description = await translateText(
-                      "Could not complete booking.",
-                    );
+                    const title = "Action Failed";
+                    const description = "Could not complete booking.";
                     addToast({
                       type: "error",
                       title,
@@ -964,9 +951,8 @@ export default function BookingSummaryModal({
               <Button
                 onClick={async () => {
                   if (isProcessing) return;
-                  const confirmMsg = await translateText(
-                    "Are you sure you want to reject this booking? This will mark it as rejected.",
-                  );
+                  const confirmMsg =
+                    "Are you sure you want to reject this booking? This will mark it as rejected.";
                   if (!confirm(confirmMsg)) return;
 
                   setIsProcessing(true);
@@ -975,10 +961,9 @@ export default function BookingSummaryModal({
                       id: bookingData.id || bookingData._id,
                       status: "rejected",
                     });
-                    const title = await translateText("Booking Rejected");
-                    const description = await translateText(
-                      "The booking has been manually rejected.",
-                    );
+                    const title = "Booking Rejected";
+                    const description =
+                      "The booking has been manually rejected.";
                     addToast({
                       type: "warning",
                       title,
@@ -991,10 +976,8 @@ export default function BookingSummaryModal({
                     if (onStatusUpdate) onStatusUpdate();
                     setIsOpen(false);
                   } catch {
-                    const title = await translateText("Action Failed");
-                    const description = await translateText(
-                      "Could not reject booking.",
-                    );
+                    const title = "Action Failed";
+                    const description = "Could not reject booking.";
                     addToast({
                       type: "error",
                       title,

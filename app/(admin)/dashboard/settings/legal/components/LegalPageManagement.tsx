@@ -11,8 +11,6 @@ import { useToast } from "../../../../../../components/ui/toast";
 import RichTextEditor from "./RichTextEditor";
 import { autoTranslateContent } from "../../../../../../services/translationService";
 
-
-
 type PageType = "privacy" | "cookie" | "terms";
 
 interface LegalPageManagementProps {
@@ -39,7 +37,6 @@ export default function LegalPageManagement({
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { addToast } = useToast();
-  const language = "en";
 
   useEffect(() => {
     loadData();
@@ -57,19 +54,11 @@ export default function LegalPageManagement({
           setContent(pageContent);
         }
       } else {
-        setError(
-          false
-            ? "Error al obtener contenido de la página legal"
-            : "Failed to fetch legal page content",
-        );
+        setError("Failed to fetch legal page content");
       }
     } catch (err) {
       console.error("Error fetching legal page content:", err);
-      setError(
-        false
-          ? "Error al cargar el contenido de la página legal. Por favor inténtelo más tarde."
-          : "Failed to load legal page content. Please try again later.",
-      );
+      setError("Failed to load legal page content. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -103,32 +92,18 @@ export default function LegalPageManagement({
       if (response && response.success) {
         addToast({
           type: "success",
-          title:
-            false
-              ? `${getPageTitle(pageType, "es")} actualizado exitosamente`
-              : `${getPageTitle(pageType, "en")} updated successfully`,
+          title: `${getPageTitle(pageType, "en")} updated successfully`,
         });
         await loadData();
       } else {
-        setError(
-          false
-            ? "Error al actualizar contenido"
-            : "Failed to update content",
-        );
+        setError("Failed to update content");
       }
     } catch (err) {
       console.error("Error updating legal page content:", err);
-      setError(
-        false
-          ? "Error al actualizar contenido. Por favor inténtelo más tarde."
-          : "Failed to update content. Please try again later.",
-      );
+      setError("Failed to update content. Please try again later.");
       addToast({
         type: "error",
-        title:
-          false
-            ? "Error al actualizar contenido"
-            : "Failed to update content",
+        title: "Failed to update content",
       });
     } finally {
       setSaving(false);
@@ -140,7 +115,7 @@ export default function LegalPageManagement({
       <div className="pt-4 min-h-screen mb-4 p-4">
         <div className="flex justify-center items-center py-12">
           <div className="text-gray-600 text-lg font-medium">
-            {`Cargando contenido de ${getPageTitle(pageType, "es").toLowerCase()}`}
+            Loading {getPageTitle(pageType, "en").toLowerCase()} content...
           </div>
         </div>
       </div>
@@ -151,7 +126,7 @@ export default function LegalPageManagement({
     <div className="pt-4 min-h-screen mb-4 p-4">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight mb-6 pt-8">
-          {getPageTitle(pageType, "es")}
+          {getPageTitle(pageType, "en")}
         </h1>
 
         {error && (
@@ -166,25 +141,23 @@ export default function LegalPageManagement({
         >
           <div className="mb-6 p-4 bg-lime-50 rounded-lg border border-lime-100 flex items-center justify-between">
             <p className="text-lime-800 text-sm font-['Poppins']">
-              <strong>Info:</strong> Escribe el contenido en tu idioma
-              preferido. El sistema lo traducirá automáticamente para los
-              usuarios en el sitio web.
+              <strong>Info:</strong> Write content in spanish language.
             </p>
           </div>
 
           {/* Content Editor */}
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Contenido
+              Content
             </label>
             <RichTextEditor
               value={content}
               onChange={handleContentChange}
-              placeholder="Enter content here..."
+              placeholder={`Write ${getPageTitle(pageType, "en").toLowerCase()} content here...`}
             />
             <p className="text-sm text-gray-500">
-              Use la barra de herramientas para formatear el texto (encabezados,
-              listas, negrita, cursiva, subrayado).
+              Use the toolbar to format text (headings, lists, bold, italic,
+              underline).
             </p>
           </div>
 
@@ -195,14 +168,14 @@ export default function LegalPageManagement({
               className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
               disabled={saving}
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
               className="px-6 py-2 bg-[#76C043] text-white rounded-lg hover:bg-lime-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {saving ? "Guardando..." : "Guardar Cambios"}
+              {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

@@ -20,8 +20,6 @@ import {
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 import { Pagination } from "../../../../../components/ui/Pagination";
 
-
-
 interface PackageManagementProps {
   onPackageAdd?: (packageData: PackageItem) => void;
   onPackageDelete?: (id: string) => void;
@@ -31,7 +29,6 @@ export default function PackageManagement({
   onPackageAdd,
   onPackageDelete,
 }: PackageManagementProps) {
-  const language = "en";
   const [packages, setPackages] = useState<PackageItem[]>([]);
   const [selectedDuration, setSelectedDuration] = useState<number | "all">(
     "all",
@@ -194,10 +191,10 @@ export default function PackageManagement({
         <div className="flex items-start flex-col gap-4">
           <div className="flex flex-col gap-2">
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
-              Gestión de Pack
+              Package Management
             </h1>
             <p className="text-gray-600 font-['Poppins']">
-              Gestione pack de viaje para eventos de fútbol y baloncesto
+              Manage travel packages for football and basketball events
             </p>
           </div>
 
@@ -207,7 +204,7 @@ export default function PackageManagement({
             className="flex items-center gap-2 px-6 py-3 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
           >
             <Plus className="w-5 h-5" />
-            Añadir Pack
+            Add Package
           </button>
         </div>
 
@@ -296,11 +293,10 @@ export default function PackageManagement({
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex-1">
                           <h3 className="font-semibold text-gray-900 font-['Poppins'] text-lg capitalize">
-                            {pkg.sport}
+                            {`${pkg.sport} - ${pkg.plan} Plan`}
                           </h3>
                           <p className="text-sm text-gray-500 mt-1">
-                            {pkg.duration} Night{pkg.duration > 1 ? "s" : ""}{" "}
-                            Package
+                            {`${pkg.duration} Night${pkg.duration > 1 ? "s" : ""} Package`}
                           </p>
                         </div>
 
@@ -514,7 +510,7 @@ export default function PackageManagement({
           >
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900 font-['Poppins']">
-                Actualizar Precios del Pack
+                Update Package Prices
               </h2>
               <button
                 onClick={() => setEditingPriceId(null)}
@@ -546,8 +542,8 @@ export default function PackageManagement({
         isOpen={!!deleteConfirm}
         onClose={() => setDeleteConfirm(null)}
         onConfirm={() => deleteConfirm && handleDeletePackage(deleteConfirm)}
-        title="Eliminar Pack"
-        message="¿Está seguro de que desea eliminar este pack?"
+        title="Delete Package"
+        message="Are you sure you want to delete this package?"
       />
     </div>
   );
@@ -569,7 +565,6 @@ function PriceEditForm({
   onSubmit,
   onCancel,
 }: PriceEditFormProps) {
-  const language = "en";
   const [formData, setFormData] = useState({
     standardPrice: packageData.standardPrice || 0,
     premiumPrice: packageData.premiumPrice || 0,
@@ -596,22 +591,14 @@ function PriceEditForm({
     const newErrors: { standardPrice?: string; premiumPrice?: string } = {};
 
     if (formData.standardPrice < 0) {
-      newErrors.standardPrice =
-        false
-          ? "El precio estándar debe ser positivo"
-          : "Standard price must be positive";
+      newErrors.standardPrice = "Standard price must be positive";
     }
     if (formData.premiumPrice < 0) {
-      newErrors.premiumPrice =
-        false
-          ? "El precio premium debe ser positivo"
-          : "Premium price must be positive";
+      newErrors.premiumPrice = "Premium price must be positive";
     }
     if (formData.premiumPrice <= formData.standardPrice) {
       newErrors.premiumPrice =
-        false
-          ? "El precio premium debe ser mayor que el precio estándar"
-          : "Premium price must be higher than standard price";
+        "Premium price must be higher than standard price";
     }
 
     setErrors(newErrors);
@@ -646,7 +633,7 @@ function PriceEditForm({
       {/* Currency Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']">
-          Moneda *
+          Currency *
         </label>
         <select
           value={formData.currency}
@@ -665,7 +652,7 @@ function PriceEditForm({
           htmlFor="standardPrice"
           className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']"
         >
-          Precio del Pack Estándar *
+          Standard Package Price *
         </label>
         <div className="relative">
           <input
@@ -710,7 +697,7 @@ function PriceEditForm({
           htmlFor="premiumPrice"
           className="block text-sm font-medium text-gray-700 mb-2 font-['Poppins']"
         >
-          Precio del Pack Premium *
+          Premium Package Price *
         </label>
         <div className="relative">
           <input
@@ -754,14 +741,14 @@ function PriceEditForm({
           className="flex items-center gap-2 px-6 py-3 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium font-['Poppins'] transition-all duration-200"
         >
           <X className="w-4 h-4" />
-          Cancelar
+          Cancel
         </button>
         <button
           type="submit"
           className="flex items-center gap-2 px-6 py-3 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
         >
           <DollarSign className="w-4 h-4" />
-          Actualizar Precios
+          Update Prices
         </button>
       </div>
     </form>

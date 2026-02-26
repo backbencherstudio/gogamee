@@ -24,7 +24,6 @@ import {
 import { cn } from "@/app/lib/utils";
 import { logout } from "../../../../../services/authService";
 
-
 interface SidebarMenuItem {
   title: string;
   titleEs: string;
@@ -146,8 +145,7 @@ const sidebarData: SidebarSection[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const language = "en";
-  const toggleLanguage = () => {};
+
   const [mobileOpen, setMobileOpen] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
@@ -192,7 +190,7 @@ export function Sidebar() {
             >
               {section.title && (
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-                  {section.titleEs}
+                  {section.title}
                 </h3>
               )}
               <ul>
@@ -223,9 +221,7 @@ export function Sidebar() {
                                   !isActive && "text-gray-600",
                                 )}
                               />
-                              <span className="font-medium">
-                                {item.titleEs}
-                              </span>
+                              <span className="font-medium">{item.title}</span>
                             </div>
                             {isExpanded ? (
                               <ChevronDown
@@ -266,9 +262,7 @@ export function Sidebar() {
                                           !isSubActive && "text-gray-500",
                                         )}
                                       />
-                                      <span>
-                                        {subItem.titleEs}
-                                      </span>
+                                      <span>{subItem.title}</span>
                                     </Link>
                                   </li>
                                 );
@@ -293,9 +287,7 @@ export function Sidebar() {
                               !isActive && "text-gray-600",
                             )}
                           />
-                          <span className="font-medium">
-                            {item.titleEs}
-                          </span>
+                          <span className="font-medium">{item.title}</span>
                         </Link>
                       )}
                     </li>
@@ -307,7 +299,7 @@ export function Sidebar() {
         </nav>
 
         {/* Language Toggle */}
-        <div className="px-2 mb-4">
+        {/* <div className="px-2 mb-4">
           <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
             <div className="flex items-center gap-2 text-gray-700">
               <Globe className="w-4 h-4" />
@@ -315,30 +307,26 @@ export function Sidebar() {
             </div>
             <div className="flex bg-white border border-gray-200 rounded-md p-1 scale-90 origin-right">
               <button
-                onClick={() => true && toggleLanguage()}
+                onClick={() => {}}
                 className={cn(
                   "px-2 py-0.5 text-xs rounded transition-colors cursor-pointer",
-                  false
-                    ? "bg-[#76C043] text-white"
-                    : "text-gray-500 hover:text-gray-700",
+                  "text-gray-500 hover:text-gray-700",
                 )}
               >
                 ES
               </button>
               <button
-                onClick={() => false && toggleLanguage()}
+                onClick={() => {}}
                 className={cn(
                   "px-2 py-0.5 text-xs rounded transition-colors cursor-pointer",
-                  true
-                    ? "bg-[#76C043] text-white"
-                    : "text-gray-500 hover:text-gray-700",
+                  "bg-[#76C043] text-white",
                 )}
               >
                 EN
               </button>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Logout Button at Bottom */}
         <div className="mt-auto pt-4 border-t border-gray-200">
@@ -352,9 +340,7 @@ export function Sidebar() {
             className="flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer duration-200 text-[#76C043] hover:bg-[#76C043]/20 w-full text-left"
           >
             <LogOut className="w-5 h-5 text-[#76C043]" />
-            <span className="font-medium text-[#76C043]">
-              Cerrar Sesión
-            </span>
+            <span className="font-medium text-[#76C043]">Log out</span>
           </button>
         </div>
       </div>
@@ -388,7 +374,7 @@ export function Sidebar() {
               <div key={section.title} className="py-2">
                 {section.title && (
                   <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-                    {section.titleEs}
+                    {section.title}
                   </h3>
                 )}
                 <ul className="space-y-1">
@@ -420,7 +406,7 @@ export function Sidebar() {
                                   )}
                                 />
                                 <span className="font-medium">
-                                  {item.titleEs}
+                                  {item.title}
                                 </span>
                               </div>
                               {isExpanded ? (
@@ -464,9 +450,7 @@ export function Sidebar() {
                                               : "text-gray-500",
                                           )}
                                         />
-                                        <span>
-                                          {subItem.titleEs}
-                                        </span>
+                                        <span>{subItem.title}</span>
                                       </Link>
                                     </li>
                                   );
@@ -491,9 +475,7 @@ export function Sidebar() {
                                 isActive ? "text-white" : "text-gray-600",
                               )}
                             />
-                            <span className="font-medium">
-                              {item.titleEs}
-                            </span>
+                            <span className="font-medium">{item.title}</span>
                           </Link>
                         )}
                       </li>

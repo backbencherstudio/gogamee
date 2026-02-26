@@ -14,8 +14,6 @@ import DeleteConfirmationModal from "../../../../../components/ui/delete-confirm
 import { Pagination } from "../../../../../components/ui/Pagination";
 import { autoTranslateContent } from "../../../../../services/translationService";
 
-
-
 // Local interface matching the API response items
 interface ReviewItem extends TestimonialItem {}
 
@@ -26,7 +24,7 @@ export default function TestimonialPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
-  const language = "en";
+
   const [saving, setSaving] = useState(false);
 
   // Stats State
@@ -244,11 +242,10 @@ export default function TestimonialPage() {
         <div className="flex flex-col gap-3">
           <div className="flex flex-col gap-2">
             <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
-              Gestión de Testimonios
+              Testimonial Management
             </h1>
             <p className="text-gray-600 font-['Poppins']">
-              Gestione las reseñas y testimonios de clientes que se muestran en
-              el sitio web
+              Manage customer reviews and testimonials displayed on the website
             </p>
           </div>
 
@@ -258,7 +255,7 @@ export default function TestimonialPage() {
             className="flex items-center gap-2 py-3 px-2 whitespace-nowrap bg-[#76C043] hover:bg-lime-600 rounded-lg font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md text-white w-fit"
           >
             <Plus className="w-5 h-5 text-white" />
-            Agregar Reseña
+            Add Review
           </button>
         </div>
 
@@ -273,9 +270,7 @@ export default function TestimonialPage() {
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.total}
                 </p>
-                <p className="text-gray-600 font-['Poppins']">
-                  Total de Reseñas
-                </p>
+                <p className="text-gray-600 font-['Poppins']">Total Reviews</p>
               </div>
             </div>
           </div>
@@ -289,9 +284,7 @@ export default function TestimonialPage() {
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.averageRating}
                 </p>
-                <p className="text-gray-600 font-['Poppins']">
-                  Calificación Promedio
-                </p>
+                <p className="text-gray-600 font-['Poppins']">Average Rating</p>
               </div>
             </div>
           </div>
@@ -305,9 +298,7 @@ export default function TestimonialPage() {
                 <p className="text-2xl font-bold text-gray-800">
                   {stats.fiveStarCount}
                 </p>
-                <p className="text-gray-600 font-['Poppins']">
-                  Reseñas de 5 Estrellas
-                </p>
+                <p className="text-gray-600 font-['Poppins']">5-Star Reviews</p>
               </div>
             </div>
           </div>
@@ -318,7 +309,7 @@ export default function TestimonialPage() {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold font-['Poppins'] text-gray-800">
-                {editingId ? "Editar Reseña" : "Agregar Nueva Reseña"}
+                {editingId ? "Edit Review" : "Add New Review"}
               </h2>
               <button
                 onClick={handleCancel}
@@ -331,7 +322,7 @@ export default function TestimonialPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre del Cliente
+                  Customer Name
                 </label>
                 <input
                   type="text"
@@ -350,7 +341,7 @@ export default function TestimonialPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Rol/Título
+                  Role/Title
                 </label>
                 <input
                   type="text"
@@ -360,9 +351,7 @@ export default function TestimonialPage() {
                   }
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
                   placeholder={
-                    false
-                      ? "Ingrese rol o título"
-                      : "Enter role or title"
+                    false ? "Ingrese rol o título" : "Enter role or title"
                   }
                 />
               </div>
@@ -370,7 +359,7 @@ export default function TestimonialPage() {
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Contenido de la Reseña
+                Review Content
               </label>
               <textarea
                 value={formData.review}
@@ -394,13 +383,13 @@ export default function TestimonialPage() {
                 className="px-6 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium transition-colors flex items-center"
               >
                 <Save className="w-4 h-4 inline mr-2" />
-                {editingId ? "Actualizar Reseña" : "Guardar Reseña"}
+                {editingId ? "Update Review" : "Save Review"}
               </button>
               <button
                 onClick={handleCancel}
                 className="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors"
               >
-                Cancelar
+                Cancel
               </button>
             </div>
           </div>
@@ -511,7 +500,7 @@ export default function TestimonialPage() {
               disabled={loading || currentPage >= totalPages}
               className="px-6 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Cargando..." : "Ver Más"}
+              {loading ? "Loading..." : "View More"}
             </button>
           </div>
         )}
@@ -521,8 +510,8 @@ export default function TestimonialPage() {
           isOpen={!!deleteConfirm}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={() => deleteConfirm && handleDeleteReview(deleteConfirm)}
-          title="Eliminar Reseña"
-          message="¿Está seguro de que desea eliminar esta reseña? Esta acción no se puede deshacer."
+          title="Delete Review"
+          message="Are you sure you want to delete this review? This action cannot be undone."
         />
       </div>
     </div>

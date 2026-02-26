@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-
 export default function HowItWorks() {
   return (
     <div className="w-full h-auto py-12 md:py-24 flex flex-col justify-start items-center gap-8 md:gap-12 max-w-[1200px] mx-auto">
@@ -14,7 +13,8 @@ export default function HowItWorks() {
           </span>
         </div>
         <div className="flex-1 text-black text-sm md:text-base font-normal font-poppins leading-6 xl:leading-7">
-          Sigue unos pasos muy sencillos y nosotros te sorprenderemos con el viaje deportivo perfecto, totalmente organizado.
+          Sigue unos pasos muy sencillos y nosotros te sorprenderemos con el
+          viaje deportivo perfecto, totalmente organizado.
         </div>
       </div>
 
@@ -36,7 +36,8 @@ export default function HowItWorks() {
                 Personaliza tu aventura
               </div>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                Cuéntanos tu deporte favorito (fútbol o basket), desde qué ciudad sales y cuántas personas sois.
+                Cuéntanos tu deporte favorito (fútbol o basket), desde qué
+                ciudad sales y cuántas personas sois.
               </div>
             </div>
           </div>
@@ -66,7 +67,8 @@ export default function HowItWorks() {
                 Nosotros preparamos la sorpresa
               </div>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                Nos encargamos de reservar tus vuelos, el hotel y las entradas al partido. Tú solo tienes que esperar al gran momento sorpresa.
+                Nos encargamos de reservar tus vuelos, el hotel y las entradas
+                al partido. Tú solo tienes que esperar al gran momento sorpresa.
               </div>
             </div>
           </div>
@@ -96,7 +98,8 @@ export default function HowItWorks() {
                 Prepárate para irte
               </div>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                Recibirás tu plan de viaje secreto. Haz la maleta y empieza a emocionarte: sabrás tu destino 48 horas antes.
+                Recibirás tu plan de viaje secreto. Haz la maleta y empieza a
+                emocionarte: sabrás tu destino 48 horas antes.
               </div>
             </div>
           </div>
@@ -126,7 +129,8 @@ export default function HowItWorks() {
                 Vive la experiencia
               </div>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                Disfruta del partido, explora una nueva ciudad y crea recuerdos inolvidables.
+                Disfruta del partido, explora una nueva ciudad y crea recuerdos
+                inolvidables.
               </div>
             </div>
           </div>
@@ -134,7 +138,7 @@ export default function HowItWorks() {
       </div>
 
       <Link href="/book">
-        <button className="w-1/2 mx-20 md:w-auto px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer">
+        <button className="w-1/2 mx-20 md:w-auto px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer text-center text-white text-base md:text-lg font-normal font-poppins leading-7">
           Empieza el juego
         </button>
       </Link>

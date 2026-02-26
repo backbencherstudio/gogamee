@@ -5,8 +5,6 @@ import { IoIosArrowDown } from "react-icons/io";
 import Link from "next/link";
 import { getAllFaqs, type FaqItem } from "../../../../../services/faqService";
 
-
-
 interface FaqProps {
   className?: string;
   initialFaqs?: FaqItem[];
@@ -82,7 +80,8 @@ export default function Faq({ className = "", initialFaqs = [] }: FaqProps) {
               Preguntas frecuentes
             </div>
             <div className="flex-1 text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed md:leading-7">
-              Encuentra respuestas a las dudas más comunes. Explora nuestras preguntas frecuentes y obtén toda la información que necesitas.
+              Encuentra respuestas a las dudas más comunes. Explora nuestras
+              preguntas frecuentes y obtén toda la información que necesitas.
             </div>
           </div>
 
@@ -154,7 +153,7 @@ export default function Faq({ className = "", initialFaqs = [] }: FaqProps) {
             <div className="inline-flex justify-start items-end ">
               <Link
                 href="/faqs"
-                className="px-4 py-2 md:py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] flex justify-center items-center gap-2.5 w-36 md:w-44 cursor-pointer"
+                className="px-4 py-2 md:py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] flex justify-center items-center gap-2.5 w-36 md:w-44 cursor-pointer text-center text-white text-sm md:text-base lg:text-lg font-normal font-poppins leading-7"
               >
                 Ver más
               </Link>

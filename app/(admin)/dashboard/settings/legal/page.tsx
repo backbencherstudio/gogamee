@@ -5,22 +5,19 @@ import { FileText } from "lucide-react";
 export default function LegalPagesOverview() {
   const legalPages = [
     {
-      title: "Política de Privacidad",
+      title: "Privacy Policy",
       href: "/dashboard/settings/legal/privacy",
-      description:
-        "Gestione el contenido de la política de privacidad en inglés y español",
+      description: "Manage privacy policy content in English and Spanish",
     },
     {
-      title: "Política de Cookies",
+      title: "Cookie Policy",
       href: "/dashboard/settings/legal/cookie",
-      description:
-        "Gestione el contenido de la política de cookies en inglés y español",
+      description: "Manage cookie policy content in English and Spanish",
     },
     {
-      title: "Términos y Condiciones",
+      title: "Terms & Conditions",
       href: "/dashboard/settings/legal/terms",
-      description:
-        "Gestione el contenido de los términos y condiciones en inglés y español",
+      description: "Manage terms and conditions content in English and Spanish",
     },
   ];
 
@@ -28,11 +25,11 @@ export default function LegalPagesOverview() {
     <div className="pt-4 min-h-screen mb-4 p-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-zinc-950 text-3xl md:text-4xl lg:text-4xl font-semibold font-['Poppins'] leading-tight mb-6 pt-8">
-          Gestión de Páginas Legales
+          Legal Pages Management
         </h1>
         <p className="text-gray-600 mb-8">
-          Gestione el contenido de todas las páginas legales. Cada página
-          soporta traducciones en inglés y español.
+          Manage the content for all legal pages. Each page supports both
+          English and Spanish translations.
         </p>
 
         <div className="grid gap-4 md:grid-cols-1">

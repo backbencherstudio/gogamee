@@ -218,17 +218,16 @@ export default function EventReqTable() {
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 mb-1">
-                    Reservas de Viajes Deportivos
+                    Sports Travel Bookings
                   </h1>
                   <p className="text-gray-600">
-                    Gestionar y revisar todas las solicitudes de reserva de
-                    viajes
+                    Manage and review all travel booking requests
                   </p>
                   <div className="text-xs text-gray-400 mt-1">
                     {loading ? (
                       <div className="h-4 w-32 bg-gray-200 animate-pulse rounded" />
                     ) : (
-                      <>Total {totalItems} reservas encontradas</>
+                      <>Total {totalItems} bookings found</>
                     )}
                   </div>
                 </div>
@@ -242,12 +241,8 @@ export default function EventReqTable() {
                   >
                     <FaCalendarAlt className="text-blue-600 w-4 h-4" />
                     <span className="text-gray-700 font-medium">
-                      {{
-                        alltime: "Todo el tiempo",
-                        "7days": "Últimos 7 días",
-                        "15days": "Últimos 15 días",
-                        "30days": "Últimos 30 días",
-                      }[timeFilter] || "Todo el tiempo"}
+                      {dateRangeOptions.find((opt) => opt.value === timeFilter)
+                        ?.label || "Todo el tiempo"}
                     </span>
                     <MdKeyboardArrowDown className="text-gray-400 w-5 h-5" />
                   </button>
@@ -261,12 +256,7 @@ export default function EventReqTable() {
                           className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-50 transition-colors
                       ${timeFilter === option.value ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-700"}`}
                         >
-                          {{
-                            alltime: "Todo el tiempo",
-                            "7days": "Últimos 7 días",
-                            "15days": "Últimos 15 días",
-                            "30days": "Últimos 30 días",
-                          }[option.value] || option.label}
+                          {option.label}
                         </button>
                       ))}
                     </div>
@@ -284,31 +274,31 @@ export default function EventReqTable() {
                     onClick={() => handleTabChange("all")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "all" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    Todos
+                    All
                   </button>
                   <button
                     onClick={() => handleTabChange("pending")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "pending" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    Pendiente
+                    Pending
                   </button>
                   <button
                     onClick={() => handleTabChange("confirmed")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "confirmed" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    Confirmado
+                    Confirmed
                   </button>
                   <button
                     onClick={() => handleTabChange("completed")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "completed" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    Completado
+                    Completed
                   </button>
                   <button
                     onClick={() => handleTabChange("rejected")}
                     className={`py-2 px-2 border rounded-lg text-sm ${activeTab === "rejected" ? "bg-blue-50 border-blue-500 text-blue-600" : "bg-white border-gray-200"}`}
                   >
-                    Rechazado
+                    Rejected
                   </button>
                 </div>
               </div>
@@ -333,13 +323,7 @@ export default function EventReqTable() {
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }`}
                   >
-                    {{
-                      "All Bookings": "Todas las Reservas",
-                      Pending: "Pendiente",
-                      Confirmed: "Confirmado",
-                      Completed: "Completado",
-                      Rejected: "Rechazado",
-                    }[tab.label] || tab.label}
+                    {tab.label}
                   </button>
                 ))}
               </div>
@@ -351,25 +335,25 @@ export default function EventReqTable() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      ID de Reserva y Fecha
+                      Booking ID & Date
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Cliente y Deporte
+                      Customer & Sport
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Detalles del Viaje
+                      Travel Details
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Info de Reserva
+                      Booking Info
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Estado de Reserva
+                      Booking Status
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Estado de Pago
+                      Payment Status
                     </th>
                     <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Acciones
+                      Actions
                     </th>
                   </tr>
                 </thead>
@@ -470,7 +454,7 @@ export default function EventReqTable() {
                               </div>
                               <div className="flex items-center text-sm text-gray-600">
                                 <FaUsers className="w-3 h-3 mr-2 text-gray-400" />
-                                {booking.travelers?.totalCount || 0} viajeros
+                                {booking.travelers?.totalCount || 0} travelers
                               </div>
                               <div className="mt-1">
                                 <span
@@ -490,10 +474,10 @@ export default function EventReqTable() {
                                 {booking.totalCost}
                               </div>
                               <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">
-                                Monto total pagado
+                                Total amount paid
                               </div>
                               <div className="text-xs text-gray-400">
-                                {booking.dates?.durationDays} días de viaje
+                                {booking.dates?.durationDays} days travel
                               </div>
                             </div>
                           </td>
@@ -501,29 +485,14 @@ export default function EventReqTable() {
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusStyle(booking.status)}`}
                             >
-                              {{
-                                Confirmed: "Confirmado",
-                                Completed: "Completado",
-                                Rejected: "Rechazado",
-                                Cancelled: "Cancelado",
-                                Pending: "Pendiente",
-                              }[getStatusText(booking.status)] ||
-                                getStatusText(booking.status)}
+                              {getStatusText(booking.status)}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusStyle(booking.payment?.status)}`}
                             >
-                              {{
-                                Paid: "Pagado",
-                                Pending: "Pendiente",
-                                Failed: "Fallido",
-                                Unknown: "Desconocido",
-                              }[
-                                getPaymentStatusText(booking.payment?.status)
-                              ] ||
-                                getPaymentStatusText(booking.payment?.status)}
+                              {getPaymentStatusText(booking.payment?.status)}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -568,13 +537,13 @@ export default function EventReqTable() {
                   <FaCalendarAlt className="w-12 h-12 mx-auto" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No se encontraron reservas
+                  No bookings found
                 </h3>
                 <p className="text-gray-500">
-                  Intente ajustar sus filtros para ver más resultados.
+                  Try adjusting your filters to see more results.
                 </p>
                 <div className="text-xs text-gray-400 mt-2">
-                  Filtro: {activeTab} | Rango de Fechas : {timeFilter}
+                  Filter: {activeTab} | Date Range : {timeFilter}
                 </div>
               </div>
             )}
@@ -596,8 +565,10 @@ export default function EventReqTable() {
           isOpen={!!deleteConfirm}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={() => deleteConfirm && handleDeleteBooking(deleteConfirm)}
-          title="Eliminar Reserva"
-          message="¿Está seguro de que desea eliminar esta reserva? Esta acción no se puede deshacer."
+          title={"Delete Booking"}
+          message={
+            "Are you sure you want to delete this booking? This action cannot be undone."
+          }
         />
       </div>
     </div>
