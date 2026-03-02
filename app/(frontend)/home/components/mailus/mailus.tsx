@@ -47,7 +47,7 @@ export default function Mailus() {
       <div
         className="w-full h-auto md:h-[537px] p-4 md:p-8 rounded-3xl flex flex-col justify-center items-center gap-2.5"
         style={{
-          backgroundImage: "url('/homepage/faqbg.png')",
+          backgroundImage: "url('/homepage/contact-us.png')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",

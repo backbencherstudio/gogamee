@@ -272,8 +272,25 @@ BookingSchema.pre("save", async function (this: IBooking) {
     const month = String(now.getUTCMonth() + 1).padStart(2, "0");
     const day = String(now.getUTCDate()).padStart(2, "0");
     const dateStr = `${year}${month}${day}`;
-    const random = Math.floor(100 + Math.random() * 900);
-    this.bookingReference = `GG-${dateStr}-${random}`;
+
+    // Find highest booking reference for today
+    const prefix = `GG-${dateStr}-`;
+    const BookingModel = mongoose.model<IBooking>("Booking");
+    const lastBooking = await BookingModel.findOne({
+      bookingReference: { $regex: `^${prefix}` },
+    }).sort({ bookingReference: -1 });
+
+    let sequenceNum = 1;
+    if (lastBooking && lastBooking.bookingReference) {
+      const lastSeqStr = lastBooking.bookingReference.split("-")[2];
+      const lastSeq = parseInt(lastSeqStr, 10);
+      if (!isNaN(lastSeq)) {
+        sequenceNum = lastSeq + 1;
+      }
+    }
+
+    const formattedSequence = String(sequenceNum).padStart(3, "0");
+    this.bookingReference = `${prefix}${formattedSequence}`;
   }
 });
 

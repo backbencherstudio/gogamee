@@ -341,6 +341,7 @@ export async function POST(request: Request) {
       success: true,
       clientSecret: paymentIntent.client_secret,
       bookingId: booking._id.toString(),
+      bookingReference: booking.bookingReference,
       amount: totalAmountInCents / 100,
       currency: "eur",
     });

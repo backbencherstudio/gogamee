@@ -8,6 +8,7 @@ import {
   ChevronRight,
   DollarSign,
   X,
+  AlertTriangle,
 } from "lucide-react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import AppData from "../../../../lib/appdata";
@@ -149,6 +150,10 @@ export default function DateManagement() {
   const [selectedDuration, setSelectedDuration] = useState<
     "1" | "2" | "3" | "4"
   >((searchParams.get("duration") as "1" | "2" | "3" | "4") || "1");
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetDurationTarget, setResetDurationTarget] = useState<
+    "1" | "2" | "3" | "4" | null
+  >(null);
   const [basePrices, setBasePrices] = useState<{
     football: StartingPriceItem | null;
     basketball: StartingPriceItem | null;
@@ -270,7 +275,7 @@ export default function DateManagement() {
         const data = await getAllDates({
           months: [monthName],
           year: year,
-          sportName: selectedSport,
+          sportName: selectedSport === "both" ? "combined" : selectedSport,
           league: selectedCompetition,
           duration: selectedDuration,
         });
@@ -431,7 +436,7 @@ export default function DateManagement() {
       return (
         itemDateString === dateString &&
         item.league === selectedCompetition &&
-        item.sportName === selectedSport &&
+        item.sportName === (selectedSport === "both" ? "combined" : selectedSport) &&
         item.duration === selectedDuration
       ); // Critical: each duration has its own date entries
     });
@@ -478,7 +483,7 @@ export default function DateManagement() {
           return (
             itemDateString === dateString &&
             item.league === selectedCompetition &&
-            item.sportName === selectedSport &&
+            item.sportName === (selectedSport === "both" ? "combined" : selectedSport) &&
             item.duration === selectedDuration
           ); // Critical: filter by duration to allow same date for different durations
         })
@@ -493,7 +498,7 @@ export default function DateManagement() {
         const newStatus =
           existingItem.status === "enabled" ? "blocked" : "enabled";
         await updateDate(existingItem.id, {
-          sportName: selectedSport,
+          sportName: selectedSport === "both" ? "combined" : selectedSport,
           status: newStatus === "enabled" ? "enabled" : "disabled", // Align with schema enum
         });
 
@@ -541,7 +546,7 @@ export default function DateManagement() {
             date: utcNoon.toISOString(),
             // status field not needed at root for new simplified POST, handled by sportName
             league: selectedCompetition,
-            sportName: selectedSport, // camelCase
+            sportName: selectedSport === "both" ? "combined" : selectedSport, // camelCase
             duration: selectedDuration,
             prices: {
               standard:
@@ -794,29 +799,14 @@ export default function DateManagement() {
     setEditingPrices(true);
   };
 
-  const handleResetDuration = async (duration: "1" | "2" | "3" | "4") => {
-    const confirmMessage =
-      "Are you sure you want to reset all data for " +
-      duration +
-      " Night" +
-      (duration === "1" ? "" : "s") +
-      " package?\\n\\nThis will delete all enabled dates, blocked dates, and custom prices for:\\n- " +
-      (selectedCompetition === "national" ? "National" : "European") +
-      " Leagues\\n- " +
-      (selectedSport === "football"
-        ? "Football"
-        : selectedSport === "basketball"
-          ? "Basketball"
-          : "Both") +
-      "\\n- " +
-      duration +
-      " Night" +
-      (duration === "1" ? "" : "s") +
-      " duration\\n\\nThis action cannot be undone.";
+  const handleResetDuration = (duration: "1" | "2" | "3" | "4") => {
+    setResetDurationTarget(duration);
+    setShowResetConfirm(true);
+  };
 
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+  const executeResetDuration = async () => {
+    if (!resetDurationTarget) return;
+    const duration = resetDurationTarget;
 
     try {
       setIsSavingApiData(true);
@@ -826,7 +816,7 @@ export default function DateManagement() {
         ? apiDateData.filter(
             (item) =>
               item.league === selectedCompetition &&
-              item.sportName === selectedSport &&
+              item.sportName === (selectedSport === "both" ? "combined" : selectedSport) &&
               item.duration === duration,
           )
         : [];
@@ -866,6 +856,8 @@ export default function DateManagement() {
       });
     } finally {
       setIsSavingApiData(false);
+      setShowResetConfirm(false);
+      setResetDurationTarget(null);
     }
   };
 
@@ -1171,7 +1163,7 @@ export default function DateManagement() {
                             return (
                               itemDateString === dateString &&
                               item.league === selectedCompetition &&
-                              item.sportName === selectedSport &&
+                              item.sportName === (selectedSport === "both" ? "combined" : selectedSport) &&
                               item.duration === selectedDuration
                             );
                           });
@@ -1628,6 +1620,85 @@ export default function DateManagement() {
                   Save All Prices
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Reset Confirmation Modal */}
+      {showResetConfirm && resetDurationTarget && (
+        <div
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowResetConfirm(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-md w-full animate-in fade-in zoom-in duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-100 flex items-center gap-3 text-red-600">
+              <div className="p-2 bg-red-100 rounded-full">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <h2 className="text-xl font-semibold font-['Poppins']">
+                Reset Data
+              </h2>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-gray-600 font-['Poppins'] text-sm leading-relaxed">
+                Are you sure you want to reset all data for the <strong>{resetDurationTarget} Night{resetDurationTarget === "1" ? "" : "s"}</strong> package?
+              </p>
+              
+              <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+                <p className="text-sm text-red-700 font-['Poppins'] font-medium mb-2">
+                  This will permanently delete:
+                </p>
+                <ul className="text-sm text-red-600 font-['Poppins'] list-disc list-inside space-y-1 ml-1">
+                  <li>All enabled and blocked dates.</li>
+                  <li>All configured custom prices.</li>
+                  <li>
+                    Affects only: <strong>
+                    {selectedCompetition === "national" ? "National" : "European"} / {
+                    selectedSport === "football"
+                      ? "Football"
+                      : selectedSport === "basketball"
+                        ? "Basketball"
+                        : "Both"
+                    }
+                    </strong>
+                  </li>
+                </ul>
+              </div>
+              <p className="text-sm text-gray-500 font-['Poppins'] font-medium italic">
+                This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex gap-3 justify-end p-4 border-t border-gray-100 bg-gray-50 rounded-b-lg">
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                disabled={isSavingApiData}
+                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-lg font-medium font-['Poppins'] transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={executeResetDuration}
+                disabled={isSavingApiData}
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium font-['Poppins'] transition-all"
+              >
+                {isSavingApiData ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Resetting...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="w-4 h-4" />
+                    Yes, Reset
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>

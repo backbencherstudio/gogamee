@@ -619,6 +619,15 @@ export default function HeroSection() {
                           </span>
                         </div>
                       </div>
+                      
+                      {/* Single traveler supplement message */}
+                      {totalPeople === 1 && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <div className="text-xs text-amber-600 font-['Poppins']">
+                            Suplemento de viajero individual: se aplicarán 50€. Esta tarifa solo se aplica cuando se viaja solo y aparecerá en su resumen final.
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

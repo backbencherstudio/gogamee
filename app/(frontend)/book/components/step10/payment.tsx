@@ -23,6 +23,7 @@ export default function Payment() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [bookingReference, setBookingReference] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Use a ref to prevent double-initiation in React Strict Mode
@@ -274,6 +275,7 @@ export default function Payment() {
       if (data.success && data.clientSecret) {
         setClientSecret(data.clientSecret);
         setBookingId(data.bookingId);
+        setBookingReference(data.bookingReference || data.bookingId);
       } else {
         throw new Error(data.message || "Error al crear el pago");
       }
@@ -289,7 +291,8 @@ export default function Payment() {
     const amount = formData.calculatedTotals?.totalCost?.toFixed(2) || "0.00";
     const email = formData.travelers?.adults?.[0]?.email || "";
 
-    const successUrl = `/payment/success?bookingId=${bookingId || "CONFIRMED"}&amount=${amount}&email=${encodeURIComponent(email)}`;
+    const reference = bookingReference || bookingId || "CONFIRMED";
+    const successUrl = `/payment/success?bookingId=${reference}&amount=${amount}&email=${encodeURIComponent(email)}`;
 
     // Redirect immediately to success page
     window.location.href = successUrl;

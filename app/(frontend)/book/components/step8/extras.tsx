@@ -50,6 +50,9 @@ export default function Extras() {
         if (extra.isGroupOption) {
           return { ...extra, quantity: totalTravelers };
         }
+        if (extra.id === "seats-together" && totalTravelers === 1) {
+          return { ...extra, quantity: 1, isSelected: false }; // Force deselect if 1 traveler
+        }
         return extra;
       });
     }
@@ -74,6 +77,10 @@ export default function Extras() {
       // Update Underseat bag (included extra) quantity based on total travelers (1 bag per person)
       if (extra.id === "underseat-bag" && extra.isIncluded) {
         return { ...extra, quantity: totalTravelers, isSelected: true };
+      }
+      // Hide seats together option if only 1 traveler
+      if (extra.id === "seats-together" && totalTravelers === 1) {
+        return { ...extra, quantity: 1, isSelected: false };
       }
       return extra;
     });
@@ -388,7 +395,11 @@ export default function Extras() {
                 render={({ field }) => {
                   const value =
                     (field.value as ExtraService[] | undefined) ?? [];
-                  return <>{value.map(renderExtraService)}</>;
+                  // Filter out "seats-together" extra when there's only 1 traveler
+                  const displayExtras = value.filter(
+                    (extra) => !(extra.id === "seats-together" && totalTravelers === 1)
+                  );
+                  return <>{displayExtras.map(renderExtraService)}</>;
                 }}
               />
             </div>
