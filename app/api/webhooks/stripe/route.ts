@@ -111,32 +111,8 @@ export async function POST(request: NextRequest) {
 
           if (updatedBooking) {
             console.log("✅ Booking updated:", bookingId);
-
-            // Check if email was already sent using Redis deduplication
-            // This handles cases where Verify API updated status but didn't send email (new architecture)
-            // or if Webhook is retrying
-            const shouldSendEmail = await (
-              await import("@/backend/lib/email-queue")
-            ).emailQueue.checkAndMarkEmailSent(bookingId);
-
-            if (shouldSendEmail) {
-              try {
-                const { sendBookingConfirmationEmail } =
-                  await import("../../mail/send-booking-email");
-                await sendBookingConfirmationEmail(updatedBooking);
-                console.log("📧 Confirmation email sent");
-              } catch (e) {
-                console.error("❌ Email failed:", e);
-                // Reset flag so retry can work?
-                // sendBookingConfirmationEmail already handles queueing, so we don't need to reset flag mostly.
-                // But if sendBookingConfirmationEmail fails BEFORE queueing, we might lose email.
-                // However, sendBookingConfirmationEmail function handles queueing internally now.
-              }
-            } else {
-              console.log(
-                "⚠️ Email already sent for this booking (Deduplicated)",
-              );
-            }
+            // NOTE: No email is sent here.
+            // Confirmation email is only sent when an admin manually confirms the booking from the dashboard.
           }
         } catch (err) {
           console.error("❌ Error updating booking for PaymentIntent:", err);
@@ -175,46 +151,8 @@ export async function POST(request: NextRequest) {
 
         console.log("✅ Booking updated:", bookingId);
 
-        // Send confirmation email - use direct function call for reliability
-        try {
-          const { mapBookingToLegacy } =
-            await import("@/backend/modules/booking/booking.mapper");
-          const legacyBooking = mapBookingToLegacy(updatedBooking);
-          console.log("📧 Sending confirmation email to:", legacyBooking.email);
-
-          // Import and call email function directly (works for both localhost and Vercel)
-          const { sendBookingConfirmationEmail } =
-            await import("../../mail/send-booking-email");
-
-          const bookingData: any = updatedBooking;
-
-          const emailResult = await sendBookingConfirmationEmail(bookingData);
-
-          if (emailResult.success) {
-            console.log(
-              "✅ Confirmation email sent successfully to:",
-              legacyBooking.email,
-            );
-            console.log("📧 Email result:", emailResult.message);
-          } else {
-            console.error("❌ Failed to send confirmation email");
-            console.error("❌ Error:", emailResult.error);
-            console.error("❌ Message:", emailResult.message);
-          }
-        } catch (emailError) {
-          console.error("❌ Error sending confirmation email:", emailError);
-          console.error(
-            "❌ Error details:",
-            emailError instanceof Error
-              ? emailError.message
-              : String(emailError),
-          );
-          console.error(
-            "❌ Stack:",
-            emailError instanceof Error ? emailError.stack : "No stack trace",
-          );
-          // Don't fail the webhook if email fails
-        }
+        // NOTE: No email is sent here.
+        // Confirmation email is only sent when an admin manually confirms the booking from the dashboard.
 
         return NextResponse.json({
           received: true,
