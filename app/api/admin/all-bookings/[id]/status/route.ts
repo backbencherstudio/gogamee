@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { BookingService } from "@/backend";
 import { toErrorMessage } from "@/backend/lib/errors";
-import { queueBookingConfirmationEmails } from "@/app/api/mail/send-booking-email";
+import { emailQueue } from "@/backend/lib/email-queue";
+import { generateUserEmailContent } from "@/app/api/mail/send-booking-email";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -33,7 +34,7 @@ export async function PATCH(request: Request, context: RouteContext) {
         { status: 400 },
       );
     }
-    // Update booking with new data
+
     const updated = await BookingService.updateStatus(
       id,
       status,
@@ -48,45 +49,93 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
 
-    // Handle Email Scheduling on Approval
+    // Send user/client confirmation emails via queue when admin confirms.
+    // Admin already received their notification when payment was made (Stripe webhook).
     if (status === "confirmed") {
-      try {
+      const clientEmail = updated.travelers?.primaryContact?.email;
+
+      if (!clientEmail) {
+        console.error(`❌ No client email for booking ${id} — skipping email`);
+      } else {
         const departureDate = new Date(updated.dates?.departure || "");
         const now = new Date();
-        // 48 hours in milliseconds
         const revealTime = new Date(
           departureDate.getTime() - 48 * 60 * 60 * 1000,
         );
-        const delay = revealTime.getTime() - now.getTime();
+        const isWithin48Hours = revealTime.getTime() <= now.getTime();
+        const delayMs = isWithin48Hours
+          ? 0
+          : revealTime.getTime() - now.getTime();
 
-        if (delay > 0) {
-          // 1. Send Immediate Confirmation (Hidden) + Admin Notification
-          await queueBookingConfirmationEmails(updated, {
-            showReveal: false,
-          });
+        try {
+          if (!isWithin48Hours) {
+            // 1. Immediate hidden confirmation email
+            const immediateContent = generateUserEmailContent(updated, {
+              showReveal: false,
+            });
+            await emailQueue.addToQueue({
+              to: clientEmail,
+              subject: immediateContent.subject,
+              html: immediateContent.htmlContent,
+              text: immediateContent.subject,
+              from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+              type: "booking",
+              bookingId: id,
+            });
+            console.log(
+              `✅ Immediate confirmation email queued for client: ${clientEmail}`,
+            );
 
-          // 2. Schedule Reveal Email (User Only)
-          await queueBookingConfirmationEmails(updated, {
-            showReveal: true,
-            delay,
-          });
-        } else {
-          // Already within 48h, send Revealed version immediately
-          await queueBookingConfirmationEmails(updated, {
-            showReveal: true,
-          });
+            // 2. Delayed reveal email (48h before departure)
+            const revealContent = generateUserEmailContent(updated, {
+              showReveal: true,
+            });
+            await emailQueue.addToQueue(
+              {
+                to: clientEmail,
+                subject: revealContent.subject,
+                html: revealContent.htmlContent,
+                text: revealContent.subject,
+                from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+                type: "booking",
+                bookingId: id,
+                requiresStatusCheck: true,
+              },
+              { delay: delayMs },
+            );
+            console.log(
+              `✅ Reveal email scheduled for ${Math.round(delayMs / 1000 / 60 / 60)}h from now`,
+            );
+          } else {
+            // Departure within 48h — send revealed version immediately
+            const revealContent = generateUserEmailContent(updated, {
+              showReveal: true,
+            });
+            await emailQueue.addToQueue({
+              to: clientEmail,
+              subject: revealContent.subject,
+              html: revealContent.htmlContent,
+              text: revealContent.subject,
+              from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+              type: "booking",
+              bookingId: id,
+            });
+            console.log(
+              `✅ Reveal email queued immediately (within 48h window) for: ${clientEmail}`,
+            );
+          }
+        } catch (queueError) {
+          console.error(
+            `❌ Failed to queue email for booking ${id}:`,
+            queueError,
+          );
         }
-      } catch (emailError) {
-        console.error("❌ Error handling approval emails:", emailError);
-        // Don't fail the request, just log
       }
     }
 
     return NextResponse.json(
       { success: true, message: "Booking updated successfully" },
-      {
-        headers: { "Cache-Control": "no-store" },
-      },
+      { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error: unknown) {
     console.error("Update booking error", error);

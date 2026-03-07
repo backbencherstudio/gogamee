@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { BookingService } from "@/backend";
+import { generateAdminEmailContent } from "@/app/api/mail/send-booking-email";
+import { emailQueue } from "@/backend/lib/email-queue";
 
 function getStripeInstance() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -111,8 +113,29 @@ export async function POST(request: NextRequest) {
 
           if (updatedBooking) {
             console.log("✅ Booking updated:", bookingId);
-            // NOTE: No email is sent here.
-            // Confirmation email is only sent when an admin manually confirms the booking from the dashboard.
+            // Queue admin notification email when payment succeeds
+            try {
+              const adminEmail = process.env.MAIL_TO ?? process.env.MAIL_USER;
+              if (adminEmail) {
+                const adminContent = generateAdminEmailContent(updatedBooking);
+                await emailQueue.addToQueue({
+                  to: adminEmail,
+                  subject: adminContent.subject,
+                  html: adminContent.htmlContent,
+                  text: `New Booking Payment Received #${bookingId}`,
+                  from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+                  replyTo: updatedBooking.travelers?.primaryContact?.email,
+                  type: "admin_notification",
+                  bookingId: bookingId,
+                });
+                console.log(
+                  "📧 Admin notification queued for booking:",
+                  bookingId,
+                );
+              }
+            } catch (emailErr) {
+              console.error("❌ Failed to queue admin notification:", emailErr);
+            }
           }
         } catch (err) {
           console.error("❌ Error updating booking for PaymentIntent:", err);
@@ -151,8 +174,26 @@ export async function POST(request: NextRequest) {
 
         console.log("✅ Booking updated:", bookingId);
 
-        // NOTE: No email is sent here.
-        // Confirmation email is only sent when an admin manually confirms the booking from the dashboard.
+        // Queue admin notification email when checkout payment succeeds
+        try {
+          const adminEmail = process.env.MAIL_TO ?? process.env.MAIL_USER;
+          if (adminEmail) {
+            const adminContent = generateAdminEmailContent(updatedBooking);
+            await emailQueue.addToQueue({
+              to: adminEmail,
+              subject: adminContent.subject,
+              html: adminContent.htmlContent,
+              text: `New Booking Payment Received #${bookingId}`,
+              from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+              replyTo: updatedBooking.travelers?.primaryContact?.email,
+              type: "admin_notification",
+              bookingId: bookingId,
+            });
+            console.log("📧 Admin notification queued for booking:", bookingId);
+          }
+        } catch (emailErr) {
+          console.error("❌ Failed to queue admin notification:", emailErr);
+        }
 
         return NextResponse.json({
           received: true,
