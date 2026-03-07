@@ -108,9 +108,19 @@ const PackageType: React.FC = () => {
   const handlePackageSelect = useCallback(
     (value: string) => {
       setValue("selectedPackage", value);
-      updateFormData({ selectedPackage: value });
+      // If package type actually changed, clear date-specific price since
+      // standard vs premium has different prices for the same date.
+      if (value !== formData.selectedPackage) {
+        updateFormData({
+          selectedPackage: value,
+          selectedDatePrice: undefined,
+          calculatedTotals: undefined,
+        });
+      } else {
+        updateFormData({ selectedPackage: value });
+      }
     },
-    [setValue, updateFormData],
+    [setValue, updateFormData, formData.selectedPackage],
   );
 
   const onSubmit = useCallback(

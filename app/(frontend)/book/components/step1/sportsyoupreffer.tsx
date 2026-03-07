@@ -109,9 +109,27 @@ export default function SportsYouPreffer() {
   const handleSportSelect = useCallback(
     (value: string) => {
       setValue("selectedSport", value);
-      updateFormData({ selectedSport: value });
+      // If sport actually changed, clear all sport-dependent fields so stale
+      // prices/dates/extras from the old sport don't bleed into later steps.
+      if (value !== formData.selectedSport) {
+        updateFormData({
+          selectedSport: value,
+          // Clear date & price selection — these are sport-specific
+          departureDate: "",
+          returnDate: "",
+          selectedDatePrice: undefined,
+          // Clear league selection — leagues are sport-specific
+          leagues: [],
+          // Clear extras — extras may be sport-specific
+          extras: [],
+          // Clear calculated totals — they depend on the sport price
+          calculatedTotals: undefined,
+        });
+      } else {
+        updateFormData({ selectedSport: value });
+      }
     },
-    [setValue, updateFormData],
+    [setValue, updateFormData, formData.selectedSport],
   );
 
   // Form submission handler
