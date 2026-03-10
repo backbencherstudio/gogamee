@@ -22,7 +22,7 @@ export function ContinueButton({
   const baseStyles =
     "w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-colors";
 
-  const enabledStyles = "bg-[#76C043] hover:bg-lime-600 cursor-pointer";
+  const enabledStyles = "bg-[#76C043] hover:bg-lime-600 cursor-pointer shadow-sm hover:shadow-md duration-300";
   const disabledStyles = "bg-gray-300 cursor-not-allowed opacity-50";
 
   return (

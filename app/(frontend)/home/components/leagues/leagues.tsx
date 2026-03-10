@@ -59,9 +59,9 @@ export default function SportsLeagues() {
         <div className="flex flex-col justify-start items-center gap-12">
           <div className="flex flex-col justify-start items-center gap-4">
             <div className="flex flex-col justify-start items-center gap-3">
-              <div className="text-center text-zinc-950 text-3xl sm:text-4xl md:text-5xl font-semibold font-poppins leading-tight md:leading-[57.60px] px-4">
+              <h2 className="text-center text-zinc-950 text-3xl sm:text-4xl md:text-5xl font-semibold font-poppins leading-tight md:leading-[57.60px] px-4">
                 ¿Listo para estas ligas?
-              </div>
+              </h2>
             </div>
           </div>
         </div>

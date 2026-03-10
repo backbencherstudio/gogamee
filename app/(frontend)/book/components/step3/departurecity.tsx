@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { useBooking } from "../../context/BookingContext";
 import { departureCityData } from "../../../../lib/appdata";
+import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 
 // Types
 interface CityOption {
@@ -227,16 +228,12 @@ const DepartureCity: React.FC = () => {
           />
         </div>
 
-        {/* Next Button */}
-        <button
-          onClick={handleSubmit(onSubmit)}
-          disabled={!selectedCity}
-          className={buttonClassName}
-          type="button"
-          aria-label="Proceed to next step"
-        >
-          <span className={buttonTextClassName}>Siguiente</span>
-        </button>
+        <BookingNavigation
+          onNext={handleSubmit(onSubmit)}
+          nextDisabled={!selectedCity}
+          nextText="Siguiente"
+          className="w-full"
+        />
       </div>
     </div>
   );

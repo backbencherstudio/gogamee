@@ -5,6 +5,7 @@ import { MdFlightTakeoff, MdFlightLand } from "react-icons/md";
 import { Range } from "react-range";
 import { useBooking } from "../../context/BookingContext";
 import { flightScheduleData } from "../../../../lib/appdata";
+import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 
 // ========================= TYPES =========================
 interface TimeRange {
@@ -539,15 +540,11 @@ export default function FlightSchedule() {
             </div>
           )}
 
-          <button
-            onClick={handleConfirm}
-            className="w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-lime-300"
-            type="button"
-          >
-            <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-              Confirmar
-            </div>
-          </button>
+          <BookingNavigation
+            onNext={handleConfirm}
+            nextText="Siguiente"
+            className="w-full"
+          />
         </div>
       </div>
     </div>

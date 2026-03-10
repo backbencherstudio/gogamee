@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useFormContext } from "react-hook-form";
 import { useBooking } from "../../context/BookingContext";
+import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 import { getAllDates } from "../../../../../services/dateManagementService";
 import {
   getStartingPrice,
@@ -120,7 +121,58 @@ const isDateAllowedForCompetition = (
 };
 
 export default function DateSection() {
-  const { formData, updateFormData, nextStep } = useBooking();
+  const { formData, updateFormData, nextStep, currentStep } = useBooking();
+
+  const handleNext = () => {
+    if (
+      selectedStartDate &&
+      selectedMonth !== null &&
+      selectedYear !== null
+    ) {
+      const startDate = new Date(
+        selectedYear,
+        selectedMonth,
+        selectedStartDate,
+      );
+      const duration = DURATION_OPTIONS[selectedDuration];
+      const endDate = new Date(startDate);
+      endDate.setDate(startDate.getDate() + duration.days - 1);
+
+      // Get selected date price from apiDateData
+      const selectedDateString = formatDateForAPI(startDate);
+      const selectedDateData = apiDateData.find(
+        (item) =>
+          formatApiDateForComparison(item.date) === selectedDateString,
+      );
+
+      // ONLY update the price if we found a valid price in the current API data.
+      let selectedDatePrice = formData.selectedDatePrice;
+
+      if (selectedDateData?.prices) {
+        selectedDatePrice = selectedDateData.prices;
+      } else if (!selectedDatePrice) {
+        // If it's the first time and we have no price yet, try to get a base price
+        const basePriceStr = calculatePrice(
+          DURATION_OPTIONS[selectedDuration].nights,
+          startDate
+        );
+        const numericPrice = parseInt(basePriceStr.replace(/[^0-9]/g, ""));
+        selectedDatePrice = {
+          standard: numericPrice || 0,
+          premium: numericPrice || 0,
+          combined: numericPrice || 0,
+        };
+      }
+
+      updateFormData({
+        departureDate: startDate.toISOString(),
+        returnDate: endDate.toISOString(),
+        selectedDatePrice, // Save price for Step 9 to use
+      });
+
+      nextStep();
+    }
+  };
 
   const MONTH_NAMES = MONTH_NAMES_ES;
   const WEEK_DAYS = WEEK_DAYS_ES;
@@ -926,7 +978,7 @@ export default function DateSection() {
       return weeks.map((week, weekIndex) => (
         <div
           key={weekIndex}
-          className="self-stretch inline-flex justify-start items-center"
+          className="self-stretch grid grid-cols-7 justify-items-center items-center"
         >
           {week.map((day, dayIndex) => {
             const { isSelected, isInRange } = getDateStatus(
@@ -987,7 +1039,7 @@ export default function DateSection() {
 
   const renderWeekDaysHeader = useCallback(
     () => (
-      <div className="self-stretch py-3 inline-flex justify-start items-center gap-6">
+      <div className="self-stretch py-3 grid grid-cols-7 justify-items-center items-center">
         {WEEK_DAYS.map((day) => (
           <div key={day} className="w-7 h-4 relative">
             <div className="w-7 h-4 left-0 top-0 absolute text-center justify-center text-zinc-950 text-xs font-medium font-['Poppins'] leading-none">
@@ -1126,60 +1178,18 @@ export default function DateSection() {
           </div>
         </div>
 
-        {/* Next Button */}
-        <button
-          onClick={() => {
-            if (
-              selectedStartDate &&
-              selectedMonth !== null &&
-              selectedYear !== null
-            ) {
-              const startDate = new Date(
-                selectedYear,
-                selectedMonth,
-                selectedStartDate,
-              );
-              const duration = DURATION_OPTIONS[selectedDuration];
-              const endDate = new Date(startDate);
-              endDate.setDate(startDate.getDate() + duration.days - 1);
-
-              // Get selected date price from apiDateData
-              const selectedDateString = formatDateForAPI(startDate);
-              const selectedDateData = apiDateData.find(
-                (item) =>
-                  formatApiDateForComparison(item.date) === selectedDateString,
-              );
-
-              const selectedDatePrice = selectedDateData?.prices || {
-                standard: 0,
-                premium: 0,
-                combined: 0,
-              };
-
-              updateFormData({
-                departureDate: startDate.toISOString(),
-                returnDate: endDate.toISOString(),
-                selectedDatePrice, // Save price for Step 9 to use
-              });
-
-              nextStep();
+        {/* Navigation */}
+        <div className="w-full flex justify-end">
+          <BookingNavigation
+            onNext={handleNext}
+            nextDisabled={
+              !selectedStartDate ||
+              selectedMonth === null ||
+              selectedYear === null
             }
-          }}
-          disabled={
-            !selectedStartDate ||
-            selectedMonth === null ||
-            selectedYear === null
-          }
-          className={`w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-colors ${
-            selectedStartDate && selectedMonth !== null && selectedYear !== null
-              ? "bg-[#76C043] hover:bg-lime-600 cursor-pointer"
-              : "bg-gray-400 cursor-not-allowed"
-          }`}
-        >
-          <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-            Siguiente
-          </div>
-        </button>
+            className="w-full"
+          />
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { FaCheck } from "react-icons/fa";
 import { useBooking } from "../../context/BookingContext";
 import { BOOKING_CONSTANTS } from "../../context/BookingContext";
-import { ContinueButton } from "../shared/buttons/ContinueButton";
+import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 import { useState } from "react";
 import { homepageLeaguesData } from "@/app/lib/appdata";
 
@@ -198,11 +198,11 @@ export default function LeagueStep() {
             </div>
           )}
           {/* Submit Button */}
-          <ContinueButton
-            onClick={handleSubmit(onSubmit)}
-            disabled={!selectedLeague}
-            text="Siguiente"
-            className="w-full xl:w-44"
+          <BookingNavigation
+            onNext={handleSubmit(onSubmit)}
+            nextDisabled={!selectedLeague}
+            nextText="Siguiente"
+            className="w-full"
           />
         </div>
       </div>

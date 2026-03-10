@@ -34,6 +34,7 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
     globalIndex: number,
     label: string,
     count: number,
+    isAdult: boolean = true,
   ) => (
     <div
       key={globalIndex}
@@ -81,86 +82,88 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
             )}
           />
         </div>
-        <div className="self-stretch flex flex-col justify-start items-start gap-4">
-          <div className="self-stretch flex flex-col justify-center items-start gap-4">
-            <div className="self-stretch inline-flex justify-start items-center gap-2">
-              <div className="justify-start text-neutral-800 text-base font-semibold font-['Poppins'] leading-loose">
-                {personalInfoData.formFields.documentType.label}
-              </div>
-            </div>
-          </div>
-          <div className="self-stretch flex flex-col justify-start items-start gap-4">
+          {isAdult && (
             <div className="self-stretch flex flex-col justify-start items-start gap-4">
-              <Controller
-                name={`extraTravelers.${globalIndex}.documentType`}
-                control={control}
-                rules={{ required: "REQUIRED_DOC_TYPE" }}
-                render={({ field }) => (
-                  <>
-                    <DocumentTypeRadio
-                      id={`extra${globalIndex}ID`}
-                      name={`extra${globalIndex}DocType`}
-                      value="ID"
-                      selectedValue={field.value}
-                      onChange={field.onChange}
-                      label={personalInfoData.formFields.documentType.id}
-                    />
-                    <DocumentTypeRadio
-                      id={`extra${globalIndex}Passport`}
-                      name={`extra${globalIndex}DocType`}
-                      value="Passport"
-                      selectedValue={field.value}
-                      onChange={field.onChange}
-                      label={personalInfoData.formFields.documentType.passport}
-                    />
-                  </>
-                )}
-              />
-              {errors.extraTravelers?.[globalIndex]?.documentType && (
-                <div className="text-red-500 text-sm font-normal font-['Poppins']">
-                  {getError(
-                    errors.extraTravelers?.[globalIndex]?.documentType?.message,
+              <div className="self-stretch flex flex-col justify-center items-start gap-4">
+                <div className="self-stretch inline-flex justify-start items-center gap-2">
+                  <div className="justify-start text-neutral-800 text-base font-semibold font-['Poppins'] leading-loose">
+                    {personalInfoData.formFields.documentType.label}
+                  </div>
+                </div>
+              </div>
+              <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                <div className="self-stretch flex flex-col justify-start items-start gap-4">
+                  <Controller
+                    name={`extraTravelers.${globalIndex}.documentType`}
+                    control={control}
+                    rules={{ required: "REQUIRED_DOC_TYPE" }}
+                    render={({ field }) => (
+                      <>
+                        <DocumentTypeRadio
+                          id={`extra${globalIndex}ID`}
+                          name={`extra${globalIndex}DocType`}
+                          value="ID"
+                          selectedValue={field.value}
+                          onChange={field.onChange}
+                          label={personalInfoData.formFields.documentType.id}
+                        />
+                        <DocumentTypeRadio
+                          id={`extra${globalIndex}Passport`}
+                          name={`extra${globalIndex}DocType`}
+                          value="Passport"
+                          selectedValue={field.value}
+                          onChange={field.onChange}
+                          label={personalInfoData.formFields.documentType.passport}
+                        />
+                      </>
+                    )}
+                  />
+                  {errors.extraTravelers?.[globalIndex]?.documentType && (
+                    <div className="text-red-500 text-sm font-normal font-['Poppins']">
+                      {getError(
+                        errors.extraTravelers?.[globalIndex]?.documentType?.message,
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
-            <div className="self-stretch flex flex-col justify-start items-start gap-2">
-              <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
-                {personalInfoData.formFields.documentNumber.label}
-              </div>
-              <Controller
-                name={`extraTravelers.${globalIndex}.documentNumber`}
-                control={control}
-                rules={{ required: "REQUIRED_DOC_NUM" }}
-                render={({ field }) => (
-                  <>
-                    <input
-                      type="text"
-                      value={field.value}
-                      onChange={field.onChange}
-                      placeholder={
-                        personalInfoData.formFields.documentNumber.placeholder
-                      }
-                      className={`self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 w-full ${
-                        errors.extraTravelers?.[globalIndex]?.documentNumber
-                          ? "outline-red-500"
-                          : "outline-zinc-200 focus:outline-[#6AAD3C]"
-                      }`}
-                    />
-                    {errors.extraTravelers?.[globalIndex]?.documentNumber && (
-                      <div className="text-red-500 text-sm font-normal font-['Poppins']">
-                        {getError(
-                          errors.extraTravelers?.[globalIndex]?.documentNumber
-                            ?.message,
+                <div className="self-stretch flex flex-col justify-start items-start gap-2">
+                  <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
+                    {personalInfoData.formFields.documentNumber.label}
+                  </div>
+                  <Controller
+                    name={`extraTravelers.${globalIndex}.documentNumber`}
+                    control={control}
+                    rules={{ required: "REQUIRED_DOC_NUM" }}
+                    render={({ field }) => (
+                      <>
+                        <input
+                          type="text"
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder={
+                            personalInfoData.formFields.documentNumber.placeholder
+                          }
+                          className={`self-stretch h-14 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 w-full ${
+                            errors.extraTravelers?.[globalIndex]?.documentNumber
+                              ? "outline-red-500"
+                              : "outline-zinc-200 focus:outline-[#6AAD3C]"
+                          }`}
+                        />
+                        {errors.extraTravelers?.[globalIndex]?.documentNumber && (
+                          <div className="text-red-500 text-sm font-normal font-['Poppins']">
+                            {getError(
+                              errors.extraTravelers?.[globalIndex]?.documentNumber
+                                ?.message,
+                            )}
+                          </div>
                         )}
-                      </div>
+                      </>
                     )}
-                  </>
-                )}
-              />
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
       </div>
     </div>
   );
@@ -412,30 +415,14 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                 adults - 1 + i,
                 personalInfoData.text.childLabel || "Niño",
                 i + 1,
+                false, // isAdult = false
               ),
             )}
           </div>
         </div>
       )}
 
-      {/* BABIES SECTION */}
-      {babies > 0 && (
-        <div className="self-stretch px-3 md:px-5 py-4 md:py-6 bg-white rounded-lg flex flex-col justify-start items-start gap-4">
-          <div className="text-neutral-800 text-lg font-bold font-['Poppins']">
-            {personalInfoData.text.babiesTitle || "Bebés"} ({babies})
-          </div>
-          <div className="self-stretch flex flex-col justify-start items-start gap-6">
-            {Array.from({ length: babies }, (_, i) =>
-              // Offset index: (Adults - 1) + Kids + i
-              renderExtraTraveler(
-                adults - 1 + kids + i,
-                personalInfoData.text.babyLabel || "Bebé",
-                i + 1,
-              ),
-            )}
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };

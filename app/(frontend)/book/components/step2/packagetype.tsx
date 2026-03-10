@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useBooking } from "../../context/BookingContext";
 import { packageTypeData } from "../../../../lib/appdata";
 import { SelectionCard } from "../shared/cards/SelectionCard";
+import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 
 // Types
 interface PackageFormData {
@@ -191,16 +192,12 @@ const PackageType: React.FC = () => {
           />
         </div>
 
-        {/* Next Button */}
-        <button
-          type="submit"
-          form="package-form"
-          disabled={!selectedPackage}
-          className={buttonClassName}
-          aria-label="Proceed to next step"
-        >
-          <span className={buttonTextClassName}>Siguiente</span>
-        </button>
+        <BookingNavigation
+          onNext={handleSubmit(onSubmit)}
+          nextDisabled={!selectedPackage}
+          nextText="Siguiente"
+          className="w-full"
+        />
       </form>
     </div>
   );

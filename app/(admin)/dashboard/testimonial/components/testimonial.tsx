@@ -358,6 +358,30 @@ export default function TestimonialPage() {
             </div>
 
             <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Rating
+              </label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, rating: star })}
+                    className="focus:outline-none transition-transform hover:scale-110"
+                  >
+                    <AiFillStar
+                      className={`w-8 h-8 ${
+                        star <= formData.rating
+                          ? "text-emerald-500"
+                          : "text-gray-200"
+                      }`}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Review Content
               </label>

@@ -51,6 +51,7 @@ export const BOOKING_CONSTANTS = {
   BOOKING_FEE: 0,
   CURRENCY: "EUR",
   CURRENCY_SYMBOL: "€",
+  BABY_SUPPLEMENT: 50,
 } as const;
 
 interface HeroData {
@@ -112,6 +113,8 @@ export interface BookingContextType {
       leagueCost: number;
       totalCost: number;
       totalPeople: number;
+      standardPassengerCount?: number;
+      babySupplementTotal?: number;
       duration: number;
       nights: number;
     };

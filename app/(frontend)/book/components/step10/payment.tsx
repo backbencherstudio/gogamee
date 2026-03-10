@@ -7,6 +7,7 @@ import { CreateBookingPayload } from "../../../../../services/bookingService";
 import StripeProvider from "./StripeProvider";
 import CustomStripeForm from "./CustomStripeForm";
 import { paymentData } from "../../../../lib/appdata";
+import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 
 // Helper function definitions
 const minutesToTime = (minutes: number): string => {
@@ -364,6 +365,14 @@ export default function Payment() {
           onError={handlePaymentError}
         />
       </StripeProvider>
+      <div className="mt-6">
+        <BookingNavigation 
+          onNext={() => {}} // Next is handled by Stripe form
+          showBack={true}
+          showNext={false}
+          className="w-full"
+        />
+      </div>
     </div>
   );
 }

@@ -8,9 +8,9 @@ export default function HowItWorks() {
     <div className="w-full h-auto py-12 md:py-24 flex flex-col justify-start items-center gap-8 md:gap-12 max-w-[1200px] mx-auto">
       <div className="w-full flex flex-col xl:flex-row justify-start items-start xl:items-center gap-4 md:gap-6 xl:gap-24 px-4 xl:px-0">
         <div className="w-full xl:w-[533px]">
-          <span className="text-zinc-950 text-3xl md:text-4xl xl:text-5xl font-semibold font-poppins leading-tight xl:leading-[57.60px]">
+          <h2 className="text-zinc-950 text-3xl md:text-4xl xl:text-5xl font-semibold font-poppins leading-tight xl:leading-[57.60px]">
             Cómo funciona GoGame
-          </span>
+          </h2>
         </div>
         <div className="flex-1 text-black text-sm md:text-base font-normal font-poppins leading-6 xl:leading-7">
           Sigue unos pasos muy sencillos y nosotros te sorprenderemos con el
@@ -22,7 +22,7 @@ export default function HowItWorks() {
         <div className="w-full relative grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 justify-items-center gap-12 xl:gap-0">
           {/* Step 1 */}
           <div className="w-full max-w-72 flex flex-col justify-start items-center gap-4">
-            <div className="w-28 h-28 xl:w-36 xl:h-36 p-8 xl:p-10 bg-white rounded-[75px] outline outline-1 outline-offset-[-1px] outline-lime-900 flex justify-center items-center">
+            <div className="w-28 h-28 xl:w-36 xl:h-36 p-8 xl:p-10 bg-white rounded-[75px] outline outline-offset-[-1px] outline-lime-900 flex justify-center items-center">
               <Image
                 src="/homepage/icon/calender.svg"
                 alt="Calendar Icon"
@@ -32,9 +32,9 @@ export default function HowItWorks() {
               />
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
-              <div className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
+              <h3 className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
                 Personaliza tu aventura
-              </div>
+              </h3>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
                 Cuéntanos tu deporte favorito (fútbol o basket), desde qué
                 ciudad sales y cuántas personas sois.
@@ -53,7 +53,7 @@ export default function HowItWorks() {
 
           {/* Step 2 */}
           <div className="w-full max-w-72 flex flex-col justify-start items-center gap-4">
-            <div className="w-28 h-28 xl:w-36 xl:h-36 p-8 xl:p-10 bg-white rounded-[75px] outline outline-1 outline-offset-[-1px] outline-lime-900 flex justify-center items-center">
+            <div className="w-28 h-28 xl:w-36 xl:h-36 p-8 xl:p-10 bg-white rounded-[75px] outline outline-offset-[-1px] outline-lime-900 flex justify-center items-center">
               <Image
                 src="/homepage/icon/pointer.svg"
                 alt="Pointer Icon"
@@ -63,9 +63,9 @@ export default function HowItWorks() {
               />
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
-              <div className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
+              <h3 className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
                 Nosotros preparamos la sorpresa
-              </div>
+              </h3>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
                 Nos encargamos de reservar tus vuelos, el hotel y las entradas
                 al partido. Tú solo tienes que esperar al gran momento sorpresa.
@@ -84,7 +84,7 @@ export default function HowItWorks() {
 
           {/* Step 3 */}
           <div className="w-full max-w-72 flex flex-col justify-start items-center gap-4">
-            <div className="w-28 h-28 xl:w-36 xl:h-36 p-8 xl:p-10 bg-white rounded-[75px] outline outline-1 outline-offset-[-1px] outline-lime-900 flex justify-center items-center">
+            <div className="w-28 h-28 xl:w-36 xl:h-36 p-8 xl:p-10 bg-white rounded-[75px] outline outline-offset-[-1px] outline-lime-900 flex justify-center items-center">
               <Image
                 src="/homepage/icon/go.svg"
                 alt="Go Icon"
@@ -94,9 +94,9 @@ export default function HowItWorks() {
               />
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
-              <div className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
+              <h3 className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
                 Prepárate para irte
-              </div>
+              </h3>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
                 Recibirás tu plan de viaje secreto. Haz la maleta y empieza a
                 emocionarte: sabrás tu destino 48 horas antes.
@@ -115,7 +115,7 @@ export default function HowItWorks() {
 
           {/* Step 4 */}
           <div className="w-full max-w-72 flex flex-col justify-start items-center gap-4">
-            <div className="w-28 h-28 xl:w-36 xl:h-36 p-8 xl:p-10 bg-white rounded-[75px] outline outline-1 outline-offset-[-1px] outline-lime-900 flex justify-center items-center">
+            <div className="w-28 h-28 xl:w-36 xl:h-36 p-8 xl:p-10 bg-white rounded-[75px] outline outline-offset-[-1px] outline-lime-900 flex justify-center items-center">
               <Image
                 src="/homepage/icon/map.svg"
                 alt="Map Icon"
@@ -125,9 +125,9 @@ export default function HowItWorks() {
               />
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
-              <div className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
+              <h3 className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
                 Vive la experiencia
-              </div>
+              </h3>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
                 Disfruta del partido, explora una nueva ciudad y crea recuerdos
                 inolvidables.

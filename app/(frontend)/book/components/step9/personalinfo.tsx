@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 
 import { useBooking } from "../../context/BookingContext";
 import { BOOKING_CONSTANTS } from "../../context/BookingContext";
+import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 import {
   personalInfoData,
   pricingData,
@@ -345,11 +346,13 @@ export default function Personalinfo() {
 
   // Calculate dynamic reservation data from all previous steps
   const reservationData = useMemo(() => {
-    const totalPeople = formData.travelers
-      ? (formData.travelers.adults?.length || 0) +
-        (formData.travelers.kids?.length || 0) +
-        (formData.travelers.babies?.length || 0)
-      : 0;
+    const primaryCount = formData.travelers?.adults?.length || 0;
+    const kidsCount = formData.travelers?.kids?.length || 0;
+    const babiesCount = formData.travelers?.babies?.length || 0;
+    
+    // Babies don't count as standard passengers for base price
+    const totalPeople = primaryCount + kidsCount; 
+    const totalWithBabies = totalPeople + babiesCount;
 
     const duration = calculateDuration(
       formData.departureDate || "",
@@ -421,6 +424,7 @@ export default function Personalinfo() {
     // const pricing = calculatePriceBreakdown();
     const singleTravelerSupplement =
       totalPeople === 1 ? BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT : 0;
+    const babySupplementTotal = babiesCount * BOOKING_CONSTANTS.BABY_SUPPLEMENT;
 
     const grandTotal =
       packageTotal +
@@ -429,7 +433,7 @@ export default function Personalinfo() {
       leagueTotal +
       removalTotal +
       singleTravelerSupplement +
-      singleTravelerSupplement;
+      babySupplementTotal;
 
     return {
       departureCity:
@@ -450,8 +454,10 @@ export default function Personalinfo() {
       removalCostPerPerson,
       removalTotal,
       singleTravelerSupplement,
+      babySupplementTotal,
       grandTotal,
-      totalPeople,
+      totalPeople: totalWithBabies, // For summary display if needed, but pricing uses split logic
+      standardPassengerCount: totalPeople,
       departureTimeRange: formData.flightSchedule
         ? `${formatTime(
             formData.flightSchedule.departure.start,
@@ -478,12 +484,11 @@ export default function Personalinfo() {
       }
     }
 
-    const totalPeople = formData.travelers
+    const totalTravelersForForm = formData.travelers
       ? (formData.travelers.adults?.length || 0) +
-        (formData.travelers.kids?.length || 0) +
-        (formData.travelers.babies?.length || 0)
+        (formData.travelers.kids?.length || 0)
       : 1;
-    const extraTravelersCount = Math.max(0, totalPeople - 1);
+    const extraTravelersCount = Math.max(0, totalTravelersForForm - 1);
 
     const extraTravelers = Array.from({ length: extraTravelersCount }, () => ({
       ...defaultTravelerInfo,
@@ -601,6 +606,8 @@ export default function Personalinfo() {
         leagueCost: reservationData.leagueCost,
         totalCost: reservationData.grandTotal,
         totalPeople: reservationData.totalPeople,
+        standardPassengerCount: reservationData.standardPassengerCount,
+        babySupplementTotal: reservationData.babySupplementTotal,
         duration: reservationData.duration,
         nights: reservationData.nights,
       },
@@ -648,16 +655,11 @@ export default function Personalinfo() {
               personalInfoData={personalInfoData}
               formData={formData}
             />
-            <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-full md:w-auto">
-              <button
-                type="submit"
-                className="w-full md:w-44 h-12 md:h-11 px-4 md:px-3.5 py-2 md:py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
-              >
-                <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-                  {personalInfoData.text.confirm}
-                </div>
-              </button>
-            </div>
+            <BookingNavigation
+              onNext={handleSubmit(onSubmit)}
+              nextText={personalInfoData.text.confirm}
+              className="w-full"
+            />
           </div>
         </div>
       </div>

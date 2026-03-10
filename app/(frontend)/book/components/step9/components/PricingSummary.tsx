@@ -15,6 +15,8 @@ interface PricingSummaryProps {
     removalCostPerPerson: number;
     removalTotal: number;
     singleTravelerSupplement: number;
+    babySupplementTotal?: number;
+    standardPassengerCount?: number;
     grandTotal: number;
   };
   formData: {
@@ -131,6 +133,25 @@ export function PricingSummary({
                   </div>
                   <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
                     {reservationData.removalTotal.toFixed(2)}€
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Baby Supplement Row (Mobile) */}
+            {(reservationData.babySupplementTotal || 0) > 0 && (
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                  Suplemento bebé
+                </span>
+                <div className="text-right">
+                  <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
+                    {BOOKING_CONSTANTS.BABY_SUPPLEMENT}€ x{" "}
+                    {reservationData.totalPeople -
+                      (reservationData.standardPassengerCount || 0)}
+                  </div>
+                  <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                    {(reservationData.babySupplementTotal || 0).toFixed(2)}€
                   </div>
                 </div>
               </div>
@@ -298,6 +319,25 @@ export function PricingSummary({
             </div>
           )}
 
+          {/* Baby Supplement Row (Desktop) */}
+          {(reservationData.babySupplementTotal || 0) > 0 && (
+            <div className="w-full grid grid-cols-4 gap-4 border-b-2 border-gray-200 py-3">
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800">
+                Suplemento bebé
+              </div>
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
+                {BOOKING_CONSTANTS.BABY_SUPPLEMENT}€
+              </div>
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
+                x{reservationData.totalPeople -
+                  (reservationData.standardPassengerCount || 0)}
+              </div>
+              <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-end">
+                {(reservationData.babySupplementTotal || 0).toFixed(2)}€
+              </div>
+            </div>
+          )}
+
           {/* Single Traveler Supplement Row (Desktop) */}
           {reservationData.singleTravelerSupplement > 0 && (
             <div className="w-full grid grid-cols-4 gap-4 border-b-2 border-gray-200 py-3">
@@ -411,6 +451,17 @@ export function PricingSummary({
                 </span>
                 <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
                   {reservationData.singleTravelerSupplement.toFixed(2)}€
+                </span>
+              </div>
+            )}
+
+            {(reservationData.babySupplementTotal || 0) > 0 && (
+              <div className="flex justify-between items-center py-2 border-b border-lime-200">
+                <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
+                  Suplemento bebé
+                </span>
+                <span className="text-neutral-800 text-sm font-semibold font-['Poppins']">
+                  {(reservationData.babySupplementTotal || 0).toFixed(2)}€
                 </span>
               </div>
             )}

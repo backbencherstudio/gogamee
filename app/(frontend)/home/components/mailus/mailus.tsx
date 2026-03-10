@@ -55,13 +55,13 @@ export default function Mailus() {
       >
         <div className="w-full flex flex-col md:flex-row justify-between items-center gap-8 md:gap-4">
           <div className="w-full md:w-[60%] flex flex-col justify-start items-start gap-6 md:gap-24">
-            <div className="w-full text-center md:text-left justify-start text-white text-3xl md:text-6xl font-semibold font-['Inter'] leading-tight md:leading-[67.20px]">
+            <h2 className="w-full text-center md:text-left justify-start text-white text-3xl md:text-6xl font-semibold font-['Inter'] leading-tight md:leading-[67.20px]">
               <span>
                 Sé de los primeros en enterarte de nuestras ofertas en viajes
                 sorpresa y grandes partidos{" "}
               </span>
               <span className="text-[#76C043]">GoGame</span>
-            </div>
+            </h2>
           </div>
           <form
             onSubmit={handleSubmit}

@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useBooking } from "../../context/BookingContext";
 import { BOOKING_CONSTANTS } from "../../context/BookingContext";
+import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 import { homepageLeaguesData } from "../../../../lib/appdata";
 import { translateCountryName } from "../../../../lib/utils";
 
@@ -303,7 +304,7 @@ export default function RemoveLeague() {
       </div>
 
       {/* League cards grid */}
-      <div className="self-stretch flex flex-wrap justify-center xl:justify-start items-center gap-4 xl:gap-6">
+      <div className="self-stretch flex flex-wrap justify-center items-center gap-4 xl:gap-6">
         {leagues.map((league) => (
           <LeagueCard
             key={league.id}
@@ -314,14 +315,11 @@ export default function RemoveLeague() {
         ))}
       </div>
 
-      <button
-        onClick={handleNext}
-        className="w-44 h-11 px-3.5 py-1.5 bg-[#76C043] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
-      >
-        <div className="text-center justify-start text-white text-base font-normal font-['Inter']">
-          Siguiente
-        </div>
-      </button>
+      <BookingNavigation
+        onNext={handleNext}
+        nextText="Siguiente"
+        className="w-full"
+      />
     </div>
   );
 }

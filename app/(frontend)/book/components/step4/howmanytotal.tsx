@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { HiMinus, HiPlus } from "react-icons/hi2";
 import { useBooking } from "../../context/BookingContext";
 import { BOOKING_CONSTANTS } from "../../context/BookingContext";
+import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 
 // Types
 interface CounterFormData {
@@ -320,14 +321,19 @@ export default function HowManyTotal() {
                 </div>
               </div>
             )}
-            <button
-              type="submit"
-              className="w-44 h-11 px-3.5 py-1.5 bg-[#6AAD3C] rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors"
-            >
-              <span className="text-center justify-start text-white text-base font-normal font-['Inter']">
-                Siguiente
-              </span>
-            </button>
+
+            {/* Baby Pricing Notice */}
+            <div className="w-full xl:w-[600px] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900 mt-2">
+              <div className="text-sm xl:text-base font-medium font-['Poppins']">
+                Los bebés no cuentan como pasajeros y solo pagarán{" "}
+                {BOOKING_CONSTANTS.BABY_SUPPLEMENT}€.
+              </div>
+            </div>
+            <BookingNavigation
+              onNext={handleSubmit(onSubmit)}
+              nextText="Siguiente"
+              className="w-full"
+            />
           </div>
         </div>
       </div>

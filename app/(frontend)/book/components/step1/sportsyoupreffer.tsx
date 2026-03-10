@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { useBooking } from "../../context/BookingContext";
 import { sportsPreferenceData } from "../../../../lib/appdata";
 import { SelectionCard } from "../shared/cards/SelectionCard";
+import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 
 // Types
 interface FormData {
@@ -204,15 +205,12 @@ export default function SportsYouPreffer() {
           />
         </div>
 
-        {/* Next Button */}
-        <button
-          type="submit"
-          disabled={!selectedSport}
-          className={buttonClassName}
-          aria-label="Proceed to next step"
-        >
-          <span className={buttonTextClassName}>Siguiente</span>
-        </button>
+        <BookingNavigation
+          onNext={handleSubmit(onSubmit)}
+          nextDisabled={!selectedSport}
+          nextText="Siguiente"
+          className="w-full"
+        />
       </form>
     </div>
   );

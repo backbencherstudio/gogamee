@@ -76,9 +76,9 @@ export default function Faq({ className = "", initialFaqs = [] }: FaqProps) {
         <div className="pt-16 md:pt-20 lg:pt-24 pb-8 lg:pb-10 bg-light-color flex flex-col justify-start items-start gap-8 lg:gap-12 w-full">
           {/* Header Section */}
           <div className="self-stretch flex flex-col lg:flex-row justify-start items-start lg:items-center gap-6 lg:gap-24">
-            <div className="w-full lg:w-[533px] text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
+            <h2 className="w-full lg:w-[533px] text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-poppins leading-tight lg:leading-[57.60px]">
               Preguntas frecuentes
-            </div>
+            </h2>
             <div className="flex-1 text-neutral-600 text-sm md:text-base font-normal font-['Poppins'] leading-relaxed md:leading-7">
               Encuentra respuestas a las dudas más comunes. Explora nuestras
               preguntas frecuentes y obtén toda la información que necesitas.
@@ -112,12 +112,12 @@ export default function Faq({ className = "", initialFaqs = [] }: FaqProps) {
                                   className="w-full h-full object-contain"
                                 />
                               </div>
-                              <div
+                              <h3
                                 onClick={() => toggleItem(index)}
                                 className="text-lime-900 text-lg md:text-xl lg:text-2xl font-medium font-['Poppins'] leading-tight lg:leading-9 cursor-pointer flex-1 "
                               >
                                 {item.question}
-                              </div>
+                              </h3>
                             </div>
                             <div className="w-5 h-5 md:w-6 md:h-6 flex items-center justify-center flex-shrink-0">
                               <IoIosArrowDown

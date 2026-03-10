@@ -25,23 +25,40 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const formData = await request.formData();
     const { origin } = new URL(request.url);
 
-    // Extract fields with robust typing
-    const name = String(formData.get("name") || "").trim();
-    const role = String(formData.get("role") || "").trim();
-    const review = String(formData.get("review") || "").trim();
-    const ratingStr = String(formData.get("rating") || "");
-    const imageField = formData.get("image");
-    const imageFile =
-      imageField && typeof imageField !== "string"
-        ? (imageField as File)
-        : null;
-    const imageUrlStr =
-      imageField && typeof imageField === "string"
-        ? (imageField as string)
-        : "";
+    const contentType = request.headers.get("content-type") || "";
+
+    let name = "";
+    let role = "";
+    let review = "";
+    let ratingStr = "";
+    let imageFile: File | null = null;
+    let imageUrlStr = "";
+
+    if (contentType.includes("application/json")) {
+      const body = await request.json();
+      name = (body.name || "").trim();
+      role = (body.role || "").trim();
+      review = (body.review || "").trim();
+      ratingStr = body.rating ? String(body.rating) : "";
+      imageUrlStr = body.image || "";
+    } else {
+      const formData = await request.formData();
+      name = String(formData.get("name") || "").trim();
+      role = String(formData.get("role") || "").trim();
+      review = String(formData.get("review") || "").trim();
+      ratingStr = String(formData.get("rating") || "");
+      const imageField = formData.get("image");
+      imageFile =
+        imageField && typeof imageField !== "string"
+          ? (imageField as File)
+          : null;
+      imageUrlStr =
+        imageField && typeof imageField === "string"
+          ? (imageField as string)
+          : "";
+    }
 
     // 1. Fetch existing testimonial
     const existing = await TestimonialService.getById(id);
