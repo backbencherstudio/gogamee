@@ -1101,7 +1101,6 @@ export const AppData = {
         quantity: 0,
         currency: "EUR",
         isIncluded: false,
-        maxQuantity: 5,
         isGroupOption: false, // Individual option
       },
       {
@@ -1174,6 +1173,12 @@ export const AppData = {
       totalEn: "Total",
       packageFallback: "Pack",
       packageFallbackEn: "Package",
+      confirmationTitle: "Confirmación de Datos",
+      confirmationTitleEn: "Data Confirmation",
+      confirmationLabel1: "Confirmo que los datos introducidos son correctos y coinciden con los documentos de identidad de los viajeros.",
+      confirmationLabel1En: "I confirm that the data entered is correct and matches the identity documents of the travelers.",
+      confirmationLabel2: "He leído y acepto los Términos y Condiciones y la Política de Cancelación.",
+      confirmationLabel2En: "I have read and accept the Terms and Conditions and the Cancellation Policy.",
     },
     travelerFields: {
       name: {

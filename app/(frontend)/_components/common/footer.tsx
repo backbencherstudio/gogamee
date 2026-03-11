@@ -48,7 +48,7 @@ export default function Footer() {
         <footer className="w-full px-4 sm:px-6 md:px-8 lg:px-0 pt-20 pb-6">
           <div className="flex flex-col lg:flex-row justify-between items-start gap-12 lg:gap-0">
             {/* Logo and Contact Section */}
-            <div className="w-full max-w-md lg:w-80 lg:max-w-none mx-auto lg:mx-0 space-y-6 text-center lg:text-left">
+            <div className="w-full max-w-md lg:w-80 lg:max-w-none mx-0 space-y-6 text-left">
               <Image
                 src="/logowhite.svg"
                 className="min-w-36 h-auto"
@@ -93,7 +93,7 @@ export default function Footer() {
             {/* Quick Links and Social Media */}
             <div className="flex flex-col sm:flex-row sm:flex-wrap lg:flex-nowrap lg:gap-28 gap-8 sm:gap-12 justify-around lg:justify-start w-full lg:w-auto">
               {/* Quick Links */}
-              <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[180px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
+              <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[180px] mx-0 space-y-5 text-left">
                 <h3 className="text-white text-xl font-medium font-['Inter'] whitespace-nowrap">
                   <span className="text-white text-xl font-medium font-['Inter'] whitespace-nowrap">
                     Enlaces rápidos
@@ -120,7 +120,7 @@ export default function Footer() {
               </div>
 
               {/* Packs */}
-              <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
+              <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-0 space-y-5 text-left">
                 <h3 className="text-white text-xl font-medium font-['Inter']">
                   <span className="text-white text-xl font-medium font-['Inter']">
                     Packs
@@ -147,7 +147,7 @@ export default function Footer() {
               </div>
 
               {/* Social Media */}
-              <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-auto sm:mx-0 space-y-5 text-center sm:text-left">
+              <div className="w-full sm:w-1/2 md:w-1/3 lg:w-36 sm:max-w-[150px] mx-0 space-y-5 text-left">
                 <h3 className="text-white text-xl font-medium font-['Inter']">
                   <span className="text-white text-xl font-medium font-['Inter']">
                     Redes sociales

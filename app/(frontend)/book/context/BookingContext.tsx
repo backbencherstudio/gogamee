@@ -418,6 +418,10 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } else if (currentStep === 4.5) {
       setCurrentStep(5);
+    } else if (currentStep === 8) {
+      setCurrentStep(8.5);
+    } else if (currentStep === 8.5) {
+      setCurrentStep(9);
     } else {
       setCurrentStep((prev) => Math.min(prev + 1, 9));
     }
@@ -437,6 +441,10 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
       } else {
         setCurrentStep(4.5);
       }
+    } else if (currentStep === 8.5) {
+      setCurrentStep(8);
+    } else if (currentStep === 9) {
+      setCurrentStep(8.5);
     } else {
       setCurrentStep((prev) => Math.max(prev - 1, 0));
     }

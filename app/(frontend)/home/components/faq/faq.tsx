@@ -131,15 +131,14 @@ export default function Faq({ className = "", initialFaqs = [] }: FaqProps) {
                           </div>
                         </div>
 
-                        <div
-                          className={`text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-7 md:pl-8 lg:pl-9 overflow-hidden transition-all duration-500 ease-in-out ${
-                            expandedItems.includes(index)
-                              ? "max-h-96 opacity-100"
-                              : "max-h-0 opacity-0"
-                          }`}
-                        >
-                          {item.answer}
-                        </div>
+                          <div 
+                            className={`text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-7 md:pl-8 lg:pl-9 overflow-hidden transition-all duration-500 ease-in-out rich-text-content ${
+                              expandedItems.includes(index)
+                                ? "max-h-96 opacity-100"
+                                : "max-h-0 opacity-0"
+                            }`}
+                            dangerouslySetInnerHTML={{ __html: item.answer }}
+                          />
 
                         <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />
                       </div>

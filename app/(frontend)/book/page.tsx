@@ -11,6 +11,7 @@ import DateSection from "./components/step6/datesection";
 import FlightSchedule from "./components/step7/flightschedule";
 import Extras from "./components/step8/extras";
 import PersonalInfo from "./components/step9/personalinfo";
+import DataConfirmation from "./components/step9-5/dataconfirmation";
 import Payment from "./components/step10/payment";
 import Stepper from "./components/stepper/stepper";
 import { BookingProvider, useBooking } from "./context/BookingContext";
@@ -56,6 +57,10 @@ function BookingContent() {
     },
     {
       id: 10,
+      title: "Confirmación de Datos",
+    },
+    {
+      id: 11,
       title: "Pago",
     },
   ];
@@ -89,6 +94,8 @@ function BookingContent() {
         return <Extras />;
       case 8:
         return <PersonalInfo />;
+      case 8.5:
+        return <DataConfirmation />;
       case 9:
         return <Payment />;
       default:
@@ -98,7 +105,9 @@ function BookingContent() {
 
   // Get display step for stepper (convert decimal steps to appropriate display)
   const getDisplayStep = () => {
-    if (currentStep === 4.5) return 4; // Show step 5 for remove league
+    if (currentStep === 4.5) return 4; // Show step 5 (index 4) for remove league
+    if (currentStep === 8.5) return 9; // Step 10 (index 9)
+    if (currentStep === 9) return 10; // Step 11 (index 10)
     return currentStep;
   };
 

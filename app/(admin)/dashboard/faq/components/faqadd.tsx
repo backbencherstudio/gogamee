@@ -13,6 +13,7 @@ import {
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 import { Pagination } from "../../../../../components/ui/Pagination";
 import { autoTranslateContent } from "../../../../../services/translationService";
+import RichTextEditor from "../../settings/legal/components/RichTextEditor";
 
 // Local type aligned with API
 type FAQItem = ApiFaqItem;
@@ -209,16 +210,14 @@ export default function FaqAdd() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Answer
                 </label>
-                <textarea
+                <RichTextEditor
                   value={newFaqForm.answer}
-                  onChange={(e) =>
+                  onChange={(val) =>
                     setNewFaqForm((prev) => ({
                       ...prev,
-                      answer: e.target.value,
+                      answer: val,
                     }))
                   }
-                  rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent outline-none resize-none"
                   placeholder={
                     false ? "Ingrese su respuesta..." : "Enter your answer..."
                   }
@@ -281,16 +280,17 @@ export default function FaqAdd() {
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             Answer
                           </label>
-                          <textarea
+                          <RichTextEditor
                             value={editForm.answer}
-                            onChange={(e) =>
+                            onChange={(val) =>
                               setEditForm((prev) => ({
                                 ...prev,
-                                answer: e.target.value,
+                                answer: val,
                               }))
                             }
-                            rows={4}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent outline-none resize-none"
+                            placeholder={
+                              false ? "Ingrese su respuesta..." : "Enter your answer..."
+                            }
                           />
                         </div>
                         <div className="flex gap-3">
@@ -360,9 +360,10 @@ export default function FaqAdd() {
                         </div>
 
                         {expandedItems.includes(index) && (
-                          <div className="text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-7 md:pl-8 lg:pl-9">
-                            {item.answer}
-                          </div>
+                          <div 
+                            className="text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-7 md:pl-8 lg:pl-9 rich-text-content"
+                            dangerouslySetInnerHTML={{ __html: item.answer }}
+                          />
                         )}
                       </>
                     )}

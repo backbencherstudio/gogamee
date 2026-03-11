@@ -31,11 +31,14 @@ export const FormInput: React.FC<FormInputProps> = ({
   const language = "es";
   const t = (es: string, en?: string) => (false && en ? en : es);
 
+  const isDate = type === "date";
+  const hasValue = !!value;
+
   return (
     <div
       className={`flex-1 inline-flex flex-col justify-start items-start gap-2 ${className}`}
     >
-      <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed">
+      <div className="justify-start text-neutral-800 text-base font-medium font-['Poppins'] leading-relaxed min-h-[3.25rem] flex items-end pb-1">
         {t(label, labelEn)}
       </div>
       <input
@@ -45,7 +48,7 @@ export const FormInput: React.FC<FormInputProps> = ({
         placeholder={placeholder ? t(placeholder, placeholderEn) : undefined}
         className={`self-stretch h-14 px-3 md:px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] text-sm md:text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 w-full ${
           error ? "outline-red-500" : "outline-zinc-200 focus:outline-[#6AAD3C]"
-        }`}
+        } ${isDate && hasValue ? "text-neutral-800 date-has-value" : isDate ? "text-zinc-500" : "text-neutral-800"}`}
       />
       {error && (
         <div className="text-red-500 text-sm font-normal font-['Poppins']">

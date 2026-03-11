@@ -1111,32 +1111,46 @@ export default function DateSection() {
           )}
 
           {/* Duration Selectionn */}
-          <div className="p-1 bg-white rounded-xl outline-1 outline-offset-[-1px] outline-gray-200 w-full overflow-x-auto">
-            <div className="flex xl:inline-flex justify-start items-center gap-1 xl:gap-0 min-w-max xl:min-w-0">
-              {DURATION_OPTIONS.map((option, index) => (
-                <div
-                  key={index}
-                  className={`w-32 xl:w-36 px-4 xl:px-6 py-3 rounded-lg flex flex-col justify-start items-center cursor-pointer flex-shrink-0 ${
-                    selectedDuration === index ? "bg-[#76C043]" : "bg-white"
-                  }`}
-                  onClick={() => handleDurationChange(index)}
-                >
+          <div className="relative w-full">
+            {/* Mobile swipe indicator arrows */}
+            <div className="xl:hidden absolute left-0 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+              <div className="bg-white/80 rounded-full p-1 shadow-sm">
+                <FaChevronLeft size={16} className="text-gray-400" />
+              </div>
+            </div>
+            <div className="xl:hidden absolute right-0 top-1/2 -translate-y-1/2 z-10 pointer-events-none">
+              <div className="bg-white/80 rounded-full p-1 shadow-sm">
+                <FaChevronRight size={16} className="text-gray-400" />
+              </div>
+            </div>
+
+            <div className="p-1 bg-white rounded-xl outline-1 outline-offset-[-1px] outline-gray-200 w-full overflow-x-auto scrollbar-hide">
+              <div className="flex xl:inline-flex justify-start items-center gap-1 xl:gap-0 min-w-max xl:min-w-0 px-6 xl:px-0">
+                {DURATION_OPTIONS.map((option, index) => (
                   <div
-                    className={`justify-center text-base xl:text-lg font-medium font-['Poppins'] leading-loose ${
-                      selectedDuration === index ? "text-white" : "text-black"
+                    key={index}
+                    className={`w-32 xl:w-36 px-4 xl:px-6 py-3 rounded-lg flex flex-col justify-start items-center cursor-pointer flex-shrink-0 ${
+                      selectedDuration === index ? "bg-[#76C043]" : "bg-white"
                     }`}
+                    onClick={() => handleDurationChange(index)}
                   >
-                    {option.days} {option.days === 1 ? "día" : "días"}
+                    <div
+                      className={`justify-center text-base xl:text-lg font-medium font-['Poppins'] leading-loose ${
+                        selectedDuration === index ? "text-white" : "text-black"
+                      }`}
+                    >
+                      {option.days} {option.days === 1 ? "día" : "días"}
+                    </div>
+                    <div
+                      className={`justify-center text-xs xl:text-sm font-normal font-['Poppins'] leading-relaxed ${
+                        selectedDuration === index ? "text-white" : "text-black"
+                      }`}
+                    >
+                      {option.nights} {option.nights === 1 ? "noche" : "noches"}
+                    </div>
                   </div>
-                  <div
-                    className={`justify-center text-xs xl:text-sm font-normal font-['Poppins'] leading-relaxed ${
-                      selectedDuration === index ? "text-white" : "text-black"
-                    }`}
-                  >
-                    {option.nights} {option.nights === 1 ? "noche" : "noches"}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
@@ -1144,8 +1158,24 @@ export default function DateSection() {
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             <div className="w-full p-4 xl:p-6 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-gray-200 flex justify-center items-start overflow-x-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 justify-start items-start gap-6 xl:gap-8 min-w-full xl:min-w-0">
+                {/* Mobile View: Single Month with navigation */}
+                <div className="md:hidden w-full flex flex-col justify-start items-start gap-4">
+                  {renderCalendarHeader(currentDate, true, true)}
+                  <div className="mx-auto self-stretch flex flex-col justify-start items-start gap-3">
+                    {renderWeekDaysHeader()}
+                    <div className="self-stretch flex flex-col justify-start items-start gap-3">
+                      {renderCalendarWeeks(
+                        currentMonthDays,
+                        currentDate.getMonth(),
+                        currentDate.getFullYear(),
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop/Tablet View: Dual Month */}
                 {/* Current Month Calendar */}
-                <div className="xl:w-96 flex flex-col justify-start items-start gap-4 xl:gap-6">
+                <div className="hidden md:flex xl:w-96 flex-col justify-start items-start gap-4 xl:gap-6">
                   {renderCalendarHeader(currentDate, true, false)}
                   <div className="mx-auto self-stretch flex flex-col justify-start items-start gap-3">
                     {renderWeekDaysHeader()}
@@ -1160,7 +1190,7 @@ export default function DateSection() {
                 </div>
 
                 {/* Next Month Calendar */}
-                <div className="w-full xl:w-96 flex flex-col justify-start items-start gap-4 xl:gap-6">
+                <div className="hidden md:flex w-full xl:w-96 flex-col justify-start items-start gap-4 xl:gap-6">
                   {renderCalendarHeader(nextMonth, false, true)}
                   <div className="mx-auto self-stretch flex flex-col justify-start items-start gap-3">
                     {renderWeekDaysHeader()}

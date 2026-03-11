@@ -67,9 +67,10 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
         {/* Header Section */}
         <div className="flex flex-col justify-start items-center gap-6 lg:gap-12 mb-8 lg:mb-12">
           <div className="flex flex-col justify-start items-center gap-4">
-            <div className="text-center text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px]">
-              {headline}
-            </div>
+            <div 
+              className="text-center text-zinc-950 text-3xl md:text-4xl lg:text-5xl font-semibold font-['Poppins'] leading-tight lg:leading-[57.60px] rich-text-content"
+              dangerouslySetInnerHTML={{ __html: headline }}
+            />
           </div>
         </div>
 
@@ -104,9 +105,10 @@ export default function AboutPage({ initialContent }: AboutPageProps) {
                             {section.title}
                           </div>
                         </div>
-                        <div className="text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-0 md:pl-0 lg:pl-0">
-                          {section.description}
-                        </div>
+                        <div 
+                          className="text-neutral-600 text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose w-full pl-0 md:pl-0 lg:pl-0 rich-text-content"
+                          dangerouslySetInnerHTML={{ __html: section.description }}
+                        />
                       </div>
                       {index < sections.length - 1 && (
                         <div className="self-stretch h-0 outline-1 outline-offset-[-0.50px] outline-stone-500/10 w-full" />

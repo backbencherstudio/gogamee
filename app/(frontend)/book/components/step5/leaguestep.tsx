@@ -187,7 +187,7 @@ export default function LeagueStep() {
             />
           </div>
           {showEuropeanSupplement && (
-            <div className="w-full xl:w-[600] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900">
+            <div className="w-full xl:w-[600] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900 mb-4">
               <div className="text-sm xl:text-base font-medium font-['Poppins']">
                 Sumplemento para competiciones europeas: se aplicarán{" "}
                 {BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€.
@@ -197,6 +197,16 @@ export default function LeagueStep() {
               </div>
             </div>
           )}
+
+          <div className="w-full p-4 bg-white/40 backdrop-blur-sm rounded-xl border border-lime-200/50 flex flex-col items-center gap-3 mb-6">
+            <div className="flex items-center gap-2 text-[#6AAD3C]">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span className="font-semibold text-sm xl:text-base">Información importante sobre el destino</span>
+            </div>
+            <p className="text-zinc-700 text-sm xl:text-base font-['Poppins'] text-center max-w-[700px] leading-relaxed">
+              Tu destino podría ser Reino Unido. Si es así, necesitarás solicitar una autorización electrónica de viaje (ETA). Recuerda que cada viajero es responsable de obtenerla antes del viaje.
+            </p>
+          </div>
           {/* Submit Button */}
           <BookingNavigation
             onNext={handleSubmit(onSubmit)}

@@ -23,6 +23,7 @@ import {
   type WhyChooseUsUpdatePayload,
 } from "../../../../../services/aboutService";
 import { Loader2 } from "lucide-react";
+import RichTextEditor from "../../settings/legal/components/RichTextEditor";
 
 type TabId = "sections" | "values" | "whyChooseUs";
 
@@ -306,16 +307,14 @@ export default function AboutManagement() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Description
               </label>
-              <textarea
+              <RichTextEditor
                 value={formData.description}
-                onChange={(e) =>
+                onChange={(val) =>
                   setFormData({
                     ...formData,
-                    description: e.target.value,
+                    description: val,
                   })
                 }
-                rows={4}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
                 placeholder={
                   false
                     ? "Ingrese la descripción del elemento"
@@ -426,9 +425,10 @@ export default function AboutManagement() {
                         </button>
                       </div>
                     </div>
-                    <p className="text-gray-600 font-['Poppins'] leading-relaxed mb-3">
-                      {item.description}
-                    </p>
+                    <div 
+                      className="text-gray-600 font-['Poppins'] leading-relaxed mb-3 rich-text-content"
+                      dangerouslySetInnerHTML={{ __html: item.description }}
+                    />
                     <div className="flex items-center gap-2">
                       <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm font-medium">
                         Order: {item.order}
@@ -479,11 +479,9 @@ export default function AboutManagement() {
           </div>
           {isEditingHeadline ? (
             <div className="flex flex-col gap-3">
-              <textarea
+              <RichTextEditor
                 value={headlineText}
-                onChange={(e) => setHeadlineText(e.target.value)}
-                rows={2}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent"
+                onChange={(val) => setHeadlineText(val)}
                 placeholder={
                   false ? "Ingrese el titular principal" : "Enter main headline"
                 }
@@ -507,9 +505,10 @@ export default function AboutManagement() {
               </div>
             </div>
           ) : (
-            <p className="text-gray-600 font-['Poppins'] leading-relaxed">
-              {headline}
-            </p>
+            <div 
+              className="text-gray-600 font-['Poppins'] leading-relaxed rich-text-content"
+              dangerouslySetInnerHTML={{ __html: headline }}
+            />
           )}
         </div>
 

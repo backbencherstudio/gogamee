@@ -158,8 +158,8 @@ export function generateUserEmailContent(
 
   const subject =
     showReveal && destinationCity
-      ? `Your Trip Revealed! #${bookingId}`
-      : `Booking Confirmed! #${bookingId}`;
+      ? `¡Tu Viaje Ha Sido Revelado! #${bookingId}`
+      : `¡Reserva Confirmada! #${bookingId}`;
 
   // Row helper
   const row = (label: string, value: string) =>
@@ -183,23 +183,23 @@ export function generateUserEmailContent(
         <div style="background: linear-gradient(135deg, #6AAD3C 0%, #4a8a27 100%); padding: 36px 30px; text-align: center;">
           <p style="margin: 0 0 6px; color: rgba(255,255,255,0.8); font-size: 13px; letter-spacing: 1px; text-transform: uppercase;">GoGame</p>
           <h1 style="margin: 0; color: #ffffff; font-size: 26px; font-weight: 700;">
-            ${showReveal && destinationCity ? "🎉 Your Destination Revealed!" : "✅ Booking Confirmed!"}
+            ${showReveal && destinationCity ? "🎉 ¡Tu Destino Ha Sido Revelado!" : "✅ ¡Reserva Confirmada!"}
           </h1>
           <p style="margin: 10px 0 0; color: rgba(255,255,255,0.85); font-size: 14px;">
-            Booking Reference: <strong>#${bookingId}</strong>
+            ID De Reserva: <strong>#${bookingId}</strong>
           </p>
         </div>
 
         <!-- Greeting -->
         <div style="padding: 24px 30px; border-bottom: 1px solid #eee; background-color: #fafffe;">
           <p style="margin: 0; font-size: 15px; color: #333;">
-            Dear <strong>${fullName}</strong>,
+            Hola <strong>${fullName.split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()).join(' ')}</strong>,
           </p>
           <p style="margin: 8px 0 0; color: #555; font-size: 14px; line-height: 1.6;">
             ${
               showReveal && destinationCity
-                ? "The moment you've been waiting for is here! Your surprise destination has been revealed. Get ready for an incredible experience!"
-                : "Your booking has been officially confirmed! We have everything arranged for your upcoming sports trip. Below are your full booking details."
+                ? "¡El momento que estabas esperando ha llegado! Tu destino sorpresa ha sido revelado. ¡Prepárate para una experiencia increíble!"
+                : "¡Tu reserva ha sido confirmada oficialmente! Tenemos todo organizado para tu próximo viaje deportivo. A continuación encontrarás todos los detalles de tu reserva."
             }
           </p>
         </div>
@@ -208,32 +208,32 @@ export function generateUserEmailContent(
         ${
           showReveal && destinationCity && assignedMatch
             ? `<div style="margin: 0; padding: 22px 30px; background-color: #fff8e1; border-bottom: 1px solid #ffe082;">
-          <h3 style="margin: 0 0 14px; color: #e65100; font-size: 16px;">🎯 Your Surprise Destination</h3>
+          <h3 style="margin: 0 0 14px; color: #e65100; font-size: 16px;">🎯 Tu Destino Sorpresa</h3>
           <table width="100%" cellpadding="0" cellspacing="0">
-            ${row("Destination City", `<span style="color:#e65100">${destinationCity}</span>`)}
-            ${row("Your Match", assignedMatch)}
+            ${row("Ciudad De Destino", `<span style="color:#e65100">${destinationCity.split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()).join(' ')}</span>`)}
+            ${row("Tu Partido", assignedMatch)}
           </table>
         </div>`
             : `<div style="margin: 0; padding: 20px 30px; background-color: #e3f2fd; border-bottom: 1px solid #90caf9;">
-          <h3 style="margin: 0 0 6px; color: #1565c0; font-size: 15px;">🤫 Surprise Destination</h3>
-          <p style="margin: 0; color: #555; font-size: 14px;">Your surprise destination will be revealed <strong>48 hours before departure</strong>. Stay tuned!</p>
+          <h3 style="margin: 0 0 6px; color: #1565c0; font-size: 15px;">🤫 Sorpresa Próximamente</h3>
+          <p style="margin: 0; color: #555; font-size: 14px;">Tu destino será revelado <strong>unos días antes de la salida</strong>. ¡Mantente atento!</p>
         </div>`
         }
 
         <!-- Booking Overview -->
         <div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
-          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">📋 Booking Overview</h3>
+          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">📋 Detalles De La Reserva</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
-            ${row("Booking ID", "#" + bookingId)}
-            ${row("Sport", selectedSport ? selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1) : "N/A")}
-            ${row("Package", selectedPackage || "N/A")}
-            ${row("Departure City", selectedCity || "N/A")}
-            ${selectedLeagueCategory ? row("League Category", selectedLeagueCategory) : ""}
-            ${row("Departure Date", departureDateFormatted)}
-            ${row("Return Date", returnDateFormatted)}
-            ${durationDays ? row("Duration", `${durationDays} day(s)${durationNights ? " / " + durationNights + " night(s)" : ""}`) : ""}
-            ${row("Total Travelers", totalPeople + " person(s)")}
-            ${phone ? row("Contact Phone", phone) : ""}
+            ${row("ID De Reserva", "#" + bookingId)}
+            ${row("Deporte", selectedSport === 'both' ? 'Ambos' : (selectedSport === 'football' ? 'Fútbol' : (selectedSport === 'basketball' ? 'Básquet' : 'N/A')))}
+            ${row("Paquete", selectedPackage === 'premium' ? 'Premium' : (selectedPackage === 'standard' ? 'Estándar' : (selectedPackage || "N/A")))}
+            ${row("Ciudad De Salida", selectedCity ? selectedCity.charAt(0).toUpperCase() + selectedCity.slice(1).toLowerCase() : "N/A")}
+            ${selectedLeagueCategory ? row("Categoría De Liga", selectedLeagueCategory) : ""}
+            ${row("Fecha De Salida", departureDateFormatted)}
+            ${row("Fecha De Regreso", returnDateFormatted)}
+            ${durationDays ? row("Duración", `${durationDays} Día(s)${durationNights ? " / " + durationNights + " Noche(s)" : ""}`) : ""}
+            ${row("Viajeros", totalPeople === 1 ? "1 Persona" : totalPeople + " Personas")}
+            ${phone ? row("Teléfono De Contacto", phone) : ""}
           </table>
         </div>
 
@@ -242,10 +242,10 @@ export function generateUserEmailContent(
           flightSchedule &&
           (flightSchedule.departureBetween || flightSchedule.returnBetween)
             ? `<div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
-          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">✈️ Flight Schedule</h3>
+          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">✈️ Horario De Vuelos</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
-            ${flightSchedule.departureBetween && flightSchedule.departureBetween !== "TBD" ? row("Outbound Flight Window", flightSchedule.departureBetween) : ""}
-            ${flightSchedule.returnBetween && flightSchedule.returnBetween !== "TBD" ? row("Return Flight Window", flightSchedule.returnBetween) : ""}
+            ${flightSchedule.departureBetween && flightSchedule.departureBetween !== "TBD" ? row("Ventana De Vuelo De Salida", flightSchedule.departureBetween) : ""}
+            ${flightSchedule.returnBetween && flightSchedule.returnBetween !== "TBD" ? row("Ventana De Vuelo De Regreso", flightSchedule.returnBetween) : ""}
           </table>
         </div>`
             : ""
@@ -255,7 +255,7 @@ export function generateUserEmailContent(
         ${
           selectedLeagues.length > 0
             ? `<div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
-          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">🏆 Selected League(s)</h3>
+          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">🏆 Ligas Seleccionadas</h3>
           <ul style="margin: 0; padding-left: 20px; color: #444; font-size: 14px; line-height: 2;">
             ${selectedLeagues.map((l: any) => `<li><strong>${l.name}</strong> <span style="color:#888; font-size:12px;">(${l.group})</span></li>`).join("")}
           </ul>
@@ -267,22 +267,22 @@ export function generateUserEmailContent(
         ${
           travelerList.length > 0
             ? `<div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
-          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">👥 Travelers</h3>
+          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">👥 Viajeros</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; font-size: 13px;">
             <tr style="background-color: #f5f5f5;">
               <th style="padding: 8px 10px; text-align: left; color: #555; font-weight: 600;">#</th>
-              <th style="padding: 8px 10px; text-align: left; color: #555; font-weight: 600;">Name</th>
-              <th style="padding: 8px 10px; text-align: left; color: #555; font-weight: 600;">Type</th>
-              <th style="padding: 8px 10px; text-align: left; color: #555; font-weight: 600;">Document</th>
+              <th style="padding: 8px 10px; text-align: left; color: #555; font-weight: 600;">Nombre</th>
+              <th style="padding: 8px 10px; text-align: left; color: #555; font-weight: 600;">Tipo</th>
+              <th style="padding: 8px 10px; text-align: left; color: #555; font-weight: 600;">Documento</th>
             </tr>
             ${travelerList
               .map(
                 (t: any, i: number) => `
             <tr style="${i % 2 === 0 ? "background: #fff;" : "background: #fafafa;"}">
               <td style="padding: 8px 10px; color: #888;">${i + 1}</td>
-              <td style="padding: 8px 10px; color: #222; font-weight: ${t.isPrimary ? "700" : "400"};">${t.name || "N/A"}${t.isPrimary ? " <span style='color:#6AAD3C;font-size:11px;'>(Primary)</span>" : ""}</td>
-              <td style="padding: 8px 10px; color: #555; text-transform: capitalize;">${t.type || "adult"}</td>
-              <td style="padding: 8px 10px; color: #555;">${t.documentType ? t.documentType + ": " + (t.documentNumber || "") : "N/A"}</td>
+              <td style="padding: 8px 10px; color: #222; font-weight: ${t.isPrimary ? "700" : "400"};">${(t.name || "N/A").split(' ').map((n: string) => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()).join(' ')}${t.isPrimary ? " <span style='color:#6AAD3C;font-size:11px;'>(Principal)</span>" : ""}</td>
+              <td style="padding: 8px 10px; color: #555; text-transform: capitalize;">${t.type === 'adult' ? 'Adulto' : (t.type === 'kid' ? 'Niño' : (t.type === 'baby' ? 'Bebé' : (t.type || "Adulto")))}</td>
+              <td style="padding: 8px 10px; color: #555;">${t.documentType ? (t.documentType === 'ID' ? 'DNI' : (t.documentType === 'Passport' ? 'Pasaporte' : t.documentType)) + ": " + (t.documentNumber || "") : "N/A"}</td>
             </tr>`,
               )
               .join("")}
@@ -295,15 +295,15 @@ export function generateUserEmailContent(
         ${
           selectedExtras.filter((e: any) => e.isSelected).length > 0
             ? `<div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
-          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">✨ Selected Extras</h3>
+          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">✨ Detalles De Extras Seleccionados</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; font-size: 14px;">
             ${selectedExtras
               .filter((e: any) => e.isSelected)
               .map(
                 (extra: any, i: number) => `
             <tr style="${i % 2 === 0 ? "background:#fff;" : "background:#fafafa;"}">
-              <td style="padding: 8px 12px; color: #333;">${extra.name}${extra.quantity && extra.quantity > 1 ? ` <span style="color:#888;">(x${extra.quantity})</span>` : ""}</td>
-              <td style="padding: 8px 12px; color: #4a9e2a; font-weight: 600; text-align: right;">${extra.price === 0 ? "Included" : "€" + (extra.price * (extra.quantity || 1)).toFixed(2)}</td>
+              <td style="padding: 8px 12px; color: #333;">${extra.name.split(' ').map((n: string) => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()).join(' ')}${extra.quantity && extra.quantity > 1 ? ` <span style="color:#888;">(x${extra.quantity})</span>` : ""}</td>
+              <td style="padding: 8px 12px; color: #4a9e2a; font-weight: 600; text-align: right;">${extra.price === 0 ? "Incluida" : "€" + (extra.price * (extra.quantity || 1)).toFixed(2)}</td>
             </tr>`,
               )
               .join("")}
@@ -314,7 +314,7 @@ export function generateUserEmailContent(
 
         <!-- Payment Summary -->
         <div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
-          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">💳 Payment Summary</h3>
+          <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">💳 Resumen Del Pago</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden; font-size: 14px;">
             ${
               bookingData.priceBreakdown?.items &&
@@ -323,23 +323,23 @@ export function generateUserEmailContent(
                     .map(
                       (item, i) => `
             <tr style="${i % 2 === 0 ? "background:#fff;" : "background:#fafafa;"}">
-              <td style="padding: 8px 12px; color: #555;">${item.description}${(item.quantity || 0) > 1 ? ` (x${item.quantity})` : ""}</td>
+              <td style="padding: 8px 12px; color: #555;">${item.description.replace('Base Package', 'Paquete Base').replace('both', 'Ambos').replace('premium', 'Premium').replace('standard', 'Estándar').replace('Single Traveler Supplement', 'Suplemento De Viajero Individual')}${(item.quantity || 0) > 1 ? ` (x${item.quantity})` : ""}</td>
               <td style="padding: 8px 12px; text-align: right; font-weight: 500; color: #333;">€${item.amount.toFixed(2)}</td>
             </tr>`,
                     )
                     .join("")
-                : `<tr><td style="padding: 8px 12px; color: #555;">Package</td><td style="padding: 8px 12px; text-align: right; font-weight: 500;">€${(bookingData.priceBreakdown?.packageCost || 0).toFixed(2)}</td></tr>`
+                : `<tr><td style="padding: 8px 12px; color: #555;">Paquete</td><td style="padding: 8px 12px; text-align: right; font-weight: 500;">€${(bookingData.priceBreakdown?.packageCost || 0).toFixed(2)}</td></tr>`
             }
             <tr style="background-color: #f5f5f5; border-top: 2px solid #ddd;">
-              <td style="padding: 10px 12px; font-weight: 700; color: #222;">Total Cost</td>
+              <td style="padding: 10px 12px; font-weight: 700; color: #222;">Coste Total</td>
               <td style="padding: 10px 12px; font-weight: 700; color: #222; text-align: right;">€${totalCost.toFixed(2)}</td>
             </tr>
             <tr>
-              <td style="padding: 8px 12px; color: #4a9e2a; font-weight: 600;">Amount Paid</td>
+              <td style="padding: 8px 12px; color: #4a9e2a; font-weight: 600;">Cantidad Pagada</td>
               <td style="padding: 8px 12px; color: #4a9e2a; font-weight: 600; text-align: right;">€${(isPaid ? totalCost : 0).toFixed(2)}</td>
             </tr>
             <tr>
-              <td style="padding: 8px 12px; color: ${isPaid ? "#888" : "#d32f2f"}; font-weight: 600;">Balance Due</td>
+              <td style="padding: 8px 12px; color: ${isPaid ? "#888" : "#d32f2f"}; font-weight: 600;">Saldo Pendiente</td>
               <td style="padding: 8px 12px; color: ${isPaid ? "#888" : "#d32f2f"}; font-weight: 600; text-align: right;">€${(isPaid ? 0 : totalCost).toFixed(2)}</td>
             </tr>
           </table>
@@ -347,9 +347,9 @@ export function generateUserEmailContent(
 
         <!-- Footer -->
         <div style="background-color: #f9f9f9; padding: 24px 30px; text-align: center; border-top: 1px solid #eee;">
-          <p style="margin: 0 0 6px; color: #555; font-size: 13px;">Questions? We're here to help.</p>
-          <p style="margin: 0 0 6px; color: #6AAD3C; font-size: 13px; font-weight: 600;">${process.env.MAIL_TO || "support@gogame.com"}</p>
-          <p style="margin: 14px 0 0; color: #aaa; font-size: 11px;">© ${new Date().getFullYear()} GoGame. All rights reserved.</p>
+          <p style="margin: 0 0 6px; color: #555; font-size: 13px;">¿Necesitas Ayuda? Contáctanos En</p>
+          <p style="margin: 0 0 6px; color: #6AAD3C; font-size: 13px; font-weight: 600;">${process.env.MAIL_TO || "info@gogame2025.com"}</p>
+          <p style="margin: 14px 0 0; color: #aaa; font-size: 11px;">© ${new Date().getFullYear()} GoGame. Todos Los Derechos Reservados.</p>
         </div>
 
       </div>

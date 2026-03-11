@@ -113,8 +113,7 @@ export default function Extras() {
           }
 
           if (extra.id === "extra-luggage") {
-            const maxQuantity =
-              extra.maxQuantity || extrasData.constants.defaultMaxQuantity;
+            const maxQuantity = totalTravelers;
             const ensuredQuantity = Math.min(
               maxQuantity,
               Math.max(
@@ -148,7 +147,9 @@ export default function Extras() {
           }
 
           const maxQuantity =
-            extra.maxQuantity || extrasData.constants.defaultMaxQuantity;
+            extra.id === "extra-luggage"
+              ? totalTravelers
+              : extra.maxQuantity || extrasData.constants.defaultMaxQuantity;
           const minQuantity =
             extra.id === "extra-luggage" && extra.isSelected
               ? extrasData.constants.minQuantity
@@ -244,7 +245,9 @@ export default function Extras() {
           className="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors opacity-60 hover:opacity-80 cursor-pointer disabled:cursor-not-allowed"
           disabled={
             displayQuantity >=
-            (extra.maxQuantity || extrasData.constants.defaultMaxQuantity)
+            (extra.id === "extra-luggage"
+              ? totalTravelers
+              : extra.maxQuantity || extrasData.constants.defaultMaxQuantity)
           }
         >
           +
@@ -272,7 +275,7 @@ export default function Extras() {
   const renderExtraService = (extra: ExtraService) => (
     <div
       key={extra.id}
-      className={`self-stretch p-4 bg-white rounded-lg transition-all ${
+      className={`self-stretch py-3 px-4 bg-white rounded-lg transition-all ${
         extra.isSelected ? "ring-2 ring-[#6AAD3C] shadow-lg" : "hover:shadow-md"
       }`}
     >
@@ -293,16 +296,18 @@ export default function Extras() {
               <div className="text-neutral-800 text-base font-medium font-['Poppins'] leading-tight">
                 {extra.name}
               </div>
-              <div className="text-[#6AAD3C] text-base font-semibold font-['Poppins']">
-                {extra.isIncluded
-                  ? extrasData.text.included
-                  : `+${extra.price}€`}
-              </div>
-              {!extra.isIncluded && (
-                <div className="text-neutral-600 text-sm font-normal font-['Poppins']">
-                  {extrasData.text.perPerson}
+              <div className="flex flex-wrap items-baseline gap-1.5">
+                <div className="text-[#6AAD3C] text-base font-semibold font-['Poppins']">
+                  {extra.isIncluded
+                    ? extrasData.text.included
+                    : `+${extra.price}€`}
                 </div>
-              )}
+                {!extra.isIncluded && (
+                  <div className="text-neutral-600 text-sm font-normal font-['Poppins']">
+                    {extrasData.text.perPerson}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -351,13 +356,13 @@ export default function Extras() {
             </div>
           </div>
         </div>
-        <div className="inline-flex flex-col justify-center items-end gap-4">
-          <div className="flex flex-col justify-start items-end gap-1">
-            <div className="self-stretch text-right justify-start text-[#6AAD3C] text-lg font-semibold font-['Poppins'] leading-loose">
+        <div className="inline-flex flex-col justify-center items-end gap-3">
+          <div className="flex flex-row items-baseline justify-end gap-2">
+            <div className="text-[#6AAD3C] text-lg font-semibold font-['Poppins'] leading-loose">
               {extra.isIncluded ? extrasData.text.included : `+${extra.price}€`}
             </div>
             {!extra.isIncluded && (
-              <div className="self-stretch text-right justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
+              <div className="text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
                 {extrasData.text.perPerson}
               </div>
             )}

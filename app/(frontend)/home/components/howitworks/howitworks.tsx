@@ -99,7 +99,7 @@ export default function HowItWorks() {
               </h3>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
                 Recibirás tu plan de viaje secreto. Haz la maleta y empieza a
-                emocionarte: sabrás tu destino 48 horas antes.
+                emocionarte: sabrás tu destino unos días antes.
               </div>
             </div>
           </div>

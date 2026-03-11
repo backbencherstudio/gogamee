@@ -34,7 +34,7 @@ export default function SportsLeagues() {
   const handleScroll = () => {
     if (scrollContainerRef.current) {
       const scrollLeft = scrollContainerRef.current.scrollLeft;
-      const cardWidth = 128 + 16; // mobile card width + gap
+      const cardWidth = 192 + 16; // mobile card width 192 + gap 16
       const newIndex =
         Math.round(scrollLeft / cardWidth) % currentLeagues.length;
       setCurrentIndex(newIndex);
@@ -44,7 +44,7 @@ export default function SportsLeagues() {
   // Auto-scroll effect for desktop
   useEffect(() => {
     if (scrollContainerRef.current) {
-      const cardWidth = 128 + 16; // mobile card width + gap
+      const cardWidth = 192 + 16; // mobile card width 192 + gap 16
       const scrollPosition = currentIndex * cardWidth;
       scrollContainerRef.current.scrollTo({
         left: scrollPosition,
@@ -102,14 +102,14 @@ export default function SportsLeagues() {
               ref={scrollContainerRef}
               className="flex gap-4 min-w-max pb-4"
               style={{
-                width: `${extendedLeagues.length * (128 + 16)}px`,
+                width: `${extendedLeagues.length * (192 + 16)}px`,
               }}
               onScroll={handleScroll}
             >
               {extendedLeagues.map((league, index) => (
                 <div
                   key={`${league.name}-${index}`}
-                  className="flex-shrink-0 w-32 h-64 px-3 py-4 rounded relative overflow-hidden"
+                  className="flex-shrink-0 w-48 h-80 px-4 py-5 rounded relative overflow-hidden"
                   style={{
                     backgroundImage: `url(${league.image})`,
                     backgroundSize: "cover",
@@ -118,7 +118,7 @@ export default function SportsLeagues() {
                 >
                   <div className="absolute inset-0 bg-black/30" />
                   <div className="relative z-10 h-full flex flex-col justify-center items-center">
-                    <div className="text-center text-white text-sm font-bold font-poppins leading-tight px-2">
+                    <div className="text-center text-white text-base font-bold font-poppins leading-tight px-2">
                       {league.name}
                     </div>
                   </div>
@@ -156,6 +156,17 @@ export default function SportsLeagues() {
               ))}
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="w-full max-w-[1200px] mt-4 flex justify-center">
+        <div className="flex items-center gap-3 p-4 bg-white/50 backdrop-blur-sm rounded-xl border border-white/60 shadow-sm max-w-[800px]">
+          <div className="flex-shrink-0 w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center text-lime-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          </div>
+          <p className="text-zinc-800 text-sm md:text-base font-poppins leading-relaxed">
+            Tu destino podría ser Reino Unido. Si es así, necesitarás solicitar una autorización electrónica de viaje (ETA). Recuerda que cada viajero es responsable de obtenerla antes del viaje.
+          </p>
         </div>
       </div>
 

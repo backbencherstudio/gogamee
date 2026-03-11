@@ -68,7 +68,16 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
           <Controller
             name={`extraTravelers.${globalIndex}.dateOfBirth`}
             control={control}
-            rules={{ required: "REQUIRED_DOB" }}
+            rules={{ 
+              required: "REQUIRED_DOB",
+              validate: (value) => {
+                if (!value) return true;
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const birthDate = new Date(value);
+                return birthDate <= today || "La fecha no puede ser futura";
+              }
+            }}
             render={({ field }) => (
               <FormInput
                 label={personalInfoData.formFields.dateOfBirth.label}
@@ -254,7 +263,13 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                     validate: (value) => {
                       if (!value) return true;
                       const today = new Date();
+                      today.setHours(0, 0, 0, 0);
                       const birthDate = new Date(value);
+                      
+                      if (birthDate > today) {
+                        return "La fecha no puede ser futura";
+                      }
+
                       let age = today.getFullYear() - birthDate.getFullYear();
                       const monthDiff = today.getMonth() - birthDate.getMonth();
                       if (
