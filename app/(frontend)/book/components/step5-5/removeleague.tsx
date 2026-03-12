@@ -58,69 +58,76 @@ const LeagueCard = React.memo(
 
     return (
       <div
-        className="group w-40 xl:w-48 h-60 xl:h-72 rounded-lg relative overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105"
+        className="group w-40 xl:w-48 h-64 xl:h-[300px] bg-white rounded-2xl border border-lime-100 shadow-sm flex flex-col items-center justify-between p-4 relative overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-md hover:border-lime-200"
         onClick={handleCardClick}
       >
-        <Image
-          src={league.image}
-          alt={league.name}
-          fill
-          className="object-cover"
-          priority={league.id === "1"} // Priority for first image
-          sizes="(max-width: 768px) 160px, 192px" // Responsive sizes for mobile/desktop
-        />
-        <div className="absolute inset-0 bg-black/30" />
+        {/* Selection Indicator Background */}
+        <div className="absolute top-0 right-0 w-16 h-16 bg-lime-50 rounded-bl-full opacity-50 z-0" />
+
+        {/* Logo Container */}
+        <div className="flex-1 w-full flex items-center justify-center p-2 relative z-10 min-h-0">
+          <div className="relative w-full h-full">
+            <Image
+              src={league.image}
+              alt={league.name}
+              fill
+              className="object-contain transition-transform duration-300 group-hover:scale-110"
+              priority={league.id === "1"}
+              sizes="(max-width: 768px) 112px, 144px"
+            />
+          </div>
+        </div>
 
         {/* Content */}
         <div
-          className={`absolute bottom-0 left-0 right-0 px-4 py-5 flex flex-col justify-end items-start gap-2.5 transition-all duration-300 ease-out ${!league.removed ? `${isClicked ? "pb-16 md:pb-5" : ""} md:group-hover:pb-16` : ""}`}
+          className={`w-full pt-3 pb-2 border-t border-zinc-50 flex flex-col items-center gap-1.5 transition-all duration-300 relative z-20 ${!league.removed ? `${isClicked ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"}` : ""}`}
         >
-          <div className="self-stretch flex flex-col justify-start items-start gap-2">
-            <div className="self-stretch justify-start text-white text-sm font-bold font-['Poppins'] leading-none">
-              {league.name}
-            </div>
-            <div className="inline-flex justify-start items-center gap-1.5">
-              <div className="w-4 h-4 relative">
-                <Image
-                  src="/stepper/icon/location.svg"
-                  alt="Location"
-                  width={16}
-                  height={16}
-                  className="w-4 h-4"
-                />
-              </div>
-              <div className="text-center justify-start text-white text-sm font-medium font-['Poppins'] leading-none">
-                {translateCountryName(league.country)}
-              </div>
+          <div className="text-center text-zinc-800 text-sm font-bold font-poppins leading-tight px-1 truncate w-full">
+            {league.name}
+          </div>
+          <div className="flex items-center gap-1">
+            <Image
+              src="/stepper/icon/location.svg"
+              alt="Location"
+              width={14}
+              height={14}
+              className="w-3.5 h-3.5 opacity-60"
+            />
+            <div className="text-center text-zinc-500 text-xs font-medium font-poppins leading-none">
+              {translateCountryName(league.country)}
             </div>
           </div>
         </div>
 
-        {/* Remove button */}
+        {/* Remove button overlay */}
         {!league.removed && (
           <div
-            className={`absolute bottom-0 left-0 right-0 px-4 pb-5 transition-all duration-300 ease-out 
+            className={`absolute bottom-0 left-0 right-0 p-4 transition-all duration-300 ease-out z-30
                      ${isClicked ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-4 pointer-events-none"}
                      md:opacity-0 md:translate-y-4 md:pointer-events-none 
                      md:group-hover:opacity-100 md:group-hover:translate-y-0 md:group-hover:pointer-events-auto`}
             onClick={handleRemoveClick}
           >
-            <div className="self-stretch px-4 py-2 w-full bg-[#6AAD3C] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 transition-colors cursor-pointer">
-              <div className="text-center justify-start text-white text-sm font-semibold font-['Inter'] leading-snug">
+            <div className="w-full h-10 bg-[#6AAD3C] hover:bg-lime-600 rounded-xl flex items-center justify-center transition-colors cursor-pointer shadow-sm">
+              <div className="text-white text-xs xl:text-sm font-semibold font-poppins">
                 No me mola
               </div>
             </div>
           </div>
         )}
 
-        {/* Removed overlay with undo button */}
+        {/* Removed overlay */}
         {league.removed && (
-          <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3">
-            <div className="text-white text-lg font-bold">Eliminada</div>
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-[2px] z-40 flex flex-col items-center justify-center gap-4 p-4 animate-in fade-in duration-300">
+            <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+            <div className="text-zinc-800 text-base font-bold font-poppins">Eliminada</div>
             <button
               onClick={handleUndoClick}
-              className="px-4 py-2 bg-[#6AAD3C] hover:bg-lime-600 rounded-[999px] text-white text-sm font-semibold transition-colors cursor-pointer"
+              className="w-full h-10 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 rounded-xl text-zinc-600 text-xs xl:text-sm font-semibold transition-all cursor-pointer flex items-center justify-center gap-2"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
               Sí me mola
             </button>
           </div>

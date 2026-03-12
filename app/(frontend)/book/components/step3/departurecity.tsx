@@ -112,7 +112,7 @@ const CityCard: React.FC<CityCardProps> = React.memo(
         {/* Background Image Layer */}
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat rounded transition-transform duration-300 hover:scale-110"
-          style={{ backgroundImage: `url(${cityImage})` }}
+          style={{ backgroundImage: `url("${cityImage}")` }}
         />
 
         {/* Color Overlay (20% opacity) */}

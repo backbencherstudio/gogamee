@@ -720,57 +720,70 @@ export const AppData = {
     },
   },
 
-
-
   // Leagues Data
   homepageLeagues: {
     football: [
       {
         id: "premier-league",
         name: "Premier League",
-        image: "/homepage/image/premierleague.jpeg",
+        image: "/homepage/football/PREMIER_LEAGUE_(football_uk).png",
         country: "England",
         description: "English top-flight football league",
       },
       {
+        id: "conference-league",
+        name: "Conference League",
+        image:
+          "/homepage/football/CONFERENCE_LEAGUE_(football_european_comp).png",
+        country: "Europe",
+        description: "Conference League",
+      },
+      {
+        id: "europa-league",
+        name: "Europa League",
+        image: "/homepage/football/EUROPA_LEAGUE_(football_european_comp).png",
+        country: "Europe",
+        description: "Europa League",
+      },
+      {
         id: "la-liga",
         name: "La Liga",
-        image: "/homepage/image/laliga.jpeg",
+        image: "/homepage/football/LALIGA_(football_spain).png",
         country: "Spain",
         description: "Spanish top-flight football league",
       },
       {
         id: "bundesliga",
         name: "Bundesliga",
-        image: "/homepage/image/bundesliga.jpeg",
+        image: "/homepage/football/BUNDESLIGA_(football_germany).png",
         country: "Germany",
         description: "German top-flight football league",
       },
       {
         id: "serie-a",
         name: "Serie A",
-        image: "/homepage/image/seriea.jpeg",
+        image: "/homepage/football/SERIE_A_(football_italy).png",
         country: "Italy",
         description: "Italian top-flight football league",
       },
       {
         id: "ligue-1",
         name: "Ligue 1",
-        image: "/homepage/image/ligue1.jpg",
+        image: "/homepage/football/LIGUE_1_(football_france).png",
         country: "France",
         description: "French top-flight football league",
       },
       {
         id: "eredivisie",
         name: "Eredivisie",
-        image: "/homepage/image/Eredivisie00.jpg",
+        image: "/homepage/football/EREDIVISIE_(football_netherlands).png",
         country: "Netherlands",
         description: "Dutch top-flight football league",
       },
       {
         id: "european-competition",
         name: "Competición Europea",
-        image: "/homepage/image/champions.jpeg",
+        image: "/homepage/football/CHAMPIONS_LEAGUE_(football_european_comp).png",
         country: "Europe",
         description:
           "European club competitions including Champions League and Europa League",
@@ -781,49 +794,57 @@ export const AppData = {
       {
         id: "lnb pro a",
         name: "Lnb Pro A",
-        image: "/homepage/image/lnbproa.jpg",
+        image: "/homepage/basketball/Betclic_Élite.png",
         country: "France",
         description: "French top-flight basketball league",
       },
       {
+        id: "basketball-champions-league",
+        name: "Basketball Champions League",
+        image: "/homepage/basketball/Basketball_Champions_League_logo.png",
+        country: "Europe",
+        description: "Basketball Champions League",
+      },
+      {
         id: "basketbol-super-ligi",
         name: "Basketbol Süper Ligi",
-        image: "/homepage/image/basketballsuperligi.jpg",
+        image:
+          "/homepage/basketball/Official_logo_of_the_Turkish_Basketball_Super_League.png",
         country: "Turkey",
         description: "Turkish top-flight basketball league",
       },
       {
         id: "la liga acb",
         name: "La Liga ACB",
-        image: "/homepage/image/laligaacb.jpg",
+        image: "/homepage/basketball/ACB_logo.png",
         country: "Spain",
         description: "Spanish top-flight basketball league",
       },
       {
         id: "lega-basket-serie-a",
         name: "Lega Basket Serie A",
-        image: "/homepage/image/legaseriea.jpg",
+        image: "/homepage/basketball/LegaBasket_Serie_A_Logo.png",
         country: "Italy",
         description: "Italian top-flight basketball league",
       },
       {
         id: "basketball-bundesliga",
         name: "Basketball Bundesliga",
-        image: "/homepage/image/bundesligabasket.jpg",
+        image: "/homepage/basketball/BBL.PNG",
         country: "Germany",
         description: "German top-flight basketball league",
       },
       {
         id: "lietuvos-krepsinio-lyga",
         name: "Lietuvos krepšinio lyga",
-        image: "/homepage/image/lietuvoskrepsinio.jpg",
+        image: "/homepage/basketball/LKL.PNG",
         country: "Lithuania",
         description: "Lithuanian top-flight basketball league",
       },
       {
         id: "european-competition",
         name: "Competición Europea",
-        image: "/homepage/image/euroleague.jpg",
+        image: "/homepage/basketball/EUROLEAGUE.png",
         country: "Europe",
         description: "European basketball competitions",
       },
@@ -917,10 +938,6 @@ export const AppData = {
       return false;
     },
   },
-
-
-
-
 
   // League pricing data
   leaguePricing: {
@@ -1175,10 +1192,14 @@ export const AppData = {
       packageFallbackEn: "Package",
       confirmationTitle: "Confirmación de Datos",
       confirmationTitleEn: "Data Confirmation",
-      confirmationLabel1: "Confirmo que los datos introducidos son correctos y coinciden con los documentos de identidad de los viajeros.",
-      confirmationLabel1En: "I confirm that the data entered is correct and matches the identity documents of the travelers.",
-      confirmationLabel2: "He leído y acepto los Términos y Condiciones y la Política de Cancelación.",
-      confirmationLabel2En: "I have read and accept the Terms and Conditions and the Cancellation Policy.",
+      confirmationLabel1:
+        "Confirmo que los datos introducidos son correctos y coinciden con los documentos de identidad de los viajeros.",
+      confirmationLabel1En:
+        "I confirm that the data entered is correct and matches the identity documents of the travelers.",
+      confirmationLabel2:
+        "He leído y acepto los Términos y Condiciones y la Política de Cancelación.",
+      confirmationLabel2En:
+        "I have read and accept the Terms and Conditions and the Cancellation Policy.",
     },
     travelerFields: {
       name: {
@@ -1673,7 +1694,9 @@ export const AppData = {
     },
 
     formatCvv: function (cvv: string): string {
-      return cvv.replace(/\D/g, "").substring(0, this.creditCard.validation.cvvMaxLength);
+      return cvv
+        .replace(/\D/g, "")
+        .substring(0, this.creditCard.validation.cvvMaxLength);
     },
   },
 

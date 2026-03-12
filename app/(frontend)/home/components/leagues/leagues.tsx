@@ -109,16 +109,18 @@ export default function SportsLeagues() {
               {extendedLeagues.map((league, index) => (
                 <div
                   key={`${league.name}-${index}`}
-                  className="flex-shrink-0 w-48 h-80 px-4 py-5 rounded relative overflow-hidden"
-                  style={{
-                    backgroundImage: `url(${league.image})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
+                  className="flex-shrink-0 w-48 h-80 bg-white rounded-2xl border border-lime-100 shadow-sm flex flex-col items-center justify-between p-6 relative overflow-hidden transition-all duration-300 hover:shadow-md hover:border-lime-200"
                 >
-                  <div className="absolute inset-0 bg-black/30" />
-                  <div className="relative z-10 h-full flex flex-col justify-center items-center">
-                    <div className="text-center text-white text-base font-bold font-poppins leading-tight px-2">
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-lime-50 rounded-bl-full opacity-50" />
+                  <div className="flex-1 w-full flex items-center justify-center p-2 relative z-10">
+                    <img
+                      src={league.image}
+                      alt={league.name}
+                      className="max-w-full max-h-40 object-contain transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="w-full pt-4 border-t border-zinc-50 relative z-10">
+                    <div className="text-center text-zinc-800 text-base font-bold font-poppins leading-tight">
                       {league.name}
                     </div>
                   </div>
@@ -139,16 +141,18 @@ export default function SportsLeagues() {
               {extendedLeagues.map((league, index) => (
                 <div
                   key={`${league.name}-${index}`}
-                  className="flex-shrink-0 w-40 h-72 px-4 py-6 rounded relative overflow-hidden"
-                  style={{
-                    backgroundImage: `url(${league.image})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
+                  className="flex-shrink-0 w-40 h-72 bg-white rounded-2xl border border-lime-100 shadow-sm flex flex-col items-center justify-between p-5 relative overflow-hidden transition-all duration-300 hover:shadow-md hover:border-lime-200 group"
                 >
-                  <div className="absolute inset-0 bg-black/30" />
-                  <div className="relative z-10 h-full flex flex-col justify-center items-center">
-                    <div className="text-center text-white text-base font-bold font-poppins leading-7">
+                  <div className="absolute top-0 right-0 w-14 h-14 bg-lime-50 rounded-bl-full opacity-50" />
+                  <div className="flex-1 w-full flex items-center justify-center p-2 relative z-10">
+                    <img
+                      src={league.image}
+                      alt={league.name}
+                      className="max-w-full max-h-32 object-contain transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <div className="w-full pt-3 border-t border-zinc-50 relative z-10">
+                    <div className="text-center text-zinc-800 text-sm font-bold font-poppins leading-tight">
                       {league.name}
                     </div>
                   </div>
@@ -164,7 +168,7 @@ export default function SportsLeagues() {
           <div className="flex-shrink-0 w-10 h-10 bg-lime-100 rounded-full flex items-center justify-center text-lime-700">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
           </div>
-          <p className="text-zinc-800 text-sm md:text-base font-poppins leading-relaxed">
+          <p className="text-zinc-800 text-sm! md:text-base font-poppins leading-relaxed">
             Tu destino podría ser Reino Unido. Si es así, necesitarás solicitar una autorización electrónica de viaje (ETA). Recuerda que cada viajero es responsable de obtenerla antes del viaje.
           </p>
         </div>
