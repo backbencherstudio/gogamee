@@ -574,22 +574,8 @@ export default function Personalinfo() {
       }
     }
 
-    const babies = [];
-    const babiesInContext = formData.travelers?.babies?.length || 0;
-    for (let i = 0; i < babiesInContext; i++) {
-      if (extraIndex < data.extraTravelers.length) {
-        const info = data.extraTravelers[extraIndex++];
-        babies.push({
-          id: `baby-${i}-${Date.now()}`,
-          type: "baby" as const,
-          name: info.name,
-          dateOfBirth: info.dateOfBirth,
-          documentType: info.documentType,
-          documentNumber: info.documentNumber,
-          isPrimary: false,
-        });
-      }
-    }
+    // Preserve babies as they don't have personal info forms in Step 9
+    const babies = formData.travelers?.babies ? [...formData.travelers.babies] : [];
 
     // Update booking context with new structure
     updateFormData({

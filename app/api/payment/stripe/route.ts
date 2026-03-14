@@ -145,6 +145,7 @@ export async function POST(request: Request) {
       selectedPackage: payload.selectedPackage,
       selectedLeague: isEuropeanCompetition ? "european" : "national",
       totalPeople: totalPeople,
+      babiesCount: babiesCount,
       departureDate: pricingDepartureDate,
       travelDuration: payload.duration?.days || 0,
       removedLeaguesCount: removedLeaguesCount,

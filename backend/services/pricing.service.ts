@@ -18,6 +18,7 @@ export const PricingConfig = {
   },
 
   singleTravelerSupplement: 50,
+  babySupplement: 50,
   bookingFee: 0,
 
   extras: {
@@ -46,6 +47,7 @@ export interface PriceCalculationInput {
   selectedPackage: "standard" | "premium" | string;
   selectedLeague: "european" | "national" | string;
   totalPeople: number;
+  babiesCount?: number;
   departureDate: string;
   travelDuration: number; // In days
   removedLeaguesCount: number;
@@ -83,6 +85,8 @@ export class PricingService {
   ): Promise<PriceBreakdown> {
     try {
       const durationKey = this.calculateDurationKey(input.travelDuration);
+      const babiesCount = input.babiesCount || 0;
+      const pricingPeopleCount = Math.max(0, input.totalPeople - babiesCount);
 
       const basePricePerPerson = await this.calculateBasePrice(
         input.departureDate,
@@ -92,19 +96,20 @@ export class PricingService {
         input.selectedLeague,
       );
 
-      const totalBaseCost = basePricePerPerson * input.totalPeople;
+      const totalBaseCost = basePricePerPerson * pricingPeopleCount;
 
       const leagueSurchargePerPerson = this.calculateLeagueSurcharge(
         input.selectedLeague,
       );
-      const leagueSurchargeTotal = leagueSurchargePerPerson * input.totalPeople;
+      const leagueSurchargeTotal =
+        leagueSurchargePerPerson * pricingPeopleCount;
 
       const extrasCost = this.calculateExtrasCost(input.bookingExtras || []);
 
       const leagueRemovalCostTotal = this.calculateLeagueRemovalCost(
         input.removedLeaguesCount,
         input.hasRemovedLeagues,
-        input.totalPeople,
+        pricingPeopleCount,
         input.selectedLeague,
       );
 
@@ -115,10 +120,12 @@ export class PricingService {
         input.arrivalTimeEnd,
       );
       const flightPreferenceTotal =
-        flightPreferencePerPerson * input.totalPeople;
+        flightPreferencePerPerson * pricingPeopleCount;
 
       const singleTravelerSupplement =
-        input.totalPeople === 1 ? PricingConfig.singleTravelerSupplement : 0;
+        pricingPeopleCount === 1 ? PricingConfig.singleTravelerSupplement : 0;
+
+      const babySupplementTotal = babiesCount * PricingConfig.babySupplement;
 
       const bookingFee = PricingConfig.bookingFee;
 
@@ -129,22 +136,32 @@ export class PricingService {
         leagueRemovalCostTotal +
         flightPreferenceTotal +
         singleTravelerSupplement +
+        babySupplementTotal +
         bookingFee;
 
       const breakdown = [
         {
           description: `Base Package (${input.selectedSport} - ${input.selectedPackage})`,
           amount: totalBaseCost,
-          quantity: input.totalPeople,
+          quantity: pricingPeopleCount,
           unitPrice: basePricePerPerson,
         },
       ];
+
+      if (babySupplementTotal > 0) {
+        breakdown.push({
+          description: "Baby Supplement",
+          amount: babySupplementTotal,
+          quantity: babiesCount,
+          unitPrice: PricingConfig.babySupplement,
+        });
+      }
 
       if (leagueSurchargeTotal > 0) {
         breakdown.push({
           description: "League Surcharge (European Competition)",
           amount: leagueSurchargeTotal,
-          quantity: input.totalPeople,
+          quantity: pricingPeopleCount,
           unitPrice: leagueSurchargePerPerson,
         });
       }
@@ -175,7 +192,7 @@ export class PricingService {
         breakdown.push({
           description: `League Removals (${paidRemovals} paid)`,
           amount: leagueRemovalCostTotal,
-          quantity: input.totalPeople,
+          quantity: pricingPeopleCount,
           unitPrice: costPerPerson,
         });
       }
@@ -184,7 +201,7 @@ export class PricingService {
         breakdown.push({
           description: "Flight Time Preferences",
           amount: flightPreferenceTotal,
-          quantity: input.totalPeople,
+          quantity: pricingPeopleCount,
           unitPrice: flightPreferencePerPerson,
         });
       }

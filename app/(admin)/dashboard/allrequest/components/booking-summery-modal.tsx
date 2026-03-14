@@ -615,9 +615,21 @@ export default function BookingSummaryModal({
                               {index + 1}
                             </div>
                             <span className="font-semibold text-black">
-                              {traveler.name}
+                              {traveler.type === "baby"
+                                ? "Baby Profile (No details required)"
+                                : (traveler.name?.trim() || (traveler.type === "kid" ? "Child" : "Traveler"))}
                             </span>
                           </div>
+                          {traveler.type === "kid" && (
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-600 font-semibold border-0">
+                              Child
+                            </Badge>
+                          )}
+                          {traveler.type === "baby" && (
+                            <Badge variant="secondary" className="bg-[#E7F6E0] text-[#6AAD3C] font-semibold border-0">
+                              Baby
+                            </Badge>
+                          )}
                           {traveler.isPrimary && (
                             <span className="text-xs font-medium text-gray-500 uppercase">
                               Primary Contact
@@ -625,34 +637,34 @@ export default function BookingSummaryModal({
                           )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm font-['Poppins']">
-                          {traveler.email && (
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                Email
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <Mail className="h-3.5 w-3.5 text-gray-400" />
-                                <span className="text-gray-700 break-all">
-                                  {traveler.email}
+                        {traveler.type !== "baby" && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm font-['Poppins']">
+                            {traveler.email && (
+                              <div className="flex flex-col gap-1">
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                  Email
                                 </span>
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-3.5 w-3.5 text-gray-400" />
+                                  <span className="text-gray-700 break-all">
+                                    {traveler.email}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                          {traveler.phone && (
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                Phone
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <Phone className="h-3.5 w-3.5 text-gray-400" />
-                                <span className="text-gray-700 truncate">
-                                  {traveler.phone}
+                            )}
+                            {traveler.phone && (
+                              <div className="flex flex-col gap-1">
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                  Phone
                                 </span>
+                                <div className="flex items-center gap-2">
+                                  <Phone className="h-3.5 w-3.5 text-gray-400" />
+                                  <span className="text-gray-700 truncate">
+                                    {traveler.phone}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                          {traveler.dateOfBirth && (
+                            )}
                             <div className="flex flex-col gap-1">
                               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
                                 Date of Birth
@@ -660,27 +672,27 @@ export default function BookingSummaryModal({
                               <div className="flex items-center gap-2">
                                 <CalendarIcon className="h-3.5 w-3.5 text-gray-400" />
                                 <span className="text-gray-700">
-                                  {new Date(
-                                    traveler.dateOfBirth,
-                                  ).toLocaleDateString()}
+                                  {traveler.dateOfBirth
+                                    ? new Date(traveler.dateOfBirth).toLocaleDateString()
+                                    : "N/A"}
                                 </span>
                               </div>
                             </div>
-                          )}
-                          {traveler.documentType && (
-                            <div className="flex flex-col gap-1">
-                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                {traveler.documentType}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <CreditCard className="h-3.5 w-3.5 text-gray-400" />
-                                <span className="text-gray-700 truncate">
-                                  {traveler.documentNumber}
+                            {(traveler.documentType && traveler.documentNumber) && (
+                              <div className="flex flex-col gap-1">
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                  {traveler.documentType}
                                 </span>
+                                <div className="flex items-center gap-2">
+                                  <CreditCard className="h-3.5 w-3.5 text-gray-400" />
+                                  <span className="text-gray-700 truncate">
+                                    {traveler.documentNumber}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
