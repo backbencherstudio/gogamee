@@ -311,11 +311,6 @@ export default function PackageTable({
                   className="w-full rounded-2xl bg-white outline-[6px] outline-offset-[-6px] outline-green-50"
                 >
                   <div className="p-4 border-b border-slate-200 flex flex-col justify-center items-center">
-                    <div className="inline-flex px-2 py-1.5 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mb-1">
-                      <span className="text-[#76C043] text-xs font-medium font-['Poppins']">
-                        {type === "Standard" ? "Pack Estándar" : "Pack Premium"}
-                      </span>
-                    </div>
                     <div className="text-zinc-950 text-lg font-bold font-['Poppins']">
                       {type === "Standard"
                         ? selectedSport === "football"
@@ -324,6 +319,11 @@ export default function PackageTable({
                         : selectedSport === "football"
                           ? "Premium GoGame Legend"
                           : "Premium GoGame MVP"}
+                    </div>
+                    <div className="inline-flex px-2 py-1.5 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mt-2">
+                      <span className="text-[#76C043] text-xs font-medium font-['Poppins']">
+                        {type === "Standard" ? "Pack Estándar" : "Pack Premium"}
+                      </span>
                     </div>
                   </div>
                   <div className="divide-y divide-slate-200">
@@ -404,8 +404,17 @@ export default function PackageTable({
                 <table className="min-w-full border-collapse">
                   <thead>
                     <tr className="md:w-96 border-b border-slate-200">
-                      <th className="w-56 md:w-96 self-stretch text-start  pl-3 md:pl-6 text-neutral-800 text-lg md:text-3xl font-bold font-['Poppins'] whitespace-nowrap leading-loose border-r border-slate-200">
-                        Compara nuestros packs
+                      <th className="w-56 md:w-96 self-stretch text-center text-neutral-800 text-lg md:text-2xl font-bold font-['Poppins'] whitespace-nowrap leading-loose border-r border-slate-200">
+                        <p>Compara nuestros packs</p>
+                        <div
+                          className={`px-2 md:px-3 py-1.5 md:py-2 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mt-2 opacity-0`}
+                        >
+                          <span
+                            className={`text-[#76C043] text-xs md:text-sm font-medium font-['Poppins'] flex items-center justify-center`}
+                          >
+                            space
+                          </span>
+                        </div>
                       </th>
                       {["Standard", "Premium"].map((type, idx) => (
                         <th
@@ -413,17 +422,6 @@ export default function PackageTable({
                           className={`w-56 md:w-96 p-3 md:p-6 bg-white align-top text-center ${idx < 2 ? "border-r border-slate-200" : ""}`}
                         >
                           <div className="flex flex-col items-center gap-2">
-                            <div
-                              className={`inline-flex px-2 md:px-3 py-1.5 md:py-2 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mb-1`}
-                            >
-                              <span
-                                className={`text-[#76C043] text-xs md:text-sm font-medium font-['Poppins'] flex items-center justify-center`}
-                              >
-                                {type === "Standard"
-                                  ? "Pack Estándar"
-                                  : "Pack Premium"}
-                              </span>
-                            </div>
                             <span className="text-lg md:text-2xl font-bold font-['Poppins'] text-zinc-950">
                               {type === "Standard"
                                 ? selectedSport === "football"
@@ -433,6 +431,17 @@ export default function PackageTable({
                                   ? "Premium GoGame Legend"
                                   : "Premium GoGame MVP"}
                             </span>
+                            <div
+                              className={`inline-flex px-2 md:px-3 py-1.5 md:py-2 bg-[#F1F9EC] rounded-4xl outline-1 outline-offset-[-1px] outline-[#76C043] items-center justify-center gap-2.5 mt-2`}
+                            >
+                              <span
+                                className={`text-[#76C043] text-xs md:text-sm font-medium font-['Poppins'] flex items-center justify-center`}
+                              >
+                                {type === "Standard"
+                                  ? "Pack Estándar"
+                                  : "Pack Premium"}
+                              </span>
+                            </div>
                           </div>
                         </th>
                       ))}
