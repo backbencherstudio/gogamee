@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import AddPackage from "./addpackage";
 import FixedPriceCard from "./FixedPriceCard";
+import ComparisonFeatureCard from "./ComparisonFeatureCard";
 import {
   getAllPackages,
   addPackage,
@@ -185,7 +186,7 @@ export default function PackageManagement({
   };
 
   return (
-    <div className="py-4 pl-10 min-h-screen mb-4 pr-8 ">
+    <div className="px-2 md:px md:pl-10 min-h-screen mb-4 md:pr-8">
       <div className="flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex items-start flex-col gap-4">
@@ -199,6 +200,7 @@ export default function PackageManagement({
           </div>
 
           {/* Add Package Button */}
+          {/* 
           <button
             onClick={() => setShowAddForm(true)}
             className="flex items-center gap-2 px-6 py-3 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 shadow-sm hover:shadow-md"
@@ -206,6 +208,7 @@ export default function PackageManagement({
             <Plus className="w-5 h-5" />
             Add Package
           </button>
+          */}
         </div>
 
         {/* Fixed Price Card - Always Visible */}
@@ -213,6 +216,9 @@ export default function PackageManagement({
           onPriceUpdate={handlePriceUpdate}
           onDurationChange={(duration) => setSelectedDuration(duration)}
         />
+
+        {/* Comparison Table Features Card */}
+        <ComparisonFeatureCard />
 
         {/* Error Message */}
         {error && (
@@ -391,7 +397,7 @@ export default function PackageManagement({
                 ))}
             </div>
 
-            {packages.length === 0 && (
+            {/* {packages.length === 0 && (
               <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
                 <PackageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-500 font-['Poppins']">
@@ -401,17 +407,17 @@ export default function PackageManagement({
                   Try adjusting your filter or add a new package
                 </p>
               </div>
-            )}
+            )} */}
 
             {/* Pagination Control */}
-            <div className="mt-6">
+            {/* <div className="mt-6">
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
                 isLoading={loading}
               />
-            </div>
+            </div> */}
           </>
         )}
       </div>

@@ -5,6 +5,9 @@ import {
   getStartingPrice,
   updateStartingPrice,
 } from "../../../../../services/packageService";
+import { useToast } from "../../../../../components/ui/toast";
+
+
 
 
 
@@ -40,8 +43,9 @@ export default function FixedPriceCard({
   onPriceUpdate,
   onDurationChange,
 }: FixedPriceCardProps) {
-  
+  const { addToast } = useToast();
   const [selectedDuration, setSelectedDuration] = useState<DurationValue>(1);
+
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -90,6 +94,8 @@ export default function FixedPriceCard({
     },
   });
 
+
+
   // Backup state for cancel functionality
   const [backupPriceData, setBackupPriceData] = useState<
     typeof priceData | null
@@ -98,10 +104,14 @@ export default function FixedPriceCard({
   // Currency helpers
   const toApiCurrency = (ui: string) =>
     ui === "EUR" ? "euro" : ui === "USD" ? "usd" : "gbp";
-  const fromApiCurrency = (api: string | undefined) =>
-    api === "usd" ? "USD" : api === "gbp" ? "GBP" : "EUR";
+  const fromApiCurrency = (api: string | undefined) => {
+    if (!api) return "EUR";
+    const normalized = api.toLowerCase();
+    return normalized === "usd" ? "USD" : normalized === "gbp" ? "GBP" : "EUR";
+  };
   const getCurrencySymbol = (currency: string) =>
     currency === "USD" ? "$" : currency === "GBP" ? "£" : "€";
+
 
   // Load price data from starting-price endpoints
   const loadPriceData = useCallback(async () => {
@@ -172,6 +182,8 @@ export default function FixedPriceCard({
           combinedCurrency || defaultCurrency,
         ),
       });
+
+
     } catch (err) {
       console.error("Error loading price data:", err);
       setError("Failed to load price data. Please try again.");
@@ -189,6 +201,8 @@ export default function FixedPriceCard({
     setBackupPriceData(JSON.parse(JSON.stringify(priceData)));
     setIsEditing(true);
   };
+
+
 
   const handleSavePrices = async () => {
     setIsSaving(true);
@@ -243,6 +257,13 @@ export default function FixedPriceCard({
           });
         }
 
+        addToast({
+          type: "success",
+          title: "Success",
+          description: "Prices updated successfully for all sports.",
+          duration: 3000,
+        });
+
         // Reload price data to ensure consistency
         await loadPriceData();
       } else {
@@ -284,6 +305,8 @@ export default function FixedPriceCard({
       },
     }));
   };
+
+
 
   const handleCurrencyChange = (
     sport: "football" | "basketball" | "combined",
@@ -496,6 +519,8 @@ export default function FixedPriceCard({
               </div>
             </div>
           )}
+
+
         </div>
 
         {/* Basketball Price Card */}
@@ -552,6 +577,8 @@ export default function FixedPriceCard({
               </div>
             </div>
           )}
+
+
         </div>
       </div>
 

@@ -56,10 +56,11 @@ export default function FeaturesManagement() {
 
   const handleSaveFeatures = async () => {
     try {
+      // Use the NEW dedicated endpoint
       const response = await fetch(
-        `/api/starting-price/${selectedSport}/features`,
+        `/api/packages/comparison-features/${selectedSport}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ features }),
         },

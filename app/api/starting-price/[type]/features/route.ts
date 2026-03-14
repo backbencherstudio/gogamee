@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { StartingPriceService } from "@/backend";
+import { ComparisonFeatureService } from "@/backend";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -32,26 +32,20 @@ export async function PUT(
       sortOrder: f.sortOrder ?? index,
     }));
 
-    // Update using service
-    const updated = await StartingPriceService.updateByType(type, {
+    // Update using NEW service
+    const response = await ComparisonFeatureService.updateByType(type as any, {
       features: formattedFeatures,
       lastModifiedBy: "admin",
     });
 
-    if (!updated) {
-      return NextResponse.json(
-        { success: false, message: "Starting price not found" },
-        { status: 404 },
-      );
+    if (!response.success) {
+      return NextResponse.json(response, { status: 400 });
     }
 
     return NextResponse.json({
       success: true,
       message: "Features updated successfully",
-      data: {
-        type: updated.type,
-        features: updated.features,
-      },
+      data: response.data,
     });
   } catch (error) {
     console.error("Error updating features:", error);

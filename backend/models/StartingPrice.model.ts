@@ -12,15 +12,7 @@ export interface IStartingPrice extends Document {
     "3": { standard: number; premium: number };
     "4": { standard: number; premium: number };
   };
-  features: {
-    category: string;
-    category_es?: string;
-    standard: string;
-    standard_es?: string;
-    premium: string;
-    premium_es?: string;
-    sortOrder: number;
-  }[];
+
   isActive: boolean;
   lastModifiedBy?: string;
   createdAt: Date;
@@ -35,18 +27,7 @@ const DurationPriceSchema = new Schema(
   { _id: false },
 );
 
-const FeatureSchema = new Schema(
-  {
-    category: { type: String, required: true },
-    category_es: { type: String },
-    standard: { type: String, required: true },
-    standard_es: { type: String },
-    premium: { type: String, required: true },
-    premium_es: { type: String },
-    sortOrder: { type: Number, default: 0 },
-  },
-  { _id: false },
-);
+
 
 const StartingPriceSchema = new Schema<IStartingPrice>(
   {
@@ -83,7 +64,7 @@ const StartingPriceSchema = new Schema<IStartingPrice>(
       "3": DurationPriceSchema,
       "4": DurationPriceSchema,
     },
-    features: [FeatureSchema],
+
 
     isActive: {
       type: Boolean,

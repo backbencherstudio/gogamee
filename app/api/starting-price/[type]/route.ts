@@ -25,7 +25,6 @@ export async function GET(
       success: true,
       data: {
         type: startingPrice.type,
-        features: startingPrice.features || [],
         pricesByDuration: startingPrice.pricesByDuration,
         currency: startingPrice.currency,
       },

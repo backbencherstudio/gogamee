@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { StartingPriceService } from "@/backend";
+import { ComparisonFeatureService } from "@/backend";
 import { toErrorMessage } from "@/backend/lib/errors";
 
 export const dynamic = "force-dynamic";
@@ -22,31 +22,31 @@ async function getSport(
 export async function GET(_: Request, context: RouteContext) {
   try {
     const sport = await getSport(context);
-    const price = await StartingPriceService.getByType(sport);
+    const result = await ComparisonFeatureService.getByType(sport);
 
-    if (!price) {
+    if (!result) {
       return NextResponse.json(
         {
-          success: false,
-          message: "Starting price not found",
+          success: true,
+          message: "No comparison features found",
+          data: [],
         },
-        { status: 404 },
+        { status: 200 }
       );
     }
 
-    const dataObj = (price as any).toObject ? (price as any).toObject() : price;
+    const dataObj = (result as any).toObject ? (result as any).toObject() : result;
     if (dataObj && dataObj._id) {
       dataObj.id = dataObj._id.toString();
       delete dataObj._id;
       delete dataObj.__v;
-      delete dataObj.features; // Decoupled: remove features from starting price
     }
 
     return NextResponse.json(
       {
         success: true,
-        message: "Starting price fetched successfully",
-        data: [dataObj],
+        message: "Comparison features fetched successfully",
+        data: dataObj,
       },
       {
         headers: { "Cache-Control": "no-store" },
@@ -70,25 +70,16 @@ export async function PATCH(request: Request, context: RouteContext) {
   try {
     const sport = await getSport(context);
     const payload = await request.json();
-    const response = await StartingPriceService.updateByType(sport, payload);
-    return NextResponse.json(
-      {
-        success: !!response,
-        message: response
-          ? "Starting price updated successfully"
-          : "Failed to update starting price",
-        data: response,
-      },
-      {
-        headers: { "Cache-Control": "no-store" },
-      },
-    );
+    const response = await ComparisonFeatureService.updateByType(sport, payload);
+    return NextResponse.json(response, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (error: unknown) {
-    console.error("Update starting price error", error);
+    console.error("Update comparison features error", error);
     return NextResponse.json(
       {
         success: false,
-        message: toErrorMessage(error, "Failed to update starting price"),
+        message: toErrorMessage(error, "Failed to update comparison features"),
       },
       { status: 500 },
     );

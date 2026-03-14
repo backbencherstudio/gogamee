@@ -6,6 +6,7 @@ import {
   PackageService,
   TestimonialService,
   StartingPriceService,
+  ComparisonFeatureService,
 } from "@/backend";
 import { cookies } from "next/headers";
 
@@ -17,30 +18,39 @@ async function getInitialData() {
       priceFootball,
       priceBasketball,
       priceCombined,
-      packagesData,
       testimonialsData,
+      fbFeatures,
+      bbFeatures,
     ] = await Promise.all([
       StartingPriceService.getByType("football"),
       StartingPriceService.getByType("basketball"),
       StartingPriceService.getByType("combined"),
-      PackageService.getAll({ limit: 1000, filters: { isActive: true } }), // Fetch ALL active packages
       TestimonialService.getAll({ limit: 10 }),
+      ComparisonFeatureService.getByType("football"),
+      ComparisonFeatureService.getByType("basketball"),
     ]);
 
     const priceFootballObj = priceFootball
-      ? JSON.parse(JSON.stringify(priceFootball))
+      ? JSON.parse(JSON.stringify((priceFootball as any).toObject ? (priceFootball as any).toObject() : priceFootball))
       : null;
     const priceBasketballObj = priceBasketball
-      ? JSON.parse(JSON.stringify(priceBasketball))
+      ? JSON.parse(JSON.stringify((priceBasketball as any).toObject ? (priceBasketball as any).toObject() : priceBasketball))
       : null;
     const priceCombinedObj = priceCombined
-      ? JSON.parse(JSON.stringify(priceCombined))
+      ? JSON.parse(JSON.stringify((priceCombined as any).toObject ? (priceCombined as any).toObject() : priceCombined))
+      : null;
+
+    const fbFeaturesObj = fbFeatures
+      ? JSON.parse(JSON.stringify((fbFeatures as any).toObject ? (fbFeatures as any).toObject() : fbFeatures))
+      : null;
+    const bbFeaturesObj = bbFeatures
+      ? JSON.parse(JSON.stringify((bbFeatures as any).toObject ? (bbFeatures as any).toObject() : bbFeatures))
       : null;
 
     const initialStartingPrices = {
       football: priceFootballObj
         ? {
-            id: priceFootballObj._id,
+            id: priceFootballObj._id.toString(),
             type: "football" as const,
             pricesByDuration: priceFootballObj.pricesByDuration,
             currency: priceFootballObj.currency,
@@ -49,7 +59,7 @@ async function getInitialData() {
         : null,
       basketball: priceBasketballObj
         ? {
-            id: priceBasketballObj._id,
+            id: priceBasketballObj._id.toString(),
             type: "basketball" as const,
             pricesByDuration: priceBasketballObj.pricesByDuration,
             currency: priceBasketballObj.currency,
@@ -58,7 +68,7 @@ async function getInitialData() {
         : null,
       combined: priceCombinedObj
         ? {
-            id: priceCombinedObj._id,
+            id: priceCombinedObj._id.toString(),
             type: "combined" as const,
             pricesByDuration: priceCombinedObj.pricesByDuration,
             currency: priceCombinedObj.currency,
@@ -67,32 +77,54 @@ async function getInitialData() {
         : null,
     };
 
+    /* Commented out as per user request
     const initialPackages = packagesData.packages.map((p: any) => {
       const obj = p.toObject ? p.toObject() : p;
       return {
         id: obj._id.toString(),
         sport: obj.sport,
         included: obj.included,
+        included_es: obj.included_es,
         plan: obj.plan,
         duration: obj.duration,
         description: obj.description,
+        description_es: obj.description_es,
         standardPrice: obj.standardPrice,
         premiumPrice: obj.premiumPrice,
         currency: obj.currency,
       };
     });
+    */
+    const initialPackages: any[] = [];
 
-    const initialReviews = testimonialsData.testimonials.map((t: any) => ({
-      id: t._id.toString(),
-      name: t.name,
-      role: t.role,
-      image: t.image,
-      rating: t.rating,
-      review: t.review,
-      created_at: t.createdAt ? new Date(t.createdAt).toISOString() : undefined,
-    }));
+    const initialReviews = testimonialsData.testimonials.map((t: any) => {
+      const obj = t.toObject ? t.toObject() : t;
+      return {
+        id: obj._id.toString(),
+        name: obj.name,
+        role: obj.role,
+        image: obj.image,
+        rating: obj.rating,
+        review: obj.review,
+        created_at: obj.createdAt ? new Date(obj.createdAt).toISOString() : undefined,
+      };
+    });
 
-    return { initialPackages, initialStartingPrices, initialReviews };
+    const initialComparisonFeatures = {
+      football: fbFeaturesObj?.features || [],
+      basketball: bbFeaturesObj?.features || [],
+    };
+
+    // DEBUG LOG
+    console.log(`PackagesPage - Loaded ${initialPackages.length} packages (Disabled fetch)`);
+    console.log(`PackagesPage - FB Features: ${initialComparisonFeatures.football.length}`);
+
+    return { 
+      initialPackages, 
+      initialStartingPrices, 
+      initialReviews,
+      initialComparisonFeatures 
+    };
   } catch (error) {
     console.error("Error fetching packages page data", error);
     return {
@@ -108,8 +140,12 @@ async function getInitialData() {
 }
 
 export default async function PackagesPage() {
-  const { initialPackages, initialStartingPrices, initialReviews } =
-    await getInitialData();
+  const { 
+    initialPackages, 
+    initialStartingPrices, 
+    initialReviews,
+    initialComparisonFeatures 
+  } = await getInitialData();
 
   return (
     <Suspense
@@ -124,6 +160,7 @@ export default async function PackagesPage() {
         <PackageTable
           initialPackages={initialPackages}
           initialStartingPrices={initialStartingPrices}
+          initialComparisonFeatures={initialComparisonFeatures}
         />
         <Reviews initialReviews={initialReviews} />
       </div>

@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  getAllPackages,
   getStartingPrice,
+  getComparisonFeatures,
   PackageItem,
   StartingPriceItem,
+  Feature,
 } from "../../../../../services/packageService";
 
 interface PackageTableProps {
@@ -15,11 +16,16 @@ interface PackageTableProps {
     basketball: StartingPriceItem | null;
     combined?: StartingPriceItem | null;
   };
+  initialComparisonFeatures?: {
+    football: Feature[];
+    basketball: Feature[];
+  };
 }
 
 export default function PackageTable({
   initialPackages = [],
   initialStartingPrices,
+  initialComparisonFeatures,
 }: PackageTableProps) {
   const [selectedSport, setSelectedSport] = useState<"football" | "basketball">(
     "football",
@@ -44,12 +50,23 @@ export default function PackageTable({
         },
   );
 
-  const [loading, setLoading] = useState<boolean>(!initialPackages.length);
+  const [loading, setLoading] = useState<boolean>(!initialStartingPrices);
   const [error, setError] = useState<string | null>(null);
+  const [comparisonFeatures, setComparisonFeatures] = useState<{
+    football: Feature[];
+    basketball: Feature[];
+  }>(
+    initialComparisonFeatures || {
+      football: [],
+      basketball: [],
+    },
+  );
 
-  // Fetch packages, sports, and starting prices from API
+
+  // Fetch missing data from API
   useEffect(() => {
-    if (initialPackages.length > 0 && initialStartingPrices) return;
+    // If we have all initial data, no need to fetch
+    if (initialStartingPrices && initialComparisonFeatures) return;
 
     const fetchData = async () => {
       try {
@@ -57,111 +74,53 @@ export default function PackageTable({
         setError(null);
 
         const [
-          selectedSportPackagesRes,
-          combinedPackagesRes,
           footballPriceRes,
           basketballPriceRes,
           combinedPriceRes,
+          footballFeaturesRes,
+          basketballFeaturesRes,
         ] = await Promise.all([
-          getAllPackages(selectedSport),
-          getAllPackages("combined"),
           getStartingPrice("football"),
           getStartingPrice("basketball"),
           getStartingPrice("combined"),
+          getComparisonFeatures("football"),
+          getComparisonFeatures("basketball"),
         ]);
 
-        let loadedPackages: PackageItem[] = [];
-
-        if (
-          selectedSportPackagesRes?.success &&
-          Array.isArray(selectedSportPackagesRes.data)
-        ) {
-          loadedPackages = [
-            ...loadedPackages,
-            ...selectedSportPackagesRes.data,
-          ];
-        }
-        if (
-          combinedPackagesRes?.success &&
-          Array.isArray(combinedPackagesRes.data)
-        ) {
-          loadedPackages = [...loadedPackages, ...combinedPackagesRes.data];
-        }
-
-        // Filter out Starting Price packages
-        const filteredPackages = loadedPackages.filter(
-          (pkg) => pkg.included !== "Starting Price",
-        );
-
-        // Map packages to use Spanish fields if available
-        const spanishPackages = filteredPackages.map((pkg) => ({
-          ...pkg,
-          included: pkg.included_es || pkg.included,
-          description: pkg.description_es || pkg.description,
-        }));
-
-        // Remove duplicates by ID just in case
-        const uniquePackages = Array.from(
-          new Map(spanishPackages.map((p) => [p.id, p])).values(),
-        );
-        setPackages(uniquePackages);
-
-        // Fetch starting prices (only if not provided)
+        // Set starting prices (only if not provided)
         if (!initialStartingPrices) {
-          if (footballPriceRes.success && basketballPriceRes.success) {
-            const footballPrice = footballPriceRes.data?.[0] || null;
-            const basketballPrice = basketballPriceRes.data?.[0] || null;
-            const combinedPrice = combinedPriceRes.data?.[0] || null;
-            setStartingPrices({
-              football: footballPrice,
-              basketball: basketballPrice,
-              combined: combinedPrice,
-            });
-          }
+          const footballPrice = footballPriceRes.data?.[0] || null;
+          const basketballPrice = basketballPriceRes.data?.[0] || null;
+          const combinedPrice = combinedPriceRes.data?.[0] || null;
+
+          // Remove features from price data object if they leaked through
+          if (footballPrice) delete (footballPrice as any).features;
+          if (basketballPrice) delete (basketballPrice as any).features;
+
+          setStartingPrices({
+            football: footballPrice,
+            basketball: basketballPrice,
+            combined: combinedPrice,
+          });
         }
 
-        // If we are here, we are setting prices.
-        const footballPrice =
-          footballPriceRes.data?.[0] || startingPrices.football;
-        const basketballPrice =
-          basketballPriceRes.data?.[0] || startingPrices.basketball;
-        const combinedPrice = combinedPriceRes.data?.[0] || null;
-
-        setStartingPrices({
-          football: footballPrice,
-          basketball: basketballPrice,
-          combined: combinedPrice,
-        });
+        // Fetch comparison features if they were not provided as initial data
+        if (!initialComparisonFeatures) {
+          setComparisonFeatures({
+            football: footballFeaturesRes.data?.features || [],
+            basketball: basketballFeaturesRes.data?.features || [],
+          });
+        }
       } catch (err) {
         console.error("Error fetching data:", err);
-        setError("Failed to load packages. Please try again later.");
+        setError("Failed to load table data. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (initialPackages.length === 0) {
-      fetchData();
-    } else {
-      // If initial packages exist, we might still need to fetch combined price if it's missing
-      const fetchCombinedPriceOnly = async () => {
-        const res = await getStartingPrice("combined");
-        if (res.success && res.data?.[0]) {
-          setStartingPrices((prev) => ({ ...prev, combined: res.data[0] }));
-        }
-      };
-
-      // Map initial packages to use Spanish fields if available
-      const spanishInitialPackages = initialPackages.map((pkg) => ({
-        ...pkg,
-        included: pkg.included_es || pkg.included,
-        description: pkg.description_es || pkg.description,
-      }));
-      setPackages(spanishInitialPackages);
-
-      fetchCombinedPriceOnly();
-    }
-  }, [selectedSport, initialPackages, initialStartingPrices]);
+    fetchData();
+  }, [initialStartingPrices, initialComparisonFeatures]);
 
   // Helper to get Price value
   const getPriceValue = (type: string, duration: number) => {
@@ -186,14 +145,20 @@ export default function PackageTable({
   // Helper to get all packages (features) for a specific plan and duration
   const getPackagesForPlan = (type: string, duration: number) => {
     const lowerType = type.toLowerCase();
-    const targetSport = selectedSport;
+    const targetSport = selectedSport.toLowerCase();
 
     return packages.filter(
       (pkg) =>
-        pkg.sport === targetSport &&
+        pkg.sport.toLowerCase() === targetSport &&
         pkg.duration === duration &&
         pkg.plan === lowerType,
     );
+  };
+
+  // Helper to check if a sport has ANY packages
+  const hasPackagesForSport = (sport: string) => {
+    const s = sport.toLowerCase();
+    return packages.some(p => p.sport.toLowerCase() === s);
   };
 
   // Helper to format text with bold numbers
@@ -292,13 +257,6 @@ export default function PackageTable({
               Intentar de nuevo
             </button>
           </div>
-        ) : packages.length === 0 ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="text-neutral-600 text-lg font-medium">
-              No hay packs disponibles para{" "}
-              {selectedSport === "football" ? "fútbol" : "basket"}.
-            </div>
-          </div>
         ) : (
           <div className="w-full">
             {/* Duration Header is removed since we only show 1 night */}
@@ -329,54 +287,26 @@ export default function PackageTable({
                   <div className="divide-y divide-slate-200">
                     {/* Duration Row Removed */}
 
-                    {/* Included Features List (Mobile) */}
-                    <div className="px-4 py-3 flex flex-col justify-center items-center gap-3 bg-white">
-                      <div className="text-[#76C043] text-sm font-bold font-['Poppins'] uppercase tracking-wider">
-                        Qué incluye
+                    {/* Dynamic Features Rows (Mobile) */}
+                    {(comparisonFeatures[selectedSport] || []).map((feature, fIdx) => (
+                      <div
+                        key={fIdx}
+                        className={`px-4 py-3 flex flex-col justify-center items-center gap-3 ${fIdx % 2 !== 0 ? "bg-gray-50/30" : "bg-white"}`}
+                      >
+                        <div className="text-[#76C043] text-sm font-bold font-['Poppins'] uppercase tracking-wider">
+                          {feature.category}
+                        </div>
+                        <div className="text-sm text-neutral-800 font-['Poppins'] leading-relaxed text-center">
+                          {formatWithBoldNumbers(
+                            type.toLowerCase() === "standard"
+                              ? feature.standard
+                              : feature.premium,
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm text-neutral-800 font-['Poppins'] leading-relaxed">
-                        {getPackagesForPlan(type, 1).length > 0
-                          ? Array.from(
-                              new Set(
-                                getPackagesForPlan(type, 1)
-                                  .map((pkg) => pkg.included)
-                                  .filter(Boolean),
-                              ),
-                            ).join(", ")
-                          : null}
-                        {getPackagesForPlan(type, 1).length === 0 && (
-                          <span className="text-neutral-400 italic">
-                            Sin características incluidas
-                          </span>
-                        )}
-                      </p>
-                    </div>
+                    ))}
 
-                    {/* Description Row (Mobile) */}
-                    <div className="px-4 py-3 flex flex-col justify-center items-center gap-3 bg-gray-50/30">
-                      <div className="text-[#76C043] text-sm font-bold font-['Poppins'] uppercase tracking-wider">
-                        Descripción
-                      </div>
-                      <div className="text-sm text-neutral-800 font-['Poppins'] leading-relaxed">
-                        {getPackagesForPlan(type, 1).length > 0 ? (
-                          Array.from(
-                            new Set(
-                              getPackagesForPlan(type, 1)
-                                .map((pkg) => pkg.description)
-                                .filter(Boolean),
-                            ),
-                          ).map((desc, idx) => (
-                            <p key={idx} className="mb-2 last:mb-0">
-                              {formatWithBoldNumbers(desc)}
-                            </p>
-                          ))
-                        ) : (
-                          <span className="text-neutral-400 italic">
-                            Sin descripción disponible
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                    {/* Price Row */}
 
                     {/* Price Row */}
                     <div className="px-4 py-3 flex items-start gap-3 bg-green-50/30">
@@ -384,12 +314,8 @@ export default function PackageTable({
                         Precio
                       </div>
                       <div className="flex-1 flex items-center justify-center text-neutral-900 text-sm font-normal font-['Poppins']">
-                        <span className="font-normal">Desde </span>
                         <span className="font-bold text-lg text-[#76C043]">
-                          {getPriceValue(type.toLowerCase(), 1).replace(
-                            /^(From|Desde)\s*/,
-                            "",
-                          )}
+                          {getPriceValue(type.toLowerCase(), 1)}
                         </span>
                       </div>
                     </div>
@@ -448,76 +374,28 @@ export default function PackageTable({
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Included Row with List */}
-                    <tr>
-                      <th className="w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-base md:text-lg font-medium font-['Poppins'] text-neutral-800 text-left align-middle border-r">
-                        Qué incluye
-                      </th>
-                      {["standard", "premium"].map((type, idx) => {
-                        const packagesForPlan = getPackagesForPlan(type, 1);
-
-                        return (
+                    {/* Dynamic Features Rows (Desktop) */}
+                    {(comparisonFeatures[selectedSport] || []).map((feature, fIdx) => (
+                      <tr key={fIdx}>
+                        <th className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-base md:text-lg font-medium font-['Poppins'] text-neutral-800 text-left align-middle border-r ${fIdx % 2 !== 0 ? "bg-gray-50/50" : "bg-white"}`}>
+                          {feature.category}
+                        </th>
+                        {["standard", "premium"].map((type, idx) => (
                           <td
                             key={type}
-                            className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 bg-white align-top ${idx < 2 ? "border-r border-slate-200" : ""}`}
-                          >
-                            <p className="text-sm md:text-base text-neutral-800 font-['Poppins'] leading-relaxed">
-                              {packagesForPlan.length > 0 ? (
-                                Array.from(
-                                  new Set(
-                                    packagesForPlan
-                                      .map((pkg) => pkg.included)
-                                      .filter(Boolean),
-                                  ),
-                                ).join(", ")
-                              ) : (
-                                <span className="text-neutral-400 italic">
-                                  Sin características incluidas
-                                </span>
-                              )}
-                            </p>
-                          </td>
-                        );
-                      })}
-                    </tr>
-
-                    {/* Description Row (Added below Included) */}
-                    <tr>
-                      <th className="w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-base md:text-lg font-medium font-['Poppins'] text-neutral-800 text-left align-middle border-r bg-gray-50/50">
-                        Descripción
-                      </th>
-                      {["standard", "premium"].map((type, idx) => {
-                        const packagesForPlan = getPackagesForPlan(type, 1);
-                        const uniqueDescriptions = Array.from(
-                          new Set(
-                            packagesForPlan
-                              .map((p) => p.description)
-                              .filter(Boolean),
-                          ),
-                        );
-
-                        return (
-                          <td
-                            key={type}
-                            className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 bg-gray-50/50 align-top ${idx < 2 ? "border-r border-slate-200" : ""}`}
+                            className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 align-top ${idx < 2 ? "border-r border-slate-200" : ""} ${fIdx % 2 !== 0 ? "bg-gray-50/50" : "bg-white"}`}
                           >
                             <div className="text-sm md:text-base text-neutral-800 font-['Poppins'] leading-relaxed">
-                              {uniqueDescriptions.length > 0 ? (
-                                uniqueDescriptions.map((desc, i) => (
-                                  <p key={i} className="mb-2 last:mb-0">
-                                    {formatWithBoldNumbers(desc)}
-                                  </p>
-                                ))
-                              ) : (
-                                <span className="text-neutral-400 italic">
-                                  Sin descripción disponible
-                                </span>
+                              {formatWithBoldNumbers(
+                                type === "standard"
+                                  ? feature.standard
+                                  : feature.premium,
                               )}
                             </div>
                           </td>
-                        );
-                      })}
-                    </tr>
+                        ))}
+                      </tr>
+                    ))}
 
                     {/* Price Row */}
                     <tr>
@@ -530,12 +408,8 @@ export default function PackageTable({
                           className={`w-56 md:w-96 p-3 md:p-6 border-b border-slate-200 text-sm md:text-base font-normal font-['Poppins'] text-neutral-800 bg-[#F1F9EC] align-middle ${idx < 2 ? "border-r border-slate-200" : ""}`}
                         >
                           <div className="flex items-center gap-2">
-                            <span className="font-normal">Desde </span>
                             <span className="font-bold text-lg text-[#76C043]">
-                              {getPriceValue(type, 1).replace(
-                                /^(From|Desde)\s*/,
-                                "",
-                              )}
+                              {getPriceValue(type, 1)}
                             </span>
                           </div>
                         </td>

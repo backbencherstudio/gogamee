@@ -22,3 +22,7 @@ export {
   type IAboutSection,
   type IAboutValue,
 } from "./AboutPageSection.model";
+export {
+  default as ComparisonFeature,
+  type IComparisonFeature,
+} from "./ComparisonFeature.model";

@@ -185,11 +185,48 @@ export const getStartingPrice = async (
 
 export const updateStartingPrice = async (
   sport: "football" | "basketball" | "combined",
-  payload: UpdateStartingPricePayload,
+  payload: Omit<UpdateStartingPricePayload, "features">,
 ): Promise<PackageResponse> => {
   const response = await axiosClient.patch(
     `/packages/starting-price/${sport}`,
     payload,
+  );
+  return response.data;
+};
+
+// ========== Comparison Features API ==========
+
+export interface Feature {
+  category: string;
+  standard: string;
+  premium: string;
+  sortOrder: number;
+}
+
+export interface ComparisonFeatureResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    type: string;
+    features: Feature[];
+  };
+}
+
+export const getComparisonFeatures = async (
+  sport: "football" | "basketball" | "combined",
+): Promise<ComparisonFeatureResponse> => {
+  const response = await axiosClient.get(`/packages/comparison-features/${sport}`);
+  return response.data;
+};
+
+export const updateComparisonFeatures = async (
+  sport: "football" | "basketball" | "combined",
+  features: Feature[],
+): Promise<PackageResponse> => {
+  const response = await axiosClient.patch(
+    `/packages/comparison-features/${sport}`,
+    { features },
   );
   return response.data;
 };
