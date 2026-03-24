@@ -146,9 +146,30 @@ export function generateUserEmailContent(
   const travelerList = bookingData.travelers?.list || [];
   const selectedExtras: any[] =
     bookingData.extras?.selected || bookingData.bookingExtras || [];
-  const selectedLeagues = (bookingData.leagues?.list || []).filter(
+  let selectedLeagues = (bookingData.leagues?.list || []).filter(
     (l: any) => l.isSelected,
   );
+
+  // Ensure 'National' packages only include National leagues.
+  // For 'European' packages, hide the selected leagues section entirely.
+  const categoryLower = selectedLeagueCategory?.toLowerCase() || "";
+  const isExplicitEuropean =
+    categoryLower === "european" || categoryLower === "european-competition";
+
+  if (isExplicitEuropean) {
+    selectedLeagues = [];
+  } else {
+    // Completely remove European leagues from National bookings
+    const europeanNames = [
+      "champions league",
+      "europa league",
+      "conference league",
+    ];
+    selectedLeagues = selectedLeagues.filter(
+      (l: any) => !europeanNames.includes(l.name?.toLowerCase()),
+    );
+  }
+
   const flightSchedule = bookingData.flight?.schedule;
 
   const isPaid =
@@ -174,7 +195,6 @@ export function generateUserEmailContent(
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Booking Confirmation</title>
     </head>
     <body style="margin: 0; padding: 20px; background-color: #f0f4f8; font-family: Arial, sans-serif;">
       <div style="max-width: 620px; margin: 0 auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
@@ -193,7 +213,10 @@ export function generateUserEmailContent(
         <!-- Greeting -->
         <div style="padding: 24px 30px; border-bottom: 1px solid #eee; background-color: #fafffe;">
           <p style="margin: 0; font-size: 15px; color: #333;">
-            Hola <strong>${fullName.split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()).join(' ')}</strong>,
+            Hola <strong>${fullName
+              .split(" ")
+              .map((n) => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase())
+              .join(" ")}</strong>,
           </p>
           <p style="margin: 8px 0 0; color: #555; font-size: 14px; line-height: 1.6;">
             ${
@@ -210,7 +233,15 @@ export function generateUserEmailContent(
             ? `<div style="margin: 0; padding: 22px 30px; background-color: #fff8e1; border-bottom: 1px solid #ffe082;">
           <h3 style="margin: 0 0 14px; color: #e65100; font-size: 16px;">🎯 Tu Destino Sorpresa</h3>
           <table width="100%" cellpadding="0" cellspacing="0">
-            ${row("Ciudad De Destino", `<span style="color:#e65100">${destinationCity.split(' ').map(n => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()).join(' ')}</span>`)}
+            ${row(
+              "Ciudad De Destino",
+              `<span style="color:#e65100">${destinationCity
+                .split(" ")
+                .map(
+                  (n) => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase(),
+                )
+                .join(" ")}</span>`,
+            )}
             ${row("Tu Partido", assignedMatch)}
           </table>
         </div>`
@@ -226,10 +257,10 @@ export function generateUserEmailContent(
           <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">📋 Detalles De La Reserva</h3>
           <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
             ${row("ID De Reserva", "#" + bookingId)}
-            ${row("Deporte", selectedSport === 'both' ? 'Ambos' : (selectedSport === 'football' ? 'Fútbol' : (selectedSport === 'basketball' ? 'Básquet' : 'N/A')))}
-            ${row("Paquete", selectedPackage === 'premium' ? 'Premium' : (selectedPackage === 'standard' ? 'Estándar' : (selectedPackage || "N/A")))}
+            ${row("Deporte", selectedSport === "both" ? "Ambos" : selectedSport === "football" ? "Fútbol" : selectedSport === "basketball" ? "Básquet" : "N/A")}
+            ${row("Paquete", selectedPackage === "premium" ? "Premium" : selectedPackage === "standard" ? "Estándar" : selectedPackage || "N/A")}
             ${row("Ciudad De Salida", selectedCity ? selectedCity.charAt(0).toUpperCase() + selectedCity.slice(1).toLowerCase() : "N/A")}
-            ${selectedLeagueCategory ? row("Categoría De Liga", selectedLeagueCategory) : ""}
+            ${selectedLeagueCategory ? row("Categoría De Liga", selectedLeagueCategory.toLowerCase() === "national" ? "Ligas nacionales" : selectedLeagueCategory.toLowerCase() === "european" || selectedLeagueCategory === "european-competition" ? "Competición Europea" : selectedLeagueCategory) : ""}
             ${row("Fecha De Salida", departureDateFormatted)}
             ${row("Fecha De Regreso", returnDateFormatted)}
             ${durationDays ? row("Duración", `${durationDays} Día(s)${durationNights ? " / " + durationNights + " Noche(s)" : ""}`) : ""}
@@ -258,7 +289,7 @@ export function generateUserEmailContent(
             ? `<div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
           <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">🏆 Ligas Seleccionadas</h3>
           <ul style="margin: 0; padding-left: 20px; color: #444; font-size: 14px; line-height: 2;">
-            ${selectedLeagues.map((l: any) => `<li><strong>${l.name}</strong> <span style="color:#888; font-size:12px;">(${l.group})</span></li>`).join("")}
+            ${selectedLeagues.map((l: any) => `<li><strong>${l.name}</strong> <span style="color:#888; font-size:12px;">(${l.name === "Premier League" ? "Inglaterra" : l.name === "La Liga" ? "España" : l.name === "Serie A" ? "Italia" : l.name === "Bundesliga" ? "Alemania" : l.name === "Ligue 1" ? "Francia" : l.name === "Eredivisie" ? "Países Bajos" : l.name === "Primeira Liga" ? "Portugal" : l.name === "Champions League" ? "Europa" : l.name === "Europa League" ? "Europa" : l.name === "Conference League" ? "Europa" : l.group === "National" ? "Nacional" : l.group === "International" ? "Internacional" : l.group})</span></li>`).join("")}
           </ul>
         </div>`
             : ""
@@ -281,9 +312,19 @@ export function generateUserEmailContent(
                 (t: any, i: number) => `
             <tr style="${i % 2 === 0 ? "background: #fff;" : "background: #fafafa;"}">
               <td style="padding: 8px 10px; color: #888;">${i + 1}</td>
-              <td style="padding: 8px 10px; color: #222; font-weight: ${t.isPrimary ? "700" : "400"};">${(t.name || "N/A").split(' ').map((n: string) => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()).join(' ')}${t.isPrimary ? " <span style='color:#6AAD3C;font-size:11px;'>(Principal)</span>" : ""}</td>
-              <td style="padding: 8px 10px; color: #555; text-transform: capitalize;">${t.type === 'adult' ? 'Adulto' : (t.type === 'kid' ? 'Niño' : (t.type === 'baby' ? 'Bebé' : (t.type || "Adulto")))}</td>
-              <td style="padding: 8px 10px; color: #555;">${t.documentType ? (t.documentType === 'ID' ? 'DNI' : (t.documentType === 'Passport' ? 'Pasaporte' : t.documentType)) + ": " + (t.documentNumber || "") : "N/A"}</td>
+              <td style="padding: 8px 10px; color: #222; font-weight: ${t.isPrimary ? "700" : "400"};">${(
+                t.name || "N/A"
+              )
+                .split(" ")
+                .map(
+                  (n: string) =>
+                    n.charAt(0).toUpperCase() + n.slice(1).toLowerCase(),
+                )
+                .join(
+                  " ",
+                )}${t.isPrimary ? " <span style='color:#6AAD3C;font-size:11px;'>(Principal)</span>" : ""}</td>
+              <td style="padding: 8px 10px; color: #555; text-transform: capitalize;">${t.type === "adult" ? "Adulto" : t.type === "kid" ? "Niño" : t.type === "baby" ? "Bebé" : t.type || "Adulto"}</td>
+              <td style="padding: 8px 10px; color: #555;">${t.documentType ? (t.documentType === "ID" ? "DNI" : t.documentType === "Passport" ? "Pasaporte" : t.documentType) + ": " + (t.documentNumber || "") : "N/A"}</td>
             </tr>`,
               )
               .join("")}
@@ -303,7 +344,18 @@ export function generateUserEmailContent(
               .map(
                 (extra: any, i: number) => `
             <tr style="${i % 2 === 0 ? "background:#fff;" : "background:#fafafa;"}">
-              <td style="padding: 8px 12px; color: #333;">${extra.name.split(' ').map((n: string) => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()).join(' ')}${extra.quantity && extra.quantity > 1 ? ` <span style="color:#888;">(x${extra.quantity})</span>` : ""}</td>
+              <td style="padding: 8px 12px; color: #333;">${extra.name
+                .split(" ")
+                .map((n: string) => {
+                  const p = n.startsWith("(") ? "(" : "";
+                  const w = n.startsWith("(") ? n.slice(1) : n;
+                  return (
+                    p + w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+                  );
+                })
+                .join(
+                  " ",
+                )}${extra.quantity && extra.quantity > 1 ? ` <span style="color:#888;">(x${extra.quantity})</span>` : ""}</td>
               <td style="padding: 8px 12px; color: #4a9e2a; font-weight: 600; text-align: right;">${extra.price === 0 ? "Incluida" : "€" + (extra.price * (extra.quantity || 1)).toFixed(2)}</td>
             </tr>`,
               )
@@ -324,7 +376,20 @@ export function generateUserEmailContent(
                     .map(
                       (item, i) => `
             <tr style="${i % 2 === 0 ? "background:#fff;" : "background:#fafafa;"}">
-              <td style="padding: 8px 12px; color: #555;">${item.description.replace('Base Package', 'Paquete Base').replace('both', 'Ambos').replace('premium', 'Premium').replace('standard', 'Estándar').replace('Single Traveler Supplement', 'Suplemento De Viajero Individual')}${(item.quantity || 0) > 1 ? ` (x${item.quantity})` : ""}</td>
+              <td style="padding: 8px 12px; color: #555;">${item.description
+                .replace(/Base Package/gi, "Paquete Base")
+                .replace(/both/gi, "Ambos")
+                .replace(/premium/gi, "Premium")
+                .replace(/standard/gi, "Estándar")
+                .replace(
+                  /Single Traveler Supplement/gi,
+                  "Suplemento De Viajero Individual",
+                )
+                .replace(/football/gi, "Fútbol")
+                .replace(
+                  /basketball/gi,
+                  "Basket",
+                )}${(item.quantity || 0) > 1 ? ` (x${item.quantity})` : ""}</td>
               <td style="padding: 8px 12px; text-align: right; font-weight: 500; color: #333;">€${item.amount.toFixed(2)}</td>
             </tr>`,
                     )

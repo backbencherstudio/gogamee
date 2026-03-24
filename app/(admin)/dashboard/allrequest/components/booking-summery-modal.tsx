@@ -411,9 +411,11 @@ export default function BookingSummaryModal({
                         className="bg-red-50 text-red-700 hover:bg-red-100 border-red-200"
                       >
                         {league.name}
-                        <span className="ml-1 text-xs opacity-75">
-                          ({league.country})
-                        </span>
+                        {league.country && (
+                          <span className="ml-1 text-xs opacity-75">
+                            ({league.country})
+                          </span>
+                        )}
                       </Badge>
                     ))}
                 </div>

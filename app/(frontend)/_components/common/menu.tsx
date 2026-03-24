@@ -19,7 +19,7 @@ const HERO_PAGES = [
 export default function Menu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(true);
   const pathname = usePathname();
 
   // Check if the current page has a hero section
@@ -77,8 +77,9 @@ export default function Menu() {
               isSolid ? "" : "brightness-0 invert"
             }`}
             alt="Logo"
-            width={80}
-            height={80}
+            width={160}
+            height={40}
+            priority
           />
         </Link>
 
