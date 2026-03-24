@@ -1,11 +1,53 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { HiMenu, HiX } from "react-icons/hi";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+
+// Pages that have a hero section behind the navbar
+const HERO_PAGES = [
+  "/",
+  "/packages",
+  "/faqs",
+  "/about",
+  "/privacy",
+  "/cookies",
+  "/terms",
+];
 
 export default function Menu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const pathname = usePathname();
+
+  // Check if the current page has a hero section
+  const hasHero = HERO_PAGES.includes(pathname);
+
+  // Transparent navbar only on desktop hero pages at the top
+  const isSolid = !hasHero || !isDesktop || isScrolled || isMenuOpen;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 768); // md breakpoint
+    };
+
+    // Initial check
+    handleScroll();
+    handleResize();
+
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   // Dynamic menu items based on current language
   const menuItems = [
@@ -16,16 +58,24 @@ export default function Menu() {
   ];
 
   return (
-    <div className="w-full bg-white py-5">
+    <div
+      className={`fixed top-0 left-0 right-0 w-full z-50 transition-all duration-300 py-5 ${
+        isSolid ? "bg-white shadow-md" : "bg-transparent"
+      }`}
+    >
       <div className="max-w-[1200px] mx-auto px-4 lg:px-0 flex justify-between items-center relative">
         {/* Logo */}
         <Link
           href="/"
-          className="font-bold font-['Poppins'] text-3xl md:text-4xl text-black flex items-center cursor-pointer"
+          className={`font-bold font-['Poppins'] text-3xl md:text-4xl flex items-center cursor-pointer ${
+            isSolid ? "text-black" : "text-white"
+          }`}
         >
           <Image
             src="/logo.svg"
-            className=" min-w-24 md:min-w-32 h-auto"
+            className={`min-w-24 md:min-w-32 h-auto transition-all duration-300 ${
+              isSolid ? "" : "brightness-0 invert"
+            }`}
             alt="Logo"
             width={80}
             height={80}
@@ -46,7 +96,9 @@ export default function Menu() {
 
           {/* Mobile Menu Button */}
           <button
-            className="p-2 text-slate-700 hover:text-lime-600 cursor-pointer"
+            className={`p-2 hover:text-lime-600 cursor-pointer transition-colors ${
+              isSolid ? "text-slate-700" : "text-white"
+            }`}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <HiX size={24} /> : <HiMenu size={24} />}
@@ -59,7 +111,9 @@ export default function Menu() {
             <Link
               key={index}
               href={item.href}
-              className="text-black text-lg font-normal font-['Poppins'] leading-loose hover:text-lime-600 transition-colors cursor-pointer"
+              className={`text-lg font-normal font-['Poppins'] leading-loose hover:text-lime-600 transition-colors cursor-pointer ${
+                isSolid ? "text-black" : "text-white"
+              }`}
             >
               {item.label}
             </Link>

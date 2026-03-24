@@ -153,7 +153,7 @@ export default function Footer() {
                     Redes sociales
                   </span>
                 </h3>
-                <div className="space-y-4 flex flex-col items-center sm:items-start">
+                <div className="space-y-4 flex flex-col items-start">
                   {links.tiktok && (
                     <Link
                       href={links.tiktok}

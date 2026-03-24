@@ -367,9 +367,8 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     const travelers = formData?.travelers || {};
     const adultsCount = travelers.adults?.length || 0;
     const kidsCount = travelers.kids?.length || 0;
-    const babiesCount = travelers.babies?.length || 0;
-
-    return adultsCount + kidsCount + babiesCount;
+    // Babies are excluded from the total traveler count for package/extra pricing calculations
+    return adultsCount + kidsCount;
   };
 
   const clearBookingData = () => {

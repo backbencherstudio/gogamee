@@ -317,9 +317,9 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <div className="w-full h-[100%] min-h-[600px] md:h-[720px] relative flex-shrink-0 max-w-[1200px] mx-auto">
+    <div className="w-full min-h-[500px] md:min-h-[600px] lg:h-[650px] relative flex-shrink-0 mt-[80px] md:mt-0 md:pt-[120px]">
       <div
-        className="absolute inset-0 rounded-none md:rounded-[24px] overflow-hidden"
+        className="absolute inset-x-0 top-0 bottom-0 overflow-hidden -z-10"
         style={{
           backgroundImage: "url(/homepage/Herobg.png)",
           backgroundSize: "cover",
@@ -619,12 +619,14 @@ export default function HeroSection() {
                           </span>
                         </div>
                       </div>
-                      
+
                       {/* Single traveler supplement message */}
                       {totalPeople === 1 && (
                         <div className="pt-2 border-t border-gray-200">
                           <div className="text-xs text-amber-600 font-['Poppins']">
-                            Suplemento de viajero individual: se aplicarán 50€. Esta tarifa solo se aplica cuando se viaja solo y aparecerá en su resumen final.
+                            Suplemento de viajero individual: se aplicarán 50€.
+                            Esta tarifa solo se aplica cuando se viaja solo y
+                            aparecerá en su resumen final.
                           </div>
                         </div>
                       )}

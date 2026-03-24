@@ -1266,7 +1266,7 @@ export const AppData = {
         label: "Observaciones",
         labelEn: "Observations",
         placeholder:
-          "¿Has vivido ya una experiencia GoGame con nosotros? Dinos a qué ciudad y evento viajaste. También puedes añadir aquí cualquier comentario o información relevante que debamos tener en cuenta.",
+          "¿Has vivido ya una experiencia GoGame? Dinos a qué ciudad y evento viajaste. También puedes añadir cualquier comentario relevante que debamos tener en cuenta.",
         placeholderEn:
           "Have you already had a GoGame experience with us? Tell us which city and event you traveled to. You can also add any relevant comments or information we should take into account here.",
       },

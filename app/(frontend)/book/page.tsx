@@ -160,7 +160,9 @@ function BookingContent() {
 export default function BookPage() {
   return (
     <BookingProvider>
-      <BookingContent />
+      <div className="mt-[120px]">
+        <BookingContent />
+      </div>
     </BookingProvider>
   );
 }

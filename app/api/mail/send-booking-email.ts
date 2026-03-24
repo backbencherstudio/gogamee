@@ -217,6 +217,7 @@ export function generateUserEmailContent(
             : `<div style="margin: 0; padding: 20px 30px; background-color: #e3f2fd; border-bottom: 1px solid #90caf9;">
           <h3 style="margin: 0 0 6px; color: #1565c0; font-size: 15px;">🤫 Sorpresa Próximamente</h3>
           <p style="margin: 0; color: #555; font-size: 14px;">Tu destino será revelado <strong>unos días antes de la salida</strong>. ¡Mantente atento!</p>
+          <p style="margin: 12px 0 0; color: #555; font-size: 13px; line-height: 1.5;"><strong>Ten en cuenta que tu destino podría ser Reino Unido.</strong> Si es así, necesitarás solicitar una autorización electrónica de viaje (ETA). Recuerda que cada viajero es responsable de obtenerla antes del viaje.</p>
         </div>`
         }
 

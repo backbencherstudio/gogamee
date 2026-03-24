@@ -393,8 +393,8 @@ export const TravelerFormFields: React.FC<TravelerFormFieldsProps> = ({
                         personalInfoData.formFields.previousTravelInfo
                           .placeholder
                       }
-                      className="self-stretch h-24 px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C] resize-none"
-                      rows={4}
+                      className="self-stretch min-h-[120px] px-4 py-3 bg-white rounded-lg outline-1 outline-offset-[-1px] outline-zinc-200 text-base font-normal font-['Poppins'] leading-normal placeholder:text-zinc-500 focus:outline-[#6AAD3C] resize-none w-full"
+                      rows={5}
                     />
                   )}
                 />

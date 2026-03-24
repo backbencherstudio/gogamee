@@ -40,6 +40,18 @@ export default function Extras() {
         if (extra.isGroupOption) {
           return { ...extra, quantity: totalTravelers };
         }
+
+        // Clamp quantity for existing individual extras
+        if (!extra.isIncluded && extra.isSelected) {
+          const maxQuantity =
+            extra.id === "extra-luggage"
+              ? totalTravelers
+              : extra.maxQuantity || extrasData.constants.defaultMaxQuantity;
+          if (extra.quantity > maxQuantity) {
+            return { ...extra, quantity: maxQuantity };
+          }
+        }
+        
         return extra;
       });
     } else {
@@ -83,6 +95,18 @@ export default function Extras() {
       if (extra.id === "seats-together" && totalTravelers === 1) {
         return { ...extra, quantity: 1, isSelected: false };
       }
+
+      // Clamp quantity for individual extras when total travelers changes
+      if (!extra.isGroupOption && !extra.isIncluded && extra.isSelected) {
+        const maxQuantity =
+          extra.id === "extra-luggage"
+            ? totalTravelers
+            : extra.maxQuantity || extrasData.constants.defaultMaxQuantity;
+        if (extra.quantity > maxQuantity) {
+          return { ...extra, quantity: maxQuantity };
+        }
+      }
+
       return extra;
     });
     setValue("extras", updatedExtras, { shouldDirty: true });

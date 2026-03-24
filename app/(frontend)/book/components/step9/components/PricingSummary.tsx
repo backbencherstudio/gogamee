@@ -17,6 +17,8 @@ interface PricingSummaryProps {
     singleTravelerSupplement: number;
     babySupplementTotal?: number;
     standardPassengerCount?: number;
+    totalWithBabies?: number;
+    babyCount?: number;
     grandTotal: number;
   };
   formData: {
@@ -146,9 +148,7 @@ export function PricingSummary({
                 </span>
                 <div className="text-right">
                   <div className="text-neutral-800 text-sm font-normal font-['Poppins']">
-                    {BOOKING_CONSTANTS.BABY_SUPPLEMENT}€ x{" "}
-                    {reservationData.totalPeople -
-                      (reservationData.standardPassengerCount || 0)}
+                    {BOOKING_CONSTANTS.BABY_SUPPLEMENT}€ x {reservationData.babyCount || 0}
                   </div>
                   <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
                     {(reservationData.babySupplementTotal || 0).toFixed(2)}€
@@ -329,8 +329,7 @@ export function PricingSummary({
                 {BOOKING_CONSTANTS.BABY_SUPPLEMENT}€
               </div>
               <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-center">
-                x{reservationData.totalPeople -
-                  (reservationData.standardPassengerCount || 0)}
+                x{reservationData.babyCount || 0}
               </div>
               <div className="text-base font-medium font-['Poppins'] leading-none text-neutral-800 text-end">
                 {(reservationData.babySupplementTotal || 0).toFixed(2)}€

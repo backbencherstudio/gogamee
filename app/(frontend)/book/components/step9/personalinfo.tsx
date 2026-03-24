@@ -456,8 +456,10 @@ export default function Personalinfo() {
       singleTravelerSupplement,
       babySupplementTotal,
       grandTotal,
-      totalPeople: totalWithBabies, // For summary display if needed, but pricing uses split logic
+      totalPeople: totalPeople, // For summary display, correctly multiplying without babies
       standardPassengerCount: totalPeople,
+      totalWithBabies: totalWithBabies,
+      babyCount: babiesCount,
       departureTimeRange: formData.flightSchedule
         ? `${formatTime(
             formData.flightSchedule.departure.start,

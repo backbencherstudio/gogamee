@@ -107,26 +107,24 @@ const FlightInfoHeader = React.memo(
           : label;
 
     return (
-      <div className="self-stretch inline-flex justify-start items-center gap-20">
-        <div className="flex justify-start items-center gap-4">
+      <div className="self-stretch flex justify-between items-center w-full gap-2 md:gap-4">
+        <div className="flex justify-start items-center gap-3 md:gap-4 min-w-0">
           <FlightIcon type={icon} />
-          <div className="w-32 inline-flex flex-col justify-start items-start gap-1">
-            <div className="self-stretch justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
+          <div className="flex flex-col justify-start items-start gap-1 min-w-0 flex-1">
+            <div className="text-zinc-500 text-sm md:text-base font-normal font-['Poppins'] leading-tight md:leading-7 truncate w-full">
               {translatedLabel}
             </div>
-            <div className="justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
+            <div className="text-neutral-800 text-base sm:text-lg md:text-xl font-medium font-['Poppins'] leading-normal truncate w-full">
               {city}
             </div>
           </div>
         </div>
-        <div className="flex-1 flex justify-end items-center gap-4">
-          <div className="flex-1 inline-flex flex-col justify-start items-start gap-1">
-            <div className="self-stretch text-right justify-center text-neutral-800 text-xl font-medium font-['Poppins'] leading-normal">
-              {price}
-            </div>
-            <div className="self-stretch text-right justify-center text-zinc-500 text-base font-normal font-['Poppins'] leading-7">
-              Por persona
-            </div>
+        <div className="flex flex-col justify-center items-end gap-1 min-w-max">
+          <div className="text-right text-neutral-800 text-base sm:text-lg md:text-xl font-medium font-['Poppins'] leading-normal">
+            {price}
+          </div>
+          <div className="text-right text-zinc-500 text-xs sm:text-sm md:text-base font-normal font-['Poppins'] leading-tight md:leading-7 whitespace-nowrap">
+            Por persona
           </div>
         </div>
       </div>
@@ -262,6 +260,16 @@ const TimeRangeSlider = React.memo(
             }}
             renderThumb={({ props, isDragged, index }) => {
               const { key, ...restProps } = props as any;
+              
+              const currentIndex = index === 0 ? startIndex : endIndex;
+              const isAtStart = currentIndex === 0;
+              const isAtEnd = currentIndex === timeSlots.length - 1;
+              const positionClass = isAtStart 
+                ? "left-0 translate-x-0" 
+                : isAtEnd 
+                  ? "right-0 translate-x-0" 
+                  : "left-1/2 -translate-x-1/2";
+
               return (
                 <div
                   key={key}
@@ -273,8 +281,8 @@ const TimeRangeSlider = React.memo(
                     cursor: isDragged ? "grabbing" : "grab",
                   }}
                 >
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-3 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 whitespace-nowrap shadow-sm">
-                    {timeSlots[index === 0 ? startIndex : endIndex]?.label}
+                  <div className={`absolute -top-8 ${positionClass} px-3 py-1 bg-white border border-gray-200 rounded text-xs text-gray-600 whitespace-nowrap shadow-sm`}>
+                    {timeSlots[currentIndex]?.label}
                   </div>
                 </div>
               );
