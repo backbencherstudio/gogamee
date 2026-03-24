@@ -163,12 +163,10 @@ export default function HowManyTotal() {
     }
   }, [formData.fromHero, formData.travelers, setValue]);
 
-  // Calculate total count from watched values
-  const totalCount =
+  // Calculate total passengers from watched values (excluding babies)
+  const totalPassengers =
     (watchedValues.adults ?? 0) +
-    (watchedValues.kids ?? 0) +
-    (watchedValues.babies ?? 0);
-  const canAddMore = totalCount < MAX_TOTAL_PEOPLE;
+    (watchedValues.kids ?? 0);
 
   const updateCount = (
     field: keyof CounterFormData,
@@ -177,8 +175,10 @@ export default function HowManyTotal() {
   ) => {
     const currentValue = watchedValues[field];
     if (operation === "increment") {
-      if (totalCount >= MAX_TOTAL_PEOPLE) {
-        return;
+      if (field === "babies") {
+        if (currentValue >= 10) return;
+      } else {
+        if (totalPassengers >= MAX_TOTAL_PEOPLE) return;
       }
       const newValue = currentValue + 1;
       setValue(field, newValue, {
@@ -300,7 +300,11 @@ export default function HowManyTotal() {
                       onDecrement={() =>
                         updateCount(key, "decrement", minValue)
                       }
-                      canIncrement={canAddMore}
+                      canIncrement={
+                        key === "babies"
+                          ? field.value < 10
+                          : totalPassengers < MAX_TOTAL_PEOPLE
+                      }
                       isMinimumReached={field.value <= minValue}
                     />
                   )}
@@ -309,7 +313,7 @@ export default function HowManyTotal() {
             </div>
 
             {/* Next Button */}
-            {totalCount === 1 && (
+            {totalPassengers === 1 && (
               <div className="w-full xl:w-[600px] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900">
                 <div className="text-sm xl:text-base font-medium font-['Poppins']">
                   Suplemento de viajero individual: se aplicarán{" "}
@@ -323,12 +327,14 @@ export default function HowManyTotal() {
             )}
 
             {/* Baby Pricing Notice */}
-            <div className="w-full xl:w-[600px] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900 mt-2">
-              <div className="text-sm xl:text-base font-medium font-['Poppins']">
-                Los bebés no cuentan como pasajeros y solo pagarán{" "}
-                {BOOKING_CONSTANTS.BABY_SUPPLEMENT}€.
+            {(watchedValues.babies ?? 0) > 0 && (
+              <div className="w-full xl:w-[600px] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900 mt-2">
+                <div className="text-sm xl:text-base font-medium font-['Poppins']">
+                  Los bebés no cuentan como pasajeros y solo pagarán{" "}
+                  {BOOKING_CONSTANTS.BABY_SUPPLEMENT}€.
+                </div>
               </div>
-            </div>
+            )}
             <BookingNavigation
               onNext={handleSubmit(onSubmit)}
               nextText="Siguiente"

@@ -228,9 +228,9 @@ export default function HeroSection() {
     "pack" | "city" | "people" | null
   >(null);
 
-  // Calculate total people
-  const totalPeople =
-    peopleCount.adults + peopleCount.children + peopleCount.babies;
+  // Calculate total passengers (excludes babies for limits)
+  const totalPassengers = peopleCount.adults + peopleCount.children;
+  const totalPeople = totalPassengers + peopleCount.babies;
 
   // Update selected pack when sport changes to maintain consistency
   useEffect(() => {
@@ -253,10 +253,19 @@ export default function HeroSection() {
       const newCount = { ...prev };
       const currentValue = newCount[category];
 
+      const prevTotalPassengers = prev.adults + prev.children;
+
       if (increment) {
-        // Check if we can add more (max total people)
-        if (totalPeople < heroData.maxTotalPeople) {
-          newCount[category] = currentValue + 1;
+        if (category === "babies") {
+          // Babies have their own limit
+          if (currentValue < 10) {
+            newCount[category] = currentValue + 1;
+          }
+        } else {
+          // Check max passengers for adults & children
+          if (prevTotalPassengers < heroData.maxTotalPeople) {
+            newCount[category] = currentValue + 1;
+          }
         }
       } else {
         // Check if we can subtract (minimum requirements)
@@ -528,7 +537,7 @@ export default function HeroSection() {
                               e.stopPropagation();
                               updatePeopleCount("adults", true);
                             }}
-                            disabled={totalPeople >= heroData.maxTotalPeople}
+                            disabled={totalPassengers >= heroData.maxTotalPeople}
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             +
@@ -565,7 +574,7 @@ export default function HeroSection() {
                               e.stopPropagation();
                               updatePeopleCount("children", true);
                             }}
-                            disabled={totalPeople >= heroData.maxTotalPeople}
+                            disabled={totalPassengers >= heroData.maxTotalPeople}
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             +
@@ -602,7 +611,7 @@ export default function HeroSection() {
                               e.stopPropagation();
                               updatePeopleCount("babies", true);
                             }}
-                            disabled={totalPeople >= heroData.maxTotalPeople}
+                            disabled={peopleCount.babies >= 10}
                             className="w-8 h-8 flex items-center justify-center border border-gray-300 rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                           >
                             +
@@ -614,11 +623,20 @@ export default function HeroSection() {
                       <div className="pt-2 border-t border-gray-200">
                         <div className="text-xs text-gray-500 font-['Poppins'] text-center">
                           <span>
-                            Total: {totalPeople}/{heroData.maxTotalPeople}{" "}
+                            Total: {totalPassengers}/{heroData.maxTotalPeople}{" "}
                             personas
                           </span>
                         </div>
                       </div>
+
+                      {/* Babies message */}
+                      {peopleCount.babies > 0 && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <div className="text-xs text-amber-600 font-['Poppins']">
+                            Los bebés no cuentan como pasajeros y solo pagarán 50€.
+                          </div>
+                        </div>
+                      )}
 
                       {/* Single traveler supplement message */}
                       {totalPeople === 1 && (
