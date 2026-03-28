@@ -411,7 +411,7 @@ export default function DateManagement() {
                     onChange={e => {
                       const val = e.target.value === "" ? null : Number(e.target.value);
                       const s = selectedSport === "both" ? "combined" : selectedSport;
-                      setPriceEditData(prev => ({ ...prev!, prices: { ...prev!.prices, [s]: { ...prev!.prices[s as keyof typeof prev.prices], standard: val } } }));
+                      setPriceEditData(prev => prev ? ({ ...prev, prices: { ...prev.prices, [s]: { ...(prev.prices as any)[s], standard: val } } }) : null);
                     }}
                     placeholder={`Base: €${basePrices.standard}`} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 text-sm font-['Poppins']" />
                 </div>
@@ -421,7 +421,7 @@ export default function DateManagement() {
                     onChange={e => {
                       const val = e.target.value === "" ? null : Number(e.target.value);
                       const s = selectedSport === "both" ? "combined" : selectedSport;
-                      setPriceEditData(prev => ({ ...prev!, prices: { ...prev!.prices, [s]: { ...prev!.prices[s as keyof typeof prev.prices], premium: val } } }));
+                      setPriceEditData(prev => prev ? ({ ...prev, prices: { ...prev.prices, [s]: { ...(prev.prices as any)[s], premium: val } } }) : null);
                     }}
                     placeholder={`Base: €${basePrices.premium}`} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 text-sm font-['Poppins']" />
                 </div>
