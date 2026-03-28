@@ -1,96 +1,27 @@
-import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { StartingPriceService } from "@/backend";
-import { toErrorMessage } from "@/backend/lib/errors";
+import { sendResponse, sendError } from "@/app/lib/api-response";
+import { withErrorHandling } from "@/app/lib/api-wrapper";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
-interface RouteContext {
-  params: Promise<{ sport: string }>;
-}
+export const GET = withErrorHandling(async (request: NextRequest, { params }: { params: { sport: string } }) => {
+  const { sport } = await params;
+  const prices = await StartingPriceService.getAll();
+  const price = prices.find((p: any) => p.type.toLowerCase() === sport.toLowerCase());
+  
+  // Frontend expects data to be an array or handle null gracefully
+  return sendResponse(price ? [price] : [], "Starting price fetched");
+});
 
-async function getSport(
-  context: RouteContext,
-): Promise<"football" | "basketball" | "combined"> {
-  const { sport } = await context.params;
-  if (sport === "football" || sport === "basketball" || sport === "combined") {
-    return sport;
+export const PATCH = withErrorHandling(async (request: NextRequest, { params }: { params: { sport: string } }) => {
+  const { sport } = await params;
+  const payload = await request.json();
+  
+  if (!payload.pricesByDuration) {
+    return sendError("Invalid payload: pricesByDuration is required", 400);
   }
-  throw new Error(`Unsupported sport: ${sport}`);
-}
 
-export async function GET(_: Request, context: RouteContext) {
-  try {
-    const sport = await getSport(context);
-    const price = await StartingPriceService.getByType(sport);
-
-    if (!price) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Starting price not found",
-        },
-        { status: 404 },
-      );
-    }
-
-    const dataObj = (price as any).toObject ? (price as any).toObject() : price;
-    if (dataObj && dataObj._id) {
-      dataObj.id = dataObj._id.toString();
-      delete dataObj._id;
-      delete dataObj.__v;
-      delete dataObj.features; // Decoupled: remove features from starting price
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Starting price fetched successfully",
-        data: [dataObj],
-      },
-      {
-        headers: { "Cache-Control": "no-store" },
-      },
-    );
-  } catch (error: unknown) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: toErrorMessage(error, "Invalid sport"),
-      },
-      {
-        status: 400,
-        headers: { "Cache-Control": "no-store" },
-      },
-    );
-  }
-}
-
-export async function PATCH(request: Request, context: RouteContext) {
-  try {
-    const sport = await getSport(context);
-    const payload = await request.json();
-    const response = await StartingPriceService.updateByType(sport, payload);
-    return NextResponse.json(
-      {
-        success: !!response,
-        message: response
-          ? "Starting price updated successfully"
-          : "Failed to update starting price",
-        data: response,
-      },
-      {
-        headers: { "Cache-Control": "no-store" },
-      },
-    );
-  } catch (error: unknown) {
-    console.error("Update starting price error", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: toErrorMessage(error, "Failed to update starting price"),
-      },
-      { status: 500 },
-    );
-  }
-}
+  const updated = await StartingPriceService.updateByType(sport, payload);
+  return sendResponse(updated, "Starting price updated successfully");
+});

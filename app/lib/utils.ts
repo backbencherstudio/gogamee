@@ -1,112 +1,49 @@
-import { type ClassValue, clsx } from "clsx";
+import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Country name translations (English to Spanish)
-const COUNTRY_TRANSLATIONS: Record<string, string> = {
-  England: "Inglaterra",
-  Spain: "España",
-  Germany: "Alemania",
-  Italy: "Italia",
-  France: "Francia",
-  Netherlands: "Países Bajos",
-  Turkey: "Turquía",
-  Lithuania: "Lituania",
-  Europe: "Europa",
-  Portugal: "Portugal",
+export const minutesToTime = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60) % 24;
+  const mins = minutes % 60;
+  const nextDay = minutes >= 1440 ? "(+1)" : "";
+  return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}${nextDay}`;
 };
 
-/**
- * Translates country name from English to Spanish
- * @param countryName - Country name in English
- * @returns Country name in Spanish, or original if translation not found
- */
-export function translateCountryName(countryName: string): string {
-  return COUNTRY_TRANSLATIONS[countryName] || countryName;
-}
-
-// Image upload utility function
-export const uploadImage = async (
-  file: File,
-  type: string = "reviews",
-): Promise<{ success: boolean; imagePath?: string; error?: string }> => {
+export const formatDateDisplay = (dateStr: string | undefined): string => {
+  if (!dateStr) return "";
   try {
-    // File validation
-    if (file.size > 5 * 1024 * 1024) {
-      return { success: false, error: "File size too large (max 5MB)" };
-    }
-
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type)) {
-      return {
-        success: false,
-        error: "Invalid file type. Only JPEG, PNG, WebP allowed",
-      };
-    }
-
-    // Create FormData
-    const formData = new FormData();
-    formData.append("image", file);
-    formData.append("type", type);
-
-    // Upload to server
-    const response = await fetch("/api/upload-image", {
-      method: "POST",
-      body: formData,
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-      return { success: true, imagePath: result.imagePath };
-    } else {
-      return { success: false, error: result.error || "Upload failed" };
-    }
-  } catch (error) {
-    console.error("Upload error:", error);
-    return { success: false, error: "Upload failed. Please try again." };
-  }
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
+  } catch { return dateStr || ""; }
 };
 
-/**
- * Formats a date to "time ago" string (e.g. "2 days ago", "Hace 2 días")
- * @param dateInput - Date string or object
- * @param lang - Language code ('en' or 'es')
- */
-export function formatTimeAgo(
-  dateInput: string | Date | undefined,
-  lang: "en" | "es" = "en",
-): string {
-  if (!dateInput) return lang === "es" ? "Reciente" : "Recently";
+export const calculateAge = (dateOfBirth: string): number => {
+  if (!dateOfBirth) return 0;
+  const birthDate = new Date(dateOfBirth);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+  return age;
+};
 
-  const date = new Date(dateInput);
+// Restored functions with optional arguments and null safety
+export const formatTimeAgo = (dateStr: string | Date | undefined | null, lang: string = "en"): string => {
+  if (!dateStr) return "";
+  const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
   const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) return lang === "es" ? "Ahora" : "Just now";
+  if (diffInSeconds < 3600) return lang === "es" ? `Hace ${Math.floor(diffInSeconds / 60)}m` : `${Math.floor(diffInSeconds / 60)}m ago`;
+  if (diffInSeconds < 86400) return lang === "es" ? `Hace ${Math.floor(diffInSeconds / 3600)}h` : `${Math.floor(diffInSeconds / 3600)}h ago`;
+  return date.toLocaleDateString(lang === "es" ? "es-ES" : "en-GB");
+};
 
-  // Helper for pluralization
-  const p = (num: number, label: string, esPlural = "s") => {
-    if (lang === "en") return `${num} ${label}${num !== 1 ? "s" : ""} ago`;
-    // Spanish
-    if (label === "mes" && num !== 1) return `Hace ${num} meses`;
-    return `Hace ${num} ${label}${num !== 1 ? esPlural : ""}`;
-  };
-
-  const intervals = [
-    { label: lang === "es" ? "año" : "year", seconds: 31536000 },
-    { label: lang === "es" ? "mes" : "month", seconds: 2592000 },
-    { label: lang === "es" ? "día" : "day", seconds: 86400 },
-    { label: lang === "es" ? "hora" : "hour", seconds: 3600 },
-    { label: lang === "es" ? "minuto" : "minute", seconds: 60 },
-  ];
-
-  for (const i of intervals) {
-    const count = Math.floor(seconds / i.seconds);
-    if (count >= 1) {
-      return p(count, i.label);
-    }
-  }
-  return lang === "es" ? "Hace un momento" : "Just now";
-}
+export const translateCountryName = (name: string, lang: string = "es"): string => {
+  const map: any = { "Spain": "España", "England": "Inglaterra", "Germany": "Alemania", "France": "Francia", "Italy": "Italia", "Netherlands": "Países Bajos" };
+  return lang === "es" ? (map[name] || name) : name;
+};

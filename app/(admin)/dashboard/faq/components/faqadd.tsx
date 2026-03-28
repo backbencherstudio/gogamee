@@ -12,7 +12,6 @@ import {
 } from "../../../../../services/faqService";
 import DeleteConfirmationModal from "../../../../../components/ui/delete-confirmation-modal";
 import { Pagination } from "../../../../../components/ui/Pagination";
-import { autoTranslateContent } from "../../../../../services/translationService";
 import RichTextEditor from "../../settings/legal/components/RichTextEditor";
 
 // Local type aligned with API
@@ -81,18 +80,10 @@ export default function FaqAdd() {
   const handleSaveEdit = async (id: string) => {
     try {
       setSaving(true);
-
-      // Auto-translate content
-      const [translatedQuestion, translatedAnswer] = await Promise.all([
-        autoTranslateContent(editForm.question.trim()),
-        autoTranslateContent(editForm.answer.trim()),
-      ]);
-
+      // Auto-translate removed as per request
       await editFaq(id, {
         question: editForm.question.trim(),
-        question_es: translatedQuestion.es,
         answer: editForm.answer.trim(),
-        answer_es: translatedAnswer.es,
       });
       // refresh list
       await loadFaqs(currentPage);
@@ -127,18 +118,10 @@ export default function FaqAdd() {
     if (!newFaqForm.question.trim() || !newFaqForm.answer.trim()) return;
     try {
       setSaving(true);
-
-      // Auto-translate content
-      const [translatedQuestion, translatedAnswer] = await Promise.all([
-        autoTranslateContent(newFaqForm.question.trim()),
-        autoTranslateContent(newFaqForm.answer.trim()),
-      ]);
-
+      // Auto-translate removed as per request
       await addFaq({
         question: newFaqForm.question.trim(),
-        question_es: translatedQuestion.es,
         answer: newFaqForm.answer.trim(),
-        answer_es: translatedAnswer.es,
       });
       await loadFaqs(currentPage);
       setNewFaqForm({ question: "", answer: "" });
@@ -201,9 +184,7 @@ export default function FaqAdd() {
                     }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#76C043] focus:border-transparent outline-none"
-                  placeholder={
-                    false ? "Ingrese su pregunta..." : "Enter your question..."
-                  }
+                  placeholder="Enter your question..."
                 />
               </div>
               <div>
@@ -218,9 +199,7 @@ export default function FaqAdd() {
                       answer: val,
                     }))
                   }
-                  placeholder={
-                    false ? "Ingrese su respuesta..." : "Enter your answer..."
-                  }
+                  placeholder="Enter your answer..."
                 />
               </div>
               <div className="flex gap-3">
@@ -288,9 +267,7 @@ export default function FaqAdd() {
                                 answer: val,
                               }))
                             }
-                            placeholder={
-                              false ? "Ingrese su respuesta..." : "Enter your answer..."
-                            }
+                            placeholder="Enter your answer..."
                           />
                         </div>
                         <div className="flex gap-3">

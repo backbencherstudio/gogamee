@@ -50,7 +50,7 @@ const getCardStyles = (isSelected: boolean): string => {
 // Button styles moved to ContinueButton component
 
 export default function LeagueStep() {
-  const { formData, updateFormData, nextStep } = useBooking();
+  const { formData, updateStepData, nextStep } = useBooking();
 
   const [showEuropeanSupplement, setShowEuropeanSupplement] = useState(false);
 
@@ -105,7 +105,7 @@ export default function LeagueStep() {
       }
 
       // Update the booking context with populated leagues array
-      updateFormData({
+      updateStepData({
         leagues: leagues,
       });
 

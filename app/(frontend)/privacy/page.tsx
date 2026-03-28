@@ -2,8 +2,6 @@ import React from "react";
 import PrivacyPolicy from "./components/privacy-policy/privacypolicy";
 import PrivacyHero from "./components/privacyhero/privacyhero";
 import { SettingsService } from "@/backend";
-import { cookies } from "next/headers";
-import { translateTextBackend } from "@/backend/lib/translation";
 
 async function getPrivacyContent() {
   try {
@@ -21,14 +19,7 @@ async function getPrivacyContent() {
 }
 
 export default async function Privacy() {
-  const cookieStore = await cookies();
-  const userLang = cookieStore.get("user_lang")?.value || "es";
-
-  let initialContent = await getPrivacyContent();
-
-  if (initialContent && userLang !== "es") {
-    initialContent = await translateTextBackend(initialContent, userLang);
-  }
+  const initialContent = await getPrivacyContent();
 
   return (
     <div>

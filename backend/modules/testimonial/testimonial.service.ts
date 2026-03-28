@@ -1,266 +1,117 @@
 import { Testimonial, ITestimonial } from "../../models";
-import {
-  connectToDatabase,
-  getCache,
-  setCache,
-  deleteCache,
-  clearCachePattern,
-} from "@/backend";
-import type {
-  CreateTestimonialData,
-  UpdateTestimonialData,
-  TestimonialFilters,
-  TestimonialQueryOptions,
-} from "./testimonial.types";
+import { connectToDatabase, getCache, setCache, deleteCache, clearCachePattern } from "@/backend";
+import type { CreateTestimonialData, UpdateTestimonialData, TestimonialQueryOptions } from "./testimonial.types";
 
 class TestimonialService {
-  async create(data: CreateTestimonialData): Promise<ITestimonial> {
-    await connectToDatabase();
+  private async clearCache() { await clearCachePattern("testimonial:*"); }
 
-    const testimonial = new Testimonial(data);
-    const saved = await testimonial.save();
-
-    await clearCachePattern("testimonial:*");
-    return saved;
+  private mapToLean(testimonial: any) {
+    if (!testimonial) return null;
+    const obj = testimonial.toObject ? testimonial.toObject() : testimonial;
+    const { __v, _id, ...rest } = obj;
+    return { id: _id.toString(), ...rest };
   }
 
-  async getAll(options: TestimonialQueryOptions = {}): Promise<{
-    testimonials: ITestimonial[];
-    total: number;
-    hasMore: boolean;
-  }> {
+  async create(data: CreateTestimonialData): Promise<any> {
     await connectToDatabase();
+    const saved = await new Testimonial(data).save();
+    await this.clearCache();
+    return this.mapToLean(saved);
+  }
 
+  async getAll(options: TestimonialQueryOptions = {}): Promise<any> {
+    await connectToDatabase();
     const { filters = {}, sort, limit = 50, page = 1 } = options;
-    const skip = options.skip ?? (page - 1) * limit;
-
+    const skip = (page - 1) * limit;
     const query: any = { deletedAt: { $exists: false } };
 
-    if (filters.isActive !== undefined) {
-      query.isActive = filters.isActive;
-    }
+    if (filters.isActive !== undefined) query.isActive = filters.isActive;
+    if (filters.featured !== undefined) query.featured = filters.featured;
+    if (filters.source) query.source = filters.source;
 
-    if (filters.featured !== undefined) {
-      query.featured = filters.featured;
-    }
-
-    if (filters.verified !== undefined) {
-      query.verified = filters.verified;
-    }
-
-    if (filters.source) {
-      query.source = filters.source;
-    }
-
-    if (filters.minRating !== undefined || filters.maxRating !== undefined) {
-      query.rating = {};
-      if (filters.minRating !== undefined) {
-        query.rating.$gte = filters.minRating;
-      }
-      if (filters.maxRating !== undefined) {
-        query.rating.$lte = filters.maxRating;
-      }
-    }
-
-    const sortOptions: any = sort
-      ? { [sort.field]: sort.order === "desc" ? -1 : 1 }
-      : { featured: -1, sortOrder: 1, createdAt: -1 };
-
-    const testimonials = await Testimonial.find(query)
-      .sort(sortOptions)
-      .limit(limit + 1)
-      .skip(skip);
-
-    const hasMore = testimonials.length > limit;
-    const resultTestimonials = hasMore
-      ? testimonials.slice(0, limit)
-      : testimonials;
-
+    const sortOptions: any = sort ? { [sort.field]: sort.order === "desc" ? -1 : 1 } : { featured: -1, sortOrder: 1, createdAt: -1 };
+    const testimonials = await Testimonial.find(query).sort(sortOptions).limit(limit).skip(skip).lean();
     const total = await Testimonial.countDocuments(query);
 
-    return { testimonials: resultTestimonials, total, hasMore };
+    return { testimonials: testimonials.map(t => this.mapToLean(t)), total, hasMore: total > skip + limit };
   }
 
-  async getById(id: string): Promise<ITestimonial | null> {
+  async getById(id: string): Promise<any> {
     const CACHE_KEY = `testimonial:${id}`;
-    const cached = await getCache<ITestimonial>(CACHE_KEY);
+    const cached = await getCache<any>(CACHE_KEY);
     if (cached) return cached;
 
     await connectToDatabase();
-    const testimonial = await Testimonial.findOne({
-      _id: id,
-      deletedAt: { $exists: false },
-    });
-
+    const testimonial = await Testimonial.findOne({ _id: id, deletedAt: { $exists: false } }).lean();
     if (testimonial) {
-      await setCache(CACHE_KEY, testimonial, 600);
+      const lean = this.mapToLean(testimonial);
+      await setCache(CACHE_KEY, lean, 600);
+      return lean;
     }
-
-    return testimonial;
+    return null;
   }
 
-  async updateById(
-    id: string,
-    data: UpdateTestimonialData,
-  ): Promise<ITestimonial | null> {
+  async updateById(id: string, data: UpdateTestimonialData): Promise<any> {
     await connectToDatabase();
-    const updated = await Testimonial.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
-
+    const updated = await Testimonial.findByIdAndUpdate(id, data, { new: true, runValidators: true });
     if (updated) {
       await deleteCache(`testimonial:${id}`);
-      await clearCachePattern("testimonial:list:*");
-      await clearCachePattern("testimonial:stats");
-      await clearCachePattern("testimonial:featured");
+      await this.clearCache();
     }
-
-    return updated;
+    return this.mapToLean(updated);
   }
 
   async deleteById(id: string): Promise<boolean> {
     await connectToDatabase();
-    const result = await Testimonial.findByIdAndUpdate(id, {
-      deletedAt: new Date(),
-    });
-
+    const result = await Testimonial.findByIdAndUpdate(id, { deletedAt: new Date() });
     if (result) {
       await deleteCache(`testimonial:${id}`);
-      await clearCachePattern("testimonial:*");
+      await this.clearCache();
     }
-
     return !!result;
   }
 
   async hardDeleteById(id: string): Promise<boolean> {
     await connectToDatabase();
     const result = await Testimonial.findByIdAndDelete(id);
-
     if (result) {
       await deleteCache(`testimonial:${id}`);
-      await clearCachePattern("testimonial:*");
+      await this.clearCache();
     }
-
     return !!result;
   }
 
-  async restoreById(id: string): Promise<ITestimonial | null> {
-    await connectToDatabase();
-    const restored = await Testimonial.findByIdAndUpdate(
-      id,
-      { $unset: { deletedAt: 1 } },
-      { new: true },
-    );
-
-    if (restored) {
-      await deleteCache(`testimonial:${id}`);
-      await clearCachePattern("testimonial:*");
-    }
-
-    return restored;
-  }
-
-  async toggleFeatured(id: string): Promise<ITestimonial | null> {
-    await connectToDatabase();
-
-    const testimonial = await Testimonial.findById(id);
-    if (!testimonial) return null;
-
-    testimonial.featured = !testimonial.featured;
-    const save = await testimonial.save();
-
-    if (save) {
-      await deleteCache(`testimonial:${id}`);
-      await clearCachePattern("testimonial:featured");
-    }
-
-    return save;
-  }
-
-  async getRatingStats(): Promise<{
-    total: number;
-    averageRating: number;
-    ratingDistribution: { rating: number; count: number }[];
-  }> {
+  async getRatingStats(): Promise<any> {
     const CACHE_KEY = "testimonial:stats";
     const cached = await getCache<any>(CACHE_KEY);
     if (cached) return cached;
 
     await connectToDatabase();
-
     const [stats, distribution] = await Promise.all([
-      Testimonial.aggregate([
-        { $match: { deletedAt: { $exists: false }, isActive: true } },
-        {
-          $group: {
-            _id: null,
-            total: { $sum: 1 },
-            averageRating: { $avg: "$rating" },
-          },
-        },
-      ]),
-      Testimonial.aggregate([
-        { $match: { deletedAt: { $exists: false }, isActive: true } },
-        {
-          $group: {
-            _id: "$rating",
-            count: { $sum: 1 },
-          },
-        },
-        { $sort: { _id: -1 } },
-      ]),
+      Testimonial.aggregate([{ $match: { deletedAt: { $exists: false }, isActive: true } }, { $group: { _id: null, total: { $sum: 1 }, averageRating: { $avg: "$rating" } } }]),
+      Testimonial.aggregate([{ $match: { deletedAt: { $exists: false }, isActive: true } }, { $group: { _id: "$rating", count: { $sum: 1 } } }, { $sort: { _id: -1 } }])
     ]);
 
-    const result = stats[0] || { total: 0, averageRating: 0 };
-
-    const finalStats = {
-      total: result.total || 0,
-      averageRating: result.averageRating || 0,
-      ratingDistribution: distribution.map((item) => ({
-        rating: item._id,
-        count: item.count,
-      })),
+    const result = {
+      total: stats[0]?.total || 0,
+      averageRating: stats[0]?.averageRating || 0,
+      ratingDistribution: distribution.map(item => ({ rating: item._id, count: item.count }))
     };
 
-    await setCache(CACHE_KEY, finalStats, 3600);
-
-    return finalStats;
+    await setCache(CACHE_KEY, result, 3600);
+    return result;
   }
 
-  async updateSortOrder(
-    updates: { id: string; sortOrder: number }[],
-  ): Promise<void> {
-    await connectToDatabase();
-
-    const bulkOps = updates.map(({ id, sortOrder }) => ({
-      updateOne: {
-        filter: { _id: id },
-        update: { sortOrder },
-      },
-    }));
-
-    await Testimonial.bulkWrite(bulkOps);
-    await clearCachePattern("testimonial:*");
-  }
-
-  async getFeatured(limit: number = 6): Promise<ITestimonial[]> {
+  async getFeatured(limit: number = 6): Promise<any[]> {
     const CACHE_KEY = `testimonial:featured:${limit}`;
-    const cached = await getCache<ITestimonial[]>(CACHE_KEY);
+    const cached = await getCache<any[]>(CACHE_KEY);
     if (cached) return cached;
 
     await connectToDatabase();
-    const featured = await Testimonial.find({
-      isActive: true,
-      featured: true,
-      deletedAt: { $exists: false },
-    })
-      .sort({ sortOrder: 1, createdAt: -1 })
-      .limit(limit);
-
-    await setCache(CACHE_KEY, featured, 1800); // 30 mins
-
-    return featured;
+    const featured = await Testimonial.find({ isActive: true, featured: true, deletedAt: { $exists: false } }).sort({ sortOrder: 1, createdAt: -1 }).limit(limit).lean();
+    const mapped = featured.map(t => this.mapToLean(t));
+    await setCache(CACHE_KEY, mapped, 1800);
+    return mapped;
   }
 }
 

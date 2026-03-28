@@ -37,7 +37,7 @@ export default function RootLayout({
   const fontClasses = `${inter.variable} ${poppins.variable}`;
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`antialiased ${fontClasses}`} suppressHydrationWarning>
         {children}
       </body>

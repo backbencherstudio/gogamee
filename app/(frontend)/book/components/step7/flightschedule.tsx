@@ -179,12 +179,12 @@ const TimeRangeSlider = React.memo(
 
     // Map current minutes to discrete slot indices
     const startIndex = useMemo(() => {
-      const idx = timeSlots.findIndex((slot) => slot.value === timeRange.start);
+      const idx = timeSlots.findIndex((slot: any) => slot.value === timeRange.start);
       return idx >= 0 ? idx : 0;
     }, [timeRange.start, timeSlots]);
 
     const endIndex = useMemo(() => {
-      const idx = timeSlots.findIndex((slot) => slot.value === timeRange.end);
+      const idx = timeSlots.findIndex((slot: any) => slot.value === timeRange.end);
       return idx >= 0 ? idx : timeSlots.length - 1;
     }, [timeRange.end, timeSlots]);
 
@@ -356,13 +356,13 @@ FlightCard.displayName = "FlightCard";
 
 // ========================= MAIN COMPONENT =========================
 export default function FlightSchedule() {
-  const { formData, updateFormData, nextStep } = useBooking();
+  const { formData, updateStepData, nextStep } = useBooking();
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Always start with default data for consistent server/client rendering
   const [flightData, setFlightData] = useState<FlightInfo[]>(() => {
     const initialData = flightScheduleData.getInitialFlightData();
-    return initialData.map((flight) => ({
+    return initialData.map((flight: any) => ({
       ...flight,
       icon: flight.icon as "takeoff" | "landing",
     }));
@@ -432,10 +432,10 @@ export default function FlightSchedule() {
       // Ensure minimum one step difference between start and end times
       const timeSlots = getAvailableTimeSlots(flightIndex === 0);
       const startSlotIndex = timeSlots.findIndex(
-        (slot) => slot.value === newRange.start,
+        (slot: any) => slot.value === newRange.start,
       );
       const endSlotIndex = timeSlots.findIndex(
-        (slot) => slot.value === newRange.end,
+        (slot: any) => slot.value === newRange.end,
       );
 
       let adjustedRange = { ...newRange };
@@ -505,11 +505,11 @@ export default function FlightSchedule() {
       },
     };
 
-    updateFormData({ flightSchedule: flightScheduleData });
+    updateStepData({ flightSchedule: flightScheduleData });
 
     // Move to next step
     nextStep();
-  }, [flightData, updateFormData, nextStep, selectedTimes]);
+  }, [flightData, updateStepData, nextStep, selectedTimes]);
 
   return (
     <div className="w-full xl:w-[894px] xl:h-[644px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl ring-1 ring-inset ring-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-6 min-h-[600px] xl:min-h-0">

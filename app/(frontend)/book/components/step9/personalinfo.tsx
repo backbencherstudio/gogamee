@@ -321,7 +321,7 @@ const loadFromStorage = (): PersonalInfoFormData | null => {
 };
 
 export default function Personalinfo() {
-  const { updateFormData, nextStep, formData } = useBooking();
+  const { updateStepData, nextStep, formData } = useBooking();
   const { sumPerNight } = usePerNightPricing();
   const getError = (errorKey: string | undefined) => {
     if (!errorKey) return undefined;
@@ -404,9 +404,12 @@ export default function Personalinfo() {
     ).length;
 
     const effectiveRemovedLeaguesCount = removedLeaguesCount;
-    const removalCostPerPerson = removeLeagueData.calculateTotalCost(
-      effectiveRemovedLeaguesCount,
-    );
+    const removalCostPerPerson =
+      Math.max(
+        0,
+        effectiveRemovedLeaguesCount - BOOKING_CONSTANTS.FREE_REMOVALS,
+      ) * BOOKING_CONSTANTS.LEAGUE_REMOVAL_COST;
+
     // Backend logic consistency: European competition does not charge for league removals
     const removalTotal = isEuropeanCompetition
       ? 0
@@ -580,7 +583,7 @@ export default function Personalinfo() {
     const babies = formData.travelers?.babies ? [...formData.travelers.babies] : [];
 
     // Update booking context with new structure
-    updateFormData({
+    updateStepData({
       travelers: {
         adults,
         kids,
@@ -645,7 +648,7 @@ export default function Personalinfo() {
             />
             <BookingNavigation
               onNext={handleSubmit(onSubmit)}
-              nextText={personalInfoData.text.confirm}
+              nextText="Siguiente"
               className="w-full"
             />
           </div>

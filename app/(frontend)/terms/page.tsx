@@ -1,9 +1,7 @@
 import React from "react";
 import TermsHero from "./components/termshero/termshero";
-import Term from "./components/terms/terms";
+import TermsContent from "./components/terms/terms";
 import { SettingsService } from "@/backend";
-import { cookies } from "next/headers";
-import { translateTextBackend } from "@/backend/lib/translation";
 
 async function getTermsContent() {
   try {
@@ -21,19 +19,12 @@ async function getTermsContent() {
 }
 
 export default async function Terms() {
-  const cookieStore = await cookies();
-  const userLang = cookieStore.get("user_lang")?.value || "es";
-
-  let initialContent = await getTermsContent();
-
-  if (initialContent && userLang !== "es") {
-    initialContent = await translateTextBackend(initialContent, userLang);
-  }
+  const initialContent = await getTermsContent();
 
   return (
     <div>
       <TermsHero />
-      <Term initialContent={initialContent} />
+      <TermsContent initialContent={initialContent} />
     </div>
   );
 }

@@ -45,6 +45,7 @@ interface ExtraService {
 }
 
 interface CreateBookingPayload {
+  bookingId?: string; // Optional existing booking ID to update
   selectedSport: string;
   selectedPackage: string;
   selectedCity: string;
@@ -65,32 +66,11 @@ interface CreateBookingPayload {
     cardholderName: string;
   };
 
-  // Combined Support for Nested and Flat payload structures
-  peopleCount?: {
-    adults: number;
-    kids: number;
-    babies: number;
+  travelers: {
+    list: Traveler[];
+    totalCount: number;
+    primaryContact: Traveler;
   };
-  travelers?: {
-    list?: Traveler[]; // [NEW] Unified list
-    adults?: Traveler[];
-    kids?: Traveler[];
-    babies?: Traveler[];
-  };
-
-  // Flat fields (Used by current frontend)
-  adults?: number;
-  kids?: number;
-  babies?: number;
-  totalPeople?: number;
-  travelDuration?: number;
-  allTravelers?: Traveler[];
-
-  // Legacy/derived fields
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  phone?: string;
 }
 
 export async function POST(request: Request) {
@@ -106,19 +86,15 @@ export async function POST(request: Request) {
       (l) => l.group === "European" && l.isSelected,
     );
 
-    // Total people - Defensive extraction
-    const adultsCount = payload.adults ?? payload.peopleCount?.adults ?? 0;
-    const kidsCount = payload.kids ?? payload.peopleCount?.kids ?? 0;
-    const babiesCount = payload.babies ?? payload.peopleCount?.babies ?? 0;
-    const totalPeople =
-      payload.totalPeople ?? adultsCount + kidsCount + babiesCount;
+    // Total people - Extracted from unified travelers structure
+    const totalPeople = payload.travelers?.totalCount || 1;
+    const babiesCount = (payload.travelers?.list || []).filter(t => t.type === "baby").length;
 
-    // Duration extraction — use payload.duration.days which is always correctly set by frontend
+    // Duration extraction
     const durationDays = payload.duration?.days || 1;
-    const durationNights =
-      payload.duration?.nights ?? Math.max(0, durationDays - 1);
+    const durationNights = payload.duration?.nights ?? Math.max(0, durationDays - 1);
 
-    // Extras for pricing (flattened list of selected extras)
+    // Extras for pricing
     const bookingExtras = (payload.extras || []).map((extra: any) => ({
       id: extra.id,
       name: extra.name,
@@ -129,15 +105,8 @@ export async function POST(request: Request) {
       currency: extra.currency || "EUR",
     }));
 
-    // Avoid timezone shift issues by decoding the exact day user intended
+    // Pricing Date Extraction
     let pricingDepartureDate = payload.departureDate;
-    const depFormatted = (payload as any).departureDateFormatted;
-    if (depFormatted && depFormatted.includes("/")) {
-      const [day, month, year] = depFormatted.split("/");
-      if (day && month && year) {
-        pricingDepartureDate = `${year}-${month}-${day}`;
-      }
-    }
 
     // Calculate Price Server-Side
     const priceBreakdown = await PricingService.calculatePrice({
@@ -147,7 +116,7 @@ export async function POST(request: Request) {
       totalPeople: totalPeople,
       babiesCount: babiesCount,
       departureDate: pricingDepartureDate,
-      travelDuration: payload.duration?.days || 0,
+      travelDuration: durationDays,
       removedLeaguesCount: removedLeaguesCount,
       hasRemovedLeagues: removedLeaguesCount > 0,
       bookingExtras: bookingExtras,
@@ -162,36 +131,13 @@ export async function POST(request: Request) {
     const totalAmountInCents = Math.round(calculatedTotalCost * 100);
 
     // 2. Prepare Data for Database
-    const travelersList: Traveler[] = [];
-
-    // Helper to add travelers to the list
-    const addTravelersToList = (source: Traveler[] | undefined) => {
-      if (source && Array.isArray(source)) {
-        travelersList.push(...source);
-      }
-    };
-
-    if (payload.travelers && Array.isArray(payload.travelers.list)) {
-      // New unified structure
-      addTravelersToList(payload.travelers.list);
-    } else if (payload.travelers) {
-      // Legacy separate arrays
-      addTravelersToList(payload.travelers.adults);
-      addTravelersToList(payload.travelers.kids);
-      addTravelersToList(payload.travelers.babies);
-    } else if (payload.allTravelers) {
-      // Legacy flat list
-      addTravelersToList(payload.allTravelers);
-    }
-
-    const primaryAdult =
-      travelersList.find((a: any) => a.isPrimary && a.type === "adult") ||
-      travelersList.find((a: any) => a.type === "adult");
+    const travelersList = payload.travelers?.list || [];
+    const primaryContact = payload.travelers?.primaryContact;
 
     // Age Validation for Primary Traveler
-    if (primaryAdult && primaryAdult.dateOfBirth) {
+    if (primaryContact && primaryContact.dateOfBirth) {
       const today = new Date();
-      const birthDate = new Date(primaryAdult.dateOfBirth);
+      const birthDate = new Date(primaryContact.dateOfBirth);
       let age = today.getFullYear() - birthDate.getFullYear();
       const monthDiff = today.getMonth() - birthDate.getMonth();
       if (
@@ -211,12 +157,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // Fallbacks for contact info
-    const email = primaryAdult?.email || payload.email || "";
-    const phone = primaryAdult?.phone || payload.phone || "";
-
-    const fullName = primaryAdult?.name || "Guest";
-
     // Determine League Category
     const selectedLeagueObj = leaguesList.find((l) => l.isSelected);
     let leagueCategory = "National";
@@ -225,21 +165,11 @@ export async function POST(request: Request) {
         leagueCategory = "European";
       } else if (selectedLeagueObj.group === "National") {
         leagueCategory = "National";
-      } else {
-        // Fallback logic if group is missing
-        const europeanLeagues = [
-          "Champions League",
-          "Europa League",
-          "Conference League",
-        ];
-        if (europeanLeagues.some((l) => selectedLeagueObj.name.includes(l))) {
-          leagueCategory = "European";
-        }
       }
     }
 
-    // Create Booking Record
-    const booking = await BookingService.create({
+    // 2. Create or Update Booking Record
+    const bookingData = {
       status: "pending",
       payment: {
         amount: calculatedTotalCost,
@@ -267,11 +197,7 @@ export async function POST(request: Request) {
       travelers: {
         list: travelersList,
         totalCount: totalPeople,
-        primaryContact: {
-          name: fullName,
-          email: email,
-          phone: phone,
-        },
+        primaryContact: primaryContact as any,
       },
 
       // 4. Leagues
@@ -312,10 +238,25 @@ export async function POST(request: Request) {
       // Root level fields for compatibility and queries
       totalCost: calculatedTotalCost,
       isBookingComplete: false,
-    });
+    };
+
+    let booking;
+    if (payload.bookingId) {
+      // Update existing booking
+      booking = await BookingService.updateById(payload.bookingId, bookingData);
+      
+      // If update fails (e.g. booking deleted), create a new one
+      if (!booking) {
+        booking = await BookingService.create(bookingData as any);
+      }
+    } else {
+      // Create new booking
+      booking = await BookingService.create(bookingData as any);
+    }
 
     // 3. Create Stripe Payment Intent
     const stripe = getStripeInstance();
+    const email = primaryContact?.email || "";
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmountInCents,
       currency: "eur",
@@ -323,7 +264,7 @@ export async function POST(request: Request) {
         enabled: true,
       },
       metadata: {
-        booking_id: booking._id.toString(),
+        booking_id: booking.id,
         sport: payload.selectedSport,
         package: payload.selectedPackage,
         city: payload.selectedCity,
@@ -333,7 +274,7 @@ export async function POST(request: Request) {
     });
 
     // 4. Update Booking with Payment Intent
-    await BookingService.updateById(booking._id.toString(), {
+    await BookingService.updateById(booking.id, {
       "payment.stripePaymentIntentId": paymentIntent.id,
       "payment.status": "pending",
     });
@@ -341,7 +282,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       clientSecret: paymentIntent.client_secret,
-      bookingId: booking._id.toString(),
+      bookingId: booking.id,
       bookingReference: booking.bookingReference,
       amount: totalAmountInCents / 100,
       currency: "eur",

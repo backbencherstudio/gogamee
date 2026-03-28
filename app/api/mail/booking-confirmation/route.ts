@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendBookingConfirmationEmail } from "../send-booking-email";
-import { mapBookingToLegacy } from "@/backend/modules/booking/booking.mapper";
 
 import { IBooking } from "@/backend/models/Booking.model";
 
@@ -39,12 +38,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const booking = mapBookingToLegacy(rawBooking);
+    const email = rawBooking.travelers?.primaryContact?.email;
 
-    if (!booking.email) {
+    if (!email) {
       console.error("❌ Missing booking email:", {
-        booking: !!booking,
-        email: booking.email,
+        booking: !!rawBooking,
+        email: email,
       });
       return NextResponse.json(
         { success: false, error: "Booking email is required." },
@@ -54,7 +53,6 @@ export async function POST(request: NextRequest) {
 
     // Use shared email function
     // Pass rawBooking as it has the full structure required by the email service (IBooking interface)
-    // The mapped 'booking' object is a legacy structure that is missing required fields
     const emailResult = await sendBookingConfirmationEmail(
       rawBooking as IBooking,
     );
@@ -63,7 +61,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: emailResult.message,
-        customerEmail: booking.email,
+        customerEmail: email,
       });
     } else {
       return NextResponse.json(

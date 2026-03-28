@@ -121,7 +121,7 @@ const isDateAllowedForCompetition = (
 };
 
 export default function DateSection() {
-  const { formData, updateFormData, nextStep, currentStep } = useBooking();
+  const { formData, updateStepData, nextStep, currentStep } = useBooking();
 
   const handleNext = () => {
     if (
@@ -164,7 +164,7 @@ export default function DateSection() {
         };
       }
 
-      updateFormData({
+      updateStepData({
         departureDate: startDate.toISOString(),
         returnDate: endDate.toISOString(),
         selectedDatePrice, // Save price for Step 9 to use
@@ -256,7 +256,19 @@ export default function DateSection() {
 
     // Filter API data based on selected league and sport
     const filteredApiData = apiDateData.filter((item) => {
-      // Match based on leagues array - European or National
+      // 1. Duration check - Convert both to string to ensure matching
+      const itemDuration = String(item.duration || "1");
+      const currentSelectedDuration = String(selectedDurationKey);
+      const matchesDuration = itemDuration === currentSelectedDuration;
+
+      // 2. Sport check - Handle 'both' vs 'combined' consistently
+      const selectedSport = formData.selectedSport;
+      const itemSport = item.sportName;
+      const matchesSport = selectedSport === "both" 
+        ? (itemSport === "both" || itemSport === "combined")
+        : (itemSport === selectedSport);
+
+      // 3. League check
       const hasEuropean = formData.leagues?.some(
         (l) => l.group === "European" && l.isSelected,
       );
@@ -264,25 +276,18 @@ export default function DateSection() {
         (l) => l.group === "National" && l.isSelected,
       );
 
-      // If no leagues are selected, accept all dates
-      // If leagues are selected, match the item's league
       const matchesLeague = (() => {
-        if (!hasEuropean && !hasNational) return true; // No filter applied
-        if (item.league === "both") return true; // Both league matches everything
+        // If league is "both" in DB, it matches any selection
+        if (item.league === "both") return true;
+        // Match specific selection
         if (hasEuropean && item.league === "european") return true;
         if (hasNational && item.league === "national") return true;
+        // If no league filter is active, allow the date
+        if (!hasEuropean && !hasNational) return true;
         return false;
       })();
 
-      const matchesSport = (() => {
-        if (!formData.selectedSport) return true;
-        if (formData.selectedSport === "both") {
-          return item.sportName === "both";
-        }
-        return item.sportName === formData.selectedSport;
-      })();
-      const matchesDuration = (item.duration ?? "1") === selectedDurationKey;
-      return matchesLeague && matchesSport && matchesDuration;
+      return matchesDuration && matchesSport && matchesLeague;
     });
 
     // Process API data
@@ -514,7 +519,7 @@ export default function DateSection() {
         );
       }
 
-      if (totalPrice <= 0) return currencySymbol;
+      if (totalPrice <= 0) return `0${currencySymbol}`;
       return `${totalPrice}${currencySymbol}`;
     },
     [
@@ -579,22 +584,30 @@ export default function DateSection() {
         // Get duration from selected duration option
         const durationParam = selectedDurationKey || "1";
 
-        const data = await getAllDates({
+        // Map 'both' to 'combined' for API consistency
+        const sportParam = formData.selectedSport === "both" ? "combined" : (formData.selectedSport || "");
+
+        const response = await getAllDates({
           months: monthsToFetch,
           year: displayYear,
-          sportName: formData.selectedSport || "",
+          sportName: sportParam,
           league: leagueParam,
           duration: durationParam,
         });
 
-        setApiDateData(
-          data.map((item) => ({
-            ...item,
-            duration: (item.duration ?? "1") as "1" | "2" | "3" | "4",
-          })),
-        );
+        if (response && response.success && Array.isArray(response.data)) {
+          setApiDateData(
+            response.data.map((item) => ({
+              ...item,
+              duration: (item.duration ?? "1") as "1" | "2" | "3" | "4",
+            })),
+          );
+        } else {
+          setApiDateData([]);
+        }
       } catch (error) {
         console.error("Error fetching date data:", error);
+        setApiDateData([]);
       } finally {
         setIsLoading(false);
       }

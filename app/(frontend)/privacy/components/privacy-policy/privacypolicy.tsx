@@ -27,10 +27,10 @@ export default function PrivacyPolicy({
       const response = await getLegalPageContent("privacy");
       if (
         response.success &&
-        response.content &&
-        typeof response.content === "string"
+        response.data?.content &&
+        typeof response.data.content === "string"
       ) {
-        setContent(response.content);
+        const rawContent = response.data.content;
       } else {
         setError("Failed to load privacy policy content");
       }

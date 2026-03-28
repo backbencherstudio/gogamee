@@ -1,50 +1,34 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IAboutValue {
+  id?: string;
   title: string;
   description: string;
   order: number;
-  _id?: string;
 }
 
-export interface IAboutSection extends Document {
-  type: "headline" | "main_section" | "our_values" | "why_choose_us";
+export interface IAboutPageSection extends Document {
+  type: "headline" | "main_section" | "our_value" | "why_choose_us";
   title: string;
+  title_es?: string;
   description: string;
-  values: IAboutValue[]; // For "our_values" or "why_choose_us"
+  description_es?: string;
   order: number;
   isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
   deletedAt?: Date;
+  values?: IAboutValue[]; // Added for compatibility if referenced in types
 }
 
-const AboutValueSchema = new Schema({
+const AboutPageSectionSchema = new Schema<IAboutPageSection>({
+  type: { type: String, required: true, enum: ["headline", "main_section", "our_value", "why_choose_us"] },
   title: { type: String, required: true },
+  title_es: String,
   description: { type: String, required: true },
+  description_es: String,
   order: { type: Number, default: 0 },
-});
+  isActive: { type: Boolean, default: true },
+  deletedAt: Date,
+  values: [Schema.Types.Mixed], // Added for compatibility
+}, { timestamps: true });
 
-const AboutSectionSchema = new Schema(
-  {
-    type: {
-      type: String,
-      enum: ["headline", "main_section", "our_values", "why_choose_us"],
-      required: true,
-    },
-    title: { type: String, required: true },
-    description: { type: String, default: "" }, // Made optional as per previous fix
-    values: [AboutValueSchema],
-    order: { type: Number, default: 0 },
-    isActive: { type: Boolean, default: true },
-    deletedAt: { type: Date },
-  },
-  {
-    timestamps: true,
-    collection: "about_page_sections",
-  },
-);
-
-export const AboutPageSection =
-  mongoose.models.AboutPageSection ||
-  mongoose.model<IAboutSection>("AboutPageSection", AboutSectionSchema);
+export default mongoose.models.AboutPageSection || mongoose.model<IAboutPageSection>("AboutPageSection", AboutPageSectionSchema);

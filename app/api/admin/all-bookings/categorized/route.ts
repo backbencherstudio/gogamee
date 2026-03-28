@@ -13,15 +13,18 @@ export async function GET(request: NextRequest) {
     const status = request.nextUrl.searchParams.get("status");
     const days = request.nextUrl.searchParams.get("days");
 
-    let dateFrom, dateTo;
+    let createdAtFrom, createdAtTo;
     if (days && days !== "alltime") {
       const daysNum = parseInt(days.replace("days", ""));
       if (!isNaN(daysNum)) {
         const today = new Date();
         const cutoffDate = new Date();
         cutoffDate.setDate(today.getDate() - daysNum);
-        dateFrom = cutoffDate.toISOString();
-        dateTo = today.toISOString();
+        // Start from beginning of the day X days ago
+        cutoffDate.setHours(0, 0, 0, 0);
+        
+        createdAtFrom = cutoffDate.toISOString();
+        createdAtTo = today.toISOString();
       }
     }
 
@@ -29,14 +32,9 @@ export async function GET(request: NextRequest) {
       limit,
       skip: (page - 1) * limit,
       filters: {
-        ...(status === "completed" ||
-        status === "pending" ||
-        status === "rejected" ||
-        status === "confirmed"
-          ? { status }
-          : {}),
-        createdAtFrom: dateFrom,
-        createdAtTo: dateTo,
+        ...(status && status !== "all" ? { status } : {}),
+        createdAtFrom,
+        createdAtTo,
       },
     });
 

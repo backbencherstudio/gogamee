@@ -18,7 +18,7 @@ function PaymentFailedContent() {
   }, [searchParams]);
 
   return (
-    <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[calc(100vh-100px)]">
+    <div className="bg-gray-50 py-12 pt-[120px] px-4 sm:px-6 lg:px-8 flex items-center justify-center min-h-[calc(100vh-100px)]">
       <div className="max-w-2xl w-full space-y-8">
         <div className="p-8 sm:p-12 text-center">
           <div className="mx-auto flex items-center justify-center size-32 rounded-full bg-red-100 mb-6">
@@ -32,7 +32,8 @@ function PaymentFailedContent() {
           </h1>
 
           <p className="text-lg text-gray-600 mb-8 font-['Poppins']">
-            Lo sentimos, no hemos podido procesar tu pago. Por favor, inténtalo de nuevo o contacta con nosotros.
+            Lo sentimos, no hemos podido procesar tu pago. Por favor, inténtalo
+            de nuevo o contacta con nosotros.
           </p>
 
           {errorMessage && (

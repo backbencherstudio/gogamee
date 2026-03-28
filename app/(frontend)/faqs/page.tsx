@@ -7,10 +7,10 @@ async function getInitialFaqs() {
     const response = await FAQService.getAll({ page: 1, limit: 10 });
     if (response && response.faqs) {
       return response.faqs.map((faq: any) => ({
-        id: faq._id.toString(),
+        id: faq.id,
         question: faq.question,
         answer: faq.answer,
-        sort_order: faq.sort_order,
+        sort_order: faq.sortOrder ?? faq.sort_order,
       }));
     }
     return [];

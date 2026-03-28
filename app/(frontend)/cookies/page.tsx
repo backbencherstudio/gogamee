@@ -2,8 +2,6 @@ import React from "react";
 import CookieHero from "./components/cookiehero/cookiehero";
 import CookiePolicy from "./components/cookie-policy/cookiepolicy";
 import { SettingsService } from "@/backend";
-import { cookies } from "next/headers";
-import { translateTextBackend } from "@/backend/lib/translation";
 
 async function getCookieContent() {
   try {
@@ -21,14 +19,7 @@ async function getCookieContent() {
 }
 
 export default async function Cookies() {
-  const cookieStore = await cookies();
-  const userLang = cookieStore.get("user_lang")?.value || "es";
-
-  let initialContent = await getCookieContent();
-
-  if (initialContent && userLang !== "es") {
-    initialContent = await translateTextBackend(initialContent, userLang);
-  }
+  const initialContent = await getCookieContent();
 
   return (
     <div>

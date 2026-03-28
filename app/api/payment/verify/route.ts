@@ -26,7 +26,7 @@ export async function POST(request: Request) {
         return NextResponse.json({
           success: true,
           message: "Payment verified successfully",
-          bookingId: booking._id,
+          bookingId: booking.id,
         });
       } else {
         // Booking found but status not paid (Webhook might be slow or payment failed)

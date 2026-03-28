@@ -41,6 +41,7 @@ function PaymentSuccessContent() {
     if (typeof window !== "undefined") {
       localStorage.removeItem("gogame_booking_data");
       localStorage.removeItem("gogame_booking_step");
+      localStorage.removeItem("gogame_booking_id");
     }
   }, [searchParams, router]);
 
@@ -51,7 +52,7 @@ function PaymentSuccessContent() {
   });
 
   return (
-    <div className="bg-gray-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div className="bg-gray-50 py-12 pt-[120px] px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="max-w-4xl w-full space-y-8">
         <div className="p-8 sm:p-12 text-center">
           <div className="mx-auto flex items-center justify-center size-32 rounded-full bg-lime-100 mb-6">
@@ -65,7 +66,9 @@ function PaymentSuccessContent() {
           </h1>
 
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto font-['Poppins']">
-            Tu aventura ya está en marcha. Hemos recibido tu solicitud de reserva y en las próximas horas recibirás un email con la confirmación de tu viaje y los siguientes pasos.
+            Tu aventura ya está en marcha. Hemos recibido tu solicitud de
+            reserva y en las próximas horas recibirás un email con la
+            confirmación de tu viaje y los siguientes pasos.
           </p>
 
           {/* Booking Details Box */}
@@ -78,9 +81,7 @@ function PaymentSuccessContent() {
                 <div className="text-gray-400 mb-2">
                   <CheckCircle2 size={24} />
                 </div>
-                <span className="text-sm text-gray-500">
-                  Referencia
-                </span>
+                <span className="text-sm text-gray-500">Referencia</span>
                 <span className="font-bold text-gray-900 font-mono text-lg">
                   {bookingId}
                 </span>
@@ -89,18 +90,14 @@ function PaymentSuccessContent() {
                 <div className="text-gray-400 mb-2">
                   <Calendar size={24} />
                 </div>
-                <span className="text-sm text-gray-500">
-                  Fecha
-                </span>
+                <span className="text-sm text-gray-500">Fecha</span>
                 <span className="font-bold text-gray-900">{currentDate}</span>
               </div>
               <div className="flex flex-col items-center justify-center p-3 border-t md:border-t-0 md:border-l border-gray-200">
                 <div className="text-gray-400 mb-2">
                   <CreditCard size={24} />
                 </div>
-                <span className="text-sm text-gray-500">
-                  Total Pagado
-                </span>
+                <span className="text-sm text-gray-500">Total Pagado</span>
                 <span className="font-bold text-lime-600 text-lg">
                   {amount}€
                 </span>

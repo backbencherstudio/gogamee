@@ -1,175 +1,103 @@
 import { FAQ, IFAQ } from "../../models";
-import {
-  connectToDatabase,
-  getCache,
-  setCache,
-  deleteCache,
-  clearCachePattern,
-} from "@/backend";
-import type {
-  CreateFAQData,
-  UpdateFAQData,
-  FAQFilters,
-  FAQQueryOptions,
-} from "./faq.types";
+import { connectToDatabase, getCache, setCache, deleteCache, clearCachePattern } from "@/backend";
+import type { CreateFAQData, UpdateFAQData, FAQQueryOptions } from "./faq.types";
 
 class FAQService {
-  /**
-   * Create a new FAQ
-   */
-  async create(data: CreateFAQData): Promise<IFAQ> {
-    await connectToDatabase();
-    const faq = new FAQ(data);
-    const saved = await faq.save();
+  private async clearCache() { await clearCachePattern("faq:*"); }
 
-    // Invalidate caches
-    await clearCachePattern("faq:*");
-
-    return saved;
+  private mapToLean(faq: any) {
+    if (!faq) return null;
+    try {
+      const obj = faq.toObject ? faq.toObject() : faq;
+      const id = obj._id ? obj._id.toString() : (obj.id || "");
+      const { __v, _id, ...rest } = obj;
+      return { id, ...rest };
+    } catch (err) {
+      console.error("Error mapping FAQ to lean:", err);
+      return null;
+    }
   }
 
-  /**
-   * Get all FAQs with optional filtering
-   */
-  async getAll(options: FAQQueryOptions = {}): Promise<{
-    faqs: IFAQ[];
-    total: number;
-    hasMore: boolean;
-  }> {
+  async create(data: CreateFAQData): Promise<any> {
     await connectToDatabase();
+    const saved = await new FAQ(data).save();
+    await this.clearCache();
+    return this.mapToLean(saved);
+  }
 
+  async getAll(options: FAQQueryOptions = {}): Promise<any> {
+    await connectToDatabase();
     const { filters = {}, sort, limit = 50, page = 1 } = options;
-    const skip = options.skip ?? (page - 1) * limit;
-
-    // Build query
+    const skip = (page - 1) * limit;
     const query: any = { deletedAt: { $exists: false } };
 
-    if (filters.category) {
-      query.category = new RegExp(`^${filters.category}$`, "i");
-    }
+    if (filters.category) query.category = new RegExp(`^${filters.category}$`, "i");
+    if (filters.isActive !== undefined) query.isActive = filters.isActive;
 
-    if (filters.isActive !== undefined) {
-      query.isActive = filters.isActive;
-    }
-
-    // Build sort
-    const sortOptions: any = {};
-    if (sort) {
-      sortOptions[sort.field] = sort.order === "desc" ? -1 : 1;
-    } else {
-      sortOptions.sortOrder = 1;
-      sortOptions.createdAt = 1;
-    }
-
-    // Execute query
-    const faqs = await FAQ.find(query)
-      .sort(sortOptions)
-      .limit(limit + 1)
-      .skip(skip);
-
-    const hasMore = faqs.length > limit;
-    const resultFAQs = hasMore ? faqs.slice(0, limit) : faqs;
-
+    const sortOptions: any = sort ? { [sort.field]: sort.order === "desc" ? -1 : 1 } : { sortOrder: 1, createdAt: 1 };
+    const faqs = await FAQ.find(query).sort(sortOptions).limit(limit).skip(skip).lean();
     const total = await FAQ.countDocuments(query);
 
-    return {
-      faqs: resultFAQs,
-      total,
-      hasMore,
+    return { 
+      faqs: (faqs || []).map(f => this.mapToLean(f)).filter(Boolean), 
+      total: total || 0, 
+      hasMore: (total || 0) > skip + (faqs?.length || 0) 
     };
   }
 
-  /**
-   * Get FAQ by ID
-   */
-  async getById(id: string): Promise<IFAQ | null> {
+  async getById(id: string): Promise<any> {
     const CACHE_KEY = `faq:${id}`;
-    const cached = await getCache<IFAQ>(CACHE_KEY);
+    const cached = await getCache<any>(CACHE_KEY);
     if (cached) return cached;
 
     await connectToDatabase();
-    const faq = await FAQ.findOne({
-      _id: id,
-      deletedAt: { $exists: false },
-    });
-
+    const faq = await FAQ.findOne({ _id: id, deletedAt: { $exists: false } }).lean();
     if (faq) {
-      await setCache(CACHE_KEY, faq, 600); // 10 mins
+      const lean = this.mapToLean(faq);
+      if (lean) {
+        await setCache(CACHE_KEY, lean, 600);
+        return lean;
+      }
     }
-
-    return faq;
+    return null;
   }
 
-  /**
-   * Update FAQ by ID
-   */
-  async updateById(id: string, data: UpdateFAQData): Promise<IFAQ | null> {
+  async updateById(id: string, data: UpdateFAQData): Promise<any> {
     await connectToDatabase();
-    const updated = await FAQ.findByIdAndUpdate(id, data, {
-      new: true,
-      runValidators: true,
-    });
-
+    const updated = await FAQ.findByIdAndUpdate(id, data, { new: true, runValidators: true });
     if (updated) {
       await deleteCache(`faq:${id}`);
-      await clearCachePattern("faq:list:*");
-      await clearCachePattern("faq:active");
+      await this.clearCache();
     }
-
-    return updated;
+    return this.mapToLean(updated);
   }
 
-  /**
-   * Delete FAQ by ID (soft delete)
-   */
   async deleteById(id: string): Promise<boolean> {
     await connectToDatabase();
-    const result = await FAQ.findByIdAndUpdate(id, {
-      deletedAt: new Date(),
-    });
-
+    const result = await FAQ.findByIdAndUpdate(id, { deletedAt: new Date() });
     if (result) {
       await deleteCache(`faq:${id}`);
-      await clearCachePattern("faq:*");
+      await this.clearCache();
     }
-
     return !!result;
   }
 
-  /**
-   * Get active FAQs sorted by order
-   */
-  async getActiveFAQs(): Promise<IFAQ[]> {
+  async getActiveFAQs(): Promise<any[]> {
     const CACHE_KEY = "faq:active";
-    const cached = await getCache<IFAQ[]>(CACHE_KEY);
+    const cached = await getCache<any[]>(CACHE_KEY);
     if (cached) return cached;
 
     await connectToDatabase();
-    const faqs = await FAQ.find({
-      isActive: true,
-      deletedAt: { $exists: false },
-    }).sort({ sortOrder: 1, createdAt: 1 });
-
-    await setCache(CACHE_KEY, faqs, 3600); // 1 hour
-
-    return faqs;
+    const faqs = await FAQ.find({ isActive: true, deletedAt: { $exists: false } }).sort({ sortOrder: 1, createdAt: 1 }).lean();
+    const mapped = (faqs || []).map(f => this.mapToLean(f)).filter(Boolean);
+    await setCache(CACHE_KEY, mapped, 3600);
+    return mapped || [];
   }
 
-  /**
-   * Reorder FAQs
-   */
-  async reorder(
-    orderedIds: { id: string; sortOrder: number }[],
-  ): Promise<void> {
+  async reorder(orderedIds: { id: string; sortOrder: number }[]): Promise<void> {
     await connectToDatabase();
-
-    const updatePromises = orderedIds.map(({ id, sortOrder }) =>
-      FAQ.findByIdAndUpdate(id, { sortOrder }),
-    );
-
-    await Promise.all(updatePromises);
-
-    await clearCachePattern("faq:*");
+    await Promise.all((orderedIds || []).map(({ id, sortOrder }) => FAQ.findByIdAndUpdate(id, { sortOrder })));
+    await this.clearCache();
   }
 }
 

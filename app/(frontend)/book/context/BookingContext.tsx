@@ -48,6 +48,7 @@ export const BOOKING_CONSTANTS = {
   SINGLE_TRAVELER_SUPPLEMENT: 50,
   EUROPEAN_LEAGUE_UPGRADE: 50,
   LEAGUE_REMOVAL_COST: 20,
+  FREE_REMOVALS: 1,
   BOOKING_FEE: 0,
   CURRENCY: "EUR",
   CURRENCY_SYMBOL: "€",
@@ -118,9 +119,11 @@ export interface BookingContextType {
       duration: number;
       nights: number;
     };
-    fromHero?: boolean;
+    fromHero: boolean;
   };
-  updateFormData: (stepData: Partial<BookingContextType["formData"]>) => void;
+  bookingId: string | null;
+  setBookingId: (id: string | null) => void;
+  updateStepData: (stepData: Partial<BookingContextType["formData"]>) => void;
   updateExtras: (extras: ExtraService[]) => void;
   calculateTotalCost: () => number;
   getSelectedExtras: () => ExtraService[];
@@ -184,6 +187,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] =
     useState<BookingContextType["formData"]>(getDefaultFormData);
+  const [bookingId, setBookingId] = useState<string | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
   const heroDataProcessedRef = useRef(false);
 
@@ -203,121 +207,118 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const heroData = localStorage.getItem("gogame_hero_data");
-      if (heroData && !heroDataProcessedRef.current) {
-        heroDataProcessedRef.current = true;
-        try {
-          const parsedHeroData = JSON.parse(heroData);
-          const mapHeroDataToStepper = (heroData: HeroData) => {
-            const mappedSport = heroData.selectedSport;
-            let mappedCity = heroData.selectedCity;
-            if (mappedCity === "málaga") {
-              mappedCity = "malaga";
-            }
+    const initializeData = () => {
+      if (typeof window === "undefined") return;
 
-            // Correctly initialize traveler arrays based on peopleCount from Hero
-            const initializeTravelers = (
-              count: number,
-              type: "adult" | "kid" | "baby",
-            ) => {
-              return Array.from({ length: count }, (_, i) => ({
-                id: `${type}-${i + 1}-${Date.now()}`,
-                type: type,
-                name: "",
-                dateOfBirth: "",
-                documentType: "ID" as const,
-                documentNumber: "",
-                isPrimary: type === "adult" && i === 0,
-              }));
-            };
-
-            return {
-              selectedSport: mappedSport,
-              selectedPackage: heroData.selectedPackage,
-              selectedCity: mappedCity,
-              travelers: {
-                adults: initializeTravelers(
-                  heroData.peopleCount?.adults || 1,
-                  "adult",
-                ),
-                kids: initializeTravelers(
-                  heroData.peopleCount?.kids || 0,
-                  "kid",
-                ),
-                babies: initializeTravelers(
-                  heroData.peopleCount?.babies || 0,
-                  "baby",
-                ),
-              },
-            };
-          };
-
-          const mappedHeroData = mapHeroDataToStepper(parsedHeroData);
-
-          const heroFormData = {
-            ...getDefaultFormData(),
-            ...mappedHeroData,
-            fromHero: true,
-          };
-
-          setFormData(heroFormData);
-          setCurrentStep(parsedHeroData.startFromStep);
-          localStorage.removeItem("gogame_hero_data");
-          localStorage.removeItem("gogame_booking_step");
-
-          setIsHydrated(true);
-
-          setTimeout(() => {
-            setCurrentStep(parsedHeroData.startFromStep);
-          }, 100);
-
-          setTimeout(() => {
-            if (currentStep !== parsedHeroData.startFromStep) {
-              setCurrentStep(parsedHeroData.startFromStep);
-            }
-          }, 200);
-
-          return;
-        } catch (error) {
-          console.error("Error parsing hero data:", error);
-          localStorage.removeItem("gogame_hero_data");
-          heroDataProcessedRef.current = false;
-        }
-      }
-
-      if (!heroDataProcessedRef.current) {
-        const savedData = localStorage.getItem("gogame_booking_data");
-        if (savedData) {
+      try {
+        const heroData = localStorage.getItem("gogame_hero_data");
+        if (heroData && !heroDataProcessedRef.current) {
+          heroDataProcessedRef.current = true;
           try {
-            const parsedData = JSON.parse(savedData);
+            const parsedHeroData = JSON.parse(heroData);
+            const mappedHeroData = mapHeroDataToStepper(parsedHeroData);
+
             setFormData((prev) => ({
               ...prev,
-              ...parsedData,
-              // Deep merge travelers to ensure nested arrays exist
-              travelers: {
-                ...prev.travelers,
-                ...(parsedData.travelers || {}),
-              },
+              ...mappedHeroData,
+              fromHero: true,
             }));
+            setCurrentStep(parsedHeroData.startFromStep);
+            
+            localStorage.removeItem("gogame_hero_data");
+            localStorage.removeItem("gogame_booking_step");
+
+            setTimeout(() => {
+              setCurrentStep(parsedHeroData.startFromStep);
+            }, 100);
           } catch (error) {
-            console.error("Error parsing localStorage data:", error);
+            console.error("Error parsing hero data:", error);
+            localStorage.removeItem("gogame_hero_data");
           }
+          setIsHydrated(true);
+          return;
         }
 
-        const savedStep = localStorage.getItem("gogame_booking_step");
-        if (savedStep) {
-          try {
-            const step = parseFloat(savedStep);
-            setCurrentStep(step);
-          } catch (error) {
-            console.error("Error parsing localStorage step:", error);
+        if (!heroDataProcessedRef.current) {
+          const savedData = localStorage.getItem("gogame_booking_data");
+          if (savedData) {
+            try {
+              const parsedData = JSON.parse(savedData);
+              setFormData((prev) => ({
+                ...prev,
+                ...parsedData,
+                travelers: {
+                  ...prev.travelers,
+                  ...(parsedData.travelers || {}),
+                },
+              }));
+            } catch (error) {
+              console.error("Error parsing localStorage data:", error);
+            }
+          }
+
+          const savedBookingId = localStorage.getItem("gogame_booking_id");
+          if (savedBookingId) {
+            setBookingId(savedBookingId);
+          }
+
+          const savedStep = localStorage.getItem("gogame_booking_step");
+          if (savedStep) {
+            try {
+              const step = parseFloat(savedStep);
+              if (!isNaN(step)) {
+                setCurrentStep(step);
+              }
+            } catch (error) {
+              console.error("Error parsing localStorage step:", error);
+            }
           }
         }
-
+      } catch (error) {
+        console.error("Critical error during hydration:", error);
+      } finally {
         setIsHydrated(true);
       }
-    }
+    };
+
+    const mapHeroDataToStepper = (heroData: HeroData) => {
+      const mappedSport = heroData.selectedSport;
+      let mappedCity = heroData.selectedCity;
+      if (mappedCity === "málaga") {
+        mappedCity = "malaga";
+      }
+
+      const initializeTravelers = (
+        count: number,
+        type: "adult" | "kid" | "baby",
+      ) => {
+        return Array.from({ length: count }, (_, i) => ({
+          id: `${type}-${i + 1}-${Date.now()}`,
+          type: type,
+          name: "",
+          dateOfBirth: "",
+          documentType: "ID" as const,
+          documentNumber: "",
+          isPrimary: type === "adult" && i === 0,
+        }));
+      };
+
+      return {
+        selectedSport: mappedSport,
+        selectedPackage: heroData.selectedPackage,
+        selectedCity: mappedCity,
+        travelers: {
+          adults: initializeTravelers(
+            heroData.peopleCount?.adults || 1,
+            "adult",
+          ),
+          kids: initializeTravelers(heroData.peopleCount?.kids || 0, "kid"),
+          babies: initializeTravelers(heroData.peopleCount?.babies || 0, "baby"),
+        },
+      };
+    };
+
+    initializeData();
   }, []);
 
   useEffect(() => {
@@ -328,6 +329,16 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (isHydrated && typeof window !== "undefined") {
+      if (bookingId) {
+        localStorage.setItem("gogame_booking_id", bookingId);
+      } else {
+        localStorage.removeItem("gogame_booking_id");
+      }
+    }
+  }, [bookingId, isHydrated]);
+
+  useEffect(() => {
+    if (isHydrated && typeof window !== "undefined") {
       const heroData = localStorage.getItem("gogame_hero_data");
       if (!heroData) {
         localStorage.setItem("gogame_booking_step", currentStep.toString());
@@ -335,13 +346,10 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [currentStep, isHydrated]);
 
-  const updateFormData = (
+  const updateStepData = (
     stepData: Partial<BookingContextType["formData"]>,
   ) => {
-    setFormData((prev) => {
-      const newData = { ...prev, ...stepData };
-      return newData;
-    });
+    setFormData((prev) => ({ ...prev, ...stepData }));
   };
 
   const updateExtras = (extras: ExtraService[]) => {
@@ -363,41 +371,19 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const getTotalPeople = () => {
-    // Safely access travelers data with fallbacks
     const travelers = formData?.travelers || {};
     const adultsCount = travelers.adults?.length || 0;
     const kidsCount = travelers.kids?.length || 0;
-    // Babies are excluded from the total traveler count for package/extra pricing calculations
     return adultsCount + kidsCount;
   };
 
   const clearBookingData = () => {
-    setFormData({
-      selectedSport: "football",
-      selectedPackage: "standard",
-      selectedCity: "",
-      travelers: {
-        adults: [],
-        kids: [],
-        babies: [],
-      },
-      leagues: [],
-      departureDate: "",
-      returnDate: "",
-      duration: { days: 0, nights: 0 },
-      flightSchedule: null,
-      extras: [],
-      paymentInfo: {
-        cardNumber: "",
-        expiryDate: "",
-        cvv: "",
-        cardholderName: "",
-      },
-      fromHero: false,
-    });
-    setCurrentStep(0); // Reset to step 1
+    setFormData(getDefaultFormData());
+    setBookingId(null);
+    setCurrentStep(0);
     localStorage.removeItem("gogame_booking_data");
     localStorage.removeItem("gogame_booking_step");
+    localStorage.removeItem("gogame_booking_id");
   };
 
   const nextStep = (
@@ -409,7 +395,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     );
 
     if (currentStep === 4) {
-      // Skip step 4.5 (Remove League) if European is selected
       if (hasEuropeanLeague) {
         setCurrentStep(5);
       } else {
@@ -434,7 +419,6 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     if (currentStep === 4.5) {
       setCurrentStep(4);
     } else if (currentStep === 5) {
-      // Go back to step 4 instead of 4.5 if European is selected
       if (hasEuropeanLeague) {
         setCurrentStep(4);
       } else {
@@ -456,7 +440,9 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
   const value: BookingContextType = {
     currentStep,
     formData,
-    updateFormData,
+    bookingId,
+    setBookingId,
+    updateStepData,
     updateExtras,
     calculateTotalCost,
     getSelectedExtras,

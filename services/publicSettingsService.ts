@@ -1,53 +1,14 @@
 import axiosClient from "../lib/axiosClient";
+import { ApiResponse } from "@/app/lib/api-response";
 
-// ========== Public Legal Pages Interfaces ==========
-export interface LegalPageResponse {
-  success: boolean;
-  message?: string;
-  content?:
-    | string
-    | {
-        privacy: string;
-        cookie: string;
-        terms: string;
-      };
-}
-
-// ========== Public Legal Pages API Functions ==========
-
-// GET legal page content (public, no auth required)
-export const getLegalPageContent = async (
-  page: "privacy" | "cookie" | "terms",
-): Promise<LegalPageResponse> => {
-  const response = await axiosClient.get(`/legal-pages?page=${page}`);
+export const getPublicLegalPages = async (type?: string): Promise<ApiResponse<any>> => {
+  const response = await axiosClient.get(`/legal-pages${type ? `?page=${type}` : ""}`);
   return response.data;
 };
 
-// GET all legal pages content
-export const getAllLegalPages = async (): Promise<LegalPageResponse> => {
-  const response = await axiosClient.get("/legal-pages");
+export const getLegalPageContent = getPublicLegalPages;
+
+export const getSocialLinks = async (): Promise<ApiResponse<any>> => {
+  const response = await axiosClient.get("/social-contact");
   return response.data;
 };
-
-// ========== Social Media & Contact Links ==========
-
-export interface SocialContactLinks {
-  whatsapp: string;
-  instagram: string;
-  tiktok: string;
-  linkedin: string;
-  email: string;
-}
-
-export interface SocialContactResponse {
-  success: boolean;
-  message?: string;
-  links?: SocialContactLinks;
-}
-
-// GET social contact links (public, no auth required)
-export const getSocialContactLinks =
-  async (): Promise<SocialContactResponse> => {
-    const response = await axiosClient.get("/social-contact");
-    return response.data;
-  };

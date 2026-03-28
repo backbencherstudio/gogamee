@@ -2,8 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { getLegalPageContent } from "../../../../../services/publicSettingsService";
 
-import { translateText } from "../../../../../services/translationService";
-
 interface CookiePolicyProps {
   initialContent?: string;
 }
@@ -11,15 +9,16 @@ interface CookiePolicyProps {
 export default function CookiePolicy({
   initialContent = "",
 }: CookiePolicyProps) {
-  const language = "es";
   const [content, setContent] = useState<string>(initialContent);
   const [loading, setLoading] = useState<boolean>(!initialContent);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadContent();
+    if (!initialContent) {
+      loadContent();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [language]);
+  }, []);
 
   const loadContent = async () => {
     try {
@@ -28,12 +27,10 @@ export default function CookiePolicy({
       const response = await getLegalPageContent("cookie");
       if (
         response.success &&
-        response.content &&
-        typeof response.content === "string"
+        response.data?.content &&
+        typeof response.data.content === "string"
       ) {
-        const rawContent = response.content;
-        const translated = await translateText(rawContent, language);
-        setContent(translated);
+        setContent(response.data.content);
       } else {
         setError("Failed to load cookie policy content");
       }

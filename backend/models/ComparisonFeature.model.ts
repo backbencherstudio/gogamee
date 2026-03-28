@@ -1,56 +1,36 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface IComparisonFeature extends Document {
-  type: "football" | "basketball" | "combined";
-  features: {
-    category: string;
-    standard: string;
-    premium: string;
-    sortOrder: number;
-  }[];
-  isActive: boolean;
-  lastModifiedBy?: string;
-  createdAt: Date;
-  updatedAt: Date;
+export interface IFeature {
+  category: string;
+  standard: string | boolean;
+  premium: string | boolean;
+  sortOrder: number;
 }
 
-const FeatureSchema = new Schema(
-  {
-    category: { type: String, required: true },
-    standard: { type: String, required: true },
-    premium: { type: String, required: true },
-    sortOrder: { type: Number, default: 0 },
-  },
-  { _id: false },
-);
+export interface IComparisonFeature extends Document {
+  type: string; // e.g., "football", "basketball", "combined"
+  features: IFeature[];
+  isActive: boolean;
+  deletedAt?: Date;
+}
 
-const ComparisonFeatureSchema = new Schema<IComparisonFeature>(
-  {
-    type: {
-      type: String,
-      required: true,
-      enum: ["football", "basketball", "combined"],
-      unique: true,
-    },
-    features: [FeatureSchema],
-    isActive: {
-      type: Boolean,
-      default: true,
-    },
-    lastModifiedBy: {
-      type: String,
-      trim: true,
-    },
-  },
-  {
-    timestamps: true,
-    collection: "comparison_features",
-  },
-);
+const FeatureSchema = new Schema({
+  category: { type: String, required: true },
+  standard: { type: Schema.Types.Mixed, required: true },
+  premium: { type: Schema.Types.Mixed, required: true },
+  sortOrder: { type: Number, default: 0 },
+}, { _id: false });
 
-// Indexes
-ComparisonFeatureSchema.index({ type: 1 });
-ComparisonFeatureSchema.index({ isActive: 1 });
+const ComparisonFeatureSchema = new Schema<IComparisonFeature>({
+  type: { type: String, required: true, unique: true, index: true },
+  features: [FeatureSchema],
+  isActive: { type: Boolean, default: true },
+  deletedAt: Date,
+}, { timestamps: true });
 
-export default mongoose.models.ComparisonFeature ||
-  mongoose.model<IComparisonFeature>("ComparisonFeature", ComparisonFeatureSchema);
+// Fix for Next.js hot-reloading: delete model if it exists to apply new schema
+if (mongoose.models.ComparisonFeature) {
+  delete (mongoose.models as any).ComparisonFeature;
+}
+
+export default mongoose.model<IComparisonFeature>("ComparisonFeature", ComparisonFeatureSchema);

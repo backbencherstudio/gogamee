@@ -25,10 +25,10 @@ export default function Terms({ initialContent = "" }: TermProps) {
       const response = await getLegalPageContent("terms");
       if (
         response.success &&
-        response.content &&
-        typeof response.content === "string"
+        response.data?.content &&
+        typeof response.data.content === "string"
       ) {
-        setContent(response.content);
+        const rawContent = response.data.content;
       } else {
         setError("Failed to load terms and conditions content");
       }

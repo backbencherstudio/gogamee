@@ -21,6 +21,8 @@ interface CustomStripeFormProps {
   clientSecret: string;
   onSuccess: () => void;
   onError: (error: string) => void;
+  submitRef?: React.RefObject<HTMLButtonElement | null>;
+  onBack?: () => void;
 }
 
 // Map centralized data values to local constants
@@ -36,6 +38,8 @@ export default function CustomStripeForm({
   clientSecret,
   onSuccess,
   onError,
+  submitRef,
+  onBack,
 }: CustomStripeFormProps) {
   const stripe = useStripe();
   const elements = useElements();
@@ -149,7 +153,7 @@ export default function CustomStripeForm({
           // Max attempts reached - Redirect to failed page
           const errorMsg =
             "La verificación está tardando más de lo esperado. Por favor, revisa tu correo para la confirmación.";
-          window.location.href = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
+          window.location.replace(`/payment/failed?error=${encodeURIComponent(errorMsg)}`);
         }
       } else {
         // Hard failure
@@ -172,11 +176,11 @@ export default function CustomStripeForm({
           console.error("Failed to send failure email", e);
         }
 
-        window.location.href = `/payment/failed?error=${encodeURIComponent(errorMessage)}`;
+        window.location.replace(`/payment/failed?error=${encodeURIComponent(errorMessage)}`);
       }
     } catch (error) {
       const errorMsg = "Error de red";
-      window.location.href = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
+      window.location.replace(`/payment/failed?error=${encodeURIComponent(errorMsg)}`);
     } finally {
       if (attempts >= MAX_ATTEMPTS || !isProcessing) {
         // Only stop processing if we're done with all retries
@@ -236,7 +240,7 @@ export default function CustomStripeForm({
 
         // Redirect to failed page
         const errorMsg = error.message || "El pago con tarjeta falló";
-        window.location.href = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
+        window.location.replace(`/payment/failed?error=${encodeURIComponent(errorMsg)}`);
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         setPaymentStatus("Confirmando reserva...");
         confirmBackend(paymentIntent.id);
@@ -258,7 +262,7 @@ export default function CustomStripeForm({
   const handlePaymentError = (errorMsg: string) => {
     // Redirect to failed page
     const failedUrl = `/payment/failed?error=${encodeURIComponent(errorMsg)}`;
-    window.location.href = failedUrl;
+    window.location.replace(failedUrl);
   };
 
   // ... (inside custom stripe form)
@@ -430,33 +434,54 @@ export default function CustomStripeForm({
             </div>
           </div>
 
-          {/* Submit Button */}
-          {selectedPayment === PAYMENT_METHODS.CREDIT && (
-            <div className="self-stretch flex flex-col justify-center items-start gap-3">
-              <div className="self-stretch flex flex-col justify-start items-start gap-4 md:gap-6">
+          {/* Navigation & Submit Buttons */}
+          <div className="self-stretch w-full flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+            {/* Back Button */}
+            <button
+              type="button"
+              onClick={onBack}
+              className="w-full sm:w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all duration-300 font-medium font-['Poppins'] leading-snug bg-white border border-[#76C043] text-[#76C043] hover:bg-green-50 shadow-sm hover:shadow-md"
+            >
+              Anterior
+            </button>
+
+            {/* Confirm Button (Only for Credit Card) */}
+            {selectedPayment === PAYMENT_METHODS.CREDIT && (
+              <>
                 <button
+                  ref={submitRef}
                   type="submit"
                   disabled={isProcessing || !stripe}
-                  className={`w-full md:w-44 h-12 md:h-11 px-4 md:px-3.5 py-3 md:py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all duration-200 ${
-                    isProcessing || !stripe
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-[#6AAD3C] hover:bg-lime-600 cursor-pointer"
-                  }`}
+                  className="hidden"
                 >
-                  <div className="text-center justify-start text-white text-sm md:text-base font-medium md:font-normal font-['Inter'] flex items-center gap-2">
+                  Confirm
+                </button>
+                <div
+                  className={`w-full sm:w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all duration-300 font-medium font-['Poppins'] leading-snug ${
+                    isProcessing || !stripe
+                      ? "bg-gray-300 cursor-not-allowed text-white opacity-80"
+                      : "bg-[#76C043] hover:bg-lime-600 cursor-pointer text-white shadow-sm hover:shadow-md"
+                  }`}
+                  onClick={() => {
+                    if (!isProcessing && stripe && submitRef?.current) {
+                      submitRef.current.click();
+                    }
+                  }}
+                >
+                  <div className="text-center flex justify-center items-center gap-2 text-white">
                     {isProcessing ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         {paymentData.text.processingButton}
                       </>
                     ) : (
-                      <>{paymentData.text.confirmButton}</>
+                      <>Confirmar Pago</>
                     )}
                   </div>
-                </button>
-              </div>
-            </div>
-          )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </form>
     </>

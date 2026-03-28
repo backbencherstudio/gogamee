@@ -79,6 +79,7 @@ export default function Menu() {
             alt="Logo"
             width={160}
             height={40}
+            style={{ width: "auto" }}
             priority
           />
         </Link>

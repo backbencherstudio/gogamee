@@ -72,7 +72,7 @@ PackageCard.displayName = "PackageCard";
 
 const PackageType: React.FC = () => {
   // Context
-  const { formData, updateFormData, nextStep } = useBooking();
+  const { formData, updateStepData, nextStep } = useBooking();
 
   // React Hook Form
   const { control, handleSubmit, watch, setValue } = useForm<PackageFormData>({
@@ -95,7 +95,7 @@ const PackageType: React.FC = () => {
 
   // Get package options with gradients
   const packageOptions = useMemo(() => {
-    return packageTypeData.getAllPackages().map((pkg) => ({
+    return packageTypeData.getAllPackages().map((pkg: any) => ({
       value: pkg.value,
       label: pkg.label,
       ...(PACKAGE_GRADIENTS[pkg.value] || {
@@ -112,24 +112,24 @@ const PackageType: React.FC = () => {
       // If package type actually changed, clear date-specific price since
       // standard vs premium has different prices for the same date.
       if (value !== formData.selectedPackage) {
-        updateFormData({
+        updateStepData({
           selectedPackage: value,
           selectedDatePrice: undefined,
           calculatedTotals: undefined,
         });
       } else {
-        updateFormData({ selectedPackage: value });
+        updateStepData({ selectedPackage: value });
       }
     },
-    [setValue, updateFormData, formData.selectedPackage],
+    [setValue, updateStepData, formData.selectedPackage],
   );
 
   const onSubmit = useCallback(
     (data: PackageFormData) => {
-      updateFormData({ selectedPackage: data.selectedPackage });
+      updateStepData({ selectedPackage: data.selectedPackage });
       nextStep();
     },
-    [updateFormData, nextStep],
+    [updateStepData, nextStep],
   );
 
   const buttonClassName = useMemo(
@@ -176,7 +176,7 @@ const PackageType: React.FC = () => {
             control={control}
             render={({ field }) => (
               <>
-                {packageOptions.map((pkg) => (
+                {packageOptions.map((pkg: any) => (
                   <PackageCard
                     key={pkg.value}
                     packageOption={pkg}

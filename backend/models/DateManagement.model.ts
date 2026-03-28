@@ -1,86 +1,37 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export type DateDuration = "1" | "2" | "3" | "4" | "5";
-
-export interface IPriceStructure {
-  status: "enabled" | "disabled";
-  standard?: number;
-  premium?: number;
-}
+const SportConfigSchema = new Schema({
+  status: { type: String, enum: ["enabled", "disabled"], default: "enabled" },
+  standard: { type: Number, default: 0 },
+  premium: { type: Number, default: 0 },
+}, { _id: false });
 
 export interface IDateManagement extends Document {
   date: string;
-  duration: DateDuration;
-  league: string;
+  duration: "1" | "2" | "3" | "4";
+  league: "national" | "european";
   sports: {
-    football: IPriceStructure;
-    basketball: IPriceStructure;
-    combined: IPriceStructure;
+    football: { status: string; standard: number; premium: number };
+    basketball: { status: string; standard: number; premium: number };
+    combined: { status: string; standard: number; premium: number };
   };
-
-  createdAt: Date;
-  updatedAt: Date;
+  isActive: boolean;
+  deletedAt?: Date;
 }
 
-const PriceStructureSchema = new Schema(
-  {
-    status: {
-      type: String,
-      required: true,
-      enum: ["enabled", "disabled"],
-      default: "disabled",
-      index: true,
-    },
-    standard: { type: Number, default: 0, min: 0, required: false },
-    premium: { type: Number, default: 0, min: 0, required: false },
+const DateManagementSchema = new Schema<IDateManagement>({
+  date: { type: String, required: true, index: true },
+  duration: { type: String, enum: ["1", "2", "3", "4"], required: true },
+  league: { type: String, enum: ["national", "european"], required: true },
+  sports: {
+    football: { type: SportConfigSchema, default: () => ({}) },
+    basketball: { type: SportConfigSchema, default: () => ({}) },
+    combined: { type: SportConfigSchema, default: () => ({}) },
   },
-  { _id: false },
-);
+  isActive: { type: Boolean, default: true },
+  deletedAt: Date,
+}, { timestamps: true });
 
-const DateManagementSchema = new Schema<IDateManagement>(
-  {
-    date: {
-      type: String,
-      required: true,
-      index: true,
-    },
-    duration: {
-      type: String,
-      enum: ["1", "2", "3", "4", "5"],
-      default: "1",
-      required: true,
-      index: true,
-    },
-    sports: {
-      football: {
-        type: PriceStructureSchema,
-        default: () => ({ standard: 0, premium: 0 }),
-      },
-      basketball: {
-        type: PriceStructureSchema,
-        default: () => ({ standard: 0, premium: 0 }),
-      },
-      combined: {
-        type: PriceStructureSchema,
-        default: () => ({ standard: 0, premium: 0 }),
-      },
-    },
+DateManagementSchema.index({ date: 1, duration: 1, league: 1 }, { unique: true });
 
-    league: {
-      type: String,
-      default: "national",
-      index: true,
-    },
-  },
-  {
-    timestamps: true,
-    collection: "date_management",
-  },
-);
-
-// Indexes
-DateManagementSchema.index({ date: 1, status: 1 });
-DateManagementSchema.index({ deletedAt: 1 });
-
-export default mongoose.models.DateManagement ||
-  mongoose.model<IDateManagement>("DateManagement", DateManagementSchema);
+export default mongoose.models.DateManagement || mongoose.model<IDateManagement>("DateManagement", DateManagementSchema);

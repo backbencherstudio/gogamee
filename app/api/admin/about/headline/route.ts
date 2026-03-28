@@ -6,9 +6,9 @@ import { withErrorHandling } from "@/app/lib/api-wrapper";
 export const dynamic = "force-dynamic";
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
-  const payload = await request.json();
-  if (!payload.title) return sendError("Title is required", 400);
+  const { title } = await request.json();
+  if (!title) return sendError("Title is required", 400);
 
-  const section = await AboutService.addSection({ ...payload, type: "main_section" });
-  return sendResponse(section, "Main section added successfully", undefined, 201);
+  const headline = await AboutService.updateHeadline(title);
+  return sendResponse(headline, "Headline updated successfully");
 });

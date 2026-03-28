@@ -7,6 +7,7 @@ import { useBooking } from "../../context/BookingContext";
 import type { ExtraService as BookingExtraService } from "../../context/BookingContext";
 import { BookingNavigation } from "../shared/navigation/BookingNavigation";
 import { extrasData } from "../../../../lib/appdata";
+
 type ExtraService = BookingExtraService;
 
 interface FormData {
@@ -15,7 +16,7 @@ interface FormData {
 
 // Initial data factory
 const createInitialExtras = (): ExtraService[] => {
-  return extrasData.initialExtras.map((extra) => ({
+  return extrasData.initialExtras.map((extra: any) => ({
     ...extra,
     // Use the centralized data as is
     isSelected: extra.isSelected,
@@ -46,7 +47,7 @@ export default function Extras() {
           const maxQuantity =
             extra.id === "extra-luggage"
               ? totalTravelers
-              : extra.maxQuantity || extrasData.constants.defaultMaxQuantity;
+              : extra.maxQuantity || 10;
           if (extra.quantity > maxQuantity) {
             return { ...extra, quantity: maxQuantity };
           }
@@ -101,7 +102,7 @@ export default function Extras() {
         const maxQuantity =
           extra.id === "extra-luggage"
             ? totalTravelers
-            : extra.maxQuantity || extrasData.constants.defaultMaxQuantity;
+            : extra.maxQuantity || 10;
         if (extra.quantity > maxQuantity) {
           return { ...extra, quantity: maxQuantity };
         }
@@ -141,8 +142,8 @@ export default function Extras() {
             const ensuredQuantity = Math.min(
               maxQuantity,
               Math.max(
-                extrasData.constants.minQuantity,
-                extra.quantity || extrasData.constants.minQuantity,
+                1,
+                extra.quantity || 1,
               ),
             );
             return {
@@ -173,10 +174,10 @@ export default function Extras() {
           const maxQuantity =
             extra.id === "extra-luggage"
               ? totalTravelers
-              : extra.maxQuantity || extrasData.constants.defaultMaxQuantity;
+              : extra.maxQuantity || 10;
           const minQuantity =
             extra.id === "extra-luggage" && extra.isSelected
-              ? extrasData.constants.minQuantity
+              ? 1
               : 0;
 
           const proposedQuantity = extra.quantity + change;
@@ -191,88 +192,58 @@ export default function Extras() {
       });
       setValue("extras", updatedExtras, { shouldDirty: true });
     },
-    [extras, setValue],
+    [extras, setValue, totalTravelers],
   );
 
   const onSubmit = useCallback(
     (data: FormData) => {
-      const selectedExtras = data.extras.filter((extra) => extra.isSelected);
-      const totalCost = selectedExtras.reduce((total, extra) => {
-        if (!extra.isIncluded) {
-          return total + extra.price * extra.quantity;
-        }
-        return total;
-      }, 0);
-
       updateExtras(data.extras);
       nextStep();
     },
     [updateExtras, nextStep],
   );
 
-  const getExtraDisplayQuantity = useCallback((extra: ExtraService) => {
-    if (extra.id === "extra-luggage") {
-      if (!extra.isSelected) {
-        return extra.quantity;
-      }
-      return Math.max(extrasData.constants.minQuantity, extra.quantity);
-    }
-    return extra.quantity;
-  }, []);
-
   const renderQuantityControls = (extra: ExtraService) => {
-    const displayQuantity = getExtraDisplayQuantity(extra);
+    const displayQuantity = extra.id === "extra-luggage" && extra.isSelected ? Math.max(1, extra.quantity) : extra.quantity;
 
-    // For included extras like Underseat bag, show quantity based on total travelers (1 bag per person)
     if (extra.isIncluded && extra.id === "underseat-bag") {
       return (
         <div className="flex items-center gap-2">
-          <div className="justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none min-w-[20px] text-center">
+          <div className="text-neutral-800 text-base font-normal font-['Poppins'] leading-none min-w-[20px] text-center">
             x{extra.quantity}
           </div>
         </div>
       );
     }
 
-    // For group options, show quantity but don't allow individual changes
     if (extra.isGroupOption) {
       return (
         <div className="flex items-center gap-2">
-          <div className="justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none min-w-[20px] text-center">
+          <div className="text-neutral-800 text-base font-normal font-['Poppins'] leading-none min-w-[20px] text-center">
             x{extra.quantity}
           </div>
         </div>
       );
     }
 
-    // For individual options (like extra luggage), allow quantity changes
     return (
       <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => handleQuantityChange(extra.id, -1)}
           className="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors opacity-60 hover:opacity-80 cursor-pointer disabled:cursor-not-allowed"
-          disabled={
-            extra.id === "extra-luggage" && extra.isSelected
-              ? displayQuantity <= extrasData.constants.minQuantity
-              : displayQuantity <= 0
-          }
+          disabled={extra.id === "extra-luggage" && extra.isSelected ? displayQuantity <= 1 : displayQuantity <= 0}
         >
           -
         </button>
-        <div className="justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none min-w-[20px] text-center">
+        <div className="text-neutral-800 text-base font-normal font-['Poppins'] leading-none min-w-[20px] text-center">
           x{displayQuantity}
         </div>
         <button
           type="button"
           onClick={() => handleQuantityChange(extra.id, 1)}
           className="w-6 h-6 flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 transition-colors opacity-60 hover:opacity-80 cursor-pointer disabled:cursor-not-allowed"
-          disabled={
-            displayQuantity >=
-            (extra.id === "extra-luggage"
-              ? totalTravelers
-              : extra.maxQuantity || extrasData.constants.defaultMaxQuantity)
-          }
+          disabled={displayQuantity >= (extra.id === "extra-luggage" ? totalTravelers : extra.maxQuantity || 10)}
         >
           +
         </button>
@@ -303,18 +274,11 @@ export default function Extras() {
         extra.isSelected ? "ring-2 ring-[#6AAD3C] shadow-lg" : "hover:shadow-md"
       }`}
     >
-      {/* Mobile Layout */}
       <div className="flex flex-col gap-4 md:hidden">
-        {/* Header with icon, name and price */}
         <div className="flex justify-between items-start gap-3">
           <div className="flex items-start gap-3 flex-1">
             <div className="w-12 h-12 p-2 bg-[#F1F9EC] rounded-[5.14px] flex justify-center items-center shrink-0">
-              <Image
-                src={extra.icon}
-                alt={`${extra.name} icon`}
-                width={32}
-                height={32}
-              />
+              <Image src={extra.icon} alt={`${extra.name} icon`} width={32} height={32} />
             </div>
             <div className="flex flex-col gap-1 flex-1 min-w-0">
               <div className="text-neutral-800 text-base font-medium font-['Poppins'] leading-tight">
@@ -322,74 +286,42 @@ export default function Extras() {
               </div>
               <div className="flex flex-wrap items-baseline gap-1.5">
                 <div className="text-[#6AAD3C] text-base font-semibold font-['Poppins']">
-                  {extra.isIncluded
-                    ? extrasData.text.included
-                    : `+${extra.price}€`}
+                  {extra.isIncluded ? extrasData.text.included : `+${extra.price}€`}
                 </div>
-                {!extra.isIncluded && (
-                  <div className="text-neutral-600 text-sm font-normal font-['Poppins']">
-                    {extrasData.text.perPerson}
-                  </div>
-                )}
+                {!extra.isIncluded && <div className="text-neutral-600 text-sm font-normal font-['Poppins']">{extrasData.text.perPerson}</div>}
               </div>
             </div>
           </div>
         </div>
-
-        {/* Description */}
-        <div className="text-neutral-600 text-sm font-normal font-['Poppins'] leading-5">
-          {extra.description}
-        </div>
-
-        {/* Controls */}
+        <div className="text-neutral-600 text-sm font-normal font-['Poppins'] leading-5">{extra.description}</div>
         <div className="flex justify-between items-center">
           {!extra.isIncluded ? (
             <>
-              <div className="flex items-center gap-3">
-                {renderQuantityControls(extra)}
-              </div>
+              <div className="flex items-center gap-3">{renderQuantityControls(extra)}</div>
               {renderToggleButton(extra)}
             </>
           ) : (
             <div className="flex justify-between items-center w-full">
-              <div className="text-neutral-800 text-base font-normal font-['Poppins']">
-                x{extra.quantity}
-              </div>
+              <div className="text-neutral-800 text-base font-normal font-['Poppins']">x{extra.quantity}</div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Desktop Layout - unchanged */}
       <div className="hidden md:flex justify-between items-start">
         <div className="flex justify-start items-start gap-3 flex-1">
           <div className="w-16 h-16 p-3 bg-[#F1F9EC] rounded-[5.14px] inline-flex flex-col justify-center items-center gap-3 overflow-hidden">
-            <Image
-              src={extra.icon}
-              alt={`${extra.name} icon`}
-              width={40}
-              height={40}
-            />
+            <Image src={extra.icon} alt={`${extra.name} icon`} width={40} height={40} />
           </div>
           <div className="inline-flex flex-col justify-start items-start gap-1 flex-1">
-            <div className="self-stretch justify-start text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">
-              {extra.name}
-            </div>
-            <div className="self-stretch justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
-              {extra.description}
-            </div>
+            <div className="self-stretch justify-start text-neutral-800 text-lg font-medium font-['Poppins'] leading-loose">{extra.name}</div>
+            <div className="self-stretch justify-start text-neutral-600 text-base font-normal font-['Poppins'] leading-7">{extra.description}</div>
           </div>
         </div>
         <div className="inline-flex flex-col justify-center items-end gap-3">
           <div className="flex flex-row items-baseline justify-end gap-2">
-            <div className="text-[#6AAD3C] text-lg font-semibold font-['Poppins'] leading-loose">
-              {extra.isIncluded ? extrasData.text.included : `+${extra.price}€`}
-            </div>
-            {!extra.isIncluded && (
-              <div className="text-neutral-600 text-base font-normal font-['Poppins'] leading-7">
-                {extrasData.text.perPerson}
-              </div>
-            )}
+            <div className="text-[#6AAD3C] text-lg font-semibold font-['Poppins'] leading-loose">{extra.isIncluded ? extrasData.text.included : `+${extra.price}€`}</div>
+            {!extra.isIncluded && <div className="text-neutral-600 text-base font-normal font-['Poppins'] leading-7">{extrasData.text.perPerson}</div>}
           </div>
           <div className="inline-flex justify-start items-center gap-4">
             {!extra.isIncluded ? (
@@ -398,9 +330,7 @@ export default function Extras() {
                 {renderToggleButton(extra)}
               </>
             ) : (
-              <div className="justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">
-                x{extra.quantity}
-              </div>
+              <div className="justify-center text-neutral-800 text-base font-normal font-['Poppins'] leading-none">x{extra.quantity}</div>
             )}
           </div>
         </div>
@@ -413,9 +343,7 @@ export default function Extras() {
       <div className="w-full xl:w-[894px] px-3 sm:px-4 xl:px-6 py-4 sm:py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-4 sm:gap-6 min-h-[400px] sm:min-h-[500px] xl:min-h-0">
         <div className="self-stretch flex flex-col justify-center items-start gap-3">
           <div className="self-stretch flex flex-col justify-start items-start gap-3">
-            <div className="justify-center text-neutral-800 text-xl sm:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 sm:leading-8 xl:leading-10">
-              {extrasData.text.title}
-            </div>
+            <div className="justify-center text-neutral-800 text-xl sm:text-2xl xl:text-3xl font-semibold font-['Poppins'] leading-7 sm:leading-8 xl:leading-10">{extrasData.text.title}</div>
           </div>
           <div className="self-stretch flex flex-col justify-start items-start gap-6">
             <div className="self-stretch flex flex-col justify-start items-start gap-3">
@@ -423,37 +351,21 @@ export default function Extras() {
                 name="extras"
                 control={control}
                 render={({ field }) => {
-                  const value =
-                    (field.value as ExtraService[] | undefined) ?? [];
-                  // Filter out "seats-together" extra when there's only 1 traveler
-                  const displayExtras = value.filter(
-                    (extra) => !(extra.id === "seats-together" && totalTravelers === 1)
-                  );
+                  const value = (field.value as ExtraService[] | undefined) ?? [];
+                  const displayExtras = value.filter((extra) => !(extra.id === "seats-together" && totalTravelers === 1));
                   return <>{displayExtras.map(renderExtraService)}</>;
                 }}
               />
             </div>
-
-            {/* Total Cost Display */}
             {totalExtrasCost > 0 && (
               <div className="self-stretch p-3 sm:p-4 bg-lime-50 rounded-lg border border-lime-200">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 sm:gap-0">
-                  <div className="text-neutral-800 text-base sm:text-lg font-medium font-['Poppins']">
-                    {extrasData.text.totalCost}
-                  </div>
-                  <div className="text-lime-600 text-lg sm:text-xl font-semibold font-['Poppins']">
-                    +{extrasData.constants.currencySymbol}
-                    {totalExtrasCost}
-                  </div>
+                  <div className="text-neutral-800 text-base sm:text-lg font-medium font-['Poppins']">{extrasData.text.totalCost}</div>
+                  <div className="text-lime-600 text-lg sm:text-xl font-semibold font-['Poppins']">+{extrasData.constants?.currencySymbol || "€"}{totalExtrasCost}</div>
                 </div>
               </div>
             )}
-
-            <BookingNavigation
-              onNext={handleSubmit(onSubmit)}
-              nextText={extrasData.text.confirm}
-              className="w-full"
-            />
+            <BookingNavigation onNext={handleSubmit(onSubmit)} nextText={extrasData.text.confirm} className="w-full" />
           </div>
         </div>
       </div>

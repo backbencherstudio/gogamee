@@ -144,19 +144,15 @@ export async function POST(request: NextRequest) {
 
     try {
       const { BookingService } = await import("@/backend");
-      const { mapBookingToLegacy } =
-        await import("@/backend/modules/booking/booking.mapper");
       const booking = await BookingService.getById(bookingId);
       if (booking) {
-        displayBookingId = (booking as any).bookingReference || bookingId;
-        const legacyBooking = mapBookingToLegacy(booking);
-        finalUserEmail = finalUserEmail || legacyBooking.email;
+        displayBookingId = booking.bookingReference || bookingId;
+        finalUserEmail = finalUserEmail || booking.travelers?.primaryContact?.email;
         finalUserName =
           finalUserName ||
-          legacyBooking.contact?.name ||
-          `${legacyBooking.firstName} ${legacyBooking.lastName}`.trim() ||
+          booking.travelers?.primaryContact?.name ||
           "Guest";
-        finalAmount = finalAmount || Number(legacyBooking.totalCost);
+        finalAmount = finalAmount || Number(booking.totalCost);
       }
     } catch (err) {
       console.error("Error fetching booking details for failed payment:", err);

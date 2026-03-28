@@ -75,7 +75,7 @@ const SportCard: React.FC<SportCardProps> = React.memo(
 SportCard.displayName = "SportCard";
 
 export default function SportsYouPreffer() {
-  const { formData, updateFormData, nextStep } = useBooking();
+  const { formData, updateStepData, nextStep } = useBooking();
 
   // Initialize form with react-hook-form
   const { control, handleSubmit, watch, setValue } = useForm<FormData>({
@@ -96,7 +96,7 @@ export default function SportsYouPreffer() {
 
   // Get sport options with gradients
   const sportOptions = useMemo(() => {
-    return sportsPreferenceData.getAllSports().map((sport) => ({
+    return sportsPreferenceData.getAllSports().map((sport: any) => ({
       value: sport.value,
       label: sport.label,
       ...(SPORT_GRADIENTS[sport.value] || {
@@ -113,7 +113,7 @@ export default function SportsYouPreffer() {
       // If sport actually changed, clear all sport-dependent fields so stale
       // prices/dates/extras from the old sport don't bleed into later steps.
       if (value !== formData.selectedSport) {
-        updateFormData({
+        updateStepData({
           selectedSport: value,
           // Clear date & price selection — these are sport-specific
           departureDate: "",
@@ -127,19 +127,19 @@ export default function SportsYouPreffer() {
           calculatedTotals: undefined,
         });
       } else {
-        updateFormData({ selectedSport: value });
+        updateStepData({ selectedSport: value });
       }
     },
-    [setValue, updateFormData, formData.selectedSport],
+    [setValue, updateStepData, formData.selectedSport],
   );
 
   // Form submission handler
   const onSubmit = useCallback(
     (data: FormData) => {
-      updateFormData({ selectedSport: data.selectedSport });
+      updateStepData({ selectedSport: data.selectedSport });
       nextStep();
     },
-    [updateFormData, nextStep],
+    [updateStepData, nextStep],
   );
 
   const buttonClassName = useMemo(
@@ -189,7 +189,7 @@ export default function SportsYouPreffer() {
             rules={{ required: "Please select a sport" }}
             render={({ field }) => (
               <>
-                {sportOptions.map((sport) => (
+                {sportOptions.map((sport: any) => (
                   <SportCard
                     key={sport.value}
                     sportOption={sport}

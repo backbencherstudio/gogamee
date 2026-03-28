@@ -142,7 +142,7 @@ const CityCard: React.FC<CityCardProps> = React.memo(
 CityCard.displayName = "CityCard";
 
 const DepartureCity: React.FC = () => {
-  const { formData, updateFormData, nextStep } = useBooking();
+  const { formData, updateStepData, nextStep } = useBooking();
 
   const { control, watch, handleSubmit, setValue } = useForm<FormData>({
     defaultValues: {
@@ -161,9 +161,9 @@ const DepartureCity: React.FC = () => {
 
   const handleCitySelect = useCallback(
     (value: string) => {
-      updateFormData({ selectedCity: value });
+      updateStepData({ selectedCity: value });
     },
-    [updateFormData],
+    [updateStepData],
   );
 
   const onSubmit = useCallback(() => {
@@ -212,7 +212,7 @@ const DepartureCity: React.FC = () => {
             control={control}
             render={({ field }) => (
               <>
-                {departureCityData.getAllCities().map((city) => (
+                {departureCityData.getAllCities().map((city: any) => (
                   <CityCard
                     key={city.value}
                     city={city}

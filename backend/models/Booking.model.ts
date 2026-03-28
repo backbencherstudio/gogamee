@@ -1,303 +1,140 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-// --- Sub-Schemas for Professional Structure ---
+// --- Sub-Schemas ---
 
-const TravelerSchema = new Schema(
-  {
-    id: { type: String }, // Frontend ID reference
-    type: { type: String, enum: ["adult", "kid", "baby"], required: true },
-    name: { type: String },
-    email: { type: String },
-    phone: { type: String },
-    dateOfBirth: { type: String },
-    documentType: { type: String, enum: ["ID", "Passport"] },
-    documentNumber: { type: String },
-    isPrimary: { type: Boolean, default: false },
-    travelerNumber: { type: Number },
+const TravelerSchema = new Schema({
+  id: String,
+  type: { type: String, enum: ["adult", "kid", "baby"], required: true },
+  name: String, email: String, phone: String, dateOfBirth: String,
+  documentType: { type: String, enum: ["ID", "Passport"] },
+  documentNumber: String,
+  isPrimary: { type: Boolean, default: false },
+  travelerNumber: Number,
+}, { _id: false });
+
+const LeagueSchema = new Schema({
+  id: { type: String, required: true },
+  name: { type: String, required: true },
+  group: { type: String, enum: ["National", "European"], required: true },
+  isSelected: { type: Boolean, default: true },
+}, { _id: false });
+
+const FlightSchema = new Schema({
+  schedule: { departureBetween: String, returnBetween: String },
+  preferences: {
+    departureTimeStart: Number, departureTimeEnd: Number,
+    arrivalTimeStart: Number, arrivalTimeEnd: Number,
+    hasPreferences: { type: Boolean, default: false },
   },
-  { _id: false },
-);
+}, { _id: false });
 
-const LeagueSchema = new Schema(
-  {
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-    group: { type: String, enum: ["National", "European"], required: true },
-    isSelected: { type: Boolean, default: true },
-  },
-  { _id: false },
-);
+const ExtraSchema = new Schema({
+  id: { type: String, required: true },
+  name: { type: String, required: true },
+  price: { type: Number, required: true },
+  quantity: { type: Number, required: true, default: 0 },
+  isSelected: { type: Boolean, default: false },
+  isIncluded: { type: Boolean, default: false },
+  currency: { type: String, default: "EUR" },
+}, { _id: false });
 
-const FlightSchema = new Schema(
-  {
-    schedule: {
-      departureBetween: { type: String }, // e.g., "06:00 - 14:00"
-      returnBetween: { type: String },
-    },
-    preferences: {
-      departureTimeStart: { type: Number },
-      departureTimeEnd: { type: Number },
-      arrivalTimeStart: { type: Number },
-      arrivalTimeEnd: { type: Number },
-      hasPreferences: { type: Boolean, default: false },
-    },
-  },
-  { _id: false },
-);
+const PriceBreakdownItemSchema = new Schema({
+  description: { type: String, required: true },
+  amount: { type: Number, required: true },
+  quantity: Number, unitPrice: Number,
+}, { _id: false });
 
-const ExtraSchema = new Schema(
-  {
-    id: { type: String, required: true },
-    name: { type: String, required: true },
-    price: { type: Number, required: true },
-    quantity: { type: Number, required: true, default: 0 },
-    isSelected: { type: Boolean, default: false },
-    isIncluded: { type: Boolean, default: false },
-    currency: { type: String, default: "EUR" },
-    isGroupOption: { type: Boolean, default: false },
-  },
-  { _id: false },
-);
+const PriceBreakdownSchema = new Schema({
+  packageCost: { type: Number, required: true },
+  extrasCost: { type: Number, default: 0 },
+  leagueRemovalCost: { type: Number, default: 0 },
+  leagueSurcharge: { type: Number, default: 0 },
+  flightPreferenceCost: { type: Number, default: 0 },
+  singleTravelerSupplement: { type: Number, default: 0 },
+  bookingFee: { type: Number, default: 0 },
+  totalCost: { type: Number, required: true },
+  currency: { type: String, default: "EUR" },
+  basePricePerPerson: { type: Number, required: true },
+  items: [PriceBreakdownItemSchema],
+}, { _id: false });
 
-const PaymentDetailsSchema = new Schema(
-  {
-    method: { type: String }, // credit, google, apple
-    stripePaymentIntentId: { type: String },
-    status: {
-      type: String,
-      enum: ["pending", "paid", "failed"],
-      default: "pending",
-    },
-    amount: { type: Number, required: true },
-    currency: { type: String, default: "EUR" },
-    timestamp: { type: Date },
-  },
-  { _id: false },
-);
-
-const PriceBreakdownItemSchema = new Schema(
-  {
-    description: { type: String, required: true },
-    amount: { type: Number, required: true },
-    quantity: { type: Number },
-    unitPrice: { type: Number },
-  },
-  { _id: false },
-);
-
-const PriceBreakdownSchema = new Schema(
-  {
-    packageCost: { type: Number, required: true },
-    extrasCost: { type: Number, default: 0 },
-    leagueRemovalCost: { type: Number, default: 0 },
-    leagueSurcharge: { type: Number, default: 0 },
-    flightPreferenceCost: { type: Number, default: 0 },
-    singleTravelerSupplement: { type: Number, default: 0 },
-    bookingFee: { type: Number, default: 0 },
-    totalBaseCost: { type: Number, required: true },
-    totalCost: { type: Number, required: true },
-    currency: { type: String, default: "EUR" },
-    basePricePerPerson: { type: Number, required: true },
-    items: [PriceBreakdownItemSchema],
-  },
-  { _id: false },
-);
-
-// --- Main Booking Interface ---
+// --- Interface ---
 
 export interface IBooking extends Document {
-  // 1. Selection Core
   selection: {
-    sport: "football" | "basketball" | "both";
-    package: "standard" | "premium" | "combined";
-    city: string;
-    league: "National" | "European"; // [NEW] Primary league category
+    sport: string; package: string; city: string;
+    league: "National" | "European";
   };
-
-  // 2. Dates
-  dates: {
-    departure: string; // ISO or YYYY-MM-DD
-    return: string;
-    durationDays: number;
-    durationNights: number;
-  };
-
-  // 3. Travelers (Unified Structure)
-  travelers: {
-    list: any[]; // Unified list of all travelers
-    totalCount: number;
-    primaryContact: any; // Snapshot of primary contact
-  };
-
-  // 4. Leagues
-  leagues: {
-    list: any[]; // Full list with selection status
-    removedCount: number;
-    hasRemovedLeagues: boolean;
-  };
-
-  // 5. Flight
-  flight: {
-    schedule: { departureBetween: string; returnBetween: string };
-    preferences: any;
-  };
-
-  // 6. Extras
-  extras: {
-    selected: any[];
-    totalCost: number;
-  };
-
-  // 7. Payment & Status
+  dates: { departure: string; return: string; durationDays: number; durationNights: number; };
+  travelers: { list: any[]; totalCount: number; primaryContact: any; };
+  leagues: { list: any[]; removedCount: number; hasRemovedLeagues: boolean; };
+  flight: any;
+  extras: { selected: any[]; totalCost: number; };
   payment: {
-    method: string;
-    stripePaymentIntentId?: string;
-    status: string;
-    amount: number;
-    currency: string;
-    timestamp?: Date;
+    method: string; stripePaymentIntentId?: string;
+    status: "pending" | "paid" | "failed";
+    amount: number; currency: string; timestamp?: Date;
   };
-
-  priceBreakdown: {
-    packageCost: number;
-    extrasCost: number;
-    leagueRemovalCost: number;
-    leagueSurcharge: number;
-    flightPreferenceCost: number;
-    singleTravelerSupplement: number;
-    bookingFee: number;
-    totalBaseCost: number;
-    totalCost: number;
-    currency: string;
-    basePricePerPerson: number;
-    items: {
-      description: string;
-      amount: number;
-      quantity?: number;
-      unitPrice?: number;
-    }[];
-  };
-
-  status: "pending" | "confirmed" | "cancelled" | "completed";
-  destinationCity?: string;
-  assignedMatch?: string;
-  bookingReference: string; // Short unique ID for users
-  totalCost: number; // Storing total cost at root for easy query
-
-  // Timestamps
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt?: Date;
+  priceBreakdown: any;
+  status: "pending" | "confirmed" | "rejected" | "completed";
+  destinationCity?: string; assignedMatch?: string;
+  bookingReference: string;
+  totalCost: number;
+  createdAt: Date; updatedAt: Date;
 }
 
 // --- Main Schema ---
 
-const BookingSchema = new Schema<IBooking>(
-  {
-    // 1. Core Selection
-    selection: {
-      sport: { type: String, required: true },
-      package: { type: String, required: true },
-      city: { type: String, required: true },
-      league: { type: String, enum: ["National", "European"] }, // [NEW]
-    },
-
-    // 2. Dates
-    dates: {
-      departure: { type: String, required: true },
-      return: { type: String, required: true },
-      durationDays: { type: Number, required: true },
-      durationNights: { type: Number, required: true },
-    },
-
-    // 3. Travelers
-    travelers: {
-      list: [TravelerSchema], // Unified list
-      totalCount: { type: Number, required: true },
-      primaryContact: { type: Schema.Types.Mixed }, // Snapshot
-    },
-
-    // 4. Leagues
-    leagues: {
-      list: [LeagueSchema],
-      removedCount: { type: Number, default: 0 },
-      hasRemovedLeagues: { type: Boolean, default: false },
-    },
-
-    // 5. Flight
-    flight: FlightSchema,
-
-    // 6. Extras
-    extras: {
-      selected: [ExtraSchema],
-      totalCost: { type: Number, default: 0 },
-    },
-
-    // 7. Payment
-    payment: PaymentDetailsSchema,
-
-    // 8. Price Breakdown
-    priceBreakdown: PriceBreakdownSchema,
-
-    // Meta
-    status: {
-      type: String,
-      enum: ["pending", "confirmed", "rejected", "completed"],
-      default: "pending",
-      index: true,
-    },
-    destinationCity: { type: String }, // For reveal
-    assignedMatch: { type: String }, // For reveal
-    bookingReference: { type: String, unique: true }, // generated pre-save
-    totalCost: { type: Number, required: true },
-    deletedAt: { type: Date, index: true },
+const BookingSchema = new Schema<IBooking>({
+  selection: {
+    sport: { type: String, required: true },
+    package: { type: String, required: true },
+    city: { type: String, required: true },
+    league: { type: String, enum: ["National", "European"] },
   },
-  {
-    timestamps: true,
-    collection: "bookings",
+  dates: {
+    departure: { type: String, required: true },
+    return: { type: String, required: true },
+    durationDays: { type: Number, required: true },
+    durationNights: { type: Number, required: true },
   },
-);
+  travelers: {
+    list: [TravelerSchema],
+    totalCount: { type: Number, required: true },
+    primaryContact: Schema.Types.Mixed,
+  },
+  leagues: {
+    list: [LeagueSchema],
+    removedCount: { type: Number, default: 0 },
+    hasRemovedLeagues: { type: Boolean, default: false },
+  },
+  flight: FlightSchema,
+  extras: {
+    selected: [ExtraSchema],
+    totalCost: { type: Number, default: 0 },
+  },
+  payment: {
+    method: String, stripePaymentIntentId: String,
+    status: { type: String, enum: ["pending", "paid", "failed"], default: "pending" },
+    amount: { type: Number, required: true },
+    currency: { type: String, default: "EUR" },
+    timestamp: Date,
+  },
+  priceBreakdown: PriceBreakdownSchema,
+  status: { type: String, enum: ["pending", "confirmed", "rejected", "completed"], default: "pending", index: true },
+  destinationCity: String, assignedMatch: String,
+  bookingReference: { type: String, unique: true },
+  totalCost: { type: Number, required: true },
+}, { timestamps: true, collection: "bookings" });
 
-// Indexes
-BookingSchema.index({ "payment.stripePaymentIntentId": 1 });
-BookingSchema.index({ "travelers.list.email": 1 }); // Updated index
-BookingSchema.index({ "selection.league": 1 }); // New index
-BookingSchema.index({ createdAt: -1 });
-
-// Generate Short Booking Reference (e.g., GG-YYYYMMDD-NNN)
+// Auto-generate Booking Reference
 BookingSchema.pre("save", async function (this: IBooking) {
-  if (!this.bookingReference) {
-    const now = new Date();
-    const year = now.getUTCFullYear();
-    const month = String(now.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(now.getUTCDate()).padStart(2, "0");
-    const dateStr = `${year}${month}${day}`;
-
-    // Find highest booking reference for today
-    const prefix = `GG-${dateStr}-`;
-    const BookingModel = mongoose.model<IBooking>("Booking");
-    const lastBooking = await BookingModel.findOne({
-      bookingReference: { $regex: `^${prefix}` },
-    }).sort({ bookingReference: -1 });
-
-    let sequenceNum = 1;
-    if (lastBooking && lastBooking.bookingReference) {
-      const lastSeqStr = lastBooking.bookingReference.split("-")[2];
-      const lastSeq = parseInt(lastSeqStr, 10);
-      if (!isNaN(lastSeq)) {
-        sequenceNum = lastSeq + 1;
-      }
-    }
-
-    const formattedSequence = String(sequenceNum).padStart(3, "0");
-    this.bookingReference = `${prefix}${formattedSequence}`;
-  }
+  if (this.bookingReference) return;
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const prefix = `GG-${dateStr}-`;
+  const last = await (this.constructor as any).findOne({ bookingReference: { $regex: `^${prefix}` } }).sort({ bookingReference: -1 });
+  const seq = last ? parseInt(last.bookingReference.split("-")[2]) + 1 : 1;
+  this.bookingReference = `${prefix}${String(seq).padStart(3, "0")}`;
 });
 
-// Force recompilation if model exists (Dev mode fix)
-if (process.env.NODE_ENV !== "production") {
-  delete mongoose.models.Booking;
-}
-
-export default mongoose.models.Booking ||
-  mongoose.model<IBooking>("Booking", BookingSchema);
+export default mongoose.models.Booking || mongoose.model<IBooking>("Booking", BookingSchema);

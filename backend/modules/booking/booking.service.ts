@@ -1,271 +1,138 @@
 import { Booking, IBooking } from "../../models";
-import {
-  connectToDatabase,
-  getCache,
-  setCache,
-  deleteCache,
-  clearCachePattern,
-} from "@/backend";
+import { connectToDatabase, getCache, setCache, deleteCache, clearCachePattern } from "@/backend";
 import type { CreateBookingData, BookingQueryOptions } from "./booking.types";
 
 class BookingService {
-  async create(data: CreateBookingData): Promise<IBooking> {
-    await connectToDatabase();
+  private async clearBookingCache(id?: string) {
+    if (id) await deleteCache(`booking:${id}`);
+    await clearCachePattern("booking:list:*");
+  }
 
-    // The data is now structured in the payload, so we can pass it mostly as-is
-    // but we can add some server-side calculated fields if needed.
+  private mapToLean(booking: any) {
+    if (!booking) return null;
+    const obj = booking.toObject ? booking.toObject() : booking;
+    const { __v, _id, ...rest } = obj;
+    const idStr = _id.toString();
+    return { id: idStr, _id: idStr, ...rest };
+  }
+
+  async create(data: CreateBookingData): Promise<any> {
+    await connectToDatabase();
     const booking = new Booking({
       ...data,
-      // Metadata/Internal fields
       status: data.status || "pending",
       payment: {
         ...data.payment,
-        status: data.payment?.status || data.payment_status || "pending",
-        stripePaymentIntentId:
-          data.payment?.stripePaymentIntentId || data.stripe_payment_intent_id,
-      },
+        status: data.payment?.status || "pending",
+      }
     });
-
     const saved = await booking.save();
-
-    // Invalidate list caches
-    await clearCachePattern("booking:list:*");
-
-    return saved;
+    await this.clearBookingCache();
+    return this.mapToLean(saved);
   }
 
-  async getAll(options: BookingQueryOptions = {}): Promise<{
-    bookings: IBooking[];
-    total: number;
-    hasMore: boolean;
-  }> {
+  async getAll(options: BookingQueryOptions = {}): Promise<any> {
     await connectToDatabase();
-
     const { filters = {}, sort, limit = 50, skip = 0 } = options;
-
     const query: any = { deletedAt: { $exists: false } };
 
-    if (filters.status) {
-      if (filters.status === "rejected") {
-        query.status = { $in: ["rejected", "cancelled"] };
-      } else {
-        query.status = filters.status;
-      }
-    }
-    if (filters.payment_status)
-      query["payment.status"] = filters.payment_status;
-    if (filters.selectedSport)
-      query["selection.sport"] = new RegExp(`^${filters.selectedSport}$`, "i");
-    if (filters.email)
-      query["travelers.primaryContact.email"] = new RegExp(filters.email, "i");
+    if (filters.status) query.status = filters.status === "rejected" ? { $in: ["rejected", "cancelled"] } : filters.status;
+    if (filters.payment_status) query["payment.status"] = filters.payment_status;
+    if (filters.selectedSport) query["selection.sport"] = new RegExp(`^${filters.selectedSport}$`, "i");
+    if (filters.email) query["travelers.primaryContact.email"] = new RegExp(filters.email, "i");
 
+    // Departure Date Filtering
     if (filters.dateFrom || filters.dateTo) {
       query["dates.departure"] = {};
       if (filters.dateFrom) query["dates.departure"].$gte = filters.dateFrom;
       if (filters.dateTo) query["dates.departure"].$lte = filters.dateTo;
     }
 
+    // Creation Date Filtering (for '7days', '30days' logic)
     if (filters.createdAtFrom || filters.createdAtTo) {
       query.createdAt = {};
-      if (filters.createdAtFrom) query.createdAt.$gte = filters.createdAtFrom;
-      if (filters.createdAtTo) query.createdAt.$lte = filters.createdAtTo;
+      if (filters.createdAtFrom) query.createdAt.$gte = new Date(filters.createdAtFrom);
+      if (filters.createdAtTo) query.createdAt.$lte = new Date(filters.createdAtTo);
     }
 
-    const sortOptions: any = sort
-      ? { [sort.field]: sort.order === "desc" ? -1 : 1 }
-      : { createdAt: -1 };
-    const bookings = await Booking.find(query)
-      .sort(sortOptions)
-      .limit(limit + 1)
-      .skip(skip);
-
-    const hasMore = bookings.length > limit;
-    const resultBookings = hasMore ? bookings.slice(0, limit) : bookings;
+    const sortOptions: any = sort ? { [sort.field]: sort.order === "desc" ? -1 : 1 } : { createdAt: -1 };
+    const bookings = await Booking.find(query).sort(sortOptions).limit(limit).skip(skip).lean();
     const total = await Booking.countDocuments(query);
 
-    return { bookings: resultBookings, total, hasMore };
+    return { 
+      bookings: bookings.map(b => this.mapToLean(b)), 
+      total, 
+      hasMore: total > skip + limit 
+    };
   }
 
-  async getById(id: string): Promise<IBooking | null> {
+  async getById(id: string): Promise<any> {
     const CACHE_KEY = `booking:${id}`;
-    const cached = await getCache<IBooking>(CACHE_KEY);
+    const cached = await getCache<any>(CACHE_KEY);
     if (cached) return cached;
 
     await connectToDatabase();
-    const booking = await Booking.findOne({
-      _id: id,
-      deletedAt: { $exists: false },
-    });
-
+    const booking = await Booking.findOne({ _id: id, deletedAt: { $exists: false } }).lean();
     if (booking) {
-      await setCache(CACHE_KEY, booking, 300); // 5 mins
+      const lean = this.mapToLean(booking);
+      await setCache(CACHE_KEY, lean, 300);
+      return lean;
     }
-
-    return booking;
+    return null;
   }
 
   async deleteById(id: string): Promise<boolean> {
     await connectToDatabase();
-    // Permanent delete instead of soft delete
     const result = await Booking.findByIdAndDelete(id);
-
-    if (result) {
-      try {
-        await deleteCache(`booking:${id}`);
-        await clearCachePattern("booking:list:*");
-      } catch (error) {
-        console.error("Cache clear failed during delete (ignored):", error);
-      }
-    }
-
+    if (result) await this.clearBookingCache(id);
     return !!result;
   }
 
-  async getByEmail(email: string): Promise<IBooking[]> {
-    // Cache by email? Maybe unnecessary if frequent real-time check.
-    // Let's add short cache.
-    const CACHE_KEY = `booking:email:${email}`;
-    const cached = await getCache<IBooking[]>(CACHE_KEY);
-    if (cached) return cached;
-
+  async findByPaymentIntentId(id: string): Promise<any> {
     await connectToDatabase();
-    const bookings = await Booking.find({
-      email: new RegExp(`^${email}$`, "i"),
-      deletedAt: { $exists: false },
-    }).sort({ createdAt: -1 });
-
-    await setCache(CACHE_KEY, bookings, 60); // 1 min short cache
-
-    return bookings;
+    const booking = await Booking.findOne({ "payment.stripePaymentIntentId": id, deletedAt: { $exists: false } }).lean();
+    return this.mapToLean(booking);
   }
 
-  async findByPaymentIntentId(
-    paymentIntentId: string,
-  ): Promise<IBooking | null> {
-    await connectToDatabase();
-    // No cache for polling real-time status? or very short cache?
-    // Since polling, direct DB is safer to get latest webhook update.
-    const booking = await Booking.findOne({
-      "payment.stripePaymentIntentId": paymentIntentId,
-      deletedAt: { $exists: false },
-    });
-    return booking;
-  }
-
-  async updateStatus(
-    id: string,
-    status: string,
-    destinationCity?: string,
-    assignedMatch?: string,
-  ): Promise<IBooking | null> {
-    await connectToDatabase();
-    // Allow updating destination/match if provided, regardless of status value.
-    // Also allow status updates (e.g. to "completed").
-    const updated = await Booking.findByIdAndUpdate(
-      id,
-      {
-        status,
-        ...(destinationCity !== undefined && { destinationCity }),
-        ...(assignedMatch !== undefined && { assignedMatch }),
-      },
-      { new: true, runValidators: true },
-    );
-
-    if (updated) {
-      await deleteCache(`booking:${id}`);
-      await clearCachePattern("booking:list:*");
-    }
-
-    return updated;
-  }
-
-  async updatePaymentStatus(
-    id: string,
-    paymentStatus: string,
-  ): Promise<IBooking | null> {
+  async updateStatus(id: string, status: string, destinationCity?: string, assignedMatch?: string): Promise<any> {
     await connectToDatabase();
     const updated = await Booking.findByIdAndUpdate(
       id,
-      {
-        "payment.status": paymentStatus,
-      },
-      { new: true },
+      { status, ...(destinationCity !== undefined && { destinationCity }), ...(assignedMatch !== undefined && { assignedMatch }) },
+      { new: true, runValidators: true }
     );
-
-    if (updated) {
-      await deleteCache(`booking:${id}`);
-      await clearCachePattern("booking:list:*");
-    }
-
-    return updated;
+    if (updated) await this.clearBookingCache(id);
+    return this.mapToLean(updated);
   }
 
-  async updateById(
-    id: string,
-    updateData: Partial<IBooking> | Record<string, any>,
-  ): Promise<IBooking | null> {
+  async updatePaymentStatus(id: string, paymentStatus: string): Promise<any> {
     await connectToDatabase();
-    const updated = await Booking.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (updated) {
-      await deleteCache(`booking:${id}`);
-      await clearCachePattern("booking:list:*");
-    }
-
-    return updated;
+    const updated = await Booking.findByIdAndUpdate(id, { "payment.status": paymentStatus }, { new: true });
+    if (updated) await this.clearBookingCache(id);
+    return this.mapToLean(updated);
   }
 
-  async getStats(): Promise<{
-    total: number;
-    completed: number;
-    pending: number;
-    rejected: number;
-    confirmed: number;
-  }> {
+  async updateById(id: string, updateData: any): Promise<any> {
     await connectToDatabase();
+    const updated = await Booking.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    if (updated) await this.clearBookingCache(id);
+    return this.mapToLean(updated);
+  }
 
+  async getStats(): Promise<any> {
+    await connectToDatabase();
     const stats = await Booking.aggregate([
       { $match: { deletedAt: { $exists: false } } },
-      {
-        $group: {
+      { $group: {
           _id: null,
           total: { $sum: 1 },
-          completed: {
-            $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] },
-          },
-          confirmed: {
-            $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] },
-          },
-          pending: {
-            $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] },
-          },
-          rejected: {
-            $sum: {
-              $cond: [
-                {
-                  $or: [
-                    { $eq: ["$status", "rejected"] },
-                    { $eq: ["$status", "cancelled"] },
-                  ],
-                },
-                1,
-                0,
-              ],
-            },
-          },
-        },
-      },
+          completed: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } },
+          confirmed: { $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] } },
+          pending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] } },
+          rejected: { $sum: { $cond: [{ $or: [{ $eq: ["$status", "rejected"] }, { $eq: ["$status", "cancelled"] }] }, 1, 0] } },
+      }}
     ]);
-
-    if (stats.length === 0) {
-      return { total: 0, completed: 0, pending: 0, rejected: 0, confirmed: 0 };
-    }
-
-    const { total, completed, pending, rejected, confirmed } = stats[0];
-    return { total, completed, pending, rejected, confirmed };
+    return stats[0] || { total: 0, completed: 0, pending: 0, rejected: 0, confirmed: 0 };
   }
 }
 

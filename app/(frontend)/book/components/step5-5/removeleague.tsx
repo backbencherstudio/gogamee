@@ -169,7 +169,7 @@ LeagueCard.displayName = "LeagueCard";
 
 // Main Component
 export default function RemoveLeague() {
-  const { formData, updateFormData, nextStep } = useBooking();
+  const { formData, updateStepData, nextStep } = useBooking();
 
   // Get the appropriate leagues based on selected sport and league type
   const availableLeagues = useMemo(() => {
@@ -233,7 +233,7 @@ export default function RemoveLeague() {
 
   // Initialize leagues from sport-specific data
   const [leagues, setLeagues] = useState<League[]>(() =>
-    availableLeagues.map((league) => ({
+    availableLeagues.map((league: any) => ({
       ...league,
       removed: false,
     })),
@@ -242,7 +242,7 @@ export default function RemoveLeague() {
   // Update leagues when availableLeagues changes
   useEffect(() => {
     setLeagues(
-      availableLeagues.map((league) => ({
+      availableLeagues.map((league: any) => ({
         ...league,
         removed: false,
       })),
@@ -293,11 +293,11 @@ export default function RemoveLeague() {
       };
     });
 
-    updateFormData({ leagues: updatedLeagues });
+    updateStepData({ leagues: updatedLeagues });
 
     // Move to next step (date selection)
     nextStep();
-  }, [leagues, formData.leagues, updateFormData, nextStep]);
+  }, [leagues, formData.leagues, updateStepData, nextStep]);
 
   // Get removal cost (using the same logic as before)
   const removalCost = BOOKING_CONSTANTS.LEAGUE_REMOVAL_COST; // Per league removal after first free

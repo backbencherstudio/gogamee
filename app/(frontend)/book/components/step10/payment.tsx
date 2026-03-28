@@ -20,12 +20,13 @@ const minutesToTime = (minutes: number): string => {
 };
 
 export default function Payment() {
-  const { formData, clearBookingData, isHydrated } = useBooking();
+  const { formData, clearBookingData, isHydrated, bookingId: contextBookingId, setBookingId: setContextBookingId, previousStep } = useBooking();
   const [isProcessing, setIsProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [localBookingId, setLocalBookingId] = useState<string | null>(contextBookingId);
   const [bookingReference, setBookingReference] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const submitRef = useRef<HTMLButtonElement>(null);
 
   // Use a ref to prevent double-initiation in React Strict Mode
   const hasInitiatedRef = useRef(false);
@@ -117,19 +118,13 @@ export default function Payment() {
         resolvedTravelers.length > 0 ? resolvedTravelers : [fallbackTraveler];
 
       const bookingPayload = {
+        // If we already have a booking ID, include it so the backend can update instead of creating
+        bookingId: contextBookingId || undefined,
+
         // Core selection
         selectedSport: workingData.selectedSport,
         selectedPackage: workingData.selectedPackage,
         selectedCity: workingData.selectedCity,
-        selectedLeague: "National", // Default, will be overridden by logic if needed or removed
-
-        // People counts (nested)
-        peopleCount: {
-          adults: formData.travelers?.adults?.length || 0,
-          kids: formData.travelers?.kids?.length || 0,
-          babies: formData.travelers?.babies?.length || 0,
-        },
-        totalPeople: normalizedTravelers.length, // Add totalPeople
 
         // Travelers (Unified)
         travelers: {
@@ -137,12 +132,6 @@ export default function Payment() {
           totalCount: normalizedTravelers.length,
           primaryContact: primaryTraveler || fallbackTraveler,
         },
-        // Legacy flat fields for compatibility if needed (can be removed if backend fully migrated)
-        firstName: primaryTraveler?.name?.split(" ")[0] || "",
-        lastName: primaryTraveler?.name?.split(" ").slice(1).join(" ") || "",
-        fullName: primaryTraveler?.name || "",
-        email: primaryTraveler?.email || "",
-        phone: primaryTraveler?.phone || "",
 
         // Leagues (full array with selection status)
         leagues: formData.leagues || [],
@@ -150,25 +139,6 @@ export default function Payment() {
         // Dates (ISO + formatted)
         departureDate: formData.departureDate || "",
         returnDate: formData.returnDate || "",
-        departureDateFormatted: formData.departureDate
-          ? new Date(formData.departureDate).toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })
-          : "",
-        returnDateFormatted: formData.returnDate
-          ? new Date(formData.returnDate).toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })
-          : "",
-
-        // Travel Duration & Flight Prefs (Legacy/Flat)
-        travelDuration: formData.duration.days || 0,
-        hasFlightPreferences: !!formData.flightSchedule,
-        requiresEuropeanLeagueHandling: false, // Default
 
         // Duration (nested)
         duration: {
@@ -213,32 +183,6 @@ export default function Payment() {
             }
           : null,
 
-        // Flat flight times for legacy compatibility
-        departureTimeStart: formData.flightSchedule?.departure.start || 0,
-        departureTimeEnd: formData.flightSchedule?.departure.end || 0,
-        arrivalTimeStart: formData.flightSchedule?.arrival.start || 0,
-        arrivalTimeEnd: formData.flightSchedule?.arrival.end || 0,
-        departureTimeRange: formData.flightSchedule
-          ? `${minutesToTime(formData.flightSchedule.departure.start)} - ${minutesToTime(formData.flightSchedule.departure.end)}`
-          : "",
-        arrivalTimeRange: formData.flightSchedule
-          ? `${minutesToTime(formData.flightSchedule.arrival.start)} - ${minutesToTime(formData.flightSchedule.arrival.end)}`
-          : "",
-
-        // League Removal Info (Legacy/Flat)
-        removedLeagues:
-          formData.leagues
-            ?.filter((l) => l.group === "National" && !l.isSelected)
-            .map((l) => l.id) || [],
-        removedLeaguesCount:
-          formData.leagues?.filter(
-            (l) => l.group === "National" && !l.isSelected,
-          ).length || 0,
-        hasRemovedLeagues:
-          (formData.leagues?.filter(
-            (l) => l.group === "National" && !l.isSelected,
-          ).length || 0) > 0,
-
         // Cost info
         totalExtrasCost: formData.calculatedTotals?.extrasCost || 0,
         extrasCount: formData.extras.filter((e) => e.isSelected).length,
@@ -246,13 +190,6 @@ export default function Payment() {
 
         // Extras (selected with proper structure)
         extras: formData.extras
-          .filter((extra) => extra.isSelected)
-          .map((extra) => ({
-            ...extra,
-            currency: "EUR",
-          })),
-
-        bookingExtras: formData.extras // Legacy name
           .filter((extra) => extra.isSelected)
           .map((extra) => ({
             ...extra,
@@ -275,7 +212,8 @@ export default function Payment() {
 
       if (data.success && data.clientSecret) {
         setClientSecret(data.clientSecret);
-        setBookingId(data.bookingId);
+        setLocalBookingId(data.bookingId);
+        setContextBookingId(data.bookingId);
         setBookingReference(data.bookingReference || data.bookingId);
       } else {
         throw new Error(data.message || "Error al crear el pago");
@@ -292,11 +230,12 @@ export default function Payment() {
     const amount = formData.calculatedTotals?.totalCost?.toFixed(2) || "0.00";
     const email = formData.travelers?.adults?.[0]?.email || "";
 
-    const reference = bookingReference || bookingId || "CONFIRMED";
+    const reference = bookingReference || localBookingId || "CONFIRMED";
     const successUrl = `/payment/success?bookingId=${reference}&amount=${amount}&email=${encodeURIComponent(email)}`;
 
-    // Redirect immediately to success page
-    window.location.href = successUrl;
+    // The success page will clear the local storage.
+    // Use replace instead of href so user cannot use browser Back button to return to payment
+    window.location.replace(successUrl);
   };
 
   const handlePaymentError = (errorMessage: string) => {
@@ -316,6 +255,7 @@ export default function Payment() {
               if (typeof window !== "undefined") {
                 localStorage.removeItem("gogame_booking_data");
                 localStorage.removeItem("gogame_booking_step");
+                localStorage.removeItem("gogame_booking_id");
                 window.location.href = "/";
               }
             }}
@@ -356,23 +296,18 @@ export default function Payment() {
       {error && (
         <div className="mb-4 p-4 bg-red-50 text-red-800 rounded">{error}</div>
       )}
+      
       <StripeProvider clientSecret={clientSecret}>
         <CustomStripeForm
-          bookingId={bookingId!}
+          bookingId={localBookingId!}
           amount={Number(formData.calculatedTotals?.totalCost || 0)}
           clientSecret={clientSecret}
           onSuccess={handlePaymentSuccess}
           onError={handlePaymentError}
+          submitRef={submitRef}
+          onBack={previousStep}
         />
       </StripeProvider>
-      <div className="mt-6">
-        <BookingNavigation 
-          onNext={() => {}} // Next is handled by Stripe form
-          showBack={true}
-          showNext={false}
-          className="w-full"
-        />
-      </div>
     </div>
   );
 }

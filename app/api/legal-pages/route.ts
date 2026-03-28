@@ -1,53 +1,29 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { SettingsService } from "@/backend";
-import { toErrorMessage } from "@/backend/lib/errors";
+import { withErrorHandling } from "@/app/lib/api-wrapper";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const page = searchParams.get("page"); // privacy, cookie, or terms
-    const lang = searchParams.get("lang") || "es"; // es (default) or en
+export const GET = withErrorHandling(async (request: NextRequest) => {
+  const { searchParams } = new URL(request.url);
+  const type = searchParams.get("page");
+  const { pages } = await SettingsService.getAllLegalPages();
 
-    const { pages } = await SettingsService.getAllLegalPages();
+  const content: any = { privacy: "", cookie: "", terms: "" };
+  pages.forEach((p: any) => { if (content[p.type] !== undefined) content[p.type] = p.content; });
 
-    // Map legal pages to expected content structure
-    const content = {
-      privacy: "",
-      cookie: "",
-      terms: "",
-    };
-
-    pages.forEach((p) => {
-      if (["privacy", "cookie", "terms"].includes(p.type)) {
-        const key = p.type as "privacy" | "cookie" | "terms";
-        content[key] = p.content;
-      }
-    });
-
-    if (page && ["privacy", "cookie", "terms"].includes(page)) {
-      const key = page as "privacy" | "cookie" | "terms";
-      return NextResponse.json({
-        success: true,
-        content: content[key] || "",
-      });
-    }
-
-    // Return all pages
+  if (type && content[type] !== undefined) {
     return NextResponse.json({
       success: true,
-      content: content,
+      message: "Legal page fetched",
+      content: content[type]
     });
-  } catch (error) {
-    console.error("Error fetching legal pages:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: toErrorMessage(error, "Failed to fetch legal pages"),
-      },
-      { status: 500 },
-    );
   }
-}
+
+  return NextResponse.json({
+    success: true,
+    message: "Legal pages fetched",
+    content
+  });
+});

@@ -121,7 +121,7 @@ const CounterItem: React.FC<CounterItemProps> = ({
 
 // Main Component
 export default function HowManyTotal() {
-  const { formData, updateFormData, nextStep } = useBooking();
+  const { formData, updateStepData, nextStep } = useBooking();
 
   // Calculate default values from existing data or defaults
   const getDefaultValues = useCallback((): CounterFormData => {
@@ -245,7 +245,7 @@ export default function HowManyTotal() {
     const babies = syncArray(data.babies, prevTravelers.babies, "baby");
 
     // Update the booking context with detailed people count AND initialized arrays
-    updateFormData({
+    updateStepData({
       travelers: {
         adults,
         kids,
