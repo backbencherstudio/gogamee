@@ -303,7 +303,7 @@ export const AppData: any = {
       },
       {
         id: "european-competition",
-        name: "Competición Europea",
+        name: "Champions League",
         image:
           "/homepage/football/CHAMPIONS_LEAGUE_(football_european_comp).png",
         country: "Europe",
@@ -500,8 +500,9 @@ export const AppData: any = {
         placeholder: "X1234567Z",
       },
       previousTravelInfo: {
-        label: "¿Has viajado antes con nosotros?",
-        placeholder: "Cuéntanos tu experiencia...",
+        label: "Observaciones",
+        placeholder:
+          "¿Has vivido ya una experiencia GoGame? Dinos a qué ciudad y evento viajaste. También puedes añadir cualquier comentario relevante que debamos tener en cuenta.",
       },
     },
     paymentMethods: [
