@@ -262,6 +262,7 @@ export async function POST(request: Request) {
       currency: "eur",
       automatic_payment_methods: {
         enabled: true,
+        allow_redirects: "never", // Disables redirect-based methods (iDEAL etc.), no return_url needed
       },
       metadata: {
         booking_id: booking.id,

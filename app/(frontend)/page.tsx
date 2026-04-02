@@ -17,14 +17,14 @@ async function getInitialData() {
       TestimonialService.getAll({ limit: 10 }),
     ]);
 
-    const initialFaqs = faqData.faqs.map((f: any) => ({
+    const initialFaqs = (faqData.faqs ?? []).filter((f: any) => f?._id != null).map((f: any) => ({
       id: f._id.toString(),
       question: f.question,
       answer: f.answer,
       sort_order: f.sortOrder || 0,
     }));
 
-    const initialReviews = testimonialData.testimonials.map((t: any) => ({
+    const initialReviews = (testimonialData.testimonials ?? []).filter((t: any) => t?._id != null).map((t: any) => ({
       id: t._id.toString(),
       name: t.name,
       role: t.role,

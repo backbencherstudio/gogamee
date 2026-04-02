@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import Image from "next/image";
 import {
   useStripe,
@@ -8,12 +8,11 @@ import {
   CardNumberElement,
   CardExpiryElement,
   CardCvcElement,
-  PaymentRequestButtonElement,
 } from "@stripe/react-stripe-js";
 import { paymentData } from "../../../../lib/appdata";
 import StripeInput from "./StripeInput";
 import { PaymentMethodOption } from "../shared/payment/PaymentMethodOption";
-import { WalletPaymentButton } from "../shared/payment/WalletPaymentButton";
+import GooglePayButton from "./GooglePayButton";
 
 interface CustomStripeFormProps {
   bookingId: string;
@@ -49,75 +48,18 @@ export default function CustomStripeForm({
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<string>("");
   const [cardholderName, setCardholderName] = useState("");
-  const [paymentRequest, setPaymentRequest] = useState<any>(null);
-  const [isWalletLoading, setIsWalletLoading] = useState(true);
-  const [walletType, setWalletType] = useState<"applePay" | "googlePay" | null>(
-    null,
+
+  // Google Pay success handler — verify with backend polling (same as card)
+  const handleWalletSuccess = useCallback(() => {
+    onSuccess();
+  }, [onSuccess]);
+
+  const handleWalletError = useCallback(
+    (errorMsg: string) => {
+      onError(errorMsg);
+    },
+    [onError],
   );
-  const [isLocalhost, setIsLocalhost] = useState(false);
-
-  // Initialize Payment Request
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsLocalhost(
-        window.location.hostname === "localhost" ||
-          window.location.hostname === "127.0.0.1",
-      );
-    }
-
-    if (stripe) {
-      const pr = stripe.paymentRequest({
-        country: "ES",
-        currency: "eur",
-        total: {
-          label: "Pago Total",
-          amount: Math.round(amount * 100), // Stripe uses cents
-        },
-        requestPayerName: true,
-        requestPayerEmail: true,
-        disableWallets: ["link"], // Force Apple/Google Pay, disable Stripe Link
-      });
-      pr.canMakePayment()
-        .then((result) => {
-          if (result) {
-            setPaymentRequest(pr);
-            // Detect which wallet is available
-            if (result.applePay) {
-              setWalletType("applePay");
-            } else if (result.googlePay) {
-              setWalletType("googlePay");
-            }
-          }
-          setIsWalletLoading(false);
-        })
-        .catch((error) => {
-          console.error(
-            "Stripe Wrapper: Error checking PaymentRequest availability:",
-            error,
-          );
-          setIsWalletLoading(false);
-        });
-
-      pr.on("paymentmethod", async (ev) => {
-        const { error: confirmError, paymentIntent } =
-          await stripe.confirmCardPayment(
-            clientSecret,
-            { payment_method: ev.paymentMethod.id },
-            { handleActions: false },
-          );
-
-        if (confirmError) {
-          ev.complete("fail");
-          onError(confirmError.message || "Pago fallido");
-        } else {
-          ev.complete("success");
-          if (paymentIntent.status === "succeeded") {
-            confirmBackend(paymentIntent.id);
-          }
-        }
-      });
-    }
-  }, [stripe, amount, clientSecret]);
 
   const confirmBackend = async (paymentIntentId: string, attempts = 0) => {
     const MAX_ATTEMPTS = 10;
@@ -361,7 +303,7 @@ export default function CustomStripeForm({
                   </div>
                 </PaymentMethodOption>
 
-                {/* Google Pay Option */}
+                {/* Google Pay Option — Official Google Pay API */}
                 <PaymentMethodOption
                   method={PAYMENT_METHODS.GOOGLE}
                   selectedPayment={selectedPayment}
@@ -379,24 +321,16 @@ export default function CustomStripeForm({
                     </div>
                   }
                 >
-                  <WalletPaymentButton
-                    isLoading={isWalletLoading}
-                    isAvailable={!!paymentRequest && walletType === "googlePay"}
-                    paymentRequest={paymentRequest}
-                    isLocalhost={isLocalhost}
-                    walletName="Google Pay"
-                    unavailableMessage={{
-                      title: "Google Pay no disponible",
-                      titleEn: "Google Pay not available",
-                      unsupported:
-                        "Google Pay no es compatible con tu dispositivo o región.",
-                      unsupportedEn:
-                        "Google Pay is not supported for your device or region.",
-                    }}
+                  <GooglePayButton
+                    amount={amount}
+                    bookingId={bookingId}
+                    clientSecret={clientSecret}
+                    onSuccess={handleWalletSuccess}
+                    onError={handleWalletError}
                   />
                 </PaymentMethodOption>
 
-                {/* Apple Pay Option */}
+                {/* Apple Pay Option — Coming Soon */}
                 <PaymentMethodOption
                   method={PAYMENT_METHODS.APPLE}
                   selectedPayment={selectedPayment}
@@ -414,21 +348,14 @@ export default function CustomStripeForm({
                     </div>
                   }
                 >
-                  <WalletPaymentButton
-                    isLoading={isWalletLoading}
-                    isAvailable={!!paymentRequest && walletType === "applePay"}
-                    paymentRequest={paymentRequest}
-                    isLocalhost={isLocalhost}
-                    walletName="Apple Pay"
-                    unavailableMessage={{
-                      title: "Apple Pay no disponible",
-                      titleEn: "Apple Pay not available",
-                      unsupported:
-                        "Apple Pay no es compatible con tu dispositivo o región.",
-                      unsupportedEn:
-                        "Apple Pay is not supported for your device or region.",
-                    }}
-                  />
+                  <div className="w-full py-4">
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800 font-['Poppins']">
+                      <p className="font-bold">Apple Pay — Próximamente</p>
+                      <p className="mt-1">
+                        Apple Pay estará disponible pronto. Mientras tanto, puedes pagar con tarjeta de crédito o Google Pay.
+                      </p>
+                    </div>
+                  </div>
                 </PaymentMethodOption>
               </div>
             </div>
