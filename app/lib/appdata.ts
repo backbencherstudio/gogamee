@@ -355,7 +355,7 @@ export const AppData: any = {
       },
       {
         id: "european-competition",
-        name: "Competición Europea",
+        name: "EuroLiga",
         image: "/homepage/basketball/EUROLEAGUE.png",
         country: "Europe",
       },
@@ -459,7 +459,7 @@ export const AppData: any = {
       arrival: "Llegada",
       backTo: "Regreso a",
       flightScheduleAdjustments: "Ajustes de Horario de Vuelo",
-      europeanCompetition: "Competición Europea",
+      europeanCompetition: "EuroLiga",
       leagueRemovals: "Eliminación de Ligas",
       singleTravelerSupplement: "Suplemento Viajero Individual",
       concept: "Concepto",

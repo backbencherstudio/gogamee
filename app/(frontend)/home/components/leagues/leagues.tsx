@@ -173,6 +173,14 @@ export default function SportsLeagues() {
           </p>
         </div>
       </div>
+      
+      <div className="w-full max-w-[1200px] flex justify-center mt-[-1rem]">
+        <div className="max-w-[800px] text-center">
+            <p className="text-zinc-500 text-xs md:text-sm font-poppins leading-relaxed mt-2">
+                Todos los nombres, logotipos y referencias a ligas, equipos o competiciones son propiedad de sus respectivos titulares. Su uso es exclusivamente informativo y no implica ninguna forma de relación, colaboración, patrocinio ni afiliación con dichas entidades.
+            </p>
+        </div>
+      </div>
 
       <Link href="/packages">
         <div className="px-4 py-2.5 bg-[#76C043] hover:bg-lime-600 rounded-[999px] inline-flex justify-center items-center gap-2.5 cursor-pointer text-center text-white text-sm sm:text-base lg:text-lg font-normal font-poppins leading-7">
