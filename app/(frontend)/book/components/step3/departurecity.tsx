@@ -203,7 +203,7 @@ const DepartureCity: React.FC = () => {
       <div className="flex flex-col justify-between xl:h-[calc(100%-80px)] h-auto gap-8 xl:gap-0">
         {/* Cities Grid */}
         <div
-          className="grid grid-cols-2 xl:grid-cols-3 gap-3 xl:gap-4 mb-6 xl:mb-8"
+          className="grid grid-cols-2 gap-3 xl:gap-4 mb-6 xl:mb-8"
           role="group"
           aria-label="City selection"
         >

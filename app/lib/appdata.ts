@@ -38,8 +38,6 @@ export const AppData: any = {
       { id: 2, name: "Barcelona", country: "Spain" },
       { id: 3, name: "Málaga", country: "Spain" },
       { id: 4, name: "Valencia", country: "Spain" },
-      { id: 5, name: "Alicante", country: "Spain" },
-      { id: 6, name: "Bilbao", country: "Spain" },
     ],
     peopleCategories: [
       {
@@ -152,22 +150,6 @@ export const AppData: any = {
         accent: "hover:from-blue-500",
         country: "Spain",
         description: "Modern city",
-      },
-      {
-        value: "alicante",
-        label: "Alicante",
-        gradient: "from-orange-600",
-        accent: "hover:from-orange-500",
-        country: "Spain",
-        description: "Coastal gem",
-      },
-      {
-        value: "bilbao",
-        label: "Bilbao",
-        gradient: "from-red-600",
-        accent: "hover:from-red-500",
-        country: "Spain",
-        description: "Industrial city",
       },
     ],
     getAllCities: function (): DepartureCity[] {

@@ -49,84 +49,35 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
 
-    // Send user/client confirmation emails via queue when admin confirms.
+    // Send user/client confirmation email via queue when admin confirms.
     // Admin already received their notification when payment was made (Stripe webhook).
+    // NOTE: The destination reveal email is sent manually by the team.
     if (status === "confirmed") {
       const clientEmail = updated.travelers?.primaryContact?.email;
 
       if (!clientEmail) {
         console.error(`❌ No client email for booking ${id} — skipping email`);
       } else {
-        const departureDate = new Date(updated.dates?.departure || "");
-        const now = new Date();
-        const revealTime = new Date(
-          departureDate.getTime() - 48 * 60 * 60 * 1000,
-        );
-        const isWithin48Hours = revealTime.getTime() <= now.getTime();
-        const delayMs = isWithin48Hours
-          ? 0
-          : revealTime.getTime() - now.getTime();
-
         try {
-          if (!isWithin48Hours) {
-            // 1. Immediate hidden confirmation email
-            const immediateContent = generateUserEmailContent(updated, {
-              showReveal: false,
-            });
-            await emailQueue.addToQueue({
-              to: clientEmail,
-              subject: immediateContent.subject,
-              html: immediateContent.htmlContent,
-              text: immediateContent.subject,
-              from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
-              type: "booking",
-              bookingId: id,
-            });
-            console.log(
-              `✅ Immediate confirmation email queued for client: ${clientEmail}`,
-            );
-
-            // 2. Delayed reveal email (48h before departure)
-            const revealContent = generateUserEmailContent(updated, {
-              showReveal: true,
-            });
-            await emailQueue.addToQueue(
-              {
-                to: clientEmail,
-                subject: revealContent.subject,
-                html: revealContent.htmlContent,
-                text: revealContent.subject,
-                from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
-                type: "booking",
-                bookingId: id,
-                requiresStatusCheck: true,
-              },
-              { delay: delayMs },
-            );
-            console.log(
-              `✅ Reveal email scheduled for ${Math.round(delayMs / 1000 / 60 / 60)}h from now`,
-            );
-          } else {
-            // Departure within 48h — send revealed version immediately
-            const revealContent = generateUserEmailContent(updated, {
-              showReveal: true,
-            });
-            await emailQueue.addToQueue({
-              to: clientEmail,
-              subject: revealContent.subject,
-              html: revealContent.htmlContent,
-              text: revealContent.subject,
-              from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
-              type: "booking",
-              bookingId: id,
-            });
-            console.log(
-              `✅ Reveal email queued immediately (within 48h window) for: ${clientEmail}`,
-            );
-          }
+          // Send immediate booking confirmation email (destination hidden)
+          const immediateContent = generateUserEmailContent(updated, {
+            showReveal: false,
+          });
+          await emailQueue.addToQueue({
+            to: clientEmail,
+            subject: immediateContent.subject,
+            html: immediateContent.htmlContent,
+            text: immediateContent.subject,
+            from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+            type: "booking",
+            bookingId: id,
+          });
+          console.log(
+            `✅ Booking confirmation email queued for client: ${clientEmail}`,
+          );
         } catch (queueError) {
           console.error(
-            `❌ Failed to queue email for booking ${id}:`,
+            `❌ Failed to queue confirmation email for booking ${id}:`,
             queueError,
           );
         }

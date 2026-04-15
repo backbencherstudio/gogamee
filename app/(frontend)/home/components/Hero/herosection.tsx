@@ -25,8 +25,6 @@ const heroData = {
     { id: 2, name: "Barcelona", country: "Spain" },
     { id: 3, name: "Málaga", country: "Spain" },
     { id: 4, name: "Valencia", country: "Spain" },
-    { id: 5, name: "Alicante", country: "Spain" },
-    { id: 6, name: "Bilbao", country: "Spain" },
   ],
 
   peopleCategories: [

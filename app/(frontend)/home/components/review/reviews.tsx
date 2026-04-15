@@ -11,7 +11,6 @@ import {
   getAllTestimonials,
   TestimonialItem,
 } from "../../../../../services/testimonialService";
-import { formatTimeAgo } from "../../../../lib/utils";
 
 // Import Swiper styles
 import "swiper/css";
@@ -132,7 +131,7 @@ export default function Reviews({ initialReviews = [] }: ReviewsProps) {
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-2">
-                    <div className="flex gap-0.5 mb-1.5 justify-end">
+                    <div className="flex gap-0.5 justify-end">
                       {[...Array(review.rating)].map((_, i) => (
                         <AiFillStar
                           key={i}
@@ -146,9 +145,6 @@ export default function Reviews({ initialReviews = [] }: ReviewsProps) {
                         />
                       ))}
                     </div>
-                    <p className="text-xs md:text-sm text-zinc-500 whitespace-nowrap">
-                      <span>{formatTimeAgo(review.created_at, "es")}</span>
-                    </p>
                   </div>
                 </div>
 

@@ -81,7 +81,9 @@ export default function Extras() {
   const watchedExtras = useWatch({ control, name: "extras" });
   const extras = useMemo(() => watchedExtras ?? [], [watchedExtras]);
 
-  // Update quantities for group options and included extras (like Underseat bag) when total travelers changes
+  // Update quantities for group options and included extras when total travelers changes.
+  // Using only [totalTravelers] as dependency — getValues/setValue are stable react-hook-form
+  // refs and do NOT need to be listed; adding them caused the effect to skip re-runs.
   useEffect(() => {
     const currentExtras = getValues("extras");
     const updatedExtras = currentExtras.map((extra) => {
@@ -97,8 +99,9 @@ export default function Extras() {
         return { ...extra, quantity: 1, isSelected: false };
       }
 
-      // Clamp quantity for individual extras when total travelers changes
-      if (!extra.isGroupOption && !extra.isIncluded && extra.isSelected) {
+      // Clamp quantity for individual extras (e.g. extra-luggage) when
+      // totalTravelers decreases so the stored value never exceeds the new max.
+      if (!extra.isGroupOption && !extra.isIncluded) {
         const maxQuantity =
           extra.id === "extra-luggage"
             ? totalTravelers
@@ -111,7 +114,8 @@ export default function Extras() {
       return extra;
     });
     setValue("extras", updatedExtras, { shouldDirty: true });
-  }, [totalTravelers, setValue, getValues]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [totalTravelers]); // intentionally omit stable refs (getValues, setValue)
 
   // Memoized calculations
   const totalExtrasCost = useMemo(() => {
@@ -204,7 +208,13 @@ export default function Extras() {
   );
 
   const renderQuantityControls = (extra: ExtraService) => {
-    const displayQuantity = extra.id === "extra-luggage" && extra.isSelected ? Math.max(1, extra.quantity) : extra.quantity;
+    // Always clamp extra-luggage display to the current traveler max to give
+    // immediate visual feedback even before the async useEffect fires.
+    const maxQty = extra.id === "extra-luggage" ? totalTravelers : extra.maxQuantity || 10;
+    const displayQuantity =
+      extra.id === "extra-luggage" && extra.isSelected
+        ? Math.min(maxQty, Math.max(1, extra.quantity))
+        : extra.quantity;
 
     if (extra.isIncluded && extra.id === "underseat-bag") {
       return (
