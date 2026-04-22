@@ -69,6 +69,7 @@ export interface CreateBookingData {
 
   // Metadata / Root Query Fields
   totalCost: number;
+  previousTravelInfo?: string;
   isBookingComplete?: boolean;
 
   // Root level legacy fields (Optional for transition)

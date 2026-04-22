@@ -151,7 +151,7 @@ const termsContentEN = `
   <h3>3. Booking Process</h3>
   <p>GoGame allows users to select their desired sport, departure city, and match level (standard or premium). Based on your selections, GoGame will organize your entire travel package, including flights, hotel accommodations, and match tickets.</p>
   <ul>
-    <li>The destination or event details will remain undisclosed until 48 hours before departure.</li>
+    <li>The destination or event details may remain undisclosed until GoGame shares them with you before departure.</li>
   </ul>
   
   <h3>4. Surprise Pack</h3>

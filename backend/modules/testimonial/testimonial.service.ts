@@ -9,7 +9,7 @@ class TestimonialService {
     if (!testimonial) return null;
     const obj = testimonial.toObject ? testimonial.toObject() : testimonial;
     const { __v, _id, ...rest } = obj;
-    return { id: _id.toString(), ...rest };
+    return { id: _id?.toString() || obj.id || "", ...rest };
   }
 
   async create(data: CreateTestimonialData): Promise<any> {

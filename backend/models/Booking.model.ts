@@ -78,6 +78,7 @@ export interface IBooking extends Document {
   priceBreakdown: any;
   status: "pending" | "confirmed" | "rejected" | "completed";
   destinationCity?: string; assignedMatch?: string;
+  previousTravelInfo?: string;
   bookingReference: string;
   totalCost: number;
   createdAt: Date; updatedAt: Date;
@@ -123,6 +124,7 @@ const BookingSchema = new Schema<IBooking>({
   priceBreakdown: PriceBreakdownSchema,
   status: { type: String, enum: ["pending", "confirmed", "rejected", "completed"], default: "pending", index: true },
   destinationCity: String, assignedMatch: String,
+  previousTravelInfo: String,
   bookingReference: { type: String, unique: true },
   totalCost: { type: Number, required: true },
 }, { timestamps: true, collection: "bookings" });

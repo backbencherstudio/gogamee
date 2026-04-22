@@ -18,14 +18,14 @@ async function getInitialData() {
     ]);
 
     const initialFaqs = faqData.faqs.map((f: any) => ({
-      id: f._id.toString(),
+      id: f._id?.toString() || f.id || "",
       question: f.question,
       answer: f.answer,
       sort_order: f.sortOrder || 0,
     }));
 
     const initialReviews = testimonialData.testimonials.map((t: any) => ({
-      id: t._id.toString(),
+      id: t._id?.toString() || t.id || "",
       name: t.name,
       role: t.role,
       image: t.image,

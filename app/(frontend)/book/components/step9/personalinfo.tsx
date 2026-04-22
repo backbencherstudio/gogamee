@@ -605,6 +605,7 @@ export default function Personalinfo() {
       paymentInfo: {
         ...formData.paymentInfo,
       },
+      previousTravelInfo: data.previousTravelInfo?.trim() || "",
     });
 
     // Clear localStorage after successful submission

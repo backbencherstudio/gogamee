@@ -187,6 +187,7 @@ export default function Payment() {
         totalExtrasCost: formData.calculatedTotals?.extrasCost || 0,
         extrasCount: formData.extras.filter((e) => e.isSelected).length,
         totalCost: formData.calculatedTotals?.totalCost?.toFixed(2) || "0.00",
+        previousTravelInfo: workingData.previousTravelInfo || "",
 
         // Extras (selected with proper structure)
         extras: formData.extras

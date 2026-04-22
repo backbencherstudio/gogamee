@@ -28,12 +28,6 @@ export async function PATCH(request: Request, context: RouteContext) {
         { status: 400 },
       );
     }
-    if (status === "confirmed" && (!destinationCity || !assignedMatch)) {
-      return NextResponse.json(
-        { message: "Destination City and Assigned Match are required" },
-        { status: 400 },
-      );
-    }
 
     const updated = await BookingService.updateStatus(
       id,

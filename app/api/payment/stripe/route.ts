@@ -62,6 +62,7 @@ interface CreateBookingPayload {
   } | null;
 
   extras: ExtraService[];
+  previousTravelInfo?: string;
   paymentInfo: {
     cardholderName: string;
   };
@@ -237,6 +238,7 @@ export async function POST(request: Request) {
 
       // Root level fields for compatibility and queries
       totalCost: calculatedTotalCost,
+      previousTravelInfo: payload.previousTravelInfo?.trim() || "",
       isBookingComplete: false,
     };
 

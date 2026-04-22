@@ -116,7 +116,7 @@ export function generateUserEmailContent(
   booking: IBooking,
   options?: { showReveal?: boolean },
 ) {
-  const showReveal = options?.showReveal ?? true;
+  const showReveal = options?.showReveal ?? false;
   const bookingData = booking as unknown as BookingData;
   const bookingId =
     bookingData.bookingReference ||

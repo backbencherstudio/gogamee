@@ -378,7 +378,7 @@ export default function BookingSummaryModal({
             <Card className="border border-gray-300 bg-white">
               <CardHeader className="pb-3 border-b border-gray-200">
                 <CardTitle className="text-lg font-bold text-black">
-                  Previous Travel Information
+                  Observaciones
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
@@ -759,18 +759,10 @@ export default function BookingSummaryModal({
               </span>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
-              <div className="p-3 bg-gray-50 rounded border border-gray-200">
-                <p className="text-xs text-gray-600">
-                  Reveal destination and match details to customers 48 hours
-                  before departure. Ensure these fields are filled before
-                  approving the booking.
-                </p>
-              </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-gray-500 uppercase">
-                    Destination City *
+                    Destination City
                   </label>
                   <input
                     type="text"
@@ -780,12 +772,11 @@ export default function BookingSummaryModal({
                     }}
                     placeholder="e.g., London, Paris, Milan"
                     className="w-full px-3 py-2 bg-white border border-gray-300 rounded focus:ring-2 focus:ring-[#6AAD3C] focus:border-[#6AAD3C] outline-none transition-all text-sm"
-                    required
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-gray-500 uppercase">
-                    Assigned Match *
+                    Assigned Match
                   </label>
                   <input
                     type="text"
@@ -795,7 +786,6 @@ export default function BookingSummaryModal({
                     }}
                     placeholder="e.g., Real Madrid vs Barcelona"
                     className="w-full px-3 py-2 bg-white border border-gray-300 rounded focus:ring-2 focus:ring-[#6AAD3C] focus:border-[#6AAD3C] outline-none transition-all text-sm"
-                    required
                   />
                 </div>
               </div>
@@ -814,18 +804,6 @@ export default function BookingSummaryModal({
               <Button
                 onClick={async () => {
                   if (isProcessing) return;
-
-                  if (!destinationCity.trim() || !assignedMatch.trim()) {
-                    const title = "Missing Details";
-                    const description =
-                      "Please fill in Destination City and Assigned Match before approving.";
-                    addToast({
-                      type: "error",
-                      title,
-                      description,
-                    });
-                    return;
-                  }
 
                   setIsProcessing(true);
                   try {

@@ -119,6 +119,7 @@ export interface BookingContextType {
       duration: number;
       nights: number;
     };
+    previousTravelInfo: string;
     fromHero: boolean;
   };
   bookingId: string | null;
@@ -181,6 +182,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
       cardholderName: "",
     },
     calculatedTotals: undefined,
+    previousTravelInfo: "",
     fromHero: false,
   });
 
