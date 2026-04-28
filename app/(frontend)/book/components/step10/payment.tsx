@@ -187,6 +187,7 @@ export default function Payment() {
         totalExtrasCost: formData.calculatedTotals?.extrasCost || 0,
         extrasCount: formData.extras.filter((e) => e.isSelected).length,
         totalCost: formData.calculatedTotals?.totalCost?.toFixed(2) || "0.00",
+        discountCode: formData.discountCode || formData.appliedCode?.code || "",
         previousTravelInfo: workingData.previousTravelInfo || "",
 
         // Extras (selected with proper structure)
@@ -211,7 +212,15 @@ export default function Payment() {
 
       const data = await response.json();
 
-      if (data.success && data.clientSecret) {
+      if (data.success && data.paidWithoutPayment) {
+        setLocalBookingId(data.bookingId);
+        setContextBookingId(data.bookingId);
+        setBookingReference(data.bookingReference || data.bookingId);
+        const email = formData.travelers?.adults?.[0]?.email || "";
+        window.location.replace(
+          `/payment/success?bookingId=${data.bookingReference || data.bookingId}&amount=0.00&email=${encodeURIComponent(email)}`,
+        );
+      } else if (data.success && data.clientSecret) {
         setClientSecret(data.clientSecret);
         setLocalBookingId(data.bookingId);
         setContextBookingId(data.bookingId);

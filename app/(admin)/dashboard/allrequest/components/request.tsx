@@ -19,6 +19,14 @@ import {
   deleteBooking,
   type BookingItem,
 } from "../../../../../services/bookingService";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../../../components/ui/table";
 export default function EventReqTable() {
   const [activeTab, setActiveTab] = useState("all");
   const [timeFilter, setTimeFilter] = useState("alltime");
@@ -330,74 +338,74 @@ export default function EventReqTable() {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
+            <div>
+              <Table>
+                <TableHeader className="bg-gray-50">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Booking ID & Date
-                    </th>
-                    <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Customer & Sport
-                    </th>
-                    <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Travel Details
-                    </th>
-                    <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Booking Info
-                    </th>
-                    <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Booking Status
-                    </th>
-                    <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Payment Status
-                    </th>
-                    <th className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    </TableHead>
+                    <TableHead className="px-6 py-4 text-left whitespace-nowrap text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="bg-white divide-y divide-gray-100">
                   {loading
                     ? Array.from({ length: 5 }).map((_, index) => (
-                        <tr key={index} className="animate-pulse">
-                          <td className="px-6 py-4">
+                        <TableRow key={index} className="animate-pulse">
+                          <TableCell className="px-6 py-4">
                             <div className="h-4 bg-gray-200 rounded w-28 mb-2"></div>
                             <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
                             <div className="h-3 bg-gray-100 rounded w-16"></div>
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
                             <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
                             <div className="h-3 bg-gray-100 rounded w-48 mb-1"></div>
                             <div className="h-5 bg-gray-200 rounded w-20 mt-2"></div>
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
                             <div className="h-4 bg-gray-200 rounded w-28 mb-2"></div>
                             <div className="h-3 bg-gray-100 rounded w-32 mb-1"></div>
                             <div className="h-3 bg-gray-100 rounded w-24"></div>
                             <div className="h-5 bg-gray-200 rounded w-16 mt-2"></div>
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
                             <div className="h-4 bg-gray-200 rounded w-16 mb-2"></div>
                             <div className="h-3 bg-gray-100 rounded w-24 mb-1"></div>
                             <div className="h-3 bg-gray-100 rounded w-20"></div>
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
                             <div className="h-6 bg-gray-200 rounded-full w-24"></div>
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
                             <div className="h-6 bg-gray-200 rounded-full w-20"></div>
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
                             <div className="flex gap-2">
                               <div className="h-8 w-24 bg-gray-200 rounded-lg"></div>
                               <div className="h-8 w-8 bg-gray-200 rounded-lg"></div>
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))
                     : bookings.map((booking) => (
-                        <tr
+                        <TableRow
                           key={
                             booking.bookingReference ||
                             booking._id ||
@@ -405,7 +413,7 @@ export default function EventReqTable() {
                           }
                           className="hover:bg-gray-50 transition-colors"
                         >
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <TableCell className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-bold text-gray-900 mb-1">
                               {booking.bookingReference ||
                                 `REQ-${String(booking.id || booking._id).slice(0, 8)}`}
@@ -416,8 +424,8 @@ export default function EventReqTable() {
                             <div className="text-xs text-gray-500">
                               {formatTime(booking.createdAt)}
                             </div>
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
                             <div>
                               <div className="text-sm font-semibold text-gray-900">
                                 {booking.travelers?.primaryContact?.name ||
@@ -437,8 +445,8 @@ export default function EventReqTable() {
                                 </span>
                               </div>
                             </div>
-                          </td>
-                          <td className="px-6 py-4">
+                          </TableCell>
+                          <TableCell className="px-6 py-4">
                             <div className="space-y-1">
                               <div className="flex items-center text-sm text-gray-900 font-medium">
                                 <FaMapMarkerAlt className="w-3 h-3 mr-2 text-gray-400" />
@@ -464,8 +472,8 @@ export default function EventReqTable() {
                                 </span>
                               </div>
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          </TableCell>
+                          <TableCell className="px-6 py-4 whitespace-nowrap">
                             <div className="space-y-1">
                               <div className="flex items-center text-sm text-gray-900 font-bold">
                                 <span className="text-gray-400 mr-2 text-xs">
@@ -480,22 +488,22 @@ export default function EventReqTable() {
                                 {booking.dates?.durationDays} days travel
                               </div>
                             </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          </TableCell>
+                          <TableCell className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusStyle(booking.status)}`}
                             >
                               {getStatusText(booking.status)}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          </TableCell>
+                          <TableCell className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getPaymentStatusStyle(booking.payment?.status)}`}
                             >
                               {getPaymentStatusText(booking.payment?.status)}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          </TableCell>
+                          <TableCell className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-2">
                               <BookingSummaryModal
                                 bookingData={{
@@ -523,11 +531,11 @@ export default function EventReqTable() {
                                 <FaTrash size={12} />
                               </button>
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                </tbody>
-              </table>
+                </TableBody>
+              </Table>
             </div>
 
             {/* Empty State */}

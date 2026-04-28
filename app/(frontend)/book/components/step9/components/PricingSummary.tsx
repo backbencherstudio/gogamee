@@ -19,6 +19,8 @@ interface PricingSummaryProps {
     standardPassengerCount?: number;
     totalWithBabies?: number;
     babyCount?: number;
+    discountAmount?: number;
+    subtotalBeforeDiscount?: number;
     grandTotal: number;
   };
   formData: {
@@ -187,6 +189,17 @@ export function PricingSummary({
                   <div className="text-neutral-800 text-sm font-medium font-['Poppins']">
                     {BOOKING_CONSTANTS.BOOKING_FEE.toFixed(2)}€
                   </div>
+                </div>
+              </div>
+            )}
+
+            {(reservationData.discountAmount || 0) > 0 && (
+              <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                <span className="text-lime-700 text-sm font-medium font-['Poppins']">
+                  Codigo de descuento o regalo
+                </span>
+                <div className="text-right text-lime-700 text-sm font-medium font-['Poppins']">
+                  -{(reservationData.discountAmount || 0).toFixed(2)}€
                 </div>
               </div>
             )}
@@ -373,6 +386,23 @@ export function PricingSummary({
             </div>
           )}
 
+          {(reservationData.discountAmount || 0) > 0 && (
+            <div className="w-full grid grid-cols-4 gap-4 py-3 border-b border-gray-100">
+              <div className="text-left text-lime-700 text-base font-medium font-['Poppins'] leading-none">
+                Codigo de descuento o regalo
+              </div>
+              <div className="text-center text-lime-700 text-base font-normal font-['Poppins'] leading-none">
+                -
+              </div>
+              <div className="text-center text-lime-700 text-base font-normal font-['Poppins'] leading-none">
+                x1
+              </div>
+              <div className="text-right text-lime-700 text-base font-medium font-['Poppins'] leading-none">
+                -{(reservationData.discountAmount || 0).toFixed(2)}€
+              </div>
+            </div>
+          )}
+
           {/* Subtotal Row */}
           <div className="w-full grid grid-cols-4 gap-4 py-3 border-t-2 border-gray-300">
             <div className="text-left text-neutral-800 text-base font-semibold font-['Poppins'] leading-none">
@@ -472,6 +502,17 @@ export function PricingSummary({
                 </span>
                 <span className="text-neutral-800 text-sm font-medium font-['Poppins']">
                   {reservationData.removalTotal.toFixed(2)}€
+                </span>
+              </div>
+            )}
+
+            {(reservationData.discountAmount || 0) > 0 && (
+              <div className="flex justify-between items-center py-2 border-b border-lime-200">
+                <span className="text-lime-700 text-sm font-medium font-['Poppins']">
+                  Codigo de descuento o regalo
+                </span>
+                <span className="text-lime-700 text-sm font-semibold font-['Poppins']">
+                  -{(reservationData.discountAmount || 0).toFixed(2)}€
                 </span>
               </div>
             )}

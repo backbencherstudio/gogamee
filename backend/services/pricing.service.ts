@@ -1,6 +1,7 @@
 import { connectToDatabase } from "..";
 import { toErrorMessage } from "../lib/errors";
 import { DateManagement, StartingPrice } from "../models";
+import { codeService } from "./code.service";
 
 export const PricingConfig = {
   leagueSurcharge: { european: 50, national: 0 },
@@ -33,6 +34,7 @@ export interface PriceCalculationInput {
   departureTimeEnd?: number;
   arrivalTimeStart?: number;
   arrivalTimeEnd?: number;
+  discountCode?: string;
 }
 
 export class PricingService {
@@ -56,17 +58,40 @@ export class PricingService {
     const leagueRemovalCost = this.calculateRemovalCost(input.removedLeaguesCount, input.hasRemovedLeagues, pricingPeopleCount, selectedLeague);
     const flightPrefCost = this.calculateFlightCost(input) * pricingPeopleCount;
 
-    const totalCost = packageCost + babySupplement + leagueSurcharge + singleSupplement + extrasCost + leagueRemovalCost + flightPrefCost + PricingConfig.bookingFee;
+    const subtotal = packageCost + babySupplement + leagueSurcharge + singleSupplement + extrasCost + leagueRemovalCost + flightPrefCost + PricingConfig.bookingFee;
+    const appliedCode = input.discountCode
+      ? await codeService.validate(input.discountCode, subtotal)
+      : null;
+    if (input.discountCode && appliedCode && !appliedCode.valid) {
+      throw new Error(appliedCode.message);
+    }
+    const discountAmount =
+      appliedCode?.valid && appliedCode.discountAmount
+        ? Number(appliedCode.discountAmount)
+        : 0;
+    const totalCost = Math.max(0, subtotal - discountAmount);
 
     const breakdown = this.buildBreakdown(input, {
       packageCost, basePricePerPerson, pricingPeopleCount, babySupplement, babiesCount,
-      leagueSurcharge, extrasCost, leagueRemovalCost, flightPrefCost, singleSupplement
+      leagueSurcharge, extrasCost, leagueRemovalCost, flightPrefCost, singleSupplement, discountAmount
     });
 
     return {
       packageCost, extrasCost, leagueRemovalCost, leagueSurcharge, 
       flightPreferenceCost: flightPrefCost, singleTravelerSupplement: singleSupplement,
-      bookingFee: PricingConfig.bookingFee, totalBaseCost: packageCost, totalCost,
+      bookingFee: PricingConfig.bookingFee, totalBaseCost: packageCost, subtotal,
+      discountAmount, totalCost,
+      appliedCode:
+        appliedCode?.valid && appliedCode.code
+          ? {
+              codeId: appliedCode.code._id?.toString() || appliedCode.code.id,
+              code: appliedCode.code.code,
+              codeKind: appliedCode.code.codeKind,
+              discountType: appliedCode.code.discountType,
+              value: appliedCode.code.value,
+              discountAmount,
+            }
+          : null,
       currency: "EUR", basePricePerPerson, breakdown
     };
   }
@@ -164,6 +189,7 @@ export class PricingService {
     if (vals.leagueRemovalCost > 0) items.push({ description: "League Removals", amount: vals.leagueRemovalCost, quantity: vals.pricingPeopleCount, unitPrice: vals.leagueRemovalCost / vals.pricingPeopleCount });
     if (vals.flightPrefCost > 0) items.push({ description: "Flight Preferences", amount: vals.flightPrefCost, quantity: vals.pricingPeopleCount, unitPrice: vals.flightPrefCost / vals.pricingPeopleCount });
     if (vals.singleSupplement > 0) items.push({ description: "Single Traveler Supplement", amount: vals.singleSupplement, quantity: 1, unitPrice: PricingConfig.singleTravelerSupplement });
+    if (vals.discountAmount > 0) items.push({ description: "Codigo de descuento o regalo", amount: -vals.discountAmount, quantity: 1, unitPrice: -vals.discountAmount });
 
     return items;
   }

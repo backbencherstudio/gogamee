@@ -53,6 +53,7 @@ export default function Menu() {
   const menuItems = [
     { label: "Inicio", href: "/" },
     { label: "Packs", href: "/packages" },
+    { label: "Regala GoGame", href: "/regala-gogame" },
     { label: "Preguntas frecuentes", href: "/faqs" },
     { label: "Sobre nosotros", href: "/about" },
   ];
@@ -108,7 +109,7 @@ export default function Menu() {
         </div>
 
         {/* Navigation Links - Desktop */}
-        <div className="hidden lg:flex justify-center items-center gap-14">
+        <div className="hidden lg:flex justify-center items-center gap-8">
           {menuItems.map((item, index) => (
             <Link
               key={index}

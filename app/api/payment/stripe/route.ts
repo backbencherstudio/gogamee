@@ -3,6 +3,49 @@ import Stripe from "stripe";
 import { BookingService } from "@/backend";
 import { toErrorMessage } from "@/backend/lib/errors";
 import { PricingService } from "@/backend/services/pricing.service";
+import { codeService } from "@/backend/services/code.service";
+import { transactionService } from "@/backend/services/transaction.service";
+import { emailQueue } from "@/backend/lib/email-queue";
+
+async function queueGiftCardUsageEmail(params: {
+  giftCode: any;
+  redemption: any;
+  bookingEmail?: string;
+}) {
+  const { giftCode, redemption, bookingEmail } = params;
+  const recipientEmail =
+    giftCode?.recipientEmail || bookingEmail || giftCode?.buyerEmail;
+  if (!recipientEmail || !redemption) return;
+
+  const previous = Number(redemption.previousRemainingAmount || 0).toFixed(2);
+  const used = Number(redemption.usedAmount || 0).toFixed(2);
+  const remaining = Number(redemption.remainingAmount || 0).toFixed(2);
+  const bookingRef = redemption.bookingReference || redemption.bookingId || "-";
+
+  await emailQueue.addToQueue({
+    to: recipientEmail,
+    subject: `Uso de tu tarjeta regalo ${giftCode.code}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #1f2937; max-width: 640px; margin: 0 auto;">
+        <div style="background: #76C043; color: white; padding: 20px; border-radius: 10px 10px 0 0;">
+          <h2 style="margin: 0;">Tu tarjeta regalo se ha utilizado</h2>
+        </div>
+        <div style="border: 1px solid #e5e7eb; border-top: 0; padding: 20px; border-radius: 0 0 10px 10px;">
+          <p><strong>Código:</strong> ${giftCode.code}</p>
+          <p><strong>Reserva:</strong> ${bookingRef}</p>
+          <p><strong>Balance anterior:</strong> ${previous} EUR</p>
+          <p><strong>Importe utilizado:</strong> ${used} EUR</p>
+          <p><strong>Balance restante:</strong> ${remaining} EUR</p>
+        </div>
+      </div>
+    `,
+    text: `Tarjeta ${giftCode.code} usada. Balance anterior ${previous} EUR, usado ${used} EUR, restante ${remaining} EUR.`,
+    from: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+    replyTo: process.env.MAIL_FROM ?? process.env.MAIL_USER,
+    type: "gift_card",
+    bookingId: redemption.bookingId || "",
+  });
+}
 
 function getStripeInstance() {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -72,6 +115,7 @@ interface CreateBookingPayload {
     totalCount: number;
     primaryContact: Traveler;
   };
+  discountCode?: string;
 }
 
 export async function POST(request: Request) {
@@ -126,6 +170,7 @@ export async function POST(request: Request) {
       departureTimeEnd: payload.flightSchedule?.departure.end,
       arrivalTimeStart: payload.flightSchedule?.arrival.start,
       arrivalTimeEnd: payload.flightSchedule?.arrival.end,
+      discountCode: payload.discountCode,
     });
 
     const calculatedTotalCost = priceBreakdown.totalCost;
@@ -235,6 +280,7 @@ export async function POST(request: Request) {
         ...priceBreakdown,
         items: priceBreakdown.breakdown, // Map 'breakdown' to 'items' for Mongoose
       },
+      appliedCode: priceBreakdown.appliedCode || undefined,
 
       // Root level fields for compatibility and queries
       totalCost: calculatedTotalCost,
@@ -256,6 +302,42 @@ export async function POST(request: Request) {
       booking = await BookingService.create(bookingData as any);
     }
 
+    if (totalAmountInCents <= 0) {
+      await BookingService.updateById(booking.id, {
+        "payment.status": "paid",
+        "payment.amount": 0,
+      });
+
+      if (priceBreakdown.appliedCode?.codeId) {
+        const redeemedCode = await codeService.redeem(
+          priceBreakdown.appliedCode.codeId,
+          priceBreakdown.discountAmount || 0,
+          {
+            source: "booking",
+            bookingId: booking.id,
+            bookingReference: booking.bookingReference,
+            note: "Paid without payment intent",
+          },
+        );
+        if (redeemedCode?.codeKind === "gift") {
+          await queueGiftCardUsageEmail({
+            giftCode: redeemedCode,
+            redemption: redeemedCode._redemption,
+            bookingEmail: primaryContact?.email,
+          });
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        paidWithoutPayment: true,
+        bookingId: booking.id,
+        bookingReference: booking.bookingReference,
+        amount: 0,
+        currency: "eur",
+      });
+    }
+
     // 3. Create Stripe Payment Intent
     const stripe = getStripeInstance();
     const email = primaryContact?.email || "";
@@ -267,12 +349,37 @@ export async function POST(request: Request) {
       },
       metadata: {
         booking_id: booking.id,
+        type: "booking",
         sport: payload.selectedSport,
         package: payload.selectedPackage,
         city: payload.selectedCity,
+        code_id: priceBreakdown.appliedCode?.codeId || "",
+        code_discount: priceBreakdown.discountAmount
+          ? String(priceBreakdown.discountAmount)
+          : "",
       },
       description: `Booking for ${payload.selectedSport} - ${payload.selectedPackage}`,
       receipt_email: email,
+    });
+
+    await transactionService.create({
+      transactionType: "booking",
+      referenceId: booking.id,
+      referenceLabel: booking.bookingReference,
+      amount: totalAmountInCents / 100,
+      currency: "eur",
+      status: "pending",
+      provider: "stripe",
+      stripePaymentIntentId: paymentIntent.id,
+      customerName: primaryContact?.name || "",
+      customerEmail: email,
+      description: `Booking ${booking.bookingReference}`,
+      metadata: {
+        sport: payload.selectedSport,
+        package: payload.selectedPackage,
+        city: payload.selectedCity,
+        discountCode: priceBreakdown.appliedCode?.code || "",
+      },
     });
 
     // 4. Update Booking with Payment Intent

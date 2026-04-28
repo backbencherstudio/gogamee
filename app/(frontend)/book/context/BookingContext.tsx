@@ -112,6 +112,7 @@ export interface BookingContextType {
       extrasCost: number;
       flightScheduleCost: number;
       leagueCost: number;
+      discountAmount?: number;
       totalCost: number;
       totalPeople: number;
       standardPassengerCount?: number;
@@ -119,6 +120,17 @@ export interface BookingContextType {
       duration: number;
       nights: number;
     };
+    appliedCode?: {
+      id: string;
+      code: string;
+      codeKind: "discount" | "gift";
+      discountType: "fixed" | "percentage";
+      value: number;
+      discountAmount: number;
+      finalTotal: number;
+      remainingAmount?: number;
+    } | null;
+    discountCode?: string;
     previousTravelInfo: string;
     fromHero: boolean;
   };
@@ -395,9 +407,12 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     const hasEuropeanLeague = currentData.leagues?.some(
       (l) => l.group === "European",
     );
+    const isSpainPack = currentData.leagues?.some(
+      (l) => l.id === "spain-pack",
+    );
 
     if (currentStep === 4) {
-      if (hasEuropeanLeague) {
+      if (hasEuropeanLeague || isSpainPack) {
         setCurrentStep(5);
       } else {
         setCurrentStep(4.5);
@@ -417,11 +432,12 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     const hasEuropeanLeague = formData.leagues?.some(
       (l) => l.group === "European",
     );
+    const isSpainPack = formData.leagues?.some((l) => l.id === "spain-pack");
 
     if (currentStep === 4.5) {
       setCurrentStep(4);
     } else if (currentStep === 5) {
-      if (hasEuropeanLeague) {
+      if (hasEuropeanLeague || isSpainPack) {
         setCurrentStep(4);
       } else {
         setCurrentStep(4.5);

@@ -8,6 +8,11 @@ export { default as FAQ, type IFAQ } from "./FAQ.model";
 export { default as DateManagement, type IDateManagement } from "./DateManagement.model";
 export { default as SocialContact, type ISocialContact } from "./SocialContact.model";
 export { default as LegalPage, type ILegalPage } from "./LegalPage.model";
+export { default as Code, type ICode } from "./Code.model";
+export {
+  default as Transaction,
+  type ITransaction,
+} from "./Transaction.model";
 export { 
   default as AboutPageSection, 
   type IAboutPageSection as IAboutSection,

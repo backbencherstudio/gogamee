@@ -15,6 +15,14 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/app/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 import {
   getAllBookings,
@@ -298,90 +306,90 @@ const RecentRequestsTable: React.FC = () => {
 
       {!error && (
         <div className="p-6 pt-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">
+          <div>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-gray-200 hover:bg-transparent">
+                  <TableHead className="text-left py-3 px-4 font-medium text-gray-600">
                     Request ID
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-gray-600">
                     Customer
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-gray-600">
                     Package
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-gray-600">
                     Date
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-gray-600">
                     Status
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-gray-600">
                     Payment
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-600">
+                  </TableHead>
+                  <TableHead className="text-left py-3 px-4 font-medium text-gray-600">
                     Amount
-                  </th>
-                </tr>
-              </thead>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
 
-              <tbody>
+              <TableBody>
                 {loading
                   ? Array.from({ length: 5 }).map((_, index) => (
-                      <tr
+                      <TableRow
                         key={index}
                         className="border-b border-gray-100 animate-pulse"
                       >
-                        <td className="py-3 px-4">
+                        <TableCell className="py-3 px-4">
                           <div className="h-4 w-20 bg-gray-200 rounded"></div>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell className="py-3 px-4">
                           <div className="h-4 w-32 bg-gray-200 rounded"></div>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell className="py-3 px-4">
                           <div className="h-4 w-40 bg-gray-200 rounded"></div>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell className="py-3 px-4">
                           <div className="h-4 w-24 bg-gray-200 rounded"></div>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell className="py-3 px-4">
                           <div className="h-6 w-20 bg-gray-200 rounded-full"></div>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell className="py-3 px-4">
                           <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell className="py-3 px-4">
                           <div className="h-4 w-16 bg-gray-200 rounded"></div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))
                   : recentRequests.map((request) => (
-                      <tr
+                      <TableRow
                         key={request.id}
                         className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                       >
-                        <td className="py-3 px-4 text-sm font-medium text-gray-900">
+                        <TableCell className="py-3 px-4 text-sm font-medium text-gray-900">
                           {request.id}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-700">
+                        </TableCell>
+                        <TableCell className="py-3 px-4 text-sm text-gray-700">
                           {request.customer}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-700">
+                        </TableCell>
+                        <TableCell className="py-3 px-4 text-sm text-gray-700">
                           {request.package}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-500">
+                        </TableCell>
+                        <TableCell className="py-3 px-4 text-sm text-gray-500">
                           {new Date(request.date).toLocaleDateString()}
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell className="py-3 px-4">
                           <span className={getStatusBadge(request.status)}>
                             {getStatusIcon(request.status)}
                             <span className="ml-1 capitalize">
                               {request.status}
                             </span>
                           </span>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell className="py-3 px-4">
                           <span
                             className={getPaymentStatusBadge(
                               request.payment_status,
@@ -391,14 +399,14 @@ const RecentRequestsTable: React.FC = () => {
                               {request.payment_status || "unknown"}
                             </span>
                           </span>
-                        </td>
-                        <td className="py-3 px-4 text-sm font-medium text-gray-900">
+                        </TableCell>
+                        <TableCell className="py-3 px-4 text-sm font-medium text-gray-900">
                           {request.amount}
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}

@@ -19,6 +19,9 @@ import {
   ChevronDown,
   ChevronRight,
   Globe,
+  TicketPercent,
+  Gift,
+  ReceiptText,
 } from "lucide-react";
 
 import { cn } from "@/app/lib/utils";
@@ -58,16 +61,41 @@ const sidebarData: SidebarSection[] = [
         url: "/dashboard/allrequest",
       },
       {
-        title: "FAQ",
-        titleEs: "Preguntas Frecuentes",
-        icon: HelpCircle,
-        url: "/dashboard/faq",
+        title: "Promo Codes",
+        titleEs: "Codigos Promocionales",
+        icon: TicketPercent,
+        url: "/dashboard/promo-codes",
       },
+      {
+        title: "Gift Cards",
+        titleEs: "Tarjetas Regalo",
+        icon: Gift,
+        url: "/dashboard/gift-cards",
+      },
+      {
+        title: "Transactions",
+        titleEs: "Transacciones",
+        icon: ReceiptText,
+        url: "/dashboard/transactions",
+      },
+
       {
         title: "Package",
         titleEs: "Pack",
         icon: Package,
         url: "/dashboard/package",
+      },
+      {
+        title: "Date Management",
+        titleEs: "Gestión de Fechas",
+        icon: Calendar,
+        url: "/dashboard/managedate",
+      },
+      {
+        title: "FAQ",
+        titleEs: "Preguntas Frecuentes",
+        icon: HelpCircle,
+        url: "/dashboard/faq",
       },
       {
         title: "Testimonial",
@@ -80,12 +108,6 @@ const sidebarData: SidebarSection[] = [
         titleEs: "Página Sobre Nosotros",
         icon: Info,
         url: "/dashboard/about",
-      },
-      {
-        title: "Date Management",
-        titleEs: "Gestión de Fechas",
-        icon: Calendar,
-        url: "/dashboard/managedate",
       },
     ],
   },

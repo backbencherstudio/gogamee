@@ -21,15 +21,21 @@ interface LeagueFormData {
 const LEAGUE_OPTIONS: LeagueOption[] = [
   {
     id: "national",
-    title: "National Leagues",
+    title: "Ligas nacionales europeas",
     price: "",
     imagePath: "/stepper/league1.png",
   },
   {
     id: "european",
-    title: `European Competition`,
+    title: "Competiciones europeas (internacional)",
     price: ` ( ${BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€ )`,
     imagePath: "/stepper/league2.png",
+  },
+  {
+    id: "spain",
+    title: "Pack Espana (competiciones en Espana)",
+    price: "",
+    imagePath: "/stepper/league1.png",
   },
 ];
 
@@ -37,7 +43,7 @@ const CONTAINER_STYLES =
   "w-full xl:w-[894px] xl:h-[638px] px-4 xl:px-6 py-6 xl:py-8 bg-[#F1F9EC] rounded-xl outline outline-1 outline-offset-[-1px] outline-[#6AAD3C]/20 inline-flex flex-col justify-start items-start gap-6 min-h-[500px] xl:min-h-0";
 
 const CARD_BASE_STYLES =
-  "flex-1 h-40 xl:h-48 py-4 xl:py-6 rounded inline-flex flex-col justify-center items-center gap-2.5 cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-lg group";
+  "flex-1 h-36 xl:h-40 py-4 xl:py-6 rounded inline-flex flex-col justify-center items-center gap-2.5 cursor-pointer relative overflow-hidden transition-all duration-300 hover:shadow-lg group";
 
 const getCardStyles = (isSelected: boolean): string => {
   const overlayStyles = isSelected
@@ -92,12 +98,22 @@ export default function LeagueStep() {
       if (data.selectedLeague === "national") {
         // Populate with all national leagues
         leagues = mappedNationalLeagues;
+      } else if (data.selectedLeague === "spain") {
+        leagues = [
+          {
+            id: "spain-pack",
+            name: "Pack Espana (competiciones en Espana)",
+            group: "National" as const,
+            country: "Spain",
+            isSelected: true,
+          },
+        ];
       } else {
         // European competition - Only add European Competition since removal step is skipped
         leagues = [
           {
             id: "european",
-            name: `European Competition`,
+            name: "Competiciones europeas (internacional)",
             group: "European" as const,
             isSelected: true,
           },
@@ -144,10 +160,8 @@ export default function LeagueStep() {
         <div className="absolute inset-0 bg-[#6AAD3C]/0 rounded transition-all duration-300 group-hover:bg-[#6AAD3C]/20" />
 
         {/* League Title */}
-        <div className="relative z-10 self-stretch text-center justify-start text-white text-base xl:text-lg font-bold font-['Poppins'] leading-loose drop-shadow-lg">
-          {option.id === "national"
-            ? "Ligas nacionales"
-            : "Competiciones europeas"}
+        <div className="relative z-10 self-stretch text-center justify-start text-white text-base xl:text-lg font-semibold font-['Poppins'] leading-tight drop-shadow-lg">
+          {option.title}
         </div>
 
         {/* Selection Indicator */}
@@ -200,11 +214,29 @@ export default function LeagueStep() {
 
           <div className="w-full p-4 bg-white/40 backdrop-blur-sm rounded-xl border border-lime-200/50 flex flex-col items-center gap-3 mb-6">
             <div className="flex items-center gap-2 text-[#6AAD3C]">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-              <span className="font-semibold text-sm">Información importante sobre el destino</span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              <span className="font-semibold text-sm">
+                Información importante sobre el destino
+              </span>
             </div>
             <p className="text-zinc-700 text-sm font-['Poppins'] text-center max-w-[700px] leading-relaxed">
-              Tu destino podría ser Reino Unido. Si es así, necesitarás solicitar una autorización electrónica de viaje (ETA). Recuerda que cada viajero es responsable de obtenerla antes del viaje.
+              Tu destino podría ser Reino Unido. Si es así, necesitarás
+              solicitar una autorización electrónica de viaje (ETA). Recuerda
+              que cada viajero es responsable de obtenerla antes del viaje.
             </p>
           </div>
           {/* Submit Button */}

@@ -323,6 +323,12 @@ const loadFromStorage = (): PersonalInfoFormData | null => {
 export default function Personalinfo() {
   const { updateStepData, nextStep, formData } = useBooking();
   const { sumPerNight } = usePerNightPricing();
+  const [codeInput, setCodeInput] = useState(formData.discountCode || "");
+  const [appliedCode, setAppliedCode] = useState(formData.appliedCode || null);
+  const [codeStatus, setCodeStatus] = useState<{
+    type: "idle" | "loading" | "success" | "error";
+    message: string;
+  }>({ type: "idle", message: "" });
   const getError = (errorKey: string | undefined) => {
     if (!errorKey) return undefined;
     const message = ERROR_MESSAGES[
@@ -429,7 +435,7 @@ export default function Personalinfo() {
       totalPeople === 1 ? BOOKING_CONSTANTS.SINGLE_TRAVELER_SUPPLEMENT : 0;
     const babySupplementTotal = babiesCount * BOOKING_CONSTANTS.BABY_SUPPLEMENT;
 
-    const grandTotal =
+    const subtotalBeforeDiscount =
       packageTotal +
       extrasTotal +
       flightScheduleTotal +
@@ -437,6 +443,11 @@ export default function Personalinfo() {
       removalTotal +
       singleTravelerSupplement +
       babySupplementTotal;
+    const discountAmount = Math.min(
+      subtotalBeforeDiscount,
+      appliedCode?.discountAmount || 0,
+    );
+    const grandTotal = Math.max(0, subtotalBeforeDiscount - discountAmount);
 
     return {
       departureCity:
@@ -458,6 +469,8 @@ export default function Personalinfo() {
       removalTotal,
       singleTravelerSupplement,
       babySupplementTotal,
+      subtotalBeforeDiscount,
+      discountAmount,
       grandTotal,
       totalPeople: totalPeople, // For summary display, correctly multiplying without babies
       standardPassengerCount: totalPeople,
@@ -474,7 +487,7 @@ export default function Personalinfo() {
           )}`
         : "",
     };
-  }, [formData, sumPerNight]);
+  }, [formData, sumPerNight, appliedCode]);
 
   const getInitialValues = (): PersonalInfoFormData => {
     const saveKey = personalInfoData.storage.key;
@@ -595,6 +608,7 @@ export default function Personalinfo() {
         extrasCost: reservationData.extrasCost,
         flightScheduleCost: reservationData.flightScheduleCost,
         leagueCost: reservationData.leagueCost,
+        discountAmount: reservationData.discountAmount,
         totalCost: reservationData.grandTotal,
         totalPeople: reservationData.totalPeople,
         standardPassengerCount: reservationData.standardPassengerCount,
@@ -605,6 +619,8 @@ export default function Personalinfo() {
       paymentInfo: {
         ...formData.paymentInfo,
       },
+      appliedCode,
+      discountCode: appliedCode?.code || "",
       previousTravelInfo: data.previousTravelInfo?.trim() || "",
     });
 
@@ -617,6 +633,49 @@ export default function Personalinfo() {
 
     // Move to next step
     nextStep();
+  };
+
+  const handleApplyCode = async () => {
+    const code = codeInput.trim();
+    if (!code) {
+      setAppliedCode(null);
+      setCodeStatus({ type: "idle", message: "" });
+      return;
+    }
+
+    setCodeStatus({ type: "loading", message: "Validando codigo..." });
+    try {
+      const response = await fetch("/api/codes/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code,
+          orderTotal:
+            reservationData.subtotalBeforeDiscount || reservationData.grandTotal,
+        }),
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.message || "Codigo no valido");
+      }
+
+      setAppliedCode(result.data);
+      setCodeInput(result.data.code);
+      setCodeStatus({ type: "success", message: result.message });
+    } catch (error: any) {
+      setAppliedCode(null);
+      setCodeStatus({
+        type: "error",
+        message: error.message || "No se pudo aplicar el codigo.",
+      });
+    }
+  };
+
+  const handleRemoveCode = () => {
+    setAppliedCode(null);
+    setCodeInput("");
+    setCodeStatus({ type: "idle", message: "" });
   };
 
   return (
@@ -641,6 +700,54 @@ export default function Personalinfo() {
               }}
               hasMultipleTravelers={hasMultipleTravelers}
             />
+
+            <div className="w-full p-4 md:p-5 bg-white rounded-lg border border-lime-100 flex flex-col gap-3">
+              <label className="text-neutral-800 text-base font-semibold font-['Poppins']">
+                Codigo de descuento o regalo
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  value={codeInput}
+                  onChange={(event) => setCodeInput(event.target.value)}
+                  placeholder="Introduce tu codigo"
+                  className="flex-1 h-12 px-4 rounded border border-gray-200 text-sm font-['Poppins'] outline-none focus:border-[#76C043]"
+                />
+                {appliedCode ? (
+                  <button
+                    type="button"
+                    onClick={handleRemoveCode}
+                    className="h-12 px-5 rounded bg-gray-100 text-gray-700 font-medium font-['Poppins'] hover:bg-gray-200"
+                  >
+                    Quitar
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleApplyCode}
+                    disabled={codeStatus.type === "loading"}
+                    className="h-12 px-5 rounded bg-[#76C043] text-white font-medium font-['Poppins'] hover:bg-lime-600 disabled:opacity-60"
+                  >
+                    Aplicar
+                  </button>
+                )}
+              </div>
+              {codeStatus.message && (
+                <p
+                  className={`text-sm font-['Poppins'] ${
+                    codeStatus.type === "error"
+                      ? "text-red-600"
+                      : "text-lime-700"
+                  }`}
+                >
+                  {codeStatus.message}
+                </p>
+              )}
+              {appliedCode && (
+                <div className="text-sm text-lime-700 font-medium font-['Poppins']">
+                  Descuento aplicado: -{appliedCode.discountAmount.toFixed(2)}€
+                </div>
+              )}
+            </div>
 
             <ReservationSummary
               reservationData={reservationData}

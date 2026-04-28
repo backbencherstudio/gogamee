@@ -52,10 +52,21 @@ const PriceBreakdownSchema = new Schema({
   flightPreferenceCost: { type: Number, default: 0 },
   singleTravelerSupplement: { type: Number, default: 0 },
   bookingFee: { type: Number, default: 0 },
+  subtotal: { type: Number, default: 0 },
+  discountAmount: { type: Number, default: 0 },
   totalCost: { type: Number, required: true },
   currency: { type: String, default: "EUR" },
   basePricePerPerson: { type: Number, required: true },
   items: [PriceBreakdownItemSchema],
+}, { _id: false });
+
+const AppliedCodeSchema = new Schema({
+  codeId: String,
+  code: String,
+  codeKind: { type: String, enum: ["discount", "gift"] },
+  discountType: { type: String, enum: ["fixed", "percentage"] },
+  value: Number,
+  discountAmount: Number,
 }, { _id: false });
 
 // --- Interface ---
@@ -76,6 +87,7 @@ export interface IBooking extends Document {
     amount: number; currency: string; timestamp?: Date;
   };
   priceBreakdown: any;
+  appliedCode?: any;
   status: "pending" | "confirmed" | "rejected" | "completed";
   destinationCity?: string; assignedMatch?: string;
   previousTravelInfo?: string;
@@ -122,6 +134,7 @@ const BookingSchema = new Schema<IBooking>({
     timestamp: Date,
   },
   priceBreakdown: PriceBreakdownSchema,
+  appliedCode: AppliedCodeSchema,
   status: { type: String, enum: ["pending", "confirmed", "rejected", "completed"], default: "pending", index: true },
   destinationCity: String, assignedMatch: String,
   previousTravelInfo: String,

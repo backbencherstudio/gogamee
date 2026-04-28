@@ -38,7 +38,7 @@ export interface QueuedEmail {
   from?: string;
   replyTo?: string;
   bookingId?: string;
-  type: "booking" | "contact" | "admin_notification";
+  type: "booking" | "contact" | "admin_notification" | "gift_card";
   // helper for custom data
   [key: string]: any;
 }
