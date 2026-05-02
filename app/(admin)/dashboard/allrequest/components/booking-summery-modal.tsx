@@ -100,6 +100,15 @@ export default function BookingSummaryModal({
     return 0;
   };
 
+  const appliedCode = bookingData.appliedCode;
+  const hasAppliedCode = Boolean(appliedCode?.code);
+  const appliedCodeLabel =
+    appliedCode?.codeKind === "gift" ? "Gift Card Used" : "Promo Code Used";
+  const appliedCodeValueLabel =
+    appliedCode?.discountAmount != null
+      ? `-EUR ${formatCurrency(appliedCode.discountAmount)}`
+      : null;
+
   const getCompetitionLabel = () => {
     // 1. Prefer the new direct field from selection
     if (bookingData.selection?.league) {
@@ -487,6 +496,31 @@ export default function BookingSummaryModal({
             <CardContent className="pt-4">
               {bookingData.priceBreakdown ? (
                 <div className="space-y-3">
+                  {hasAppliedCode && (
+                    <div className="rounded-lg border border-lime-200 bg-lime-50 p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-medium uppercase text-lime-700">
+                            {appliedCodeLabel}
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-gray-900">
+                            {appliedCode?.code}
+                          </p>
+                          <p className="mt-1 text-xs text-gray-600">
+                            {appliedCode?.codeKind === "gift"
+                              ? "This booking used a gift card balance."
+                              : "This booking used a promo or discount code."}
+                          </p>
+                        </div>
+                        {appliedCodeValueLabel && (
+                          <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-lime-700 border border-lime-200">
+                            {appliedCodeValueLabel}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {bookingData.priceBreakdown.items?.map((item, idx) => (
                     <div
                       key={idx}

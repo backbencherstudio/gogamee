@@ -113,6 +113,15 @@ export interface BookingItem {
     }[];
   };
 
+  appliedCode?: {
+    codeId?: string;
+    code: string;
+    codeKind: "discount" | "gift";
+    discountType?: "fixed" | "percentage";
+    value?: number;
+    discountAmount?: number;
+  } | null;
+
   status: "pending" | "confirmed" | "rejected" | "completed";
   destinationCity?: string;
   assignedMatch?: string;

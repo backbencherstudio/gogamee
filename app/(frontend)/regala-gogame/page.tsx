@@ -1,13 +1,9 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import {
-  PaymentElement,
-  useElements,
-  useStripe,
-} from "@stripe/react-stripe-js";
 import StripeProvider from "../book/components/step10/StripeProvider";
 import { Info } from "lucide-react";
+import GiftCardCheckoutForm from "./components/GiftCardCheckoutForm";
 
 const AMOUNTS = [200, 250, 300, 350];
 
@@ -19,73 +15,6 @@ interface GiftFormState {
   dedication: string;
   buyerName: string;
   buyerEmail: string;
-}
-
-function GiftPaymentForm({ amount }: { amount: number }) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [isPaying, setIsPaying] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!stripe || !elements) return;
-
-    setIsPaying(true);
-    setError("");
-
-    try {
-      const result = await stripe.confirmPayment({
-        elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/regala-gogame/success?amount=${amount}`,
-        },
-        redirect: "if_required",
-      });
-
-      if (result.error) {
-        const message = result.error.message || "No se pudo completar el pago.";
-        window.location.replace(
-          `/regala-gogame/failed?error=${encodeURIComponent(message)}`,
-        );
-        return;
-      }
-
-      const paymentStatus = result.paymentIntent?.status;
-      if (paymentStatus === "succeeded" || paymentStatus === "processing") {
-        window.location.replace(
-          `/regala-gogame/success?amount=${amount}&status=${paymentStatus}`,
-        );
-        return;
-      }
-
-      const message =
-        paymentStatus === "requires_payment_method"
-          ? "El pago no se completo. Prueba con otro metodo de pago."
-          : "El pago quedo pendiente. Revisa tu metodo de pago.";
-      window.location.replace(
-        `/regala-gogame/failed?error=${encodeURIComponent(message)}`,
-      );
-    } catch (error: any) {
-      const message = error.message || "No se pudo completar el pago.";
-      setError(message);
-      setIsPaying(false);
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-      <PaymentElement />
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <button
-        type="submit"
-        disabled={!stripe || isPaying}
-        className="h-12 rounded bg-[#DFF238] px-6 text-sm font-bold text-zinc-950 hover:bg-lime-300 disabled:opacity-60"
-      >
-        {isPaying ? "Procesando..." : `Realizar el pedido - ${amount} EUR`}
-      </button>
-    </form>
-  );
 }
 
 export default function RegalaGoGamePage() {
@@ -308,7 +237,10 @@ export default function RegalaGoGamePage() {
             </form>
           ) : (
             <StripeProvider clientSecret={clientSecret}>
-              <GiftPaymentForm amount={selectedAmount} />
+              <GiftCardCheckoutForm
+                amount={selectedAmount}
+                clientSecret={clientSecret}
+              />
               {status.type === "success" && (
                 <p className="mt-4 text-sm font-medium text-lime-700">
                   {status.message}
