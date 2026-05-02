@@ -14,6 +14,7 @@ import { paymentData } from "../../../../lib/appdata";
 import StripeInput from "./StripeInput";
 import { PaymentMethodOption } from "../shared/payment/PaymentMethodOption";
 import { WalletPaymentButton } from "../shared/payment/WalletPaymentButton";
+import { GooglePayDirectButton } from "../shared/payment/GooglePayDirectButton";
 
 interface CustomStripeFormProps {
   bookingId: string;
@@ -379,20 +380,12 @@ export default function CustomStripeForm({
                     </div>
                   }
                 >
-                  <WalletPaymentButton
-                    isLoading={isWalletLoading}
-                    isAvailable={!!paymentRequest && walletType === "googlePay"}
-                    paymentRequest={paymentRequest}
-                    isLocalhost={isLocalhost}
-                    walletName="Google Pay"
-                    unavailableMessage={{
-                      title: "Google Pay no disponible",
-                      titleEn: "Google Pay not available",
-                      unsupported:
-                        "Google Pay no es compatible con tu dispositivo o región.",
-                      unsupportedEn:
-                        "Google Pay is not supported for your device or region.",
-                    }}
+                  <GooglePayDirectButton
+                    amount={amount}
+                    clientSecret={clientSecret}
+                    stripe={stripe}
+                    onSuccess={confirmBackend}
+                    onError={onError}
                   />
                 </PaymentMethodOption>
 
