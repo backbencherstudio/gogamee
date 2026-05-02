@@ -12,6 +12,7 @@ import {
 } from "@stripe/react-stripe-js";
 import { PaymentMethodOption } from "../../book/components/shared/payment/PaymentMethodOption";
 import StripeInput from "../../book/components/step10/StripeInput";
+import { GooglePayDirectButton } from "../../book/components/shared/payment/GooglePayDirectButton";
 
 const PAYMENT_METHODS = {
   CREDIT: "credit",
@@ -286,22 +287,13 @@ export default function GiftCardCheckoutForm({
             }
           >
             <div className="mt-4 flex flex-col gap-3">
-              <ExpressCheckoutElement
-                options={googlePayOptions}
-                onReady={({ availablePaymentMethods }) => {
-                  setWalletAvailability((prev) => ({
-                    ...prev,
-                    google: !!availablePaymentMethods?.googlePay,
-                  }));
-                }}
-                onConfirm={handleWalletConfirm}
+              <GooglePayDirectButton
+                amount={amount}
+                clientSecret={clientSecret}
+                stripe={stripe}
+                onSuccess={(paymentIntentId) => window.location.replace(buildSuccessUrl(amount, "succeeded"))}
+                onError={(error) => window.location.replace(buildFailedUrl(error))}
               />
-              {!walletAvailability.google && (
-                <p className="text-sm text-amber-700">
-                  Google Pay solo aparece en dispositivos y navegadores
-                  compatibles, con HTTPS y una tarjeta guardada.
-                </p>
-              )}
             </div>
           </PaymentMethodOption>
 
