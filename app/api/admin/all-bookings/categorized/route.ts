@@ -12,9 +12,23 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(request.nextUrl.searchParams.get("limit") ?? "10");
     const status = request.nextUrl.searchParams.get("status");
     const days = request.nextUrl.searchParams.get("days");
+    const search = request.nextUrl.searchParams.get("search");
+    const dateFromParam = request.nextUrl.searchParams.get("dateFrom");
+    const dateToParam = request.nextUrl.searchParams.get("dateTo");
+    const paymentStatus = request.nextUrl.searchParams.get("paymentStatus");
 
     let createdAtFrom, createdAtTo;
-    if (days && days !== "alltime") {
+
+    if (dateFromParam) {
+      createdAtFrom = new Date(dateFromParam).toISOString();
+    }
+    if (dateToParam) {
+      const dTo = new Date(dateToParam);
+      dTo.setHours(23, 59, 59, 999);
+      createdAtTo = dTo.toISOString();
+    }
+
+    if (!createdAtFrom && !createdAtTo && days && days !== "alltime") {
       const daysNum = parseInt(days.replace("days", ""));
       if (!isNaN(daysNum)) {
         const today = new Date();
@@ -33,8 +47,10 @@ export async function GET(request: NextRequest) {
       skip: (page - 1) * limit,
       filters: {
         ...(status && status !== "all" ? { status } : {}),
+        payment_status: paymentStatus && paymentStatus !== "all" ? paymentStatus : undefined,
         createdAtFrom,
         createdAtTo,
+        search: search || undefined,
       },
     });
 

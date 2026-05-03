@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Calendar,
-  Save,
   RefreshCw,
   ChevronLeft,
   ChevronRight,
@@ -299,8 +298,16 @@ export default function DateManagement() {
                   <><button onClick={() => setIsEditing(true)} className="flex items-center justify-center gap-2 px-3 py-2 md:px-4 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 text-sm md:text-base"><Calendar className="w-4 h-4" />Edit Calendar</button>
                     <button onClick={() => setEditingPrices(true)} className="flex items-center justify-center gap-2 px-3 py-2 md:px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 text-sm md:text-base"><DollarSign className="w-4 h-4" />Edit Prices</button></>
                 ) : (
-                  <><button onClick={() => { setIsEditing(false); setEditingPrices(false); }} className="flex items-center justify-center gap-2 px-3 py-2 md:px-4 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium font-['Poppins'] transition-all duration-200 text-sm md:text-base">Cancel</button>
-                    <button onClick={() => { setIsEditing(false); setEditingPrices(false); setHasChanges(false); }} disabled={isSaving || isSavingApiData || !hasChanges} className={`flex items-center justify-center gap-2 px-3 py-2 md:px-4 rounded-lg font-medium font-['Poppins'] transition-all duration-200 text-sm md:text-base ${hasChanges ? "bg-[#76C043] hover:bg-lime-600 text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}>{isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}Save Changes</button></>
+                  <button 
+                    onClick={() => { 
+                      setIsEditing(false); 
+                      setEditingPrices(false); 
+                      setHasChanges(false); 
+                    }} 
+                    className="flex items-center justify-center gap-2 px-6 py-2 bg-[#76C043] hover:bg-lime-600 text-white rounded-lg font-medium font-['Poppins'] transition-all duration-200 text-sm md:text-base shadow-sm"
+                  >
+                    Complete
+                  </button>
                 )}
               </div>
             </div>

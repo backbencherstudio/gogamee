@@ -35,11 +35,16 @@ export const GooglePayDirectButton: React.FC<GooglePayDirectButtonProps> = ({
         throw new Error("Invalid payment method token from Google Pay.");
       }
 
-      // Confirm the PaymentIntent with the retrieved Stripe PaymentMethod ID
       const { error: confirmError, paymentIntent } =
         await stripe.confirmCardPayment(
           clientSecret,
-          { payment_method: paymentMethodId },
+          {
+            payment_method: {
+              card: {
+                token: paymentMethodId,
+              },
+            },
+          },
           { handleActions: false },
         );
 

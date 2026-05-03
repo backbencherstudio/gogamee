@@ -267,6 +267,10 @@ export const getAllBookings = async (
   limit: number = 10,
   status: string = "all",
   days: string = "alltime",
+  search: string = "",
+  dateFrom: string = "",
+  dateTo: string = "",
+  paymentStatus: string = "all",
 ): Promise<ApiResponse<BookingItem[]>> => {
   // The API endpoint already supports page and limit query params
   const response = await axiosClient.get(`/admin/all-bookings/categorized`, {
@@ -275,6 +279,10 @@ export const getAllBookings = async (
       limit,
       status,
       days,
+      search,
+      dateFrom,
+      dateTo,
+      paymentStatus,
     },
   });
   return response.data;

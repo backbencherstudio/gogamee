@@ -41,6 +41,19 @@ class BookingService {
     if (filters.selectedSport) query["selection.sport"] = new RegExp(`^${filters.selectedSport}$`, "i");
     if (filters.email) query["travelers.primaryContact.email"] = new RegExp(filters.email, "i");
 
+    // Search functionality
+    if (filters.search) {
+      const searchRegex = new RegExp(filters.search, "i");
+      query.$or = [
+        { bookingReference: searchRegex },
+        { "travelers.primaryContact.name": searchRegex },
+        { "travelers.primaryContact.email": searchRegex },
+        { "travelers.list.name": searchRegex },
+        { "travelers.list.email": searchRegex },
+        { "selection.city": searchRegex },
+      ];
+    }
+
     // Departure Date Filtering
     if (filters.dateFrom || filters.dateTo) {
       query["dates.departure"] = {};

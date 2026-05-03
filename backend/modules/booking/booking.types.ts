@@ -101,6 +101,7 @@ export interface BookingFilters {
   dateTo?: string;
   createdAtFrom?: string;
   createdAtTo?: string;
+  search?: string;
 }
 
 export interface BookingQueryOptions {

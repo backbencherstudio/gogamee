@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { format, parseISO, differenceInCalendarDays } from "date-fns";
 import {
   CalendarIcon,
@@ -32,15 +32,25 @@ import {
 interface BookingSummaryModalProps {
   bookingData: BookingItem;
   onStatusUpdate?: () => void;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export default function BookingSummaryModal({
   bookingData,
   onStatusUpdate,
+  trigger,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen,
 }: BookingSummaryModalProps) {
   const { addToast } = useToast();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setIsOpen =
+    setControlledOpen !== undefined ? setControlledOpen : setInternalOpen;
+
   const [isProcessing, setIsProcessing] = useState(false);
   const [destinationCity, setDestinationCity] = useState(
     bookingData.destinationCity || "",
@@ -100,6 +110,15 @@ export default function BookingSummaryModal({
     return 0;
   };
 
+  const getPaymentMethodName = () => {
+    const method = bookingData.payment?.method?.toLowerCase() || "";
+    if (method.includes("google_pay") || method.includes("googlepay")) return "Google Pay";
+    if (method.includes("apple_pay") || method.includes("applepay")) return "Apple Pay";
+    if (method.includes("card") || method.includes("stripe") || method === "") return "Credit / Debit Card";
+    if (method.includes("gift")) return "Gift Card";
+    return method.charAt(0).toUpperCase() + method.slice(1);
+  };
+
   const appliedCode = bookingData.appliedCode;
   const hasAppliedCode = Boolean(appliedCode?.code);
   const appliedCodeLabel =
@@ -122,18 +141,16 @@ export default function BookingSummaryModal({
       (l: any) => l.isSelected,
     );
 
-    // If we have a removed count > 0 but no selected league, it implies National (since European doesn't allow removal usually)
+    // If we have a removed count > 0 but no selected league, it implies National
     if (!selectedLeague && (bookingData.leagues?.removedCount || 0) > 0) {
       return "National League";
     }
 
     if (!selectedLeague) return "N/A";
 
-    // Use the group field if available
     if (selectedLeague.group === "National") return "National League";
     if (selectedLeague.group === "European") return "European Competition";
 
-    // Fallback based on name if group is missing
     const europeanLeagues = [
       "Champions League",
       "Europa League",
@@ -143,7 +160,7 @@ export default function BookingSummaryModal({
       return "European Competition";
     }
 
-    return "National League"; // Default fallback
+    return "National League";
   };
 
   // Initialize state when modal opens
@@ -162,11 +179,7 @@ export default function BookingSummaryModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium shadow-sm">
-          View Booking Summary
-        </Button>
-      </DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="min-w-[50vw] max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-lg">
         <DialogHeader className="border-b border-[#6AAD3C]/20 pb-4 mb-4">
           <div className="space-y-3">
@@ -232,6 +245,22 @@ export default function BookingSummaryModal({
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Previous Travel Info */}
+          {bookingData.previousTravelInfo && (
+            <Card className="border border-gray-300 bg-white">
+              <CardHeader className="pb-3 border-b border-gray-200">
+                <CardTitle className="text-lg font-bold text-black">
+                  Travel Info
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <p className="text-sm text-black whitespace-pre-wrap">
+                  {bookingData.previousTravelInfo}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Trip Overview */}
           <Card className="border border-[#6AAD3C]/20 bg-white">
             <CardHeader className="pb-3 border-b border-[#6AAD3C]/10">
@@ -381,22 +410,6 @@ export default function BookingSummaryModal({
               </div>
             </CardContent>
           </Card>
-
-          {/* Previous Travel Info */}
-          {bookingData.previousTravelInfo && (
-            <Card className="border border-gray-300 bg-white">
-              <CardHeader className="pb-3 border-b border-gray-200">
-                <CardTitle className="text-lg font-bold text-black">
-                  Observaciones
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4">
-                <p className="text-sm text-black whitespace-pre-wrap">
-                  {bookingData.previousTravelInfo}
-                </p>
-              </CardContent>
-            </Card>
-          )}
 
           {/* Removed Leagues */}
           {bookingData.leagues?.hasRemovedLeagues && (
@@ -604,6 +617,7 @@ export default function BookingSummaryModal({
           <Card className="border border-gray-300 bg-white">
             <CardHeader className="pb-0 p-0">
               <button
+                type="button"
                 onClick={() => setIsTravelersExpanded(!isTravelersExpanded)}
                 className="flex items-center justify-between w-full p-4 hover:bg-gray-50 transition-colors"
               >
@@ -625,18 +639,6 @@ export default function BookingSummaryModal({
             {isTravelersExpanded && (
               <CardContent className="p-4 pt-0 space-y-3">
                 <div className="border-t border-gray-200 mb-4"></div>
-
-                {/* Previous Travel Info */}
-                {bookingData.previousTravelInfo && (
-                  <div className="p-3 bg-gray-50 rounded border border-gray-200 mb-4">
-                    <p className="text-xs font-medium text-gray-500 uppercase mb-1">
-                      Previous Travel Experience
-                    </p>
-                    <p className="text-sm text-gray-700">
-                      {bookingData.previousTravelInfo}
-                    </p>
-                  </div>
-                )}
 
                 {allTravelers.length > 0 ? (
                   <div className="grid grid-cols-1 gap-3">
@@ -758,7 +760,7 @@ export default function BookingSummaryModal({
                     Payment Method
                   </p>
                   <p className="text-sm font-semibold text-black capitalize">
-                    {bookingData.payment?.method || "N/A"}
+                    {getPaymentMethodName()}
                   </p>
                 </div>
                 <div>
@@ -886,7 +888,6 @@ export default function BookingSummaryModal({
                 onClick={async () => {
                   if (isProcessing) return;
 
-                  // Allow updates without forcing status change, but keep it confirmed
                   setIsProcessing(true);
                   try {
                     await updateBooking({
