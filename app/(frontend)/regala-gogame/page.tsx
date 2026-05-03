@@ -240,6 +240,7 @@ export default function RegalaGoGamePage() {
               <GiftCardCheckoutForm
                 amount={selectedAmount}
                 clientSecret={clientSecret}
+                onBack={() => setClientSecret(null)}
               />
               {status.type === "success" && (
                 <p className="mt-4 text-sm font-medium text-lime-700">

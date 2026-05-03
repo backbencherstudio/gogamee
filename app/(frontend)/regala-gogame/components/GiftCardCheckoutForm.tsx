@@ -23,6 +23,7 @@ const PAYMENT_METHODS = {
 interface GiftCardCheckoutFormProps {
   amount: number;
   clientSecret: string;
+  onBack?: () => void;
 }
 
 function buildSuccessUrl(amount: number, status?: string) {
@@ -40,6 +41,7 @@ function buildFailedUrl(message: string) {
 export default function GiftCardCheckoutForm({
   amount,
   clientSecret,
+  onBack,
 }: GiftCardCheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
@@ -337,13 +339,36 @@ export default function GiftCardCheckoutForm({
       {statusMessage && <p className="text-sm text-zinc-600">{statusMessage}</p>}
 
       {selectedPayment === PAYMENT_METHODS.CREDIT && (
-        <button
-          type="submit"
-          disabled={!stripe || isProcessing}
-          className="h-12 rounded bg-[#DFF238] px-6 text-sm font-bold text-zinc-950 hover:bg-lime-300 disabled:opacity-60"
-        >
-          {isProcessing ? "Procesando..." : `Realizar el pedido - ${amount} EUR`}
-        </button>
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="w-full sm:w-44 h-11 px-3.5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all duration-300 font-medium font-['Poppins'] leading-snug bg-white border border-[#76C043] text-[#76C043] hover:bg-green-50 shadow-sm hover:shadow-md"
+            >
+              Anterior
+            </button>
+          )}
+
+          <button
+            type="submit"
+            disabled={!stripe || isProcessing}
+            className={`w-full sm:w-auto min-w-[200px] h-11 px-5 py-1.5 rounded backdrop-blur-[5px] inline-flex justify-center items-center gap-2.5 transition-all duration-300 font-medium font-['Poppins'] leading-snug ${
+              isProcessing || !stripe
+                ? "bg-gray-300 cursor-not-allowed text-white opacity-80"
+                : "bg-[#76C043] hover:bg-lime-600 cursor-pointer text-white shadow-sm hover:shadow-md"
+            }`}
+          >
+            {isProcessing ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-white">Procesando...</span>
+              </>
+            ) : (
+              <span className="text-white">{`Realizar el pedido - ${amount.toFixed(2)} EUR`}</span>
+            )}
+          </button>
+        </div>
       )}
     </form>
   );
