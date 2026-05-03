@@ -26,9 +26,9 @@ export const GooglePayDirectButton: React.FC<GooglePayDirectButtonProps> = ({
     try {
       // The tokenizationData is a JSON string containing the Stripe PaymentMethod token
       const tokenizationData = JSON.parse(
-        paymentRequest.paymentMethodData.tokenizationData.token
+        paymentRequest.paymentMethodData.tokenizationData.token,
       );
-      
+
       const paymentMethodId = tokenizationData.id;
 
       if (!paymentMethodId) {
@@ -36,18 +36,21 @@ export const GooglePayDirectButton: React.FC<GooglePayDirectButtonProps> = ({
       }
 
       // Confirm the PaymentIntent with the retrieved Stripe PaymentMethod ID
-      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
-        clientSecret,
-        { payment_method: paymentMethodId },
-        { handleActions: false }
-      );
+      const { error: confirmError, paymentIntent } =
+        await stripe.confirmCardPayment(
+          clientSecret,
+          { payment_method: paymentMethodId },
+          { handleActions: false },
+        );
 
       if (confirmError) {
         onError(confirmError.message || "Pago fallido");
       } else if (paymentIntent && paymentIntent.status === "succeeded") {
         onSuccess(paymentIntent.id);
       } else {
-        onError("El estado del pago es: " + (paymentIntent?.status || "Desconocido"));
+        onError(
+          "El estado del pago es: " + (paymentIntent?.status || "Desconocido"),
+        );
       }
     } catch (error: any) {
       console.error("Google Pay tokenization error:", error);
@@ -85,7 +88,8 @@ export const GooglePayDirectButton: React.FC<GooglePayDirectButtonProps> = ({
                     parameters: {
                       gateway: "stripe",
                       "stripe:version": "2022-11-15",
-                      "stripe:publishableKey": process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "",
+                      "stripe:publishableKey":
+                        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "",
                     },
                   },
                 },
