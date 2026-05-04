@@ -101,6 +101,7 @@ export interface BookingFilters {
   dateTo?: string;
   createdAtFrom?: string;
   createdAtTo?: string;
+  league?: string;
   search?: string;
 }
 

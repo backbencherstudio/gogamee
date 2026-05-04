@@ -131,9 +131,10 @@ export default function BookingSummaryModal({
   const getCompetitionLabel = () => {
     // 1. Prefer the new direct field from selection
     if (bookingData.selection?.league) {
-      return bookingData.selection.league === "European"
-        ? "European Competition"
-        : "National League";
+      if (bookingData.selection.league === "European")
+        return "European Competition";
+      if (bookingData.selection.league === "Spain") return "Pack España";
+      return "National League";
     }
 
     // 2. Fallback to extracting from leagues list (Legacy)
@@ -148,6 +149,7 @@ export default function BookingSummaryModal({
 
     if (!selectedLeague) return "N/A";
 
+    if (selectedLeague.id === "spain-pack") return "Pack España";
     if (selectedLeague.group === "National") return "National League";
     if (selectedLeague.group === "European") return "European Competition";
 

@@ -9,7 +9,7 @@ const SportConfigSchema = new Schema({
 export interface IDateManagement extends Document {
   date: string;
   duration: "1" | "2" | "3" | "4";
-  league: "national" | "european";
+  league: "national" | "european" | "spain";
   sports: {
     football: { status: string; standard: number; premium: number };
     basketball: { status: string; standard: number; premium: number };
@@ -22,7 +22,7 @@ export interface IDateManagement extends Document {
 const DateManagementSchema = new Schema<IDateManagement>({
   date: { type: String, required: true, index: true },
   duration: { type: String, enum: ["1", "2", "3", "4"], required: true },
-  league: { type: String, enum: ["national", "european"], required: true },
+  league: { type: String, enum: ["national", "european", "spain"], required: true },
   sports: {
     football: { type: SportConfigSchema, default: () => ({}) },
     basketball: { type: SportConfigSchema, default: () => ({}) },

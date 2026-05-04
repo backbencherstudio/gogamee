@@ -136,7 +136,8 @@ export class PricingService {
     const formattedDate = date.substring(0, 10);
     const sportKey = sport.toLowerCase() === "both" ? "combined" : sport.toLowerCase();
     const pkgKey = pkg.toLowerCase() as "standard" | "premium";
-    const leagueKey = league.toLowerCase() === "european" ? "european" : "national";
+    const l = league.toLowerCase();
+    const leagueKey = (l === "european" || l === "spain") ? l : "national";
 
     const dateEntry = await DateManagement.findOne({
       date: { $regex: `^${formattedDate}` },

@@ -15,7 +15,7 @@ const TravelerSchema = new Schema({
 const LeagueSchema = new Schema({
   id: { type: String, required: true },
   name: { type: String, required: true },
-  group: { type: String, enum: ["National", "European"], required: true },
+  group: { type: String, enum: ["National", "European", "Spain"], required: true },
   isSelected: { type: Boolean, default: true },
 }, { _id: false });
 
@@ -74,7 +74,7 @@ const AppliedCodeSchema = new Schema({
 export interface IBooking extends Document {
   selection: {
     sport: string; package: string; city: string;
-    league: "National" | "European";
+    league: "National" | "European" | "Spain";
   };
   dates: { departure: string; return: string; durationDays: number; durationNights: number; };
   travelers: { list: any[]; totalCount: number; primaryContact: any; };
@@ -103,7 +103,7 @@ const BookingSchema = new Schema<IBooking>({
     sport: { type: String, required: true },
     package: { type: String, required: true },
     city: { type: String, required: true },
-    league: { type: String, enum: ["National", "European"] },
+    league: { type: String, enum: ["National", "European", "Spain"] },
   },
   dates: {
     departure: { type: String, required: true },

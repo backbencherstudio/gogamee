@@ -103,7 +103,7 @@ export default function LeagueStep() {
           {
             id: "spain-pack",
             name: "Pack Espana (competiciones en Espana)",
-            group: "National" as const,
+            group: "Spain" as const,
             country: "Spain",
             isSelected: true,
           },

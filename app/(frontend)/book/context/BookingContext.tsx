@@ -23,7 +23,7 @@ export interface Traveler {
 export interface League {
   id: string;
   name: string;
-  group: "National" | "European";
+  group: "National" | "European" | "Spain";
   country?: string;
   isSelected: boolean;
 }
@@ -408,7 +408,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
       (l) => l.group === "European",
     );
     const isSpainPack = currentData.leagues?.some(
-      (l) => l.id === "spain-pack",
+      (l) => l.group === "Spain",
     );
 
     if (currentStep === 4) {
@@ -432,7 +432,7 @@ export const BookingProvider: React.FC<{ children: React.ReactNode }> = ({
     const hasEuropeanLeague = formData.leagues?.some(
       (l) => l.group === "European",
     );
-    const isSpainPack = formData.leagues?.some((l) => l.id === "spain-pack");
+    const isSpainPack = formData.leagues?.some((l) => l.group === "Spain");
 
     if (currentStep === 4.5) {
       setCurrentStep(4);

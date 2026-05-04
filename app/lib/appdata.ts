@@ -611,6 +611,7 @@ export const AppData: any = {
   dateRestrictions: {
     european: { enabledDates: [], blockedDates: [], customPrices: {} },
     national: { enabledDates: [], blockedDates: [], customPrices: {} },
+    spain: { enabledDates: [], blockedDates: [], customPrices: {} },
     getAllRestrictions: function (): any {
       return this;
     },

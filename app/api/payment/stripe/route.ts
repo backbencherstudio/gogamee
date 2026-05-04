@@ -73,7 +73,7 @@ interface Traveler {
 interface League {
   id: string;
   name: string;
-  group: "National" | "European";
+  group: "National" | "European" | "Spain";
   country?: string;
   isSelected: boolean;
 }
@@ -130,14 +130,20 @@ export async function POST(request: Request) {
     const isEuropeanCompetition = leaguesList.some(
       (l) => l.group === "European" && l.isSelected,
     );
+    const isSpainPack = leaguesList.some(
+      (l) => l.group === "Spain" && l.isSelected,
+    );
 
     // Total people - Extracted from unified travelers structure
     const totalPeople = payload.travelers?.totalCount || 1;
-    const babiesCount = (payload.travelers?.list || []).filter(t => t.type === "baby").length;
+    const babiesCount =
+      (payload.travelers?.list || []).filter((t) => t.type === "baby").length ||
+      0;
 
     // Duration extraction
     const durationDays = payload.duration?.days || 1;
-    const durationNights = payload.duration?.nights ?? Math.max(0, durationDays - 1);
+    const durationNights =
+      payload.duration?.nights ?? Math.max(0, durationDays - 1);
 
     // Extras for pricing
     const bookingExtras = (payload.extras || []).map((extra: any) => ({
@@ -157,7 +163,11 @@ export async function POST(request: Request) {
     const priceBreakdown = await PricingService.calculatePrice({
       selectedSport: payload.selectedSport,
       selectedPackage: payload.selectedPackage,
-      selectedLeague: isEuropeanCompetition ? "european" : "national",
+      selectedLeague: isEuropeanCompetition
+        ? "european"
+        : isSpainPack
+          ? "spain"
+          : "national",
       totalPeople: totalPeople,
       babiesCount: babiesCount,
       departureDate: pricingDepartureDate,
@@ -207,7 +217,9 @@ export async function POST(request: Request) {
     const selectedLeagueObj = leaguesList.find((l) => l.isSelected);
     let leagueCategory = "National";
     if (selectedLeagueObj) {
-      if (selectedLeagueObj.group === "European") {
+      if (selectedLeagueObj.id === "spain-pack") {
+        leagueCategory = "Spain";
+      } else if (selectedLeagueObj.group === "European") {
         leagueCategory = "European";
       } else if (selectedLeagueObj.group === "National") {
         leagueCategory = "National";
@@ -292,7 +304,7 @@ export async function POST(request: Request) {
     if (payload.bookingId) {
       // Update existing booking
       booking = await BookingService.updateById(payload.bookingId, bookingData);
-      
+
       // If update fails (e.g. booking deleted), create a new one
       if (!booking) {
         booking = await BookingService.create(bookingData as any);

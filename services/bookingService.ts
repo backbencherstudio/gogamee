@@ -35,7 +35,7 @@ export interface BookingItem {
     sport: "football" | "basketball" | "both";
     package: "standard" | "premium" | "combined";
     city: string;
-    league?: "National" | "European"; // [NEW] Optional until fully migrated
+    league?: "National" | "European" | "Spain"; // [NEW] Optional until fully migrated
   };
 
   // 2. Dates
@@ -271,6 +271,7 @@ export const getAllBookings = async (
   dateFrom: string = "",
   dateTo: string = "",
   paymentStatus: string = "all",
+  league: string = "all",
 ): Promise<ApiResponse<BookingItem[]>> => {
   // The API endpoint already supports page and limit query params
   const response = await axiosClient.get(`/admin/all-bookings/categorized`, {
@@ -283,6 +284,7 @@ export const getAllBookings = async (
       dateFrom,
       dateTo,
       paymentStatus,
+      league,
     },
   });
   return response.data;

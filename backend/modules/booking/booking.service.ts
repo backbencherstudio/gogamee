@@ -40,6 +40,15 @@ class BookingService {
     if (filters.payment_status) query["payment.status"] = filters.payment_status;
     if (filters.selectedSport) query["selection.sport"] = new RegExp(`^${filters.selectedSport}$`, "i");
     if (filters.email) query["travelers.primaryContact.email"] = new RegExp(filters.email, "i");
+    if (filters.league) {
+      if (filters.league.toLowerCase() === "national") {
+        query["selection.league"] = "National";
+      } else if (filters.league.toLowerCase() === "european") {
+        query["selection.league"] = "European";
+      } else if (filters.league.toLowerCase() === "spain") {
+        query["selection.league"] = "Spain";
+      }
+    }
 
     // Search functionality
     if (filters.search) {
@@ -51,6 +60,7 @@ class BookingService {
         { "travelers.list.name": searchRegex },
         { "travelers.list.email": searchRegex },
         { "selection.city": searchRegex },
+        { "selection.league": searchRegex },
       ];
     }
 
@@ -143,6 +153,10 @@ class BookingService {
           confirmed: { $sum: { $cond: [{ $eq: ["$status", "confirmed"] }, 1, 0] } },
           pending: { $sum: { $cond: [{ $eq: ["$status", "pending"] }, 1, 0] } },
           rejected: { $sum: { $cond: [{ $or: [{ $eq: ["$status", "rejected"] }, { $eq: ["$status", "cancelled"] }] }, 1, 0] } },
+          // League breakdown
+          national: { $sum: { $cond: [{ $eq: ["$selection.league", "National"] }, 1, 0] } },
+          european: { $sum: { $cond: [{ $eq: ["$selection.league", "European"] }, 1, 0] } },
+          spain: { $sum: { $cond: [{ $eq: ["$selection.league", "Spain"] }, 1, 0] } },
       }}
     ]);
     return stats[0] || { total: 0, completed: 0, pending: 0, rejected: 0, confirmed: 0 };

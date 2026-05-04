@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const dateFromParam = request.nextUrl.searchParams.get("dateFrom");
     const dateToParam = request.nextUrl.searchParams.get("dateTo");
     const paymentStatus = request.nextUrl.searchParams.get("paymentStatus");
+    const league = request.nextUrl.searchParams.get("league");
 
     let createdAtFrom, createdAtTo;
 
@@ -48,6 +49,7 @@ export async function GET(request: NextRequest) {
       filters: {
         ...(status && status !== "all" ? { status } : {}),
         payment_status: paymentStatus && paymentStatus !== "all" ? paymentStatus : undefined,
+        league: league && league !== "all" ? league : undefined,
         createdAtFrom,
         createdAtTo,
         search: search || undefined,

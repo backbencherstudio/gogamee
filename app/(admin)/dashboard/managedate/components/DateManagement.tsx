@@ -140,6 +140,7 @@ export default function DateManagement() {
     setCompetitionTypes([
       { id: "national", name: "National Leagues", restrictions: allRestrictions.national },
       { id: "european", name: "European Leagues", restrictions: allRestrictions.european },
+      { id: "spain", name: "Spain Pack", restrictions: allRestrictions.spain },
     ]);
     loadApiDateData();
   }, [loadApiDateData]);

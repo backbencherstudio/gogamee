@@ -260,7 +260,7 @@ export function generateUserEmailContent(
             ${row("Deporte", selectedSport === "both" ? "Ambos" : selectedSport === "football" ? "Fútbol" : selectedSport === "basketball" ? "Básquet" : "N/A")}
             ${row("Paquete", selectedPackage === "premium" ? "Premium" : selectedPackage === "standard" ? "Estándar" : selectedPackage || "N/A")}
             ${row("Ciudad De Salida", selectedCity ? selectedCity.charAt(0).toUpperCase() + selectedCity.slice(1).toLowerCase() : "N/A")}
-            ${selectedLeagueCategory ? row("Categoría De Liga", selectedLeagueCategory.toLowerCase() === "national" ? "Ligas nacionales" : selectedLeagueCategory.toLowerCase() === "european" || selectedLeagueCategory === "european-competition" ? "EuroLiga" : selectedLeagueCategory) : ""}
+            ${selectedLeagueCategory ? row("Categoría De Liga", selectedLeagueCategory.toLowerCase() === "national" ? "Ligas nacionales" : selectedLeagueCategory.toLowerCase() === "european" || selectedLeagueCategory === "european-competition" ? "EuroLiga" : selectedLeagueCategory.toLowerCase() === "spain" ? "Pack España" : selectedLeagueCategory) : ""}
             ${row("Fecha De Salida", departureDateFormatted)}
             ${row("Fecha De Regreso", returnDateFormatted)}
             ${durationDays ? row("Duración", `${durationDays} Día(s)${durationNights ? " / " + durationNights + " Noche(s)" : ""}`) : ""}

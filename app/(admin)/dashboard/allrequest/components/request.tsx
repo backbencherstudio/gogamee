@@ -47,6 +47,13 @@ const STATUS_OPTIONS: DropdownOption[] = [
   { value: "rejected", label: "Rejected" },
 ];
 
+const LEAGUE_OPTIONS: DropdownOption[] = [
+  { value: "all", label: "All Competitions" },
+  { value: "national", label: "National League" },
+  { value: "european", label: "European Competition" },
+  { value: "spain", label: "Pack España" },
+];
+
 const PAYMENT_OPTIONS: DropdownOption[] = [
   { label: "All payment", value: "all" },
   { label: "Pending", value: "pending" },
@@ -107,6 +114,7 @@ function DropdownField({
 export default function EventReqTable() {
   const [activeTab, setActiveTab] = useState("all");
   const [paymentFilter, setPaymentFilter] = useState("all");
+  const [leagueFilter, setLeagueFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [bookings, setBookings] = useState<BookingItem[]>([]);
@@ -122,7 +130,7 @@ export default function EventReqTable() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const [openFilterDropdown, setOpenFilterDropdown] = useState<
-    null | "status" | "payment"
+    null | "status" | "payment" | "league"
   >(null);
 
   // Pagination State
@@ -157,6 +165,7 @@ export default function EventReqTable() {
         dateFrom,
         dateTo,
         paymentFilter,
+        leagueFilter,
       );
 
       if (response && response.success) {
@@ -188,6 +197,7 @@ export default function EventReqTable() {
     dateFrom,
     dateTo,
     paymentFilter,
+    leagueFilter,
   ]);
 
   const handlePageChange = (page: number) => {
@@ -356,6 +366,22 @@ export default function EventReqTable() {
               }}
             />
 
+            <DropdownField
+              value={leagueFilter}
+              options={LEAGUE_OPTIONS}
+              isOpen={openFilterDropdown === "league"}
+              onToggle={() =>
+                setOpenFilterDropdown((prev) =>
+                  prev === "league" ? null : "league",
+                )
+              }
+              onSelect={(value) => {
+                setCurrentPage(1);
+                setLeagueFilter(value);
+                setOpenFilterDropdown(null);
+              }}
+            />
+
             <div className="relative">
               <Calendar
                 size={16}
@@ -491,13 +517,29 @@ export default function EventReqTable() {
                             {booking.travelers?.primaryContact?.email ||
                               "No email provided"}
                           </span>
-                          <div className="mt-2 flex">
+                          <div className="mt-2 flex gap-1.5">
                             <Badge
                               variant="outline"
                               className="bg-indigo-50 text-indigo-600 border-indigo-100 text-[10px] py-0 px-2 h-5"
                             >
                               {booking.selection?.sport || "N/A"}
                             </Badge>
+                            {booking.selection?.league === "Spain" && (
+                              <Badge
+                                variant="outline"
+                                className="bg-amber-50 text-amber-600 border-amber-100 text-[10px] py-0 px-2 h-5"
+                              >
+                                Pack España
+                              </Badge>
+                            )}
+                            {booking.selection?.league === "European" && (
+                              <Badge
+                                variant="outline"
+                                className="bg-blue-50 text-blue-600 border-blue-100 text-[10px] py-0 px-2 h-5"
+                              >
+                                European
+                              </Badge>
+                            )}
                           </div>
                         </div>
                       </TableCell>

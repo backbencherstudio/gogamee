@@ -275,6 +275,9 @@ export default function DateSection() {
       const hasNational = formData.leagues?.some(
         (l) => l.group === "National" && l.isSelected,
       );
+      const hasSpain = formData.leagues?.some(
+        (l) => l.group === "Spain" && l.isSelected,
+      );
 
       const matchesLeague = (() => {
         // If league is "both" in DB, it matches any selection
@@ -282,8 +285,9 @@ export default function DateSection() {
         // Match specific selection
         if (hasEuropean && item.league === "european") return true;
         if (hasNational && item.league === "national") return true;
+        if (hasSpain && item.league === "spain") return true;
         // If no league filter is active, allow the date
-        if (!hasEuropean && !hasNational) return true;
+        if (!hasEuropean && !hasNational && !hasSpain) return true;
         return false;
       })();
 
@@ -575,10 +579,13 @@ export default function DateSection() {
         const hasNational = formData.leagues?.some(
           (l) => l.group === "National" && l.isSelected,
         );
-        let leagueParam = hasEuropean
-          ? "european"
-          : hasNational
-            ? "national"
+        const hasSpain = formData.leagues?.some(
+          (l) => l.group === "Spain" && l.isSelected,
+        );
+        let leagueParam = hasSpain
+          ? "spain"
+          : hasEuropean
+            ? "european"
             : "national"; // Default to national if nothing selected
 
         // Get duration from selected duration option
