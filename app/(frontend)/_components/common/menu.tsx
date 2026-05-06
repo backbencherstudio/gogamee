@@ -53,7 +53,6 @@ export default function Menu() {
   const menuItems = [
     { label: "Inicio", href: "/" },
     { label: "Packs", href: "/packages" },
-    { label: "Regala GoGame", href: "/regala-gogame", variant: "cta" as const },
     { label: "Preguntas frecuentes", href: "/faqs" },
     { label: "Sobre nosotros", href: "/about" },
   ];
@@ -114,13 +113,9 @@ export default function Menu() {
             <Link
               key={index}
               href={item.href}
-              className={
-                item.variant === "cta"
-                  ? "rounded-full border border-[#76C043] px-4 py-2 text-lg font-medium font-['Poppins'] leading-none text-[#76C043] transition-colors hover:bg-[#76C043] hover:text-white"
-                  : `text-lg font-normal font-['Poppins'] leading-loose hover:text-lime-600 transition-colors cursor-pointer ${
-                      isSolid ? "text-black" : "text-white"
-                    }`
-              }
+              className={`text-lg font-normal font-['Poppins'] leading-loose hover:text-lime-600 transition-colors cursor-pointer ${
+                isSolid ? "text-black" : "text-white"
+              }`}
             >
               {item.label}
             </Link>
@@ -129,6 +124,12 @@ export default function Menu() {
 
         {/* Right Section - Contact - Desktop */}
         <div className="hidden lg:flex justify-end items-center gap-3">
+          <Link
+            href="/regala-gogame"
+            className="rounded-full border border-[#76C043] px-4 py-2.5 text-lg font-medium font-['Poppins'] leading-7 text-[#76C043] transition-colors hover:bg-[#76C043] hover:text-white"
+          >
+            Regala GoGame
+          </Link>
           <Link
             href="/contact"
             className="px-4 py-2.5 bg-[#76C043] rounded-[999px] flex justify-center items-center gap-2.5 hover:bg-lime-600 transition-colors cursor-pointer"
@@ -147,16 +148,19 @@ export default function Menu() {
                 <Link
                   key={index}
                   href={item.href}
-                  className={
-                    item.variant === "cta"
-                      ? "rounded-full border border-[#76C043] px-4 py-2 text-center text-lg font-medium font-['Poppins'] text-[#76C043] transition-colors hover:bg-[#76C043] hover:text-white"
-                      : "text-black text-lg font-normal font-['Poppins'] hover:text-lime-600 transition-colors cursor-pointer"
-                  }
+                  className="text-black text-lg font-normal font-['Poppins'] hover:text-lime-600 transition-colors cursor-pointer"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}
                 </Link>
               ))}
+              <Link
+                href="/regala-gogame"
+                className="rounded-full border border-[#76C043] px-4 py-2 text-center text-lg font-medium font-['Poppins'] text-[#76C043] transition-colors hover:bg-[#76C043] hover:text-white"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Regala GoGame
+              </Link>
             </nav>
           </div>
         )}
