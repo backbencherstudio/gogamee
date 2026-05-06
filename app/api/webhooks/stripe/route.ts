@@ -170,8 +170,8 @@ export async function POST(request: NextRequest) {
                     <p>De: ${giftCode.buyerName || "GoGame"}</p>
                     ${giftCode.dedication ? `<p>Mensaje: ${giftCode.dedication}</p>` : ""}
                     <p>Importe: ${Number(giftCode.value || 0).toFixed(2)} EUR</p>
-                    <p style="font-size: 22px; font-weight: 700; color: #4a9e2a;">Codigo regalo: ${giftCode.code}</p>
-                    <p>Utiliza este codigo en tu reserva GoGame en el campo "Codigo de descuento o regalo".</p>
+                    <p style="font-size: 22px; font-weight: 700; color: #4a9e2a;">Código regalo: ${giftCode.code}</p>
+                    <p>Utiliza este código en tu reserva GoGame en el campo "Código de descuento o regalo".</p>
                   </div>
                 </div>
               `,

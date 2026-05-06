@@ -76,30 +76,30 @@ class CodeService {
 
   async validate(codeInput: string, orderTotal: number): Promise<CodeValidationResult> {
     if (!codeInput?.trim()) {
-      return { valid: false, message: "Introduce un codigo valido." };
+      return { valid: false, message: "Introduce un código válido." };
     }
 
     const code = await this.getByCode(codeInput);
     if (!code) {
-      return { valid: false, message: "El codigo no existe." };
+      return { valid: false, message: "El código no existe." };
     }
 
     if (!code.isActive) {
-      return { valid: false, message: "El codigo no esta activo." };
+      return { valid: false, message: "El código no está activo." };
     }
     if (code.state === "banned") {
-      return { valid: false, message: "Este codigo esta bloqueado." };
+      return { valid: false, message: "Este código está bloqueado." };
     }
     if (code.state === "suspended") {
-      return { valid: false, message: "Este codigo esta suspendido." };
+      return { valid: false, message: "Este código está suspendido." };
     }
 
     if (code.expiresAt && new Date(code.expiresAt).getTime() < Date.now()) {
-      return { valid: false, message: "El codigo ha caducado." };
+      return { valid: false, message: "El código ha caducado." };
     }
 
     if (code.codeKind === "gift" && code.paymentStatus !== "paid") {
-      return { valid: false, message: "La tarjeta regalo aun no esta disponible." };
+      return { valid: false, message: "La tarjeta regalo aún no está disponible." };
     }
 
     if (code.codeKind === "gift" && (code.remainingAmount || 0) <= 0) {
@@ -107,7 +107,7 @@ class CodeService {
     }
 
     if (code.usageLimit === "single" && code.usedCount >= 1) {
-      return { valid: false, message: "El codigo ya fue utilizado." };
+      return { valid: false, message: "El código ya fue utilizado." };
     }
 
     if (
@@ -115,17 +115,17 @@ class CodeService {
       code.maxUses &&
       code.usedCount >= code.maxUses
     ) {
-      return { valid: false, message: "El codigo alcanzo su limite de uso." };
+      return { valid: false, message: "El código alcanzó su límite de uso." };
     }
 
     const discountAmount = this.calculateDiscount(code, orderTotal);
     if (discountAmount <= 0) {
-      return { valid: false, message: "El codigo no aplica a este importe." };
+      return { valid: false, message: "El código no aplica a este importe." };
     }
 
     return {
       valid: true,
-      message: "Codigo aplicado.",
+      message: "Código aplicado.",
       code: code.toObject ? code.toObject() : code,
       discountAmount,
       finalTotal: Math.max(0, orderTotal - discountAmount),

@@ -33,7 +33,7 @@ const LEAGUE_OPTIONS: LeagueOption[] = [
   },
   {
     id: "spain",
-    title: "Pack Espana (competiciones en Espana)",
+    title: "Pack España (competiciones en España)",
     price: "",
     imagePath: "/stepper/league1.png",
   },
@@ -102,7 +102,7 @@ export default function LeagueStep() {
         leagues = [
           {
             id: "spain-pack",
-            name: "Pack Espana (competiciones en Espana)",
+            name: "Pack España (competiciones en España)",
             group: "Spain" as const,
             country: "Spain",
             isSelected: true,
@@ -203,7 +203,7 @@ export default function LeagueStep() {
           {showEuropeanSupplement && (
             <div className="w-full xl:w-[600] mx-auto p-3 bg-lime-50 rounded-xl outline-1 outline-offset-[-1px] outline-lime-200 text-zinc-900 mb-4 mt-6">
               <div className="text-sm xl:text-base font-medium font-['Poppins']">
-                Sumplemento para competiciones europeas: se aplicarán{" "}
+                Suplemento para competiciones europeas: se aplicarán{" "}
                 {BOOKING_CONSTANTS.EUROPEAN_LEAGUE_UPGRADE}€.
               </div>
               <div className="text-xs xl:text-sm text-zinc-600 font-['Poppins'] mt-1">

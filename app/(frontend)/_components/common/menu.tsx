@@ -53,7 +53,7 @@ export default function Menu() {
   const menuItems = [
     { label: "Inicio", href: "/" },
     { label: "Packs", href: "/packages" },
-    { label: "Regala GoGame", href: "/regala-gogame" },
+    { label: "Regala GoGame", href: "/regala-gogame", variant: "cta" as const },
     { label: "Preguntas frecuentes", href: "/faqs" },
     { label: "Sobre nosotros", href: "/about" },
   ];
@@ -114,9 +114,13 @@ export default function Menu() {
             <Link
               key={index}
               href={item.href}
-              className={`text-lg font-normal font-['Poppins'] leading-loose hover:text-lime-600 transition-colors cursor-pointer ${
-                isSolid ? "text-black" : "text-white"
-              }`}
+              className={
+                item.variant === "cta"
+                  ? "rounded-full border border-[#76C043] px-4 py-2 text-lg font-medium font-['Poppins'] leading-none text-[#76C043] transition-colors hover:bg-[#76C043] hover:text-white"
+                  : `text-lg font-normal font-['Poppins'] leading-loose hover:text-lime-600 transition-colors cursor-pointer ${
+                      isSolid ? "text-black" : "text-white"
+                    }`
+              }
             >
               {item.label}
             </Link>
@@ -143,7 +147,11 @@ export default function Menu() {
                 <Link
                   key={index}
                   href={item.href}
-                  className="text-black text-lg font-normal font-['Poppins'] hover:text-lime-600 transition-colors cursor-pointer"
+                  className={
+                    item.variant === "cta"
+                      ? "rounded-full border border-[#76C043] px-4 py-2 text-center text-lg font-medium font-['Poppins'] text-[#76C043] transition-colors hover:bg-[#76C043] hover:text-white"
+                      : "text-black text-lg font-normal font-['Poppins'] hover:text-lime-600 transition-colors cursor-pointer"
+                  }
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}

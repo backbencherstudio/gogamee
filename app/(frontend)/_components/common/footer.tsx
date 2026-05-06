@@ -1,5 +1,5 @@
 "use client";
-import { Mail, Heart, Instagram, MessageCircle, Linkedin } from "lucide-react";
+import { Mail, Instagram, Linkedin } from "lucide-react";
 import { FaTiktok, FaWhatsapp } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
@@ -114,6 +114,14 @@ export default function Footer() {
                   >
                     <span className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer whitespace-nowrap">
                       Preguntas frecuentes
+                    </span>
+                  </Link>
+                  <Link
+                    href="/regala-gogame"
+                    className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer whitespace-nowrap"
+                  >
+                    <span className="block text-zinc-400 text-lg font-normal font-['Inter'] cursor-pointer whitespace-nowrap">
+                      Regala GoGame
                     </span>
                   </Link>
                 </div>

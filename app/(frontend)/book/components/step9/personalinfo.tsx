@@ -643,7 +643,7 @@ export default function Personalinfo() {
       return;
     }
 
-    setCodeStatus({ type: "loading", message: "Validando codigo..." });
+    setCodeStatus({ type: "loading", message: "Validando código..." });
     try {
       const response = await fetch("/api/codes/validate", {
         method: "POST",
@@ -657,7 +657,7 @@ export default function Personalinfo() {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        throw new Error(result.message || "Codigo no valido");
+        throw new Error(result.message || "Código no válido");
       }
 
       setAppliedCode(result.data);
@@ -667,7 +667,7 @@ export default function Personalinfo() {
       setAppliedCode(null);
       setCodeStatus({
         type: "error",
-        message: error.message || "No se pudo aplicar el codigo.",
+        message: error.message || "No se pudo aplicar el código.",
       });
     }
   };
@@ -703,13 +703,13 @@ export default function Personalinfo() {
 
             <div className="w-full p-4 md:p-5 bg-white rounded-lg border border-lime-100 flex flex-col gap-3">
               <label className="text-neutral-800 text-base font-semibold font-['Poppins']">
-                Codigo de descuento o regalo
+                Código de descuento o regalo
               </label>
               <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   value={codeInput}
                   onChange={(event) => setCodeInput(event.target.value)}
-                  placeholder="Introduce tu codigo"
+                  placeholder="Introduce tu código"
                   className="flex-1 h-12 px-4 rounded border border-gray-200 text-sm font-['Poppins'] outline-none focus:border-[#76C043]"
                 />
                 {appliedCode ? (

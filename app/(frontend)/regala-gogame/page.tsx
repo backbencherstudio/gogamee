@@ -133,7 +133,7 @@ export default function RegalaGoGamePage() {
                     onChange={(event) =>
                       updateForm("customAmount", event.target.value)
                     }
-                    placeholder="Minimo 100 EUR, maximo 2000 EUR"
+                    placeholder="Mínimo 100 EUR, máximo 2000 EUR"
                     className="mt-3 h-12 w-full rounded border border-lime-400 px-4 text-sm outline-none focus:border-[#76C043]"
                   />
                 )}
@@ -155,7 +155,7 @@ export default function RegalaGoGamePage() {
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-neutral-800">
-                    Correo electronico
+                    Correo electrónico
                   </label>
                   <input
                     required
@@ -169,7 +169,7 @@ export default function RegalaGoGamePage() {
                 </div>
                 <p className="text-xs text-zinc-500 md:col-span-2 flex">
                   <Info className="w-4 h-4 mr-2" />
-                  Puedes introducir tu correo o el del destinatario, segun
+                  Puedes introducir tu correo o el del destinatario, según
                   prefieras quien reciba la tarjeta regalo.
                 </p>
               </div>
@@ -204,7 +204,7 @@ export default function RegalaGoGamePage() {
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-neutral-800">
-                    Tu correo electronico
+                    Tu correo electrónico
                   </label>
                   <input
                     type="email"
@@ -258,9 +258,9 @@ export default function RegalaGoGamePage() {
           <div className="mt-6 space-y-5">
             {[
               "Elige el importe de la tarjeta regalo",
-              "Anade los datos del destinatario y tu dedicatoria",
+              "Añade los datos del destinatario y tu dedicatoria",
               "Recibe la tarjeta regalo por email",
-              "Canjea el codigo al hacer tu reserva GoGame",
+              "Canjea el código al hacer tu reserva GoGame",
             ].map((item, index) => (
               <div key={item} className="flex gap-3">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#76C043] text-sm font-bold text-white">
