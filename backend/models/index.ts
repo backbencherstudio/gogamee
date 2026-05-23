@@ -19,3 +19,5 @@ export {
   type IAboutValue
 } from "./AboutPageSection.model";
 export { default as ComparisonFeature, type IComparisonFeature } from "./ComparisonFeature.model";
+export { default as Waitlist, type IWaitlist } from "./Waitlist.model";
+export { default as ComingSoonSettings, type IComingSoonSettings } from "./ComingSoonSettings.model";

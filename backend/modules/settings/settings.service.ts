@@ -1,4 +1,4 @@
-import { SocialContact, LegalPage } from "../../models";
+import { SocialContact, LegalPage, ComingSoonSettings } from "../../models";
 import { connectToDatabase, getCache, setCache, deleteCache, clearCachePattern } from "@/backend";
 
 class SettingsService {
@@ -74,6 +74,35 @@ class SettingsService {
   async getLegalPageByType(type: string): Promise<any> {
     await connectToDatabase();
     return this.mapToLean(await LegalPage.findOne({ type, deletedAt: { $exists: false } }).lean());
+  }
+
+  // Coming Soon Settings (singleton pattern)
+  async getComingSoonSettings(): Promise<any> {
+    await connectToDatabase();
+    let settings = await ComingSoonSettings.findOne().lean();
+    if (!settings) {
+      // Create default doc on first access
+      const created = await new ComingSoonSettings({}).save();
+      settings = created.toObject();
+    }
+    return this.mapToLean(settings);
+  }
+
+  async updateComingSoonSettings(data: {
+    isEnabled?: boolean;
+    launchDate?: Date | null;
+    headline?: string;
+    subtext?: string;
+  }): Promise<any> {
+    await connectToDatabase();
+    const existing = await ComingSoonSettings.findOne();
+    if (existing) {
+      Object.assign(existing, data);
+      await existing.save();
+      return this.mapToLean(existing);
+    }
+    const created = await new ComingSoonSettings(data).save();
+    return this.mapToLean(created);
   }
 }
 

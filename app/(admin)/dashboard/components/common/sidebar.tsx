@@ -22,6 +22,7 @@ import {
   TicketPercent,
   Gift,
   ReceiptText,
+  Clock,
 } from "lucide-react";
 
 import { cn } from "@/app/lib/utils";
@@ -160,6 +161,12 @@ const sidebarData: SidebarSection[] = [
             url: "/dashboard/settings/legal/terms",
           },
         ],
+      },
+      {
+        title: "Coming Soon",
+        titleEs: "Próximamente",
+        icon: Clock,
+        url: "/dashboard/settings/coming-soon",
       },
     ],
   },

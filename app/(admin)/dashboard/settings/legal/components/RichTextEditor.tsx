@@ -22,6 +22,7 @@ interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  maxHeight?: string;
 }
 
 const toolbarButtonClasses =
@@ -33,6 +34,7 @@ export default function RichTextEditor({
   value,
   onChange,
   placeholder,
+  maxHeight,
 }: RichTextEditorProps) {
   const editor = useEditor({
     extensions: [
@@ -59,8 +61,10 @@ export default function RichTextEditor({
     },
     editorProps: {
       attributes: {
-        class:
-          "min-h-[300px] w-full border border-t-0 border-gray-200 rounded-b-lg p-4 focus:outline-none focus:ring-1 focus:ring-[#76C043] bg-white text-gray-800 leading-relaxed ProseMirror-style",
+        class: `min-h-[300px] w-full border border-t-0 border-gray-200 rounded-b-lg p-4 focus:outline-none focus:ring-1 focus:ring-[#76C043] bg-white text-gray-800 leading-relaxed ProseMirror-style ${
+          maxHeight ? "overflow-y-auto custom-scrollbar" : ""
+        }`,
+        ...(maxHeight ? { style: `max-height: ${maxHeight};` } : {}),
       },
     },
   });

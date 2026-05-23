@@ -18,3 +18,4 @@ export * from "./modules/testimonial";
 export * from "./modules/user";
 export * from "./modules/starting-price";
 export * from "./modules/comparison-feature";
+export * from "./modules/waitlist";
