@@ -5,6 +5,7 @@ export interface IComingSoonSettings extends Document {
   launchDate?: Date;
   headline: string;
   subtext: string;
+  privacyNote: string;
   updatedAt: Date;
   createdAt: Date;
 }
@@ -28,6 +29,12 @@ const ComingSoonSettingsSchema = new Schema<IComingSoonSettings>(
       type: String,
       default:
         "<p>GoGame es una experiencia sorpresa de viajes deportivos. Sé el primero en saber cuándo lanzaremos.</p>",
+      trim: true,
+    },
+    privacyNote: {
+      type: String,
+      default:
+        "Nada de spam, nunca. Solo nos pondremos en contacto contigo cuando sea hora de jugar. 🎮",
       trim: true,
     },
   },

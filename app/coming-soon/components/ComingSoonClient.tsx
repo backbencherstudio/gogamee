@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 
-/* ─── Countdown helpers ─────────────────────────────────────── */
 function getTimeLeft(target: Date | null) {
   if (!target) return null;
   const diff = target.getTime() - Date.now();
@@ -14,7 +13,6 @@ function getTimeLeft(target: Date | null) {
   };
 }
 
-/* ─── Animated number flip component ───────────────────────── */
 function FlipBox({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
@@ -28,7 +26,6 @@ function FlipBox({ value, label }: { value: number; label: string }) {
   );
 }
 
-/* ─── Floating particle ─────────────────────────────────────── */
 function Particles() {
   return (
     <div className="absolute inset-0 z-20 pointer-events-none" aria-hidden>
@@ -45,12 +42,14 @@ function Particles() {
 interface ComingSoonClientProps {
   headline: string;
   subtext: string;
+  privacyNote: string;
   launchDate: string | null;
 }
 
 export default function ComingSoonClient({
   headline,
   subtext,
+  privacyNote,
   launchDate,
 }: ComingSoonClientProps) {
   const [timeLeft, setTimeLeft] =
@@ -62,7 +61,6 @@ export default function ComingSoonClient({
   const [message, setMessage] = useState("");
   const heroRef = useRef<HTMLDivElement>(null);
 
-  /* Countdown timer */
   useEffect(() => {
     if (!launchDate) return;
     const target = new Date(launchDate);
@@ -71,7 +69,6 @@ export default function ComingSoonClient({
     return () => clearInterval(id);
   }, [launchDate]);
 
-  /* Hero entrance animation */
   useEffect(() => {
     const el = heroRef.current;
     if (!el) return;
@@ -84,7 +81,6 @@ export default function ComingSoonClient({
     });
   }, []);
 
-  /* Submit email */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
@@ -120,7 +116,6 @@ export default function ComingSoonClient({
 
   return (
     <>
-      {/* ── Injected styles for particle animations ──────────────────────────────────── */}
       <style>{`
         ${Array.from({ length: 18 })
           .map((_, i) => {
@@ -138,26 +133,31 @@ export default function ComingSoonClient({
           })
           .join("")}
         @keyframes cs-float {
-          0%   { transform: translateY(0)   rotate(0deg); }
+          0%   { transform: translateY(0) rotate(0deg); }
           100% { transform: translateY(-110vh) rotate(360deg); }
+        }
+        #waitlist-email:-webkit-autofill,
+        #waitlist-email:-webkit-autofill:hover,
+        #waitlist-email:-webkit-autofill:focus {
+          -webkit-text-fill-color: #111827;
+          caret-color: #111827;
+          -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.96) inset;
+          box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.96) inset;
+          border-radius: 0.75rem;
+          transition: background-color 9999s ease-in-out 0s;
         }
       `}</style>
 
       <div className="min-h-screen flex items-center justify-center relative overflow-hidden font-['Inter','Poppins',sans-serif] bg-[#0a0f0d]">
-        {/* Background */}
         <div className="absolute inset-0 bg-[url('/homepage/Herobg.png')] bg-cover bg-center bg-fixed z-0" />
         <div className="absolute inset-0 bg-gradient-to-br from-black/78 via-[#0a190a]/70 to-black/80 z-10" />
-
-        {/* Particles */}
         <Particles />
 
-        {/* Main content */}
         <div
           className="relative z-30 w-full max-w-5xl px-5 py-8 mx-auto flex flex-col items-center text-center gap-7"
           ref={heroRef}
         >
           <div className="bg-white/5 border border-white/10 rounded-3xl backdrop-blur-md px-8 py-10 max-sm:px-4 max-sm:py-7 w-full flex flex-col items-center gap-6">
-            {/* Headline */}
             <h1 className="text-[clamp(2rem,6vw,3.25rem)] font-extrabold text-white leading-[1.15] font-['Inter',sans-serif] tracking-[-0.02em]">
               <span className="text-[#76C043] inline-block relative after:content-[''] after:absolute after:left-0 after:right-0 after:-bottom-1 after:h-[3px] after:bg-gradient-to-r after:from-[#76C043] after:to-transparent after:rounded-sm">
                 GoGame
@@ -166,13 +166,11 @@ export default function ComingSoonClient({
               {headline}
             </h1>
 
-            {/* Subtext */}
-            <div 
+            <div
               className="text-[1.05rem] text-white/70 leading-relaxed font-['Poppins',sans-serif] rich-text-content coming-soon-subtext"
               dangerouslySetInnerHTML={{ __html: subtext }}
             />
 
-            {/* Countdown */}
             {showCountdown && timeLeft && (
               <>
                 <div className="w-[60px] h-[2px] bg-gradient-to-r from-transparent via-[#76C043] to-transparent rounded-sm" />
@@ -187,7 +185,6 @@ export default function ComingSoonClient({
 
             <div className="w-[60px] h-[2px] bg-gradient-to-r from-transparent via-[#76C043] to-transparent rounded-sm" />
 
-            {/* Email form */}
             <form
               className="w-full max-w-[480px] flex flex-col gap-3"
               onSubmit={handleSubmit}
@@ -212,14 +209,13 @@ export default function ComingSoonClient({
                   disabled={status === "loading" || status === "success"}
                 >
                   {status === "loading"
-                    ? "Uniéndose..."
+                    ? "Uniéndote..."
                     : status === "success"
                       ? "Unido ✓"
                       : "Únete a la lista"}
                 </button>
               </div>
 
-              {/* Feedback message */}
               {message && (
                 <div
                   className={`text-[0.88rem] font-['Poppins',sans-serif] px-4 py-2 rounded-lg text-center animate-in slide-in-from-top-2 duration-300 ${
@@ -235,9 +231,8 @@ export default function ComingSoonClient({
               )}
             </form>
 
-            {/* Privacy note */}
             <p className="text-xs text-white/35 font-['Poppins',sans-serif]">
-              Nada de spam, nunca. Solo nos pondremos en contacto contigo cuando sea hora de jugar. 🎮
+              {privacyNote}
             </p>
           </div>
         </div>

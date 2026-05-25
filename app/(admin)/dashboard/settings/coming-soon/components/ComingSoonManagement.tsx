@@ -3,8 +3,6 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Clock,
   Users,
-  ToggleLeft,
-  ToggleRight,
   Download,
   Trash2,
   RefreshCw,
@@ -16,12 +14,12 @@ import {
 } from "lucide-react";
 import RichTextEditor from "../../legal/components/RichTextEditor";
 
-/* ─── Types ──────────────────────────────────────────────────── */
 interface ComingSoonSettings {
   isEnabled: boolean;
   launchDate: string | null;
   headline: string;
   subtext: string;
+  privacyNote: string;
 }
 
 interface WaitlistEntry {
@@ -31,7 +29,6 @@ interface WaitlistEntry {
   subscribedAt: string;
 }
 
-/* ─── Toast ──────────────────────────────────────────────────── */
 function Toast({ msg, type }: { msg: string; type: "success" | "error" }) {
   return (
     <div
@@ -51,7 +48,6 @@ function Toast({ msg, type }: { msg: string; type: "success" | "error" }) {
   );
 }
 
-/* ─── Toggle Switch ──────────────────────────────────────────── */
 function ToggleSwitch({
   enabled,
   onChange,
@@ -80,16 +76,18 @@ function ToggleSwitch({
   );
 }
 
-/* ══════════════════════════════════════════════════════════════
-   MAIN COMPONENT
-═══════════════════════════════════════════════════════════════ */
+const DEFAULT_SETTINGS: ComingSoonSettings = {
+  isEnabled: false,
+  launchDate: null,
+  headline: "¡Algo emocionante está en camino!",
+  subtext:
+    "<p>GoGame es una experiencia sorpresa de viajes deportivos. Sé el primero en saber cuándo lanzaremos.</p>",
+  privacyNote:
+    "Nada de spam, nunca. Solo nos pondremos en contacto contigo cuando sea hora de jugar. 🎮",
+};
+
 export default function ComingSoonManagement() {
-  const [settings, setSettings] = useState<ComingSoonSettings>({
-    isEnabled: false,
-    launchDate: null,
-    headline: "¡Algo emocionante está en camino!",
-    subtext: "<p>GoGame es una experiencia sorpresa de viajes deportivos. Sé el primero en saber cuándo lanzaremos.</p>",
-  });
+  const [settings, setSettings] = useState<ComingSoonSettings>(DEFAULT_SETTINGS);
   const [settingsLoading, setSettingsLoading] = useState(true);
   const [settingsSaving, setSettingsSaving] = useState(false);
 
@@ -103,26 +101,29 @@ export default function ComingSoonManagement() {
     msg: string;
     type: "success" | "error";
   } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<WaitlistEntry | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  /* Fetch settings */
   const fetchSettings = useCallback(async () => {
     setSettingsLoading(true);
     try {
       const res = await fetch("/api/settings/coming-soon");
       const json = await res.json();
+
       if (json?.data) {
         setSettings({
-          isEnabled: json.data.isEnabled ?? false,
+          isEnabled: json.data.isEnabled ?? DEFAULT_SETTINGS.isEnabled,
           launchDate: json.data.launchDate
             ? new Date(json.data.launchDate).toISOString().slice(0, 16)
             : null,
-          headline: json.data.headline || "¡Algo emocionante está en camino!",
-          subtext: json.data.subtext || "<p>GoGame es una experiencia sorpresa de viajes deportivos. Sé el primero en saber cuándo lanzaremos.</p>",
+          headline: json.data.headline || DEFAULT_SETTINGS.headline,
+          subtext: json.data.subtext || DEFAULT_SETTINGS.subtext,
+          privacyNote: json.data.privacyNote || DEFAULT_SETTINGS.privacyNote,
         });
       }
     } catch {
@@ -132,35 +133,28 @@ export default function ComingSoonManagement() {
     }
   }, []);
 
-  /* Fetch waitlist */
-  const fetchWaitlist = useCallback(
-    async (page = 1) => {
-      setWaitlistLoading(true);
-      try {
-        const res = await fetch(
-          `/api/waitlist?page=${page}&limit=${LIMIT}`,
-        );
-        const json = await res.json();
-        if (json.success) {
-          setWaitlist(json.entries || []);
-          setWaitlistTotal(json.total || 0);
-          setWaitlistPage(page);
-        }
-      } catch {
-        showToast("Failed to load waitlist.", "error");
-      } finally {
-        setWaitlistLoading(false);
+  const fetchWaitlist = useCallback(async (page = 1) => {
+    setWaitlistLoading(true);
+    try {
+      const res = await fetch(`/api/waitlist?page=${page}&limit=${LIMIT}`);
+      const json = await res.json();
+      if (json.success) {
+        setWaitlist(json.entries || []);
+        setWaitlistTotal(json.total || 0);
+        setWaitlistPage(page);
       }
-    },
-    [],
-  );
+    } catch {
+      showToast("Failed to load waitlist.", "error");
+    } finally {
+      setWaitlistLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchSettings();
     fetchWaitlist(1);
   }, [fetchSettings, fetchWaitlist]);
 
-  /* Save settings */
   const saveSettings = async () => {
     setSettingsSaving(true);
     try {
@@ -187,7 +181,6 @@ export default function ComingSoonManagement() {
     }
   };
 
-  /* Toggle coming-soon mode */
   const handleToggle = async () => {
     const newVal = !settings.isEnabled;
     setSettings((prev) => ({ ...prev, isEnabled: newVal }));
@@ -201,15 +194,13 @@ export default function ComingSoonManagement() {
       if (json.success) {
         showToast(
           newVal
-            ? "Coming Soon mode ENABLED 🚀"
-            : "Coming Soon mode DISABLED ✓",
+            ? "Coming Soon mode ENABLED"
+            : "Coming Soon mode DISABLED",
         );
-        // Sync full settings from server response
         if (json.data) {
           setSettings((prev) => ({ ...prev, isEnabled: json.data.isEnabled }));
         }
       } else {
-        // Revert on failure
         setSettings((prev) => ({ ...prev, isEnabled: !newVal }));
         showToast("Failed to update mode.", "error");
       }
@@ -219,31 +210,33 @@ export default function ComingSoonManagement() {
     }
   };
 
-  /* Delete entry */
-  const handleDelete = async (id: string) => {
-    if (!confirm("Remove this email from the waitlist?")) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
     try {
-      const res = await fetch(`/api/waitlist?id=${id}`, {
+      const res = await fetch(`/api/waitlist?id=${deleteTarget.id}`, {
         method: "DELETE",
       });
       const json = await res.json();
       if (json.success) {
-        setWaitlist((prev) => prev.filter((e) => e.id !== id));
+        setWaitlist((prev) => prev.filter((e) => e.id !== deleteTarget.id));
         setWaitlistTotal((t) => t - 1);
         showToast("Email removed.");
+        setDeleteTarget(null);
       }
     } catch {
       showToast("Failed to remove email.", "error");
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
-  /* CSV Export */
   const handleExportCSV = () => {
     const header = "Email,Name,Subscribed At\n";
     const rows = waitlist
       .map(
-        (e) =>
-          `${e.email},${e.name || ""},${new Date(e.subscribedAt).toLocaleString()}`,
+        (entry) =>
+          `${entry.email},${entry.name || ""},${new Date(entry.subscribedAt).toLocaleString()}`,
       )
       .join("\n");
     const blob = new Blob([header + rows], { type: "text/csv" });
@@ -259,7 +252,6 @@ export default function ComingSoonManagement() {
 
   return (
     <div className="pt-4 min-h-screen mb-4 p-4">
-      {/* Header */}
       <div className="flex flex-col gap-2 mb-8">
         <h1 className="text-zinc-950 text-3xl md:text-4xl font-semibold font-['Poppins'] leading-tight pt-8">
           Coming Soon Mode
@@ -270,9 +262,7 @@ export default function ComingSoonManagement() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* ── Left column: Settings ── */}
         <div className="xl:col-span-1 flex flex-col gap-6">
-          {/* Toggle card */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-9 h-9 rounded-xl bg-[#76C043]/10 flex items-center justify-center">
@@ -295,9 +285,7 @@ export default function ComingSoonManagement() {
               >
                 <div>
                   <p className="font-semibold font-['Poppins'] text-zinc-800 text-sm">
-                    {settings.isEnabled
-                      ? "🔴 Coming Soon Active"
-                      : "🟢 Site Live"}
+                    {settings.isEnabled ? "Coming Soon Active" : "Site Live"}
                   </p>
                   <p className="text-xs text-gray-500 font-['Poppins'] mt-0.5">
                     {settings.isEnabled
@@ -314,7 +302,6 @@ export default function ComingSoonManagement() {
             )}
           </div>
 
-          {/* Config card */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4">
             <div className="flex items-center gap-3 mb-1">
               <div className="w-9 h-9 rounded-xl bg-[#76C043]/10 flex items-center justify-center">
@@ -333,7 +320,6 @@ export default function ComingSoonManagement() {
               </div>
             ) : (
               <>
-                {/* Headline */}
                 <div>
                   <label className="text-xs font-semibold text-gray-500 font-['Poppins'] uppercase tracking-wider mb-1 block">
                     Headline
@@ -343,28 +329,46 @@ export default function ComingSoonManagement() {
                     type="text"
                     value={settings.headline}
                     onChange={(e) =>
-                      setSettings((p) => ({ ...p, headline: e.target.value }))
+                      setSettings((prev) => ({
+                        ...prev,
+                        headline: e.target.value,
+                      }))
                     }
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-['Poppins'] text-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#76C043]/40 focus:border-[#76C043]"
                   />
                 </div>
 
-                {/* Subtext */}
                 <div>
                   <label className="text-xs font-semibold text-gray-500 font-['Poppins'] uppercase tracking-wider mb-1 block">
                     Subtext
                   </label>
                   <RichTextEditor
                     value={settings.subtext}
-                    onChange={(val) =>
-                      setSettings((p) => ({ ...p, subtext: val }))
+                    onChange={(value) =>
+                      setSettings((prev) => ({ ...prev, subtext: value }))
                     }
                     placeholder="Enter subtext here"
                     maxHeight="250px"
                   />
                 </div>
 
-                {/* Launch date */}
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 font-['Poppins'] uppercase tracking-wider mb-1 block">
+                    Privacy Note
+                  </label>
+                  <textarea
+                    value={settings.privacyNote}
+                    onChange={(e) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        privacyNote: e.target.value,
+                      }))
+                    }
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm font-['Poppins'] text-zinc-800 focus:outline-none focus:ring-2 focus:ring-[#76C043]/40 focus:border-[#76C043]"
+                  />
+                </div>
+
                 <div>
                   <label className="text-xs font-semibold text-gray-500 font-['Poppins'] uppercase tracking-wider mb-1 flex items-center gap-1">
                     <CalendarDays className="w-3 h-3" /> Launch Date (optional)
@@ -374,8 +378,8 @@ export default function ComingSoonManagement() {
                     type="datetime-local"
                     value={settings.launchDate || ""}
                     onChange={(e) =>
-                      setSettings((p) => ({
-                        ...p,
+                      setSettings((prev) => ({
+                        ...prev,
                         launchDate: e.target.value || null,
                       }))
                     }
@@ -405,9 +409,7 @@ export default function ComingSoonManagement() {
           </div>
         </div>
 
-        {/* ── Right column: Waitlist ── */}
         <div className="xl:col-span-2 flex flex-col gap-6">
-          {/* Stats row */}
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
               <div className="w-11 h-11 rounded-xl bg-[#76C043]/10 flex items-center justify-center flex-shrink-0">
@@ -437,7 +439,6 @@ export default function ComingSoonManagement() {
             </div>
           </div>
 
-          {/* Waitlist table */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-semibold font-['Poppins'] text-zinc-800">
@@ -467,9 +468,9 @@ export default function ComingSoonManagement() {
 
             {waitlistLoading ? (
               <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
+                {Array.from({ length: 5 }).map((_, index) => (
                   <div
-                    key={i}
+                    key={index}
                     className="h-12 bg-gray-100 rounded-lg animate-pulse"
                   />
                 ))}
@@ -526,7 +527,7 @@ export default function ComingSoonManagement() {
                           </td>
                           <td className="py-3 text-right">
                             <button
-                              onClick={() => handleDelete(entry.id)}
+                              onClick={() => setDeleteTarget(entry)}
                               className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                               title="Remove"
                             >
@@ -539,7 +540,6 @@ export default function ComingSoonManagement() {
                   </table>
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
                     <p className="text-xs text-gray-400 font-['Poppins']">
@@ -569,7 +569,56 @@ export default function ComingSoonManagement() {
         </div>
       </div>
 
-      {/* Toast */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/45 px-4">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-red-500 to-red-600 px-6 py-5 text-white">
+              <h3 className="text-lg font-semibold font-['Poppins']">
+                Remove waitlist email?
+              </h3>
+              <p className="mt-1 text-sm text-white/85 font-['Poppins']">
+                This action will permanently remove the selected signup from the dashboard list.
+              </p>
+            </div>
+
+            <div className="px-6 py-5">
+              <div className="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3">
+                <p className="text-xs uppercase tracking-wider text-gray-400 font-semibold font-['Poppins']">
+                  Selected Email
+                </p>
+                <p className="mt-1 text-sm text-zinc-800 font-medium font-['Poppins'] break-all">
+                  {deleteTarget.email}
+                </p>
+                {deleteTarget.name && (
+                  <p className="mt-1 text-sm text-gray-500 font-['Poppins']">
+                    {deleteTarget.name}
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-5 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => !deleteLoading && setDeleteTarget(null)}
+                  disabled={deleteLoading}
+                  className="px-4 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm font-semibold font-['Poppins'] hover:bg-gray-50 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={deleteLoading}
+                  className="px-4 py-2.5 rounded-lg bg-red-500 text-white text-sm font-semibold font-['Poppins'] hover:bg-red-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {deleteLoading ? "Removing..." : "Yes, remove"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {toast && <Toast msg={toast.msg} type={toast.type} />}
     </div>
   );

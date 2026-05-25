@@ -1,5 +1,6 @@
 import { Waitlist } from "../../models";
 import { connectToDatabase } from "@/backend";
+import { queueWaitlistSignupEmails } from "../../lib/waitlist-emails";
 
 class WaitlistService {
   private mapToLean(doc: any) {
@@ -17,9 +18,8 @@ class WaitlistService {
     await connectToDatabase();
 
     try {
-      const existing = await Waitlist.findOne({
-        email: data.email.toLowerCase().trim(),
-      });
+      const normalizedEmail = data.email.toLowerCase().trim();
+      const existing = await Waitlist.findOne({ email: normalizedEmail });
 
       if (existing) {
         return {
@@ -29,11 +29,20 @@ class WaitlistService {
       }
 
       const entry = await new Waitlist({
-        email: data.email.toLowerCase().trim(),
+        email: normalizedEmail,
         name: data.name?.trim(),
         source: data.source || "coming-soon-page",
         subscribedAt: new Date(),
       }).save();
+
+      try {
+        await queueWaitlistSignupEmails({
+          email: entry.email,
+          name: entry.name,
+        });
+      } catch (emailError) {
+        console.error("[Waitlist] Failed to queue signup emails:", emailError);
+      }
 
       return {
         success: true,
@@ -41,7 +50,6 @@ class WaitlistService {
         data: this.mapToLean(entry),
       };
     } catch (error: any) {
-      // Handle MongoDB unique constraint error
       if (error.code === 11000) {
         return {
           success: false,
@@ -67,7 +75,7 @@ class WaitlistService {
     ]);
 
     return {
-      entries: entries.map((e) => this.mapToLean(e)),
+      entries: entries.map((entry) => this.mapToLean(entry)),
       total,
       page,
       limit,

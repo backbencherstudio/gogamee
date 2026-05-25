@@ -3,7 +3,7 @@ import { redis, redisUrl } from "./redis";
 import Redis from "ioredis";
 
 // Define the queue name
-export const MAIL_QUEUE_NAME = "mail-queue";
+export const MAIL_QUEUE_NAME = "gogamee-mail-queue";
 
 // Initialize BullMQ Queue
 // Producers can share the connection
