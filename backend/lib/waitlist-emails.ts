@@ -62,9 +62,9 @@ function createEmailShell(content: {
     ${content.sections}
 
     <div style="background-color: #f9f9f9; padding: 24px 30px; text-align: center; border-top: 1px solid #eee;">
-      <p style="margin: 0 0 6px; color: #555; font-size: 13px;">¿Necesitas ayuda? Contáctanos en</p>
+      <p style="margin: 0 0 6px; color: #555; font-size: 13px;">&iquest;Necesitas ayuda? Cont&aacute;ctanos en</p>
       <p style="margin: 0 0 6px; color: #6AAD3C; font-size: 13px; font-weight: 600;">${SUPPORT_EMAIL}</p>
-      <p style="margin: 14px 0 0; color: #aaa; font-size: 11px;">${content.footerNote || `© ${new Date().getFullYear()} GoGame. Todos los derechos reservados.`}</p>
+      <p style="margin: 14px 0 0; color: #aaa; font-size: 11px;">${content.footerNote || `&copy; ${new Date().getFullYear()} GoGame. Todos los derechos reservados.`}</p>
     </div>
   </div>
 </body>
@@ -73,41 +73,42 @@ function createEmailShell(content: {
 }
 
 function createWelcomeTemplate(email: string) {
+  const communityCopy =
+    "Hola, hemos recibido correctamente tu email. A partir de ahora podr&aacute;s recibir noticias, novedades y futuras actualizaciones relacionadas con GoGame.";
   const sections = `
     <div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
-      <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">👋 ¡Bienvenido a la comunidad de GoGame!</h3>
+      <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">&#128075; &iexcl;Bienvenido a la comunidad de GoGame!</h3>
       <div style="border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
         <div style="padding: 14px 16px; background-color: #ffffff; border-bottom: 1px solid #f0f0f0; color: #333; font-size: 14px; line-height: 1.7;">
           Gracias por unirte a la comunidad de GoGame.
         </div>
         <div style="padding: 14px 16px; background-color: #fafafa; border-bottom: 1px solid #f0f0f0; color: #333; font-size: 14px; line-height: 1.7;">
-          Hemos recibido correctamente tu email y, a partir de ahora, podrás recibir noticias, novedades y futuras actualizaciones relacionadas con GoGame.
+          ${communityCopy}
         </div>
         <div style="padding: 14px 16px; background-color: #ffffff; color: #333; font-size: 14px; line-height: 1.7;">
-          Nos hace mucha ilusión tenerte con nosotros ⚽🏀
+          Nos hace mucha ilusi&oacute;n tenerte con nosotros &#9917;&#127936;
         </div>
       </div>
     </div>
 
     <div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
-      <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">📩 Email registrado</h3>
+      <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">&#128233; Email registrado</h3>
       <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
         <tr>
-          <td style="padding: 10px 12px; color: #666; font-size: 13px; width: 40%; border-bottom: 1px solid #f0f0f0;">Correo electrónico</td>
+          <td style="padding: 10px 12px; color: #666; font-size: 13px; width: 40%; border-bottom: 1px solid #f0f0f0;">Correo electr&oacute;nico</td>
           <td style="padding: 10px 12px; color: #222; font-size: 14px; font-weight: 600; border-bottom: 1px solid #f0f0f0;">${email}</td>
         </tr>
         <tr>
           <td style="padding: 10px 12px; color: #666; font-size: 13px;">Estado</td>
-          <td style="padding: 10px 12px; color: #222; font-size: 14px; font-weight: 600;">Registrado en la waitlist</td>
+          <td style="padding: 10px 12px; color: #222; font-size: 14px; font-weight: 600;">Ya formas parte de la comunidad GoGame</td>
         </tr>
       </table>
     </div>
   `;
 
   return createEmailShell({
-    title: "¡Ya estás dentro!",
-    intro:
-      "Hola, hemos confirmado tu registro en la waitlist de GoGame. Te avisaremos cuando tengamos novedades importantes para compartir contigo.",
+    title: "&iexcl;Ya est&aacute;s dentro!",
+    intro: communityCopy,
     sections,
   });
 }
@@ -123,7 +124,7 @@ function createInternalTemplate({
 }) {
   const sections = `
     <div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
-      <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">📥 Nueva suscripción a la waitlist</h3>
+      <h3 style="margin: 0 0 14px; color: #6AAD3C; font-size: 16px;">&#128229; Nueva suscripci&oacute;n a la waitlist</h3>
       <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
         <tr>
           <td style="padding: 10px 12px; color: #666; font-size: 13px; width: 40%; border-bottom: 1px solid #f0f0f0;">Email</td>
@@ -146,9 +147,9 @@ function createInternalTemplate({
 
     <div style="padding: 24px 30px; border-bottom: 1px solid #eee;">
       <div style="margin: 0; padding: 20px; background-color: #e3f2fd; border-bottom: 1px solid #90caf9; border-radius: 8px;">
-        <h3 style="margin: 0 0 6px; color: #1565c0; font-size: 15px;">🤝 Seguimiento recomendado</h3>
+        <h3 style="margin: 0 0 6px; color: #1565c0; font-size: 15px;">&#129309; Seguimiento recomendado</h3>
         <p style="margin: 0; color: #555; font-size: 14px; line-height: 1.6;">
-          Este usuario ya quedó registrado correctamente. Puedes usar este correo para futuras campañas, avisos de lanzamiento o seguimiento comercial.
+          Este usuario ya qued&oacute; registrado correctamente. Puedes usar este correo para futuras campa&ntilde;as, avisos de lanzamiento o seguimiento comercial.
         </p>
       </div>
     </div>
@@ -158,7 +159,7 @@ function createInternalTemplate({
     title: "New Waitlist Signup",
     eyebrow: "GoGame Admin",
     intro:
-      "Se ha registrado una nueva persona en la waitlist pública de GoGame. Aquí tienes los detalles del contacto.",
+      "Se ha registrado una nueva persona en la waitlist p&uacute;blica de GoGame. Aqu&iacute; tienes los detalles del contacto.",
     sections,
     footerNote: "GoGame Admin Notification",
   });
@@ -179,18 +180,18 @@ export async function queueWaitlistSignupEmails({
 
   const welcomeHtml = createWelcomeTemplate(email);
   const welcomeText = [
-    "¡Hola!",
+    "\u00a1Hola!",
     "",
     "Gracias por unirte a la comunidad de GoGame.",
     "",
-    "Hemos recibido correctamente tu email y, a partir de ahora, podrás recibir noticias, novedades y futuras actualizaciones relacionadas con GoGame.",
+    "Hola, hemos recibido correctamente tu email. A partir de ahora podras recibir noticias, novedades y futuras actualizaciones relacionadas con GoGame.",
     "",
     `Email registrado: ${email}`,
-    "Estado: Registrado en la waitlist",
+    "Estado: Ya formas parte de la comunidad GoGame",
     "",
-    "Nos hace mucha ilusión tenerte con nosotros ⚽🏀",
+    "Nos hace mucha ilusion tenerte con nosotros.",
     "",
-    "— El equipo de GoGame",
+    "GoGame Team",
   ].join("\n");
 
   const fromHeader = `"GoGame" <${mailFrom}>`;

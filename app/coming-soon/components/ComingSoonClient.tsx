@@ -136,15 +136,38 @@ export default function ComingSoonClient({
           0%   { transform: translateY(0) rotate(0deg); }
           100% { transform: translateY(-110vh) rotate(360deg); }
         }
+        #waitlist-form,
+        #waitlist-email {
+          color-scheme: dark;
+        }
+        #waitlist-email {
+          background-color: transparent;
+          -webkit-appearance: none;
+          appearance: none;
+        }
+        #waitlist-email::placeholder {
+          color: rgba(255, 255, 255, 0.4);
+        }
+        #waitlist-email:autofill,
         #waitlist-email:-webkit-autofill,
         #waitlist-email:-webkit-autofill:hover,
         #waitlist-email:-webkit-autofill:focus {
-          -webkit-text-fill-color: #111827;
-          caret-color: #111827;
-          -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.96) inset;
-          box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.96) inset;
+          -webkit-text-fill-color: #f9fafb;
+          caret-color: #f9fafb;
           border-radius: 0.75rem;
-          transition: background-color 9999s ease-in-out 0s;
+          -webkit-box-shadow: 0 0 0 1000px rgba(12, 18, 14, 0.92) inset;
+          box-shadow: 0 0 0 1000px rgba(12, 18, 14, 0.92) inset;
+          -webkit-background-clip: text;
+          background-clip: content-box;
+          transition:
+            background-color 9999s ease-in-out 0s,
+            color 9999s ease-in-out 0s;
+        }
+        #waitlist-email:-moz-autofill {
+          color: #f9fafb;
+          caret-color: #f9fafb;
+          border-radius: 0.75rem;
+          box-shadow: 0 0 0 1000px rgba(12, 18, 14, 0.92) inset;
         }
       `}</style>
 
