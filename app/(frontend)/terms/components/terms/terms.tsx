@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
 import { getLegalPageContent } from "../../../../../services/publicSettingsService";
 
 interface TermProps {
@@ -23,14 +24,11 @@ export default function Terms({ initialContent = "" }: TermProps) {
       setLoading(true);
       setError(null);
       const response = await getLegalPageContent("terms");
-      if (
-        response.success &&
-        response.data?.content &&
-        typeof response.data.content === "string"
-      ) {
-        const rawContent = response.data.content;
+
+      if (response.success && typeof response.content === "string") {
+        setContent(response.content);
       } else {
-        setError("Failed to load terms and conditions content");
+        setContent("");
       }
     } catch (err) {
       console.error("Error loading terms:", err);
@@ -46,7 +44,7 @@ export default function Terms({ initialContent = "" }: TermProps) {
         <div className="w-full flex flex-col justify-start items-center gap-8 lg:gap-12 py-12 sm:py-16 lg:py-[100px]">
           <div className="flex justify-center items-center py-12">
             <div className="text-neutral-600 text-lg font-medium">
-              Cargando términos y condiciones...
+              Loading terms and conditions...
             </div>
           </div>
         </div>
@@ -64,7 +62,7 @@ export default function Terms({ initialContent = "" }: TermProps) {
               onClick={loadContent}
               className="px-4 py-2 bg-[#76C043] text-white rounded-lg hover:bg-lime-600 transition-colors"
             >
-              Intentar de nuevo
+              Try Again
             </button>
           </div>
         </div>
@@ -78,7 +76,7 @@ export default function Terms({ initialContent = "" }: TermProps) {
         <div className="w-full flex flex-col justify-start items-center gap-8 lg:gap-12 py-12 sm:py-16 lg:py-[100px]">
           <div className="flex justify-center items-center py-12">
             <div className="text-neutral-600 text-lg font-medium">
-              El contenido de términos y condiciones no está disponible.
+              Terms and conditions content will appear here once it is added from the dashboard.
             </div>
           </div>
         </div>

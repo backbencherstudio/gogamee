@@ -11,5 +11,10 @@ export function isCookieConsentStatus(
 }
 
 export function getCookieConsentCookieString(status: CookieConsentStatus) {
-  return `${COOKIE_CONSENT_KEY}=${status}; Path=/; Max-Age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax`;
+  const secure =
+    typeof window !== "undefined" && window.location.protocol === "https:"
+      ? "; Secure"
+      : "";
+
+  return `${COOKIE_CONSENT_KEY}=${status}; Path=/; Max-Age=${ONE_YEAR_IN_SECONDS}; SameSite=Lax${secure}`;
 }

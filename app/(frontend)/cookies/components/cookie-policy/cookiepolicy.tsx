@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
 import { getLegalPageContent } from "../../../../../services/publicSettingsService";
 
 interface CookiePolicyProps {
@@ -25,14 +26,11 @@ export default function CookiePolicy({
       setLoading(true);
       setError(null);
       const response = await getLegalPageContent("cookie");
-      if (
-        response.success &&
-        response.data?.content &&
-        typeof response.data.content === "string"
-      ) {
-        setContent(response.data.content);
+
+      if (response.success && typeof response.content === "string") {
+        setContent(response.content);
       } else {
-        setError("Failed to load cookie policy content");
+        setContent("");
       }
     } catch (err) {
       console.error("Error loading cookie policy:", err);
@@ -80,7 +78,7 @@ export default function CookiePolicy({
         <div className="w-full flex flex-col justify-start items-center gap-8 lg:gap-12 py-12 sm:py-16 lg:py-[100px]">
           <div className="flex justify-center items-center py-12">
             <div className="text-neutral-600 text-lg font-medium">
-              Cookie policy content is not available.
+              Cookie policy content will appear here once it is added from the dashboard.
             </div>
           </div>
         </div>

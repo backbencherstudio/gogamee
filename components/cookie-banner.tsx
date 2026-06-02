@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -23,6 +23,7 @@ export default function CookieBanner() {
   const [consent, setConsent] = useState<CookieConsentStatus | null>(null);
   const [ready, setReady] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const closeTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem(COOKIE_CONSENT_KEY);
@@ -32,6 +33,12 @@ export default function CookieBanner() {
     }
 
     setReady(true);
+
+    return () => {
+      if (closeTimeoutRef.current !== null) {
+        window.clearTimeout(closeTimeoutRef.current);
+      }
+    };
   }, []);
 
   const shouldHideBanner =
@@ -48,7 +55,7 @@ export default function CookieBanner() {
   const handleChoice = (status: CookieConsentStatus) => {
     setIsClosing(true);
 
-    window.setTimeout(() => {
+    closeTimeoutRef.current = window.setTimeout(() => {
       applyConsent(status);
       setConsent(status);
       setIsClosing(false);

@@ -1,7 +1,13 @@
 import axiosClient from "../lib/axiosClient";
 import { ApiResponse } from "@/app/lib/api-response";
 
-export const getPublicLegalPages = async (type?: string): Promise<ApiResponse<any>> => {
+export interface PublicLegalPagesResponse extends ApiResponse<any> {
+  content?: any;
+}
+
+export const getPublicLegalPages = async (
+  type?: string,
+): Promise<PublicLegalPagesResponse> => {
   const response = await axiosClient.get(`/legal-pages${type ? `?page=${type}` : ""}`);
   return response.data;
 };
