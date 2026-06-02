@@ -5,11 +5,21 @@ import { WaitlistService } from "@/backend";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { email, name } = body;
+    const { email, name, privacyAccepted } = body;
 
     if (!email || typeof email !== "string") {
       return NextResponse.json(
         { success: false, message: "A valid email is required." },
+        { status: 400 },
+      );
+    }
+
+    if (privacyAccepted !== true) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "You must accept the privacy policy before submitting.",
+        },
         { status: 400 },
       );
     }

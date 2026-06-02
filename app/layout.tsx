@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
+import CookieBanner from "@/components/cookie-banner";
+import AnalyticsLoader from "@/components/analytics-loader";
 
 const inter = Inter({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -39,7 +41,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`antialiased ${fontClasses}`} suppressHydrationWarning>
+        <AnalyticsLoader />
         {children}
+        <CookieBanner />
       </body>
     </html>
   );

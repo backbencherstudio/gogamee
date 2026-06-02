@@ -59,6 +59,7 @@ export default function ComingSoonClient({
     "idle" | "loading" | "success" | "error" | "duplicate"
   >("idle");
   const [message, setMessage] = useState("");
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -83,7 +84,7 @@ export default function ComingSoonClient({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email.trim() || !privacyAccepted) return;
     setStatus("loading");
     setMessage("");
 
@@ -91,7 +92,10 @@ export default function ComingSoonClient({
       const res = await fetch("/api/waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({
+          email: email.trim(),
+          privacyAccepted,
+        }),
       });
       const json = await res.json();
 
@@ -239,6 +243,28 @@ export default function ComingSoonClient({
                 </button>
               </div>
 
+              <label className="flex items-start gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-left backdrop-blur-md">
+                <input
+                  type="checkbox"
+                  checked={privacyAccepted}
+                  onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                  required
+                  className="mt-1 h-4 w-4 rounded border-white/30 bg-transparent text-[#76C043] focus:ring-[#76C043]"
+                />
+                <span className="text-sm leading-6 text-white/75 font-['Poppins',sans-serif]">
+                  He leído y acepto la{" "}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-[#9ad85f] underline underline-offset-2"
+                  >
+                    Política de Privacidad
+                  </a>
+                  .
+                </span>
+              </label>
+
               {message && (
                 <div
                   className={`text-[0.88rem] font-['Poppins',sans-serif] px-4 py-2 rounded-lg text-center animate-in slide-in-from-top-2 duration-300 ${
@@ -257,6 +283,18 @@ export default function ComingSoonClient({
             <p className="text-xs text-white/35 font-['Poppins',sans-serif]">
               {privacyNote}
             </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-white/60 font-['Poppins',sans-serif]">
+              <a href="/terms" className="transition hover:text-white">
+                Términos y condiciones
+              </a>
+              <a href="/privacy" className="transition hover:text-white">
+                Política de privacidad
+              </a>
+              <a href="/cookies" className="transition hover:text-white">
+                Política de cookies
+              </a>
+            </div>
           </div>
         </div>
       </div>
