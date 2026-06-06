@@ -50,3 +50,16 @@ export interface SettingsQueryOptions {
   limit?: number;
   skip?: number;
 }
+
+export interface HomepageStepContent {
+  title: string;
+  description: string;
+}
+
+export interface HomepageContentData {
+  heroTitle: string;
+  heroSubtitle: string;
+  howItWorksTitle: string;
+  howItWorksIntro: string;
+  steps: HomepageStepContent[];
+}

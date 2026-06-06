@@ -8,6 +8,17 @@ import {
   StartingPriceItem,
 } from "../../../../../services/packageService";
 
+interface HeroContent {
+  heroTitle?: string;
+  heroSubtitle?: string;
+}
+
+const defaultHeroContent: Required<HeroContent> = {
+  heroTitle: "¿Listo para vivir el deporte como nunca antes?",
+  heroSubtitle:
+    "Deja que tu pasión por el fútbol o el baloncesto te lleve a un destino inesperado. El lugar final es una sorpresa.",
+};
+
 const heroData = {
   sports: [
     { id: "football", name: "Fútbol", label: "Fútbol", value: "Fútbol" },
@@ -91,7 +102,11 @@ interface PeopleCount {
   babies: number;
 }
 
-export default function HeroSection() {
+export default function HeroSection({
+  content,
+}: {
+  content?: HeroContent | null;
+}) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const heroTextRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -343,12 +358,11 @@ export default function HeroSection() {
             className="w-full max-w-[1041px] flex flex-col justify-start items-start gap-4 md:gap-6"
           >
             <h1 className="text-white text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-extrabold font-['Inter'] leading-tight md:leading-[86.40px]">
-              <span>¿Listo para vivir el deporte como nunca antes?</span>
+              <span>{content?.heroTitle || defaultHeroContent.heroTitle}</span>
             </h1>
             <p className="text-white text-sm sm:text-base md:text-lg font-normal font-['Poppins'] leading-relaxed md:leading-loose">
               <span>
-                Deja que tu pasión por el fútbol o el baloncesto te lleve a un
-                destino inesperado. El lugar final es una sorpresa.
+                {content?.heroSubtitle || defaultHeroContent.heroSubtitle}
               </span>
             </p>
           </div>

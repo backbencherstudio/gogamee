@@ -1,4 +1,10 @@
-import { SocialContact, LegalPage, ComingSoonSettings } from "../../models";
+import {
+  SocialContact,
+  LegalPage,
+  ComingSoonSettings,
+  HomepageContent,
+  defaultHomepageContent,
+} from "../../models";
 import {
   connectToDatabase,
   clearCachePattern,
@@ -11,6 +17,10 @@ class SettingsService {
 
   private async clearLegalCache() {
     await clearCachePattern("settings:legal:*");
+  }
+
+  private async clearHomepageCache() {
+    await clearCachePattern("settings:homepage:*");
   }
 
   private mapToLean(doc: any) {
@@ -134,6 +144,40 @@ class SettingsService {
     }
 
     const created = await new ComingSoonSettings(data).save();
+    return this.mapToLean(created);
+  }
+
+  async getHomepageContent(): Promise<any> {
+    await connectToDatabase();
+    let content = await HomepageContent.findOne().lean();
+
+    if (!content) {
+      const created = await new HomepageContent(defaultHomepageContent).save();
+      content = created.toObject();
+    }
+
+    return this.mapToLean(content);
+  }
+
+  async updateHomepageContent(data: {
+    heroTitle: string;
+    heroSubtitle: string;
+    howItWorksTitle: string;
+    howItWorksIntro: string;
+    steps: Array<{ title: string; description: string }>;
+  }): Promise<any> {
+    await connectToDatabase();
+    const existing = await HomepageContent.findOne();
+
+    if (existing) {
+      Object.assign(existing, data);
+      await existing.save();
+      await this.clearHomepageCache();
+      return this.mapToLean(existing);
+    }
+
+    const created = await new HomepageContent(data).save();
+    await this.clearHomepageCache();
     return this.mapToLean(created);
   }
 }

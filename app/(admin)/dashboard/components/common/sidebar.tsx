@@ -23,6 +23,7 @@ import {
   Gift,
   ReceiptText,
   Clock,
+  FilePenLine,
 } from "lucide-react";
 
 import { cn } from "@/app/lib/utils";
@@ -161,6 +162,12 @@ const sidebarData: SidebarSection[] = [
             url: "/dashboard/settings/legal/terms",
           },
         ],
+      },
+      {
+        title: "Homepage Text",
+        titleEs: "Textos de Inicio",
+        icon: FilePenLine,
+        url: "/dashboard/settings/homepage-content",
       },
       {
         title: "Coming Soon",

@@ -30,6 +30,27 @@ export interface LegalPagesResponse {
   content?: LegalPagesContent;
 }
 
+// ========== Homepage Content Interfaces ==========
+export interface HomepageStepContent {
+  title: string;
+  description: string;
+}
+
+export interface HomepageContent {
+  id?: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  howItWorksTitle: string;
+  howItWorksIntro: string;
+  steps: HomepageStepContent[];
+}
+
+export interface HomepageContentResponse {
+  success: boolean;
+  message: string;
+  content?: HomepageContent;
+}
+
 // ========== Social Media & Contact Links API Functions ==========
 
 // GET social contact links (Admin)
@@ -102,5 +123,23 @@ export const updateTermsConditions = async (
   const response = await axiosClient.put("/admin/settings/legal/terms", {
     content,
   });
+  return response.data;
+};
+
+// ========== Homepage Content API Functions ==========
+
+export const getHomepageContent =
+  async (): Promise<HomepageContentResponse> => {
+    const response = await axiosClient.get("/admin/settings/homepage-content");
+    return response.data;
+  };
+
+export const updateHomepageContent = async (
+  content: HomepageContent,
+): Promise<HomepageContentResponse> => {
+  const response = await axiosClient.put(
+    "/admin/settings/homepage-content",
+    content,
+  );
   return response.data;
 };

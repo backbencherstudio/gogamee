@@ -49,6 +49,21 @@ export const legalPageFilterSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+export const homepageStepSchema = z.object({
+  title: z.string().min(1, "Step title is required").trim(),
+  description: z.string().min(1, "Step description is required").trim(),
+});
+
+export const updateHomepageContentSchema = z.object({
+  heroTitle: z.string().min(1, "Hero title is required").trim(),
+  heroSubtitle: z.string().min(1, "Hero subtitle is required").trim(),
+  howItWorksTitle: z.string().min(1, "Section title is required").trim(),
+  howItWorksIntro: z.string().min(1, "Section intro is required").trim(),
+  steps: z
+    .array(homepageStepSchema)
+    .length(4, "Homepage content must include exactly 4 steps"),
+});
+
 // Export types
 export type CreateSocialContactInput = z.infer<
   typeof createSocialContactSchema
@@ -62,3 +77,6 @@ export type SocialContactFilterInput = z.infer<
   typeof socialContactFilterSchema
 >;
 export type LegalPageFilterInput = z.infer<typeof legalPageFilterSchema>;
+export type UpdateHomepageContentInput = z.infer<
+  typeof updateHomepageContentSchema
+>;

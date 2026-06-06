@@ -5,15 +5,16 @@ import Leagues from "./components/leagues/leagues";
 import Reviews from "./components/review/reviews";
 import Faq from "./components/faq/faq";
 import Mailus from "./components/mailus/mailus";
-import { FAQService, TestimonialService } from "@/backend";
+import { FAQService, SettingsService, TestimonialService } from "@/backend";
 
 export const dynamic = "force-dynamic";
 
 async function getInitialData() {
   try {
-    const [faqData, testimonialData] = await Promise.all([
+    const [faqData, testimonialData, homepageContent] = await Promise.all([
       FAQService.getAll({ limit: 5 }),
       TestimonialService.getAll({ limit: 10 }),
+      SettingsService.getHomepageContent(),
     ]);
 
     const initialFaqs = faqData.faqs.map((f: any) => ({
@@ -33,15 +34,16 @@ async function getInitialData() {
       created_at: t.createdAt ? new Date(t.createdAt).toISOString() : undefined,
     }));
 
-    return { initialFaqs, initialReviews };
+    return { initialFaqs, initialReviews, homepageContent };
   } catch (error) {
     console.error("Error fetching home page data:", error);
-    return { initialFaqs: [], initialReviews: [] };
+    return { initialFaqs: [], initialReviews: [], homepageContent: null };
   }
 }
 
 export default async function HomePage() {
-  const { initialFaqs, initialReviews } = await getInitialData();
+  const { initialFaqs, initialReviews, homepageContent } =
+    await getInitialData();
 
   return (
     <Suspense
@@ -53,8 +55,8 @@ export default async function HomePage() {
     >
       <div className=" w-full ">
         <div className="">
-          <HeroSection />
-          <HowItWorks />
+          <HeroSection content={homepageContent} />
+          <HowItWorks content={homepageContent} />
           <Leagues />
           <Reviews initialReviews={initialReviews} />
           <Faq className="w-full bg-[#FCFEFB]" initialFaqs={initialFaqs} />

@@ -3,18 +3,65 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function HowItWorks() {
+interface HowItWorksContent {
+  howItWorksTitle?: string;
+  howItWorksIntro?: string;
+  steps?: Array<{
+    title?: string;
+    description?: string;
+  }>;
+}
+
+const defaultHowItWorksContent = {
+  howItWorksTitle: "Cómo funciona GoGame",
+  howItWorksIntro:
+    "Sigue unos pasos muy sencillos y nosotros te sorprenderemos con el viaje deportivo perfecto, totalmente organizado.",
+  steps: [
+    {
+      title: "Personaliza tu aventura",
+      description:
+        "Cuéntanos tu deporte favorito (fútbol o basket), desde qué ciudad sales y cuántas personas sois.",
+    },
+    {
+      title: "Nosotros preparamos la sorpresa",
+      description:
+        "Nos encargamos de reservar tus vuelos, el hotel y las entradas al partido. Tú solo tienes que esperar al gran momento sorpresa.",
+    },
+    {
+      title: "Prepárate para irte",
+      description:
+        "Recibirás tu plan de viaje secreto. Haz la maleta y empieza a emocionarte: sabrás tu destino unos días antes.",
+    },
+    {
+      title: "Vive la experiencia",
+      description:
+        "Disfruta del partido, explora una nueva ciudad y crea recuerdos inolvidables.",
+    },
+  ],
+};
+
+export default function HowItWorks({
+  content,
+}: {
+  content?: HowItWorksContent | null;
+}) {
+  const steps =
+    content?.steps?.length === 4
+      ? content.steps
+      : defaultHowItWorksContent.steps;
+
   return (
     <div className="w-full h-auto py-12 md:py-24 flex flex-col justify-start items-center gap-8 md:gap-12 max-w-[1200px] mx-auto">
       <div className="w-full flex flex-col xl:flex-row justify-start items-start xl:items-center gap-4 md:gap-6 xl:gap-24 px-4 xl:px-0">
         <div className="w-full xl:w-[533px]">
           <h2 className="text-zinc-950 text-3xl md:text-4xl xl:text-5xl font-semibold font-poppins leading-tight xl:leading-[57.60px]">
-            Cómo funciona GoGame
+            {content?.howItWorksTitle ||
+              defaultHowItWorksContent.howItWorksTitle}
           </h2>
         </div>
         <div className="flex-1 text-black text-sm md:text-base font-normal font-poppins leading-6 xl:leading-7">
-          Sigue unos pasos muy sencillos y nosotros te sorprenderemos con el
-          viaje deportivo perfecto, totalmente organizado.
+          {content?.howItWorksIntro ||
+            defaultHowItWorksContent.howItWorksIntro}
         </div>
       </div>
 
@@ -33,11 +80,11 @@ export default function HowItWorks() {
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
               <h3 className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
-                Personaliza tu aventura
+                {steps[0]?.title || defaultHowItWorksContent.steps[0].title}
               </h3>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                Cuéntanos tu deporte favorito (fútbol o basket), desde qué
-                ciudad sales y cuántas personas sois.
+                {steps[0]?.description ||
+                  defaultHowItWorksContent.steps[0].description}
               </div>
             </div>
           </div>
@@ -64,11 +111,11 @@ export default function HowItWorks() {
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
               <h3 className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
-                Nosotros preparamos la sorpresa
+                {steps[1]?.title || defaultHowItWorksContent.steps[1].title}
               </h3>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                Nos encargamos de reservar tus vuelos, el hotel y las entradas
-                al partido. Tú solo tienes que esperar al gran momento sorpresa.
+                {steps[1]?.description ||
+                  defaultHowItWorksContent.steps[1].description}
               </div>
             </div>
           </div>
@@ -95,11 +142,11 @@ export default function HowItWorks() {
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
               <h3 className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
-                Prepárate para irte
+                {steps[2]?.title || defaultHowItWorksContent.steps[2].title}
               </h3>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                Recibirás tu plan de viaje secreto. Haz la maleta y empieza a
-                emocionarte: sabrás tu destino unos días antes.
+                {steps[2]?.description ||
+                  defaultHowItWorksContent.steps[2].description}
               </div>
             </div>
           </div>
@@ -126,11 +173,11 @@ export default function HowItWorks() {
             </div>
             <div className="w-full flex flex-col justify-start items-center gap-2">
               <h3 className="text-center text-lime-900 text-base xl:text-lg font-semibold font-poppins leading-relaxed xl:leading-loose">
-                Vive la experiencia
+                {steps[3]?.title || defaultHowItWorksContent.steps[3].title}
               </h3>
               <div className="text-center text-neutral-600 text-sm xl:text-base font-normal font-poppins leading-6 xl:leading-7">
-                Disfruta del partido, explora una nueva ciudad y crea recuerdos
-                inolvidables.
+                {steps[3]?.description ||
+                  defaultHowItWorksContent.steps[3].description}
               </div>
             </div>
           </div>
