@@ -65,6 +65,23 @@ export const GooglePayDirectButton: React.FC<GooglePayDirectButtonProps> = ({
     }
   };
 
+  const isEnvInvalid =
+    process.env.NODE_ENV === "production" &&
+    (process.env.NEXT_PUBLIC_GOOGLE_PAY_ENVIRONMENT !== "PRODUCTION" ||
+      !process.env.NEXT_PUBLIC_GOOGLE_PAY_MERCHANT_ID ||
+      process.env.NEXT_PUBLIC_GOOGLE_PAY_MERCHANT_ID === "01234567890123456789" ||
+      process.env.NEXT_PUBLIC_GOOGLE_PAY_MERCHANT_ID.includes("YOUR_REAL_MERCHANT_ID"));
+
+  if (isEnvInvalid) {
+    return (
+      <div className="w-full pl-0 pt-4">
+        <div className="w-full h-12 bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center opacity-60 cursor-not-allowed">
+          <span className="text-gray-500 font-['Poppins'] text-sm font-medium">Google Pay no disponible</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full pl-0 pt-4">
       {isProcessing ? (
@@ -77,7 +94,7 @@ export const GooglePayDirectButton: React.FC<GooglePayDirectButtonProps> = ({
       ) : (
         <div className="w-full h-12 relative overflow-hidden rounded-lg">
           <GooglePayButton
-            environment="TEST" // Change to PRODUCTION when live
+            environment={(process.env.NEXT_PUBLIC_GOOGLE_PAY_ENVIRONMENT as "TEST" | "PRODUCTION") || "TEST"}
             paymentRequest={{
               apiVersion: 2,
               apiVersionMinor: 0,
@@ -100,7 +117,7 @@ export const GooglePayDirectButton: React.FC<GooglePayDirectButtonProps> = ({
                 },
               ],
               merchantInfo: {
-                merchantId: "01234567890123456789", // Optional in TEST
+                merchantId: process.env.NEXT_PUBLIC_GOOGLE_PAY_MERCHANT_ID || "01234567890123456789",
                 merchantName: "Gogamee",
               },
               transactionInfo: {

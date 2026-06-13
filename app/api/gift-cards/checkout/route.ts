@@ -16,6 +16,17 @@ function getStripeInstance() {
 }
 
 export const POST = withErrorHandling(async (request: NextRequest) => {
+  // --- PRODUCTION ENV SAFETY VALIDATION ---
+  if (process.env.NODE_ENV === "production") {
+    const isInvalid = (val?: string) => !val || val.includes("your_") || val.startsWith("sk_test_") || val.startsWith("pk_test_");
+    
+    if (isInvalid(process.env.STRIPE_SECRET_KEY) || isInvalid(process.env.STRIPE_WEBHOOK_SECRET)) {
+      console.error("🚨 CRITICAL: Prevented gift card payment creation due to missing or test Stripe credentials in production.");
+      return sendError("El sistema de pagos no está configurado correctamente (Faltan claves de producción). Por favor, contacte con el administrador.", 503);
+    }
+  }
+  // ----------------------------------------
+
   const payload = await request.json();
   const amount = Number(payload.amount || 0);
 

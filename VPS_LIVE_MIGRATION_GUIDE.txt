@@ -1,0 +1,96 @@
+GoGame — Payment System: Live Mode Migration Guide (VPS)
+
+Architecture Overview
+GoGame utilizes Stripe as the unified payment processor. All transactions via Credit/Debit Cards, Google Pay, and Apple Pay are routed through Stripe's infrastructure to the GoGame backend via secure webhooks.
+
+┌──────────────────────────────────────────────────────────┐
+│                    GoGame Payment Flow                    │
+│                                                          │
+│   Credit/Debit Card ──┐                                  │
+│                       │                                  │
+│   Google Pay ─────────┼──→ Stripe (Payment Intents) ──→  │
+│                       │         ↓                        │
+│   Apple Pay ──────────┘    Stripe Webhook                │
+│                              ↓                           │
+│                     GoGame Backend                        │
+│                     (Update booking + send email)         │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+
+Stripe Setup (Live Keys & Webhooks)
+To process real transactions, obtain your live API credentials, and configure a production webhook endpoint.
+
+1. Obtain Live API Keys
+- Log in to your Stripe Dashboard.
+- Disable "Test Mode" using the toggle in the upper right corner to enter Live mode.
+- Navigate to "Developers" > "API Keys".
+- Copy the "Live Publishable Key" (starts with `pk_live_...`).
+- Click "Reveal live key" and copy the "Live Secret Key" (starts with `sk_live_...`). Keep this secret secure and never share it.
+
+2. Configure Production Webhook
+Webhooks are critical to notify GoGame's database when a payment is successful, triggering booking updates and emails.
+- In the Stripe Dashboard (Live mode), go to "Developers" > "Webhooks".
+- Click "Add endpoint" and point it to your live URL: https://gogame2025.com/api/webhooks/stripe
+- Select the following events to listen to:
+  * payment_intent.succeeded
+  * payment_intent.payment_failed
+  * checkout.session.completed
+  * checkout.session.async_payment_succeeded
+  * checkout.session.async_payment_failed
+- Save the endpoint.
+- On the webhook's detail page, click "Reveal" under "Signing secret" and copy it (starts with `whsec_...`).
+
+Google Pay Configuration
+Google Pay payments are tokenized and processed through Stripe. It is fully configured via environment variables on your VPS.
+- Register your business in the Google Pay & Wallet Console (https://pay.google.com/business/console).
+- Retrieve your numeric Merchant ID from the console.
+- You will configure this using NEXT_PUBLIC_GOOGLE_PAY_MERCHANT_ID and set NEXT_PUBLIC_GOOGLE_PAY_ENVIRONMENT to 'PRODUCTION' in the deployment step below.
+
+Apple Pay Configuration
+Apple Pay is integrated entirely through Stripe. You only need to register your production domain with Stripe.
+- In your Stripe Dashboard (Live mode), go to "Settings" > "Payment methods" > "Apple Pay".
+- Click "Add new domain" and enter your production domain (e.g., gogame2025.com).
+- Follow the prompt to complete adding the domain.
+
+VPS Deployment & Environment Variables
+Update the .env file on your production server to reflect live credentials.
+
+Variable Name                           Live Value Format       Scope
+-------------------------------------------------------------------------
+STRIPE_SECRET_KEY                       sk_live_...             Server
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY      pk_live_...             Client
+STRIPE_WEBHOOK_SECRET                   whsec_...               Server
+NEXT_PUBLIC_GOOGLE_PAY_ENVIRONMENT      PRODUCTION              Client
+NEXT_PUBLIC_GOOGLE_PAY_MERCHANT_ID      [Your Merchant ID]      Client
+
+Deploy Changes
+Log in to your VPS to apply the updates and rebuild the application:
+
+ssh username@your-vps-ip
+cd /var/www/gogamee
+nano .env
+
+# Add or update these environment variables in the file:
+# STRIPE_SECRET_KEY=sk_live_...
+# NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
+# STRIPE_WEBHOOK_SECRET=whsec_...
+# NEXT_PUBLIC_GOOGLE_PAY_ENVIRONMENT=PRODUCTION
+# NEXT_PUBLIC_GOOGLE_PAY_MERCHANT_ID=your_real_google_merchant_id
+
+# Save and exit: Press Ctrl+O -> Enter -> Ctrl+X
+
+# Install dependencies if needed
+yarn
+
+# Rebuild the application to embed the NEXT_PUBLIC_ variables
+yarn build
+
+# Restart the application using pm2
+pm2 restart ecosystem.config.js
+
+Final Verification & Testing
+1. Webhook Health: Go to your live webhook in the Stripe Dashboard, click "Send test event", and confirm it receives a "200 OK" response from your VPS.
+2. Live Transaction: Perform a small purchase on your website using a real credit card. Verify that the database updates the booking to "paid" and the confirmation email is delivered.
+3. Digital Wallets: 
+   - Test Google Pay on an Android device or Google Chrome (with a saved card).
+   - Test Apple Pay on an iOS device or Safari browser (macOS).

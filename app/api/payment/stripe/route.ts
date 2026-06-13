@@ -120,6 +120,20 @@ interface CreateBookingPayload {
 
 export async function POST(request: Request) {
   try {
+    // --- PRODUCTION ENV SAFETY VALIDATION ---
+    if (process.env.NODE_ENV === "production") {
+      const isInvalid = (val?: string) => !val || val.includes("your_") || val.startsWith("sk_test_") || val.startsWith("pk_test_");
+      
+      if (isInvalid(process.env.STRIPE_SECRET_KEY) || isInvalid(process.env.STRIPE_WEBHOOK_SECRET)) {
+        console.error("🚨 CRITICAL: Prevented payment creation due to missing or test Stripe credentials in production.");
+        return NextResponse.json(
+          { message: "El sistema de pagos no está configurado correctamente (Faltan claves de producción). Por favor, contacte con el administrador." },
+          { status: 503 }
+        );
+      }
+    }
+    // ----------------------------------------
+
     const payload: CreateBookingPayload = await request.json();
 
     // 1. Calculate Derived Values for Pricing

@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GoGame — Local Development Setup Guide
 
-## Getting Started
+Welcome to the GoGame project! This guide will help you set up and run the project on your local machine for development.
 
-First, run the development server:
+## Prerequisites
 
+Before you begin, ensure you have the following installed on your system:
+- **Node.js** (v18 or higher recommended)
+- **MongoDB** (Running locally, or a MongoDB Atlas URI)
+- **Redis** (Running locally, or an Upstash Redis URI)
+- **Git**
+
+## 1. Clone the Repository
+
+First, clone the repository to your local machine and navigate into the project folder:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd gogamee
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 2. Install Dependencies
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Install the required NPM packages. You can use `npm`, `yarn`, or `pnpm`. We recommend `npm` as per the scripts configuration.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+```
 
-## Learn More
+## 3. Environment Variables Configuration
 
-To learn more about Next.js, take a look at the following resources:
+The project requires several environment variables to connect to the database, payment gateways, and email services.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Create a file named `.env` in the root of the project directory.
+2. Add the following necessary keys (replace the placeholders with your actual local or test keys):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```env
+# MongoDB Configuration
+MONGODB_URI=mongodb://localhost:27017/gogame
 
-## Deploy on Vercel
+# Redis Configuration (Used for BullMQ / background tasks)
+REDIS_URL=redis://localhost:6379
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Stripe Configuration (Use Test Keys for local development)
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+STRIPE_WEBHOOK_SECRET=whsec_your_test_webhook_secret
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Google Pay Configuration (Test Mode)
+NEXT_PUBLIC_GOOGLE_PAY_ENVIRONMENT=TEST
+NEXT_PUBLIC_GOOGLE_PAY_MERCHANT_ID=01234567890123456789
+
+# Mail Configuration (Nodemailer/SMTP)
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_SECURE=false
+MAIL_USER=your_email@gmail.com
+MAIL_PASS=your_app_password
+MAIL_FROM=your_email@gmail.com
+MAIL_TO=admin_notification@gmail.com
+```
+*Note: If you are using Upstash for Redis or Atlas for MongoDB, update `REDIS_URL` and `MONGODB_URI` accordingly.*
+
+## 4. Seed the Database (Optional)
+
+If you need initial data to test the application, you can run the seed script:
+```bash
+npm run seed
+```
+
+## 5. Run the Application Locally
+
+This project uses Next.js for the frontend/API and a background worker (`worker.ts`) powered by BullMQ for handling asynchronous tasks (like sending emails).
+
+To run both the Next.js development server and the background worker simultaneously, use:
+
+```bash
+npm run dev:all
+```
+
+Alternatively, you can run them in separate terminal windows:
+- **Terminal 1 (Next.js Server):** `npm run dev`
+- **Terminal 2 (Background Worker):** `npm run worker`
+
+## 6. Access the Application
+
+Once the servers are running successfully, you can access the application in your browser:
+- **Frontend URL:** [http://localhost:3000](http://localhost:3000)
+
+---
+
+## Testing Webhooks Locally
+
+If you need to test Stripe webhooks locally, we recommend using the **Stripe CLI**:
+
+1. Install and login to Stripe CLI: `stripe login`
+2. Forward events to your local server:
+   ```bash
+   stripe listen --forward-to localhost:3000/api/webhooks/stripe
+   ```
+3. The CLI will output a webhook secret (`whsec_...`). Copy this and update your `STRIPE_WEBHOOK_SECRET` in your `.env` file, then restart your server.
