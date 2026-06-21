@@ -24,6 +24,8 @@ import {
   ReceiptText,
   Clock,
   FilePenLine,
+  KeyRound,
+  Mail,
 } from "lucide-react";
 
 import { cn } from "@/app/lib/utils";
@@ -174,6 +176,18 @@ const sidebarData: SidebarSection[] = [
         titleEs: "Próximamente",
         icon: Clock,
         url: "/dashboard/settings/coming-soon",
+      },
+      {
+        title: "Change Password",
+        titleEs: "Cambiar Contraseña",
+        icon: KeyRound,
+        url: "/dashboard/settings/password",
+      },
+      {
+        title: "Change Email",
+        titleEs: "Cambiar Correo",
+        icon: Mail,
+        url: "/dashboard/settings/email",
       },
     ],
   },

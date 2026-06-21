@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Eye,
   EyeOff,
@@ -190,12 +191,12 @@ export default function LoginForm() {
               </div>
 
               <div className="text-sm">
-                <a
-                  href="#"
+                <Link
+                  href="/admin-login/forgot-password"
                   className="font-medium text-[#76C043] hover:text-lime-600 transition-colors font-['Poppins']"
                 >
                   Forgot password?
-                </a>
+                </Link>
               </div>
             </div>
 
