@@ -27,7 +27,16 @@ async function seed() {
       });
 
       if (exists) {
-        console.log("ℹ️ Super Admin already exists. Skipping.");
+        console.log(
+          "ℹ️ Super Admin already exists. Updating email and password...",
+        );
+        exists.email = adminEmail;
+        exists.password = adminPassword;
+        if (adminUsername) {
+          exists.username = adminUsername;
+        }
+        await exists.save();
+        console.log(`✅ Super Admin updated: ${adminEmail}`);
       } else {
         console.log("Creating Super Admin...");
         await AuthService.create({
